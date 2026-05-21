@@ -89,7 +89,7 @@ export default function Countdown() {
 
   if (!timeLeft) {
     return (
-      <div className="mx-auto grid max-w-lg select-none grid-cols-4 gap-1.5 opacity-50">
+      <div className="mx-auto grid w-full select-none grid-cols-4 gap-1.5 opacity-50">
         {[...Array(4)].map((_, i) => (
           <CountdownCell key={i} label="" value={0} skeleton />
         ))}
@@ -105,7 +105,7 @@ export default function Countdown() {
   ];
 
   return (
-    <div className="mx-auto grid max-w-lg select-none grid-cols-4 gap-1.5">
+    <div className="mx-auto grid w-full select-none grid-cols-4 gap-1.5">
       {items.map((item) => (
         <CountdownCell key={item.label} label={item.label} value={item.value} />
       ))}

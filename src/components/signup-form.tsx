@@ -98,7 +98,7 @@ export default function SignupForm() {
 
   if (isSubmitted) {
     return (
-      <div className="glass-panel group relative mx-auto flex max-w-md flex-col items-center border border-border p-6 text-center">
+      <div className="glass-panel group relative mx-auto flex w-full flex-col items-center border border-border p-6 text-center">
         <div className="mb-4 flex h-11 w-11 items-center justify-center border border-brand/30 bg-brand/10 text-brand">
           <CheckCircle2 className="h-5 w-5" />
         </div>
@@ -114,7 +114,7 @@ export default function SignupForm() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md">
+    <div className="mx-auto w-full">
       <form onSubmit={handleSubmit} className="group relative">
         <div className="glass-panel relative flex items-center border border-border">
           <Mail className="pointer-events-none absolute left-3.5 h-4 w-4 text-muted-foreground transition-colors duration-300 group-focus-within:text-foreground" />

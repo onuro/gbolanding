@@ -136,7 +136,7 @@ export default function Home() {
             </div>
 
             {/* Countdown */}
-            <div className="w-full max-w-xl">
+            <div className="w-full max-w-lg">
               <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                 Launch countdown
               </p>
@@ -144,7 +144,7 @@ export default function Home() {
             </div>
 
             {/* Signup */}
-            <div id="waitlist" className="w-full max-w-md scroll-mt-24">
+            <div id="waitlist" className="w-full max-w-lg scroll-mt-24">
               <SignupForm />
             </div>
           </div>
