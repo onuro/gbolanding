@@ -4,6 +4,16 @@ import React, { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
 import { ArrowRight, CheckCircle2, Loader2, Mail } from "lucide-react";
 
+interface SignupCopy {
+  placeholder: string;
+  notify: string;
+  sending: string;
+  successTitle: string;
+  successBody: string;
+  requiredError: string;
+  invalidError: string;
+}
+
 function CornerBrackets() {
   return (
     <>
@@ -15,7 +25,7 @@ function CornerBrackets() {
   );
 }
 
-export default function SignupForm() {
+export default function SignupForm({ copy }: { copy: SignupCopy }) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,11 +42,11 @@ export default function SignupForm() {
 
   const validateEmail = (val: string) => {
     if (!val) {
-      return "Email is required";
+      return copy.requiredError;
     }
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!regex.test(val)) {
-      return "Please enter a valid email address";
+      return copy.invalidError;
     }
     return "";
   };
@@ -103,10 +113,10 @@ export default function SignupForm() {
           <CheckCircle2 className="h-5 w-5" />
         </div>
         <h3 className="mb-1 text-lg font-medium text-foreground">
-          {"You're on the list"}
+          {copy.successTitle}
         </h3>
         <p className="text-sm text-muted-foreground">
-          {"Thanks for your interest in GBO Vision. We'll be in touch with updates on our enterprise AI solutions."}
+          {copy.successBody}
         </p>
         <CornerBrackets />
       </div>
@@ -124,7 +134,7 @@ export default function SignupForm() {
             value={email}
             onChange={handleEmailChange}
             disabled={isSubmitting}
-            placeholder="Enter your work email"
+            placeholder={copy.placeholder}
             className={`w-full bg-transparent py-3.5 pl-11 pr-32 text-sm text-foreground transition-colors duration-300 placeholder:text-muted-foreground focus:outline-none ${
               error ? "text-red-400" : ""
             }`}
@@ -139,11 +149,11 @@ export default function SignupForm() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  <span>Sending</span>
+                  <span>{copy.sending}</span>
                 </>
               ) : (
                 <>
-                  <span>Notify me</span>
+                  <span>{copy.notify}</span>
                   <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover/btn:translate-x-0.5" />
                 </>
               )}

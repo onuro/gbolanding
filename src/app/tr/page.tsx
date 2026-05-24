@@ -5,11 +5,11 @@ import { getMessages } from "@/i18n/getMessages";
 import { buildMetadata } from "@/i18n/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const messages = await getMessages("en");
-  return buildMetadata("en", messages);
+  const messages = await getMessages("tr");
+  return buildMetadata("tr", messages);
 }
 
-export default async function Home() {
-  const messages = await getMessages("en");
-  return <HomePage locale="en" messages={messages} />;
+export default async function TurkishHomePage() {
+  const messages = await getMessages("tr");
+  return <HomePage locale="tr" messages={messages} />;
 }

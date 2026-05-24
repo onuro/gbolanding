@@ -9,6 +9,13 @@ interface TimeLeft {
   seconds: number;
 }
 
+interface CountdownLabels {
+  days: string;
+  hours: string;
+  minutes: string;
+  seconds: string;
+}
+
 const FIFTEEN_DAYS_MS = 15 * 24 * 60 * 60 * 1000;
 
 function CornerBrackets({ className = "" }: { className?: string }) {
@@ -52,7 +59,7 @@ function CountdownCell({
   );
 }
 
-export default function Countdown() {
+export default function Countdown({ labels }: { labels: CountdownLabels }) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
 
   useEffect(() => {
@@ -98,10 +105,10 @@ export default function Countdown() {
   }
 
   const items = [
-    { label: "Days", value: timeLeft.days },
-    { label: "Hours", value: timeLeft.hours },
-    { label: "Minutes", value: timeLeft.minutes },
-    { label: "Seconds", value: timeLeft.seconds },
+    { label: labels.days, value: timeLeft.days },
+    { label: labels.hours, value: timeLeft.hours },
+    { label: labels.minutes, value: timeLeft.minutes },
+    { label: labels.seconds, value: timeLeft.seconds },
   ];
 
   return (
