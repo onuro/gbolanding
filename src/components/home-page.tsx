@@ -3,7 +3,7 @@ import { ArrowRight, Bot, Building2, Layers } from "lucide-react";
 
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
-import { LogoShape, Logotype } from "@/components/logo";
+import { LogoShape } from "@/components/logo";
 import Countdown from "@/components/countdown";
 import LanguageSwitcher from "@/components/language-switcher";
 import SignupForm from "@/components/signup-form";
@@ -17,11 +17,11 @@ const Ladder = ({ side }: { side: "left" | "right" }) => (
     {Array.from({ length: RUNG_COUNT }).map((_, i) => (
       <div
         key={i}
-        className={`relative w-full flex-1 ${side === "left" ? "border-r" : "border-l"} ${i !== RUNG_COUNT - 1 ? "border-b-2" : ""}`}
+        className={`relative w-full flex-1 ${side === "left" ? "border-r" : "border-l"} ${i !== RUNG_COUNT - 1 ? "border-b-[1px]" : ""}`}
         style={{
           backgroundImage:
             "repeating-linear-gradient(315deg, currentColor 0, currentColor 1px, transparent 0, transparent 50%)",
-          backgroundSize: "7px 7px",
+          backgroundSize: "8px 8px",
           color: "oklch(from var(--foreground) l c h / 0.06)",
         }}
       />
@@ -53,18 +53,14 @@ export default function HomePage({ locale, messages }: HomePageProps) {
       <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col border-x">
         <header className="relative flex h-(--nav-height) items-center justify-between px-6">
           <div className="group flex cursor-pointer select-none items-center gap-2.5">
-            <LogoShape
-              glow={false}
-              className="h-8 w-6 text-foreground transition-transform duration-500 group-hover:scale-105"
-            />
-            <Logotype
-              glow={false}
-              className="h-5 w-fit text-foreground transition-opacity duration-300 group-hover:opacity-80"
+            <img
+              src="/gbobo2.svg"
+              alt="GBO"
+              className="h-8 w-auto transition-transform duration-500 group-hover:scale-105"
             />
           </div>
 
           <div className="flex items-center gap-3">
-            <LanguageSwitcher locale={locale} />
             <div className="group relative w-fit">
               <a
                 href="#waitlist"
@@ -75,10 +71,11 @@ export default function HomePage({ locale, messages }: HomePageProps) {
               </a>
               <CornerBrackets />
             </div>
+            <LanguageSwitcher locale={locale} />
           </div>
 
-          <div className="absolute bottom-0 left-0 z-10 size-2.5 -translate-x-1/2 translate-y-1/2 rounded-full border border-border bg-background" />
-          <div className="absolute bottom-0 right-0 z-10 size-2.5 translate-x-1/2 translate-y-1/2 rounded-full border border-border bg-background" />
+          <div className="absolute bottom-0 left-0 z-12 size-2.5 -translate-x-1/2 translate-y-1/2 rounded-full border border-border bg-background" />
+          <div className="absolute bottom-0 right-0 z-12 size-2.5 translate-x-1/2 translate-y-1/2 rounded-full border border-border bg-background" />
           <div className="absolute bottom-0 left-1/2 w-screen -translate-x-1/2 border-b" />
         </header>
       </div>
