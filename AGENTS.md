@@ -1,5 +1,10 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+<!-- BEGIN:astro-agent-rules -->
+# Astro project
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+This is an Astro site with React islands (`@astrojs/react`), Tailwind CSS v4 via `@tailwindcss/vite`, and `@astrojs/vercel` SSR.
+
+- Pages live in `src/pages/`
+- Shared layout: `src/layouts/BaseLayout.astro`
+- Interactive UI (countdown, signup, language switcher) are React islands with `client:load`
+- Locale middleware: `src/middleware.ts`
+<!-- END:astro-agent-rules -->
