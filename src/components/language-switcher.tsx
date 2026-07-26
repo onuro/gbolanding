@@ -1,7 +1,4 @@
-"use client";
-
 import { ChevronDown } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import type { Locale } from "@/i18n/config";
 
@@ -10,27 +7,20 @@ interface LanguageSwitcherProps {
 }
 
 export default function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
   const handleChange = (nextLocale: Locale) => {
     document.cookie = `gbo_locale=${nextLocale}; path=/; max-age=31536000; samesite=lax`;
 
-    const currentPath = pathname || "/";
-    const withoutLocalePrefix = currentPath.startsWith("/tr")
-      ? currentPath.slice(3) || "/"
-      : currentPath;
+    const { pathname, search, hash } = window.location;
+    const withoutLocalePrefix = pathname.startsWith("/tr")
+      ? pathname.slice(3) || "/"
+      : pathname;
 
     const targetPath =
       nextLocale === "tr"
         ? `/tr${withoutLocalePrefix === "/" ? "" : withoutLocalePrefix}`
         : withoutLocalePrefix;
 
-    const query = searchParams.toString();
-    const hash = typeof window !== "undefined" ? window.location.hash : "";
-    const href = `${targetPath}${query ? `?${query}` : ""}${hash}`;
-    router.push(href);
+    window.location.assign(`${targetPath}${search}${hash}`);
   };
 
   return (
