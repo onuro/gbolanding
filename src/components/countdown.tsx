@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 
 interface TimeLeft {
@@ -36,6 +34,7 @@ function CornerBrackets({ className = "" }: { className?: string }) {
     </>
   );
 }
+
 
 function CountdownCell({
   label,

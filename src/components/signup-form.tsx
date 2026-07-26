@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
 import { ArrowRight, CheckCircle2, Loader2, Mail } from "lucide-react";
