@@ -1,0 +1,107 @@
+---
+import {
+  BrainCircuit,
+  Building2,
+  Database,
+  Eye,
+  UserCheck,
+  Workflow,
+} from "lucide-react";
+
+import type { Locale } from "@/i18n/config";
+import type { Messages } from "@/i18n/types";
+
+interface Props {
+  locale: Locale;
+  messages: Messages;
+}
+
+const { messages } = Astro.props;
+const capabilityIcons = [
+  BrainCircuit,
+  Workflow,
+  UserCheck,
+  Database,
+  Eye,
+  Building2,
+] as const;
+---
+
+<section
+  id="platform"
+  aria-labelledby="platform-heading"
+  class="scroll-mt-20 border-b border-border bg-background"
+>
+  <div class="mx-auto w-full max-w-[82.5rem] border-x border-border">
+    <header class="grid border-b border-border lg:grid-cols-12">
+      <div
+        class="flex items-start px-6 py-7 sm:px-8 lg:col-span-4 lg:border-r lg:border-border lg:px-10 lg:py-12"
+      >
+        <p
+          class="inline-flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground"
+        >
+          <span aria-hidden="true" class="size-1.5 bg-brand"></span>
+          {messages.platform.eyebrow}
+        </p>
+      </div>
+
+      <div class="px-6 py-9 sm:px-8 sm:py-11 lg:col-span-8 lg:px-12 lg:py-14">
+        <h2
+          id="platform-heading"
+          class="max-w-3xl text-balance text-3xl font-medium leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl"
+        >
+          {messages.platform.title}
+        </h2>
+        <p
+          class="mt-5 max-w-2xl text-pretty text-base leading-7 text-muted-foreground sm:text-lg"
+        >
+          {messages.platform.description}
+        </p>
+      </div>
+    </header>
+
+    <ul class="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
+      {
+        messages.platform.capabilities.map((capability, index) => {
+          const Icon = capabilityIcons[index] ?? BrainCircuit;
+          const itemNumber = String(index + 1).padStart(2, "0");
+
+          return (
+            <li class="relative flex min-h-64 flex-col bg-background p-6 sm:p-8">
+              <div class="flex items-center justify-between">
+                <span class="flex size-10 items-center justify-center border border-border bg-card text-brand">
+                  <Icon
+                    aria-hidden="true"
+                    focusable="false"
+                    className="size-4"
+                    strokeWidth={1.5}
+                  />
+                </span>
+                <span
+                  aria-hidden="true"
+                  class="font-mono text-[11px] tracking-[0.2em] text-muted-foreground"
+                >
+                  {itemNumber}
+                </span>
+              </div>
+
+              <div class="mt-auto pt-12">
+                <h3 class="text-xl font-medium tracking-tight text-foreground">
+                  {capability.title}
+                </h3>
+                <p class="mt-3 max-w-sm text-sm leading-6 text-muted-foreground sm:text-base">
+                  {capability.description}
+                </p>
+              </div>
+
+              <span
+                aria-hidden="true"
+                class="absolute right-0 bottom-0 size-2.5 border-r border-b border-foreground/25"
+              ></span>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</section>

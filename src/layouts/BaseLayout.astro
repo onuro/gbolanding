@@ -10,28 +10,68 @@ interface Props {
 
 const { locale, metadata } = Astro.props;
 const ogLocale = locale === "tr" ? "tr_TR" : "en_US";
+const siteOrigin = Astro.site ?? Astro.url.origin;
+const canonicalUrl = new URL(metadata.canonicalPath, siteOrigin);
+const englishUrl = new URL("/", siteOrigin);
+const turkishUrl = new URL("/tr", siteOrigin);
+const socialImageUrl = new URL("/og.png", siteOrigin);
+const socialImageAlt =
+  locale === "tr"
+    ? "GBO Vision — İşe özel, kurumsal zeka."
+    : "GBO Vision — Enterprise intelligence, purpose-built.";
 ---
 
 <!doctype html>
-<html lang={locale} class="dark h-full antialiased">
+<html lang={locale} class="dark h-full antialiased" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b0e0c" />
+    <meta name="color-scheme" content="dark light" />
+    <script is:inline>
+      (() => {
+        try {
+          const savedTheme = localStorage.getItem("gbo_theme");
+          const theme = savedTheme === "light" ? "light" : "dark";
+          const root = document.documentElement;
+          root.dataset.theme = theme;
+          root.style.colorScheme = theme;
+          root.classList.toggle("dark", theme === "dark");
+          document
+            .querySelector('meta[name="theme-color"]')
+            ?.setAttribute(
+              "content",
+              theme === "light" ? "#ffffff" : "#0b0e0c",
+            );
+        } catch {
+          // Dark remains the no-script and storage-restricted default.
+        }
+      })();
+    </script>
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <title>{metadata.title}</title>
     <meta name="description" content={metadata.description} />
     <meta name="keywords" content={metadata.keywords.join(", ")} />
     <meta name="author" content="GBO Vision Team" />
-    <link rel="canonical" href={metadata.canonicalPath} />
-    <link rel="alternate" hreflang="en" href="/" />
-    <link rel="alternate" hreflang="tr" href="/tr" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="alternate" hreflang="en" href={englishUrl} />
+    <link rel="alternate" hreflang="tr" href={turkishUrl} />
+    <link rel="alternate" hreflang="x-default" href={englishUrl} />
     <meta property="og:title" content={metadata.title} />
     <meta property="og:description" content={metadata.description} />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="GBO Vision" />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:locale" content={ogLocale} />
+    <meta property="og:image" content={socialImageUrl} />
+    <meta property="og:image:width" content="1733" />
+    <meta property="og:image:height" content="907" />
+    <meta property="og:image:alt" content={socialImageAlt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={metadata.title} />
     <meta name="twitter:description" content={metadata.description} />
+    <meta name="twitter:image" content={socialImageUrl} />
   </head>
   <body
     class="min-h-full flex flex-col font-sans bg-background text-foreground selection:bg-brand/25 selection:text-foreground"

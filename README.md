@@ -1,6 +1,6 @@
-# GBO Landing
+# GBO Vision
 
-Astro landing page for GBO Vision enterprise AI platforms.
+Astro homepage for GBO Vision's enterprise AI platforms.
 
 ## Getting Started
 
@@ -23,3 +23,15 @@ Open [http://localhost:4321](http://localhost:4321).
 - `/tr` — Turkish
 
 Locale is auto-detected via cookie, Vercel geo (`x-vercel-ip-country`), or `Accept-Language`, then persisted in the `gbo_locale` cookie.
+
+## Waitlist
+
+The waitlist form posts to `/api/waitlist`, which validates the request and
+forwards it to a configured HTTPS webhook.
+
+Copy `.env.example` to `.env` and set:
+
+- `WAITLIST_WEBHOOK_URL` — destination that receives the JSON payload
+- `WAITLIST_WEBHOOK_TOKEN` — optional bearer token for that destination
+
+The form returns an honest unavailable state until the webhook is configured.

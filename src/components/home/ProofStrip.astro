@@ -1,0 +1,53 @@
+---
+import type { Locale } from "@/i18n/config";
+import type { Messages } from "@/i18n/types";
+
+interface Props {
+  locale: Locale;
+  messages: Messages;
+}
+
+const { messages } = Astro.props;
+---
+
+<section
+  aria-labelledby="proof-strip-label"
+  class="mx-auto w-full max-w-[82.5rem] border-x border-b border-border"
+>
+  <div
+    class="grid grid-cols-2 lg:grid-cols-[repeat(24,minmax(0,1fr))]"
+  >
+    <div
+      class="diagonal-hatch col-span-2 flex min-h-16 items-center border-b border-border px-5 sm:px-8 lg:col-span-4 lg:min-h-20 lg:border-b-0"
+    >
+      <p
+        id="proof-strip-label"
+        class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+      >
+        {messages.proofStrip.label}
+      </p>
+    </div>
+
+    <ul class="contents" role="list">
+      {
+        messages.proofStrip.items.map((item, index) => (
+          <li
+            class:list={[
+              "flex min-h-20 items-center gap-3 bg-background px-4 py-4 sm:px-6 lg:col-span-5 lg:border-l lg:border-t-0",
+              index % 2 === 1 && "border-l",
+              index > 1 && "border-t",
+            ]}
+          >
+            <span
+              aria-hidden="true"
+                  class="font-mono text-[9px] text-tertiary-foreground"
+            >
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span class="text-sm leading-5 text-foreground/70">{item}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

@@ -13,8 +13,8 @@ export function LogoShape({ glow = true, className, ...props }: LogoProps) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`${className} ${
-        glow ? "drop-shadow-[0_0_20px_rgba(34,211,238,0.3)]" : ""
-      } transition-all duration-700`}
+        glow ? "drop-shadow-[0_0_20px_rgba(5,221,135,0.24)]" : ""
+      } transition-colors duration-300`}
       {...props}
     >
       <path
@@ -67,7 +67,7 @@ export function Logotype({ glow = true, className, ...props }: LogoProps) {
       xmlns="http://www.w3.org/2000/svg"
       className={`${className} ${
         glow ? "drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" : ""
-      } transition-all duration-700`}
+      } transition-colors duration-300`}
       {...props}
     >
       <mask

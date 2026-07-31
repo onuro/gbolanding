@@ -14,8 +14,36 @@ function preferredLocale(request: Request, cookieValue?: string) {
     return "tr" as const;
   }
 
-  const acceptLanguage = request.headers.get("accept-language")?.toLowerCase() ?? "";
-  if (acceptLanguage.startsWith("tr") || acceptLanguage.includes(",tr")) {
+  const acceptedLanguages = (
+    request.headers.get("accept-language")?.toLowerCase() ?? ""
+  )
+    .split(",")
+    .map((entry) => {
+      const [language, ...parameters] = entry.trim().split(";");
+      const qualityParameter = parameters.find((parameter) =>
+        parameter.trim().startsWith("q="),
+      );
+      const quality = qualityParameter
+        ? Number.parseFloat(qualityParameter.split("=")[1] ?? "0")
+        : 1;
+
+      return { language, quality: Number.isFinite(quality) ? quality : 0 };
+    })
+    .filter(({ quality }) => quality > 0)
+    .sort((a, b) => b.quality - a.quality);
+
+  const preferredSupportedLanguage = acceptedLanguages.find(
+    ({ language }) =>
+      language === "tr" ||
+      language.startsWith("tr-") ||
+      language === "en" ||
+      language.startsWith("en-"),
+  )?.language;
+
+  if (
+    preferredSupportedLanguage === "tr" ||
+    preferredSupportedLanguage?.startsWith("tr-")
+  ) {
     return "tr" as const;
   }
 
@@ -36,7 +64,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   if (pathname === "/en" || pathname.startsWith("/en/")) {
     const target = pathname === "/en" ? "/" : pathname.replace(/^\/en/, "");
-    return redirect(target);
+    cookies.set(localeCookieName, "en", {
+      path: "/",
+      sameSite: "lax",
+      maxAge: COOKIE_MAX_AGE,
+    });
+    return redirect(target, 302);
   }
 
   if (pathname === "/tr" || pathname.startsWith("/tr/")) {

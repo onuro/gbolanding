@@ -1,0 +1,195 @@
+---
+import { ArrowRight, Menu } from "lucide-react";
+import ThemeToggle from "@/components/home/ThemeToggle.astro";
+import type { Locale } from "@/i18n/config";
+import type { Messages } from "@/i18n/types";
+
+interface Props {
+  locale: Locale;
+  messages: Messages;
+}
+
+const { locale, messages } = Astro.props;
+const homeHref = locale === "tr" ? "/tr" : "/";
+const primaryNavigationLabel =
+  locale === "tr" ? "Ana navigasyon" : "Primary navigation";
+const menuLabel = locale === "tr" ? "Menü" : "Menu";
+const navItems = [
+  { href: "#solutions", label: messages.nav.solutions },
+  { href: "#platform", label: messages.nav.platform },
+  { href: "#method", label: messages.nav.method },
+];
+---
+
+<header
+  class="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl"
+>
+  <div
+    class="mx-auto flex h-16 w-full max-w-[82.5rem] items-stretch border-x border-border"
+  >
+    <a
+      href={homeHref}
+      class="flex min-w-0 items-center border-r border-border px-4 outline-none transition-colors hover:bg-foreground/[0.035] focus-visible:bg-foreground/[0.06] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:px-6"
+      aria-label="GBO Vision"
+    >
+      <img
+        src="/gbobo2.svg"
+        alt=""
+        width="1468"
+        height="662"
+        class="site-logo h-7 w-auto select-none"
+      />
+    </a>
+
+    <nav
+      aria-label={primaryNavigationLabel}
+      class="hidden items-stretch md:flex"
+    >
+      {
+        navItems.map((item) => (
+          <a
+            href={item.href}
+            class="group relative flex items-center border-r border-border px-5 font-mono text-[12px] uppercase tracking-[0.14em] text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:bg-foreground/[0.06] focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset lg:px-6"
+          >
+            {item.label}
+            <span class="absolute inset-x-5 bottom-0 h-px origin-left scale-x-0 bg-brand transition-transform group-hover:scale-x-100 group-focus-visible:scale-x-100 lg:inset-x-6" />
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="ml-auto flex items-stretch">
+      <ThemeToggle locale={locale} />
+
+      <nav
+        aria-label={messages.nav.languageLabel}
+        class="hidden items-center gap-1 border-l border-border px-3 md:flex"
+      >
+        <a
+          href="/en"
+          hreflang="en"
+          lang="en"
+          aria-current={locale === "en" ? "page" : undefined}
+          class:list={[
+            "px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+            locale === "en"
+              ? "bg-foreground/[0.07] text-foreground"
+              : "text-muted-foreground hover:text-foreground",
+          ]}
+        >
+          EN
+        </a>
+        <span class="h-3 w-px bg-border" aria-hidden="true"></span>
+        <a
+          href="/tr/"
+          hreflang="tr"
+          lang="tr"
+          aria-current={locale === "tr" ? "page" : undefined}
+          class:list={[
+            "px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+            locale === "tr"
+              ? "bg-foreground/[0.07] text-foreground"
+              : "text-muted-foreground hover:text-foreground",
+          ]}
+        >
+          TR
+        </a>
+      </nav>
+
+      <a
+        href="#demo"
+        class="group flex items-center justify-center gap-2 border-l border-border bg-brand px-3 text-xs font-medium text-brand-foreground outline-none transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-inset sm:px-5"
+      >
+        <span class="sr-only sm:not-sr-only">{messages.nav.scheduleDemo}</span>
+        <ArrowRight
+          aria-hidden="true"
+          className="size-4 transition-transform group-hover:translate-x-0.5"
+          strokeWidth={1.75}
+        />
+      </a>
+
+      <details
+        class="group relative border-l border-border md:hidden"
+        data-mobile-menu
+      >
+        <summary
+          class="flex h-full w-12 cursor-pointer list-none items-center justify-center text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset [&::-webkit-details-marker]:hidden"
+        >
+          <span class="sr-only">{menuLabel}</span>
+          <Menu
+            aria-hidden="true"
+            className="size-4"
+            strokeWidth={1.5}
+          />
+        </summary>
+
+        <div
+          class="panel-shadow absolute right-0 top-full mt-px w-64 border border-border bg-background"
+        >
+          <nav aria-label={primaryNavigationLabel} class="flex flex-col">
+            {
+              navItems.map((item) => (
+                <a
+                  href={item.href}
+                  class="border-b border-border px-5 py-4 font-mono text-[12px] uppercase tracking-[0.14em] text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:bg-foreground/[0.06] focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
+                >
+                  {item.label}
+                </a>
+              ))
+            }
+          </nav>
+
+          <nav
+            aria-label={messages.nav.languageLabel}
+            class="flex items-center justify-between px-5 py-3"
+          >
+            <span class="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+              {messages.nav.languageLabel}
+            </span>
+            <span class="flex items-center gap-1">
+              <a
+                href="/en"
+                hreflang="en"
+                lang="en"
+                aria-current={locale === "en" ? "page" : undefined}
+                class:list={[
+                  "px-2 py-1.5 font-mono text-[10px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+                  locale === "en"
+                    ? "bg-foreground/[0.07] text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                ]}
+              >
+                EN
+              </a>
+              <a
+                href="/tr"
+                hreflang="tr"
+                lang="tr"
+                aria-current={locale === "tr" ? "page" : undefined}
+                class:list={[
+                  "px-2 py-1.5 font-mono text-[10px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+                  locale === "tr"
+                    ? "bg-foreground/[0.07] text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                ]}
+              >
+                TR
+              </a>
+            </span>
+          </nav>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+
+<script>
+  const mobileMenu =
+    document.querySelector<HTMLDetailsElement>("[data-mobile-menu]");
+
+  mobileMenu?.addEventListener("click", (event) => {
+    if (event.target instanceof Element && event.target.closest("a")) {
+      mobileMenu.open = false;
+    }
+  });
+</script>

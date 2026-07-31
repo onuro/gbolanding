@@ -1,0 +1,105 @@
+---
+import { Moon, Sun } from "lucide-react";
+
+import type { Locale } from "@/i18n/config";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const lightLabel =
+  locale === "tr" ? "Açık temaya geç" : "Switch to light theme";
+const darkLabel =
+  locale === "tr" ? "Koyu temaya geç" : "Switch to dark theme";
+---
+
+<button
+  type="button"
+  class="theme-toggle flex w-12 shrink-0 items-center justify-center border-l border-border text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
+  aria-label={lightLabel}
+  title={lightLabel}
+  data-theme-toggle
+  data-light-label={lightLabel}
+  data-dark-label={darkLabel}
+>
+  <Sun
+    aria-hidden="true"
+    className="theme-toggle__sun size-4"
+    strokeWidth={1.5}
+  />
+  <Moon
+    aria-hidden="true"
+    className="theme-toggle__moon size-4"
+    strokeWidth={1.5}
+  />
+</button>
+
+<script>
+  const themeStorageKey = "gbo_theme";
+
+  function applyTheme(theme: "dark" | "light") {
+    const root = document.documentElement;
+    const toggle = document.querySelector<HTMLButtonElement>(
+      "[data-theme-toggle]",
+    );
+    const meta = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]',
+    );
+
+    root.dataset.theme = theme;
+    root.style.colorScheme = theme;
+    root.classList.toggle("dark", theme === "dark");
+
+    if (meta) {
+      meta.content = theme === "light" ? "#ffffff" : "#0b0e0c";
+    }
+
+    if (toggle) {
+      const isLight = theme === "light";
+      const label = isLight
+        ? toggle.dataset.darkLabel
+        : toggle.dataset.lightLabel;
+
+      if (label) {
+        toggle.setAttribute("aria-label", label);
+        toggle.title = label;
+      }
+    }
+  }
+
+  const toggle = document.querySelector<HTMLButtonElement>(
+    "[data-theme-toggle]",
+  );
+  const initialTheme =
+    document.documentElement.dataset.theme === "light" ? "light" : "dark";
+
+  applyTheme(initialTheme);
+
+  toggle?.addEventListener("click", () => {
+    const nextTheme =
+      document.documentElement.dataset.theme === "light" ? "dark" : "light";
+
+    applyTheme(nextTheme);
+
+    try {
+      localStorage.setItem(themeStorageKey, nextTheme);
+    } catch {
+      // The selected theme still applies for the current page.
+    }
+  });
+</script>
+
+<style>
+  .theme-toggle__moon {
+    display: none;
+  }
+
+  :global(html[data-theme="light"]) .theme-toggle__sun {
+    display: none;
+  }
+
+  :global(html[data-theme="light"]) .theme-toggle__moon {
+    display: block;
+  }
+</style>

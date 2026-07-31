@@ -1,7 +1,20 @@
-export interface FeatureMessage {
-  label: string;
+export interface SolutionMessage {
+  eyebrow: string;
   title: string;
-  body: string;
+  description: string;
+  highlights: [string, string, string];
+  cta: string;
+}
+
+export interface CapabilityMessage {
+  title: string;
+  description: string;
+}
+
+export interface ApproachStepMessage {
+  number: string;
+  title: string;
+  description: string;
 }
 
 export interface Messages {
@@ -10,21 +23,58 @@ export interface Messages {
     description: string;
   };
   nav: {
-    badge: string;
-    joinWaitlist: string;
+    solutions: string;
+    platform: string;
+    method: string;
+    languageLabel: string;
+    scheduleDemo: string;
   };
   hero: {
-    badge: string;
-    titleLineOne: string;
-    titleLineTwo: string;
+    eyebrow: string;
+    titleLead: string;
+    titleAccent: string;
+    description: string;
+    primaryCta: string;
+    secondaryCta: string;
+    status: string;
+  };
+  proofStrip: {
+    label: string;
+    items: [string, string, string, string];
+  };
+  intro: {
+    eyebrow: string;
+    title: string;
     description: string;
   };
-  countdown: {
-    heading: string;
-    days: string;
-    hours: string;
-    minutes: string;
-    seconds: string;
+  solutions: {
+    kollektor: SolutionMessage;
+    intelval: SolutionMessage;
+    enterprise: SolutionMessage;
+  };
+  platform: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    capabilities: [
+      CapabilityMessage,
+      CapabilityMessage,
+      CapabilityMessage,
+      CapabilityMessage,
+      CapabilityMessage,
+      CapabilityMessage,
+    ];
+  };
+  approach: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    steps: [
+      ApproachStepMessage,
+      ApproachStepMessage,
+      ApproachStepMessage,
+      ApproachStepMessage,
+    ];
   };
   signup: {
     placeholder: string;
@@ -35,10 +85,21 @@ export interface Messages {
     errors: {
       required: string;
       invalid: string;
+      submission: string;
     };
   };
-  features: FeatureMessage[];
+  finalCta: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    primaryCta: string;
+    secondaryCta: string;
+  };
   footer: {
+    tagline: string;
+    solutions: string;
+    platform: string;
+    method: string;
     rightsReserved: string;
   };
 }

@@ -1,0 +1,198 @@
+---
+import { ArrowRight, CheckCircle2, Loader2, Mail } from "lucide-react";
+import type { Locale } from "@/i18n/config";
+import type { Messages } from "@/i18n/types";
+
+interface Props {
+  locale: Locale;
+  messages: Messages;
+}
+
+const { locale, messages } = Astro.props;
+const inputId = `waitlist-email-${locale}`;
+const errorId = `waitlist-error-${locale}`;
+---
+
+<div data-waitlist-root>
+  <form
+    action="/api/waitlist"
+    method="post"
+    class="w-full"
+    novalidate
+    data-waitlist-form
+    data-required-error={messages.signup.errors.required}
+    data-invalid-error={messages.signup.errors.invalid}
+    data-submission-error={messages.signup.errors.submission}
+  >
+    <label class="sr-only" for={inputId}>{messages.signup.placeholder}</label>
+
+    <input
+      class="absolute -left-[9999px] size-px"
+      type="text"
+      name="company"
+      tabindex="-1"
+      autocomplete="off"
+      aria-hidden="true"
+    />
+    <input type="hidden" name="locale" value={locale} />
+    <input type="hidden" name="source" value="homepage" />
+
+    <div
+      class="box-panel flex flex-col gap-2 p-2 sm:flex-row sm:items-center"
+      data-input-shell
+    >
+      <div class="relative min-w-0 flex-1">
+        <Mail
+          aria-hidden="true"
+          className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+        />
+        <input
+          id={inputId}
+          name="email"
+          type="email"
+          required
+          placeholder={messages.signup.placeholder}
+          autocomplete="email"
+          inputmode="email"
+          aria-describedby={errorId}
+          class="min-h-12 w-full rounded-sm border border-transparent bg-transparent py-3 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-brand-line focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+          data-email-input
+        />
+      </div>
+
+      <button type="submit" class="button-primary group min-w-36 shrink-0">
+        <span class="inline-flex items-center gap-2" data-idle-label>
+          <span>{messages.finalCta.primaryCta}</span>
+          <ArrowRight
+            aria-hidden="true"
+            className="size-4 transition-transform group-hover:translate-x-0.5"
+          />
+        </span>
+        <span class="hidden items-center gap-2" data-loading-label>
+          <Loader2 aria-hidden="true" className="size-4 animate-spin" />
+          <span>{messages.signup.sending}</span>
+        </span>
+      </button>
+    </div>
+
+    <p
+      id={errorId}
+      class="min-h-6 px-1 pt-2 text-left text-xs text-danger"
+      role="alert"
+      aria-live="polite"
+      data-form-error
+    >
+    </p>
+  </form>
+
+  <div
+    class="box-panel hidden min-h-32 w-full items-start gap-4 p-5 text-left sm:items-center sm:p-6"
+    role="status"
+    aria-live="polite"
+    tabindex="-1"
+    data-form-success
+  >
+    <span
+      class="flex size-11 shrink-0 items-center justify-center border border-brand-line bg-brand-soft text-brand"
+    >
+      <CheckCircle2 aria-hidden="true" className="size-5" />
+    </span>
+    <span>
+      <strong class="block text-base font-medium text-foreground">
+        {messages.signup.successTitle}
+      </strong>
+      <span class="mt-1 block max-w-md text-sm leading-6 text-muted-foreground">
+        {messages.signup.successBody}
+      </span>
+    </span>
+  </div>
+</div>
+
+<script is:inline>
+  const forms = document.querySelectorAll("[data-waitlist-form]");
+
+  for (const form of forms) {
+    if (form.dataset.enhanced === "true") continue;
+    form.dataset.enhanced = "true";
+
+    const root = form.closest("[data-waitlist-root]");
+    const input = form.querySelector("[data-email-input]");
+    const shell = form.querySelector("[data-input-shell]");
+    const button = form.querySelector('button[type="submit"]');
+    const idleLabel = form.querySelector("[data-idle-label]");
+    const loadingLabel = form.querySelector("[data-loading-label]");
+    const error = form.querySelector("[data-form-error]");
+    const success = root?.querySelector("[data-form-success]");
+
+    if (
+      !root ||
+      !input ||
+      !shell ||
+      !button ||
+      !idleLabel ||
+      !loadingLabel ||
+      !error ||
+      !success
+    ) {
+      continue;
+    }
+
+    const setError = (message) => {
+      error.textContent = message;
+      input.setAttribute("aria-invalid", message ? "true" : "false");
+      shell.classList.toggle("border-danger/60", Boolean(message));
+    };
+
+    input.addEventListener("input", () => {
+      if (error.textContent) setError("");
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!input.value.trim()) {
+        setError(form.dataset.requiredError ?? "");
+        input.focus();
+        return;
+      }
+
+      if (!input.validity.valid) {
+        setError(form.dataset.invalidError ?? "");
+        input.focus();
+        return;
+      }
+
+      setError("");
+      const values = Object.fromEntries(new FormData(form));
+      button.disabled = true;
+      input.disabled = true;
+      form.setAttribute("aria-busy", "true");
+      idleLabel.classList.add("hidden");
+      loadingLabel.classList.remove("hidden");
+      loadingLabel.classList.add("inline-flex");
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values),
+        });
+
+        if (!response.ok) throw new Error("waitlist_failed");
+
+        form.classList.add("hidden");
+        success.classList.remove("hidden");
+        success.classList.add("flex");
+        success.focus();
+      } catch {
+        setError(form.dataset.submissionError ?? "");
+        button.disabled = false;
+        input.disabled = false;
+        form.removeAttribute("aria-busy");
+        idleLabel.classList.remove("hidden");
+        loadingLabel.classList.add("hidden");
+        loadingLabel.classList.remove("inline-flex");
+      }
+    });
+  }
+</script>

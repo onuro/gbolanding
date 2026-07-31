@@ -1,11 +1,14 @@
 ---
-import { ArrowRight, Bot, Building2, Layers } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
-import { LogoShape } from "@/components/logo";
-import Countdown from "@/components/countdown";
-import LanguageSwitcher from "@/components/language-switcher";
-import SignupForm from "@/components/signup-form";
+import ApproachSection from "@/components/home/ApproachSection.astro";
+import FinalCta from "@/components/home/FinalCta.astro";
+import HeroSection from "@/components/home/HeroSection.astro";
+import PlatformSection from "@/components/home/PlatformSection.astro";
+import SolutionsGrid from "@/components/home/SolutionsGrid.astro";
+import ProofStrip from "@/components/home/ProofStrip.astro";
+import SiteFooter from "@/components/home/SiteFooter.astro";
+import SiteHeader from "@/components/home/SiteHeader.astro";
 
 interface Props {
   locale: Locale;
@@ -13,203 +16,22 @@ interface Props {
 }
 
 const { locale, messages } = Astro.props;
-const RUNG_COUNT = 10;
-const featureIcons = [Bot, Building2, Layers] as const;
-const year = new Date().getFullYear();
+const skipLink = locale === "tr" ? "Ana içeriğe geç" : "Skip to content";
 ---
 
-<div class="flex min-h-screen w-full flex-col">
-  <!-- Nav -->
-  <div class="mx-auto flex w-full max-w-7xl min-w-0 flex-col border-x">
-    <header class="relative flex h-(--nav-height) items-center justify-between px-6">
-      <div class="group flex cursor-pointer select-none items-center gap-2.5">
-        <img
-          src="/gbobo2.svg"
-          alt="GBO"
-          class="h-8 w-auto transition-transform duration-500 group-hover:scale-105"
-        />
-      </div>
+<a class="skip-link" href="#main-content">{skipLink}</a>
 
-      <div class="flex items-center gap-3">
-        <div class="group relative w-fit">
-          <a
-            href="#waitlist"
-            class="relative flex h-8 cursor-pointer items-center gap-1.5 overflow-hidden border border-dashed border-border bg-card px-4 text-xs font-medium text-foreground/80 transition-colors duration-300 hover:bg-muted hover:text-foreground"
-          >
-            {messages.nav.joinWaitlist}
-            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-          </a>
-          <span class="absolute bottom-0 right-0 h-2 w-2 border-b border-r border-foreground/30 transition-colors duration-300 group-hover:border-foreground"></span>
-          <span class="absolute bottom-0 left-0 h-2 w-2 border-b border-l border-foreground/30 transition-colors duration-300 group-hover:border-foreground"></span>
-          <span class="absolute top-0 right-0 h-2 w-2 border-r border-t border-foreground/30 transition-colors duration-300 group-hover:border-foreground"></span>
-          <span class="absolute top-0 left-0 h-2 w-2 border-l border-t border-foreground/30 transition-colors duration-300 group-hover:border-foreground"></span>
-        </div>
-        <LanguageSwitcher client:load locale={locale} />
-      </div>
+<div class="min-h-screen bg-background">
+  <SiteHeader locale={locale} messages={messages} />
 
-      <div class="absolute bottom-0 left-0 z-12 size-2.5 -translate-x-1/2 translate-y-1/2 rounded-full border border-border bg-background"></div>
-      <div class="absolute bottom-0 right-0 z-12 size-2.5 translate-x-1/2 translate-y-1/2 rounded-full border border-border bg-background"></div>
-      <div class="absolute bottom-0 left-1/2 w-screen -translate-x-1/2 border-b"></div>
-    </header>
-  </div>
+  <main id="main-content" tabindex="-1">
+    <HeroSection locale={locale} messages={messages} />
+    <ProofStrip locale={locale} messages={messages} />
+    <SolutionsGrid locale={locale} messages={messages} />
+    <PlatformSection locale={locale} messages={messages} />
+    <ApproachSection locale={locale} messages={messages} />
+    <FinalCta locale={locale} messages={messages} />
+  </main>
 
-  <!-- Main -->
-  <div class="flex w-full flex-1 xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(0,80rem)_minmax(0,1fr)]">
-    <aside class="pointer-events-none hidden pr-[20%] xl:flex">
-      <div class="flex h-full w-full flex-col">
-        {
-          Array.from({ length: RUNG_COUNT }).map((_, i) => (
-            <div
-              class:list={[
-                "relative w-full flex-1 border-r",
-                i !== RUNG_COUNT - 1 ? "border-b-[1px]" : "",
-              ]}
-              style={{
-                backgroundImage:
-                  "repeating-linear-gradient(315deg, currentColor 0, currentColor 1px, transparent 0, transparent 50%)",
-                backgroundSize: "8px 8px",
-                color: "oklch(from var(--foreground) l c h / 0.06)",
-              }}
-            />
-          ))
-        }
-      </div>
-    </aside>
-
-    <main class="relative z-10 mx-auto flex w-full max-w-7xl min-w-0 flex-1 flex-col border-x">
-      <div class="hero-bg relative isolate flex flex-1 flex-col items-center justify-center gap-12 overflow-hidden px-6 py-16 text-center sm:gap-14 sm:py-20">
-        <!-- Brand mark -->
-        <div class="animate-fade-in flex select-none flex-col items-center">
-          <LogoShape glow={false} className="h-28 w-20 text-brand" />
-        </div>
-
-        <!-- Titles -->
-        <div class="animate-fade-in flex flex-col items-center gap-5">
-          <a
-            href="#waitlist"
-            class="group relative inline-flex cursor-pointer items-center gap-2 overflow-hidden border border-border bg-card px-3 py-1 font-mono text-[10px] font-light uppercase tracking-widest text-muted-foreground transition-all duration-300 hover:text-foreground"
-          >
-            <span class="relative flex h-1.5 w-1.5 animate-[rotate-sequence_2s_linear_infinite]">
-              <span class="absolute inline-flex h-full w-full animate-[ping-sequence_2s_linear_infinite] bg-brand opacity-75"></span>
-              <span class="relative inline-flex h-1.5 w-1.5 bg-brand"></span>
-            </span>
-            {messages.hero.badge}
-            <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-0.5" />
-          </a>
-
-          <h1 class="text-balance text-4xl font-medium leading-[1.05] tracking-tight text-foreground sm:text-6xl">
-            {messages.hero.titleLineOne}
-            <br />
-            {messages.hero.titleLineTwo}
-          </h1>
-
-          <p class="max-w-xl text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
-            {messages.hero.description}
-          </p>
-        </div>
-
-        <!-- Countdown -->
-        <div class="w-full max-w-lg">
-          <p class="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            {messages.countdown.heading}
-          </p>
-          <Countdown
-            client:load
-            labels={{
-              days: messages.countdown.days,
-              hours: messages.countdown.hours,
-              minutes: messages.countdown.minutes,
-              seconds: messages.countdown.seconds,
-            }}
-          />
-        </div>
-
-        <!-- Signup -->
-        <div id="waitlist" class="w-full max-w-lg scroll-mt-24">
-          <SignupForm
-            client:load
-            copy={{
-              placeholder: messages.signup.placeholder,
-              notify: messages.signup.notify,
-              sending: messages.signup.sending,
-              successTitle: messages.signup.successTitle,
-              successBody: messages.signup.successBody,
-              requiredError: messages.signup.errors.required,
-              invalidError: messages.signup.errors.invalid,
-            }}
-          />
-        </div>
-      </div>
-
-      <!-- Feature grid -->
-      <section class="border-t border-border px-6 py-10">
-        <div class="mx-auto grid max-w-7xl grid-cols-1 gap-1.5 text-left md:grid-cols-3">
-          {
-            messages.features.map(({ label, title, body }, index) => {
-              const Icon = featureIcons[index] ?? Layers;
-
-              return (
-                <div class="glass-panel group relative flex flex-col border border-border p-6 transition-colors duration-300 hover:border-foreground/20">
-                  <div class="mb-5 flex items-center justify-between">
-                    <div class="flex h-9 w-9 items-center justify-center border border-border bg-muted text-foreground transition-colors duration-300 group-hover:text-brand">
-                      <Icon className="h-4 w-4" strokeWidth={1.5} />
-                    </div>
-                    <span class="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                      {label}
-                    </span>
-                  </div>
-
-                  <div class="mb-4 border-t border-dashed border-border/40" />
-
-                  <h3 class="mb-2 text-xl font-medium text-foreground">{title}</h3>
-                  <p class="text-base leading-relaxed text-muted-foreground">{body}</p>
-
-                  <span class="absolute bottom-0 right-0 h-2.5 w-2.5 border-b border-r border-foreground/30 transition-colors duration-300 group-hover:border-foreground" />
-                  <span class="absolute bottom-0 left-0 h-2.5 w-2.5 border-b border-l border-foreground/30 transition-colors duration-300 group-hover:border-foreground" />
-                  <span class="absolute top-0 right-0 h-2.5 w-2.5 border-r border-t border-foreground/30 transition-colors duration-300 group-hover:border-foreground" />
-                  <span class="absolute top-0 left-0 h-2.5 w-2.5 border-l border-t border-foreground/30 transition-colors duration-300 group-hover:border-foreground" />
-                </div>
-              );
-            })
-          }
-        </div>
-      </section>
-    </main>
-
-    <aside class="pointer-events-none hidden pl-[20%] xl:flex">
-      <div class="flex h-full w-full flex-col">
-        {
-          Array.from({ length: RUNG_COUNT }).map((_, i) => (
-            <div
-              class:list={[
-                "relative w-full flex-1 border-l",
-                i !== RUNG_COUNT - 1 ? "border-b-[1px]" : "",
-              ]}
-              style={{
-                backgroundImage:
-                  "repeating-linear-gradient(315deg, currentColor 0, currentColor 1px, transparent 0, transparent 50%)",
-                backgroundSize: "8px 8px",
-                color: "oklch(from var(--foreground) l c h / 0.06)",
-              }}
-            />
-          ))
-        }
-      </div>
-    </aside>
-  </div>
-
-  <!-- Footer -->
-  <div class="mx-auto flex w-full max-w-7xl min-w-0 flex-col border-x">
-    <footer class="relative h-(--footer-height) px-6">
-      <div class="flex h-full items-center">
-        <span class="font-mono text-[11px] text-muted-foreground">
-          © {year} GBO Vision - {messages.footer.rightsReserved}
-        </span>
-      </div>
-
-      <div class="absolute top-0 left-0 z-10 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-background"></div>
-      <div class="absolute top-0 right-0 z-10 size-2.5 translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-background"></div>
-      <div class="absolute top-0 left-1/2 w-screen -translate-x-1/2 border-t"></div>
-    </footer>
-  </div>
+  <SiteFooter locale={locale} messages={messages} />
 </div>
