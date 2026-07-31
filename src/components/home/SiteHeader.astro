@@ -71,7 +71,7 @@ const navItems = [
           lang="en"
           aria-current={locale === "en" ? "page" : undefined}
           class:list={[
-            "px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+            "px-2 py-1.5 font-mono text-[12px] uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
             locale === "en"
               ? "bg-foreground/[0.07] text-foreground"
               : "text-muted-foreground hover:text-foreground",
@@ -79,14 +79,13 @@ const navItems = [
         >
           EN
         </a>
-        <span class="h-3 w-px bg-border" aria-hidden="true"></span>
         <a
           href="/tr/"
           hreflang="tr"
           lang="tr"
           aria-current={locale === "tr" ? "page" : undefined}
           class:list={[
-            "px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+            "px-2 py-1.5 font-mono text-[12px] uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
             locale === "tr"
               ? "bg-foreground/[0.07] text-foreground"
               : "text-muted-foreground hover:text-foreground",
@@ -98,7 +97,7 @@ const navItems = [
 
       <a
         href="#demo"
-        class="group flex items-center justify-center gap-2 border-l border-border bg-brand px-3 text-xs font-medium text-brand-foreground outline-none transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-inset sm:px-5"
+        class="group flex items-center justify-center gap-2 border-l border-border bg-brand px-3 text-sm font-medium text-brand-foreground outline-none transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-inset sm:px-5"
       >
         <span class="sr-only sm:not-sr-only">{messages.nav.scheduleDemo}</span>
         <ArrowRight
@@ -153,7 +152,7 @@ const navItems = [
                 lang="en"
                 aria-current={locale === "en" ? "page" : undefined}
                 class:list={[
-                  "px-2 py-1.5 font-mono text-[10px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+                  "px-2 py-1.5 font-mono text-[12px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
                   locale === "en"
                     ? "bg-foreground/[0.07] text-foreground"
                     : "text-muted-foreground hover:text-foreground",
@@ -167,7 +166,7 @@ const navItems = [
                 lang="tr"
                 aria-current={locale === "tr" ? "page" : undefined}
                 class:list={[
-                  "px-2 py-1.5 font-mono text-[10px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+                  "px-2 py-1.5 font-mono text-[12px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
                   locale === "tr"
                     ? "bg-foreground/[0.07] text-foreground"
                     : "text-muted-foreground hover:text-foreground",

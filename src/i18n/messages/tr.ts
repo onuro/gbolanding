@@ -11,7 +11,7 @@ const trMessages: Messages = {
     platform: "Platform",
     method: "Yaklaşım",
     languageLabel: "Dil",
-    scheduleDemo: "Demo planlayın",
+    scheduleDemo: "Demo talep edin",
   },
   hero: {
     eyebrow: "İş büyümesi için kurumsal yapay zeka",
@@ -19,7 +19,7 @@ const trMessages: Messages = {
     titleAccent: "kurumsal yapay zeka ajansı.",
     description:
       "GBO Vision, yapay zeka ürünleri ve özel yazılımlar geliştirir. Karmaşık işleri ve dağınık veriyi, manuel işi azaltan ve iş büyümesini destekleyen çözümlere dönüştürür.",
-    primaryCta: "Demo planlayın",
+    primaryCta: "Demo talep edin",
     secondaryCta: "Çözümleri keşfet",
     status: "Demo başvuruları açık",
   },
@@ -148,7 +148,7 @@ const trMessages: Messages = {
   },
   signup: {
     placeholder: "Kurumsal e-posta adresinizi girin",
-    notify: "Demo planlayın",
+    notify: "Demo talep edin",
     sending: "Gönderiliyor",
     successTitle: "Demo talebinizi aldık",
     successBody:
@@ -161,11 +161,11 @@ const trMessages: Messages = {
     },
   },
   finalCta: {
-    eyebrow: "Demo planlayın",
+    eyebrow: "Demo talep edin",
     title: "Bir sonraki iş probleminizi çalışan bir yapay zeka çözümüne dönüştürün.",
     description:
       "İşin nerede yavaş ya da zor olduğunu anlatın. Size uygulanabilir bir sonraki adımı gösterelim.",
-    primaryCta: "Demo planlayın",
+    primaryCta: "Demo talep edin",
     secondaryCta: "Çözümleri keşfet",
   },
   footer: {
