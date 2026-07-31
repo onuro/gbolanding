@@ -75,7 +75,7 @@
   --grid-line-subtle: rgb(255 255 255 / 5.5%);
   --grid-line-strong: rgb(255 255 255 / 8%);
   --dot-grid-color: rgb(255 255 255 / 9%);
-  --hatch-line: rgb(255 255 255 / 5%);
+  --hatch-line: rgb(255 255 255 / 10%);
   --control-surface: rgb(255 255 255 / 2.5%);
   --scroll-thumb: rgb(255 255 255 / 16%);
   --panel-shadow: rgb(0 0 0 / 48%);
@@ -111,12 +111,12 @@ html[data-theme="light"] {
   --border-strong: oklch(0.2 0.015 160 / 23%);
   --input: oklch(0.2 0.015 160 / 20%);
 
-  --brand: #059669;
+  --brand: #10b981;
   --brand-display: var(--brand);
-  --brand-hover: #047857;
+  --brand-hover: #059669;
   --brand-foreground: #ffffff;
-  --brand-soft: rgb(5 150 105 / 10%);
-  --brand-line: rgb(5 150 105 / 32%);
+  --brand-soft: rgb(16 185 129 / 10%);
+  --brand-line: rgb(16 185 129 / 32%);
   --danger: #c73535;
 
   --page-backdrop: linear-gradient(var(--background), var(--background));
@@ -125,11 +125,11 @@ html[data-theme="light"] {
   --grid-line-subtle: rgb(0 48 28 / 7%);
   --grid-line-strong: rgb(0 48 28 / 11%);
   --dot-grid-color: rgb(0 48 28 / 11%);
-  --hatch-line: rgb(0 48 28 / 7%);
+  --hatch-line: rgb(0 48 28 / 13%);
   --control-surface: rgb(0 48 28 / 3%);
   --scroll-thumb: rgb(0 48 28 / 22%);
   --panel-shadow: rgb(20 52 37 / 16%);
-  --brand-gradient-end: #059669;
+  --brand-gradient-end: #10b981;
   --logo-filter: invert(1);
 }
 
@@ -293,7 +293,7 @@ html[data-theme="light"] {
     var(--hatch-line) 0,
     var(--hatch-line) 1px,
     transparent 1px,
-    transparent 8px
+    transparent 7px
   );
 }
 

@@ -18,14 +18,18 @@ const { messages } = Astro.props;
     class="grid grid-cols-2 lg:grid-cols-[repeat(24,minmax(0,1fr))]"
   >
     <div
-      class="diagonal-hatch col-span-2 flex min-h-16 items-center border-b border-border px-5 sm:px-8 lg:col-span-4 lg:min-h-20 lg:border-b-0"
+      class="diagonal-hatch col-span-2 border-b border-border p-2 lg:col-span-4 lg:border-b-0"
     >
-      <p
-        id="proof-strip-label"
-        class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+      <div
+        class="flex min-h-12 w-full items-center bg-background px-3 sm:px-6 lg:min-h-16"
       >
-        {messages.proofStrip.label}
-      </p>
+        <p
+          id="proof-strip-label"
+          class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+        >
+          {messages.proofStrip.label}
+        </p>
+      </div>
     </div>
 
     <ul class="contents" role="list">

@@ -15,7 +15,7 @@ const enMessages: Messages = {
   },
   hero: {
     eyebrow: "Enterprise AI for business growth",
-    titleLead: "Solution-focused",
+    titleLead: "Growth-focused",
     titleAccent: "enterprise AI agency.",
     description:
       "GBO Vision builds AI products and custom software. We turn complex work and scattered data into tools that cut manual work and help your business grow.",

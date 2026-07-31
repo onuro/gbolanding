@@ -15,7 +15,7 @@ const trMessages: Messages = {
   },
   hero: {
     eyebrow: "İş büyümesi için kurumsal yapay zeka",
-    titleLead: "Çözüm odaklı",
+    titleLead: "Büyüme odaklı",
     titleAccent: "kurumsal yapay zeka ajansı.",
     description:
       "GBO Vision, yapay zeka ürünleri ve özel yazılımlar geliştirir. Karmaşık işleri ve dağınık veriyi, manuel işi azaltan ve iş büyümesini destekleyen çözümlere dönüştürür.",
