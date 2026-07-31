@@ -12,7 +12,7 @@ interface Props {
 const { locale, messages } = Astro.props;
 const homeHref = locale === "tr" ? "/tr" : "/";
 const primaryNavigationLabel =
-  locale === "tr" ? "Ana navigasyon" : "Primary navigation";
+  locale === "tr" ? "Ana menü" : "Primary navigation";
 const menuLabel = locale === "tr" ? "Menü" : "Menu";
 const navItems = [
   { href: "#solutions", label: messages.nav.solutions },

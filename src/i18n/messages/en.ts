@@ -2,176 +2,176 @@ import type { Messages } from "@/i18n/types";
 
 const enMessages: Messages = {
   metadata: {
-    title: "GBO Vision | Enterprise AI Platforms",
+    title: "Enterprise AI Agency & Custom Software | GBO Vision",
     description:
-      "GBO Vision builds enterprise AI platforms for regulated, high-stakes work, including Kollektor for legal debt collection and Intelval for business and real estate valuation.",
+      "GBO Vision builds enterprise AI and custom software. We turn complex work and scattered data into tools that cut manual work and help your business grow.",
   },
   nav: {
     solutions: "Solutions",
     platform: "Platform",
-    method: "Method",
+    method: "How we work",
     languageLabel: "Language",
     scheduleDemo: "Schedule a demo",
   },
   hero: {
-    eyebrow: "Enterprise AI, built for real work",
+    eyebrow: "Enterprise AI for business growth",
     titleLead: "Solution-focused",
     titleAccent: "enterprise AI agency.",
     description:
-      "GBO Vision turns specialised knowledge and complex workflows into focused AI platforms for regulated industries.",
+      "GBO Vision builds AI products and custom software. We turn complex work and scattered data into tools that cut manual work and help your business grow.",
     primaryCta: "Schedule a demo",
     secondaryCta: "Explore solutions",
-    status: "Demo requests are now open",
+    status: "Demo bookings are open",
   },
   proofStrip: {
-    label: "Built around",
+    label: "How we help",
     items: [
-      "Regulated workflows",
-      "Human oversight",
-      "Enterprise data",
-      "Operational clarity",
+      "Business diagnosis",
+      "Custom AI software",
+      "System integration",
+      "Continuous improvement",
     ],
   },
   intro: {
-    eyebrow: "Focused by design",
-    title: "Purpose-built AI, not another generic assistant.",
+    eyebrow: "Your AI partner",
+    title: "Turn business friction into working AI.",
     description:
-      "Each GBO Vision solution is shaped around a specific professional domain, its data, and the decisions people make every day.",
+      "We learn how your team works. Then we find the best place for AI to help.",
   },
   solutions: {
     kollektor: {
-      eyebrow: "Legal AI",
+      eyebrow: "Legal AI for debt collection",
       title: "Kollektor",
       description:
-        "An autonomous AI agent for law firms that streamlines debt collection while keeping the workflow focused and compliance-aware.",
+        "Kollektor helps law firms manage debt collection. It reduces routine work and keeps people in control.",
       highlights: [
-        "Compliance-aware outreach",
-        "Case prioritisation",
-        "Recovery workflow automation",
+        "Case priority",
+        "Client outreach",
+        "Human review",
       ],
-      cta: "Discover Kollektor",
+      cta: "Schedule a Kollektor demo",
     },
     intelval: {
       eyebrow: "Valuation intelligence",
       title: "Intelval",
       description:
-        "An AI-driven business and real estate valuation platform for rigorous analysis, market intelligence, and enterprise reporting.",
+        "Intelval helps teams value businesses and real estate. It brings data, analysis, and reports into one place.",
       highlights: [
-        "Business valuation",
-        "Real estate analysis",
-        "Enterprise reporting",
+        "Business value",
+        "Real estate value",
+        "Clear reports",
       ],
-      cta: "Discover Intelval",
+      cta: "Schedule an Intelval demo",
     },
     enterprise: {
-      eyebrow: "Enterprise systems",
-      title: "Built around your operation",
+      eyebrow: "Custom AI and software",
+      title: "Built for your business.",
       description:
-        "Mission-critical AI platforms designed for your workflows, data infrastructure, and regulatory context—not generic SaaS.",
+        "We design AI tools and custom software around your work, data, and goals. No generic SaaS.",
       highlights: [
-        "Workflow-specific design",
-        "Data infrastructure fit",
-        "Regulatory context",
+        "AI strategy",
+        "Custom software",
+        "Data integration",
       ],
       cta: "Explore the platform",
     },
   },
   platform: {
-    eyebrow: "The GBO platform",
-    title: "A practical foundation for specialised AI.",
+    eyebrow: "How we deliver",
+    title: "From insight to working AI.",
     description:
-      "The shared platform connects domain intelligence, operational workflows, and responsible human control.",
+      "We learn how your business works. Then we design, connect, and build the right AI tool.",
     capabilities: [
       {
-        title: "Domain intelligence",
+        title: "Business discovery",
         description:
-          "Models and workflows shaped around the language and logic of each professional field.",
+          "We map your goals, data, and day-to-day work.",
       },
       {
-        title: "Workflow automation",
+        title: "Solution design",
         description:
-          "Purpose-built agents coordinate repeatable work from input to actionable output.",
+          "We design the right product and user flow.",
       },
       {
-        title: "Human oversight",
+        title: "AI automation",
         description:
-          "Clear review points keep consequential decisions in the hands of your team.",
+          "AI handles routine tasks and supports your team.",
       },
       {
         title: "Data integration",
         description:
-          "Designed to work with the information and systems your operation already depends on.",
+          "We connect the systems and data you use.",
       },
       {
-        title: "Operational visibility",
+        title: "Human oversight",
         description:
-          "Structured outputs make activity, context, and next actions easier to understand.",
+          "Your team stays in control of key choices.",
       },
       {
-        title: "Enterprise delivery",
+        title: "Ongoing improvement",
         description:
-          "Technology and implementation are aligned with the realities of complex organisations.",
+          "We learn from use and improve the product.",
       },
     ],
   },
   approach: {
     eyebrow: "How we work",
-    title: "From complex process to focused solution.",
+    title: "From business problem to working product.",
     description:
-      "We begin with the work itself, then design the intelligence, controls, and delivery model around it.",
+      "We start with your business, not a tool. Then we design, build, and improve with your team.",
     steps: [
       {
         number: "01",
-        title: "Understand",
+        title: "Discover",
         description:
-          "Map the domain, workflow, constraints, and decisions that define the problem.",
+          "We map your goals, workflows, data, and the friction slowing your team down.",
       },
       {
         number: "02",
         title: "Design",
         description:
-          "Turn that operating knowledge into a focused solution and interaction model.",
+          "We define the right AI product, user experience, and delivery plan.",
       },
       {
         number: "03",
-        title: "Integrate",
+        title: "Build",
         description:
-          "Connect the platform to the data and systems required for real-world use.",
+          "We connect your systems and turn the plan into working software.",
       },
       {
         number: "04",
-        title: "Evolve",
+        title: "Improve",
         description:
-          "Improve the system as the operation, evidence, and user needs develop.",
+          "We measure results, learn from use, and keep improving.",
       },
     ],
   },
   signup: {
-    placeholder: "Enter your work email",
-    notify: "Request a demo",
-    sending: "Sending",
+    placeholder: "Work email address",
+    notify: "Schedule a demo",
+    sending: "Sending request…",
     successTitle: "Demo request received",
     successBody:
-      "Thanks for your interest in GBO Vision. We'll be in touch to arrange a time.",
+      "Thanks. We’ll contact you to arrange a time.",
     errors: {
-      required: "Email is required",
-      invalid: "Please enter a valid email address",
-      submission: "We couldn't send your demo request. Please try again shortly.",
+      required: "Enter your email address.",
+      invalid: "Enter a valid email address.",
+      submission: "We couldn’t send your request. Try again shortly.",
     },
   },
   finalCta: {
-    eyebrow: "Request a demo",
-    title: "See what specialised AI can do for your operation.",
+    eyebrow: "Schedule a demo",
+    title: "Turn your next business problem into a working AI solution.",
     description:
-      "Tell us about your operation and we'll arrange a focused introduction to GBO Vision.",
+      "Tell us where work is slow or hard. We’ll show you a practical next step.",
     primaryCta: "Schedule a demo",
     secondaryCta: "Explore solutions",
   },
   footer: {
-    tagline: "Enterprise intelligence, purpose-built.",
+    tagline: "AI and software, built for your business.",
     solutions: "Solutions",
     platform: "Platform",
-    method: "Method",
+    method: "How we work",
     rightsReserved: "All rights reserved",
   },
 };

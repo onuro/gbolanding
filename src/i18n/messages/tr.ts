@@ -2,9 +2,9 @@ import type { Messages } from "@/i18n/types";
 
 const trMessages: Messages = {
   metadata: {
-    title: "GBO Vision | Kurumsal Yapay Zeka Platformları",
+    title: "Kurumsal Yapay Zeka ve Özel Yazılım | GBO Vision",
     description:
-      "GBO Vision; hukuk bürolarının alacak tahsilatı için Kollektor, işletme ve gayrimenkul değerleme için Intelval dahil olmak üzere düzenlemeye tabi, kritik işlere yönelik kurumsal yapay zeka platformları geliştirir.",
+      "GBO Vision, kurumsal yapay zeka ve özel yazılım geliştirir. Karmaşık işleri ve dağınık veriyi, manuel işi azaltan ve iş büyümesini destekleyen araçlara dönüştürür.",
   },
   nav: {
     solutions: "Çözümler",
@@ -14,162 +14,162 @@ const trMessages: Messages = {
     scheduleDemo: "Demo planlayın",
   },
   hero: {
-    eyebrow: "Gerçek işlere yönelik kurumsal yapay zeka",
+    eyebrow: "İş büyümesi için kurumsal yapay zeka",
     titleLead: "Çözüm odaklı",
     titleAccent: "kurumsal yapay zeka ajansı.",
     description:
-      "GBO Vision, uzmanlık bilgisini ve karmaşık iş akışlarını düzenlemeye tabi sektörlere özel yapay zeka platformlarına dönüştürür.",
+      "GBO Vision, yapay zeka ürünleri ve özel yazılımlar geliştirir. Karmaşık işleri ve dağınık veriyi, manuel işi azaltan ve iş büyümesini destekleyen çözümlere dönüştürür.",
     primaryCta: "Demo planlayın",
     secondaryCta: "Çözümleri keşfet",
-    status: "Demo talepleri alınıyor",
+    status: "Demo başvuruları açık",
   },
   proofStrip: {
-    label: "Odağımız",
+    label: "Nasıl yardımcı oluruz",
     items: [
-      "Düzenlemeye tabi süreçler",
-      "İnsan denetimi",
-      "Kurumsal veri",
-      "Operasyonel görünürlük",
+      "İş analizi",
+      "Özel yapay zeka yazılımı",
+      "Sistem entegrasyonu",
+      "Sürekli iyileştirme",
     ],
   },
   intro: {
-    eyebrow: "Odağı net tasarım",
-    title: "Genel amaçlı bir asistan değil, işe özel yapay zeka.",
+    eyebrow: "Yapay zeka iş ortağınız",
+    title: "İş sorunlarını çalışan yapay zeka çözümlerine dönüştürüyoruz.",
     description:
-      "Her GBO Vision çözümü; belirli bir uzmanlık alanı, o alanın verileri ve profesyonellerin her gün verdiği kararlar etrafında şekillenir.",
+      "Ekibinizin nasıl çalıştığını anlarız. Sonra yapay zekanın en çok nerede yardımcı olacağını belirleriz.",
   },
   solutions: {
     kollektor: {
-      eyebrow: "Hukuk teknolojileri",
+      eyebrow: "Hukukta yapay zeka",
       title: "Kollektor",
       description:
-        "Hukuk bürolarının alacak tahsilatını sadeleştiren; iş akışını odaklı ve mevzuata duyarlı tutan otonom yapay zeka ajanı.",
+        "Kollektor, hukuk bürolarında alacak tahsilatını destekler. Rutin işleri azaltır ve insan denetimini korur.",
       highlights: [
-        "Mevzuata duyarlı iletişim",
-        "Dosya önceliklendirme",
-        "Tahsilat süreci otomasyonu",
+        "Dosya önceliği",
+        "İletişim desteği",
+        "İnsan denetimi",
       ],
-      cta: "Kollektor'ü keşfet",
+      cta: "Kollektor demosu planlayın",
     },
     intelval: {
-      eyebrow: "Değerleme zekası",
+      eyebrow: "Değerleme için yapay zeka",
       title: "Intelval",
       description:
-        "Derinlemesine analiz, piyasa istihbaratı ve kurumsal raporlama için yapay zeka destekli işletme ve gayrimenkul değerleme platformu.",
+        "Intelval, işletme ve gayrimenkul değerleme ekiplerini destekler. Veri, analiz ve raporları tek yerde toplar.",
       highlights: [
-        "İşletme değerleme",
-        "Gayrimenkul analizi",
-        "Kurumsal raporlama",
+        "İşletme değeri",
+        "Gayrimenkul değeri",
+        "Açık raporlar",
       ],
-      cta: "Intelval'i keşfet",
+      cta: "Intelval demosu planlayın",
     },
     enterprise: {
-      eyebrow: "Kurumsal sistemler",
-      title: "Operasyonunuza göre tasarlanır",
+      eyebrow: "Özel yapay zeka ve yazılım",
+      title: "İşinize göre tasarlandı.",
       description:
-        "Genel amaçlı bir SaaS değil; iş akışlarınıza, veri altyapınıza ve düzenleyici çerçevenize göre tasarlanan kritik yapay zeka platformları.",
+        "İş akışlarınıza, verinize ve hedeflerinize göre yapay zeka araçları ve özel yazılımlar tasarlarız. Genel amaçlı SaaS değil.",
       highlights: [
-        "Sürece özel tasarım",
-        "Veri altyapısıyla uyum",
-        "Düzenleyici bağlam",
+        "Yapay zeka stratejisi",
+        "Özel yazılım",
+        "Veri entegrasyonu",
       ],
-      cta: "Platformu incele",
+      cta: "Platformu inceleyin",
     },
   },
   platform: {
-    eyebrow: "GBO platformu",
-    title: "Uzman yapay zeka için sağlam ve uygulanabilir bir temel.",
+    eyebrow: "Nasıl geliştiriyoruz",
+    title: "İçgörüden çalışan yapay zekaya.",
     description:
-      "Ortak platform; alan uzmanlığını, operasyonel iş akışlarını ve sorumlu insan kontrolünü bir araya getirir.",
+      "İşinizin nasıl çalıştığını anlarız. Sonra doğru yapay zeka aracını tasarlar, bağlar ve geliştiririz.",
     capabilities: [
       {
-        title: "Alan uzmanlığı",
+        title: "İş analizi",
         description:
-          "Her profesyonel alanın diline ve çalışma mantığına göre şekillenen modeller ve iş akışları.",
+          "Hedeflerinizi, verinizi ve günlük iş akışlarınızı haritalarız.",
       },
       {
-        title: "İş akışı otomasyonu",
+        title: "Çözüm tasarımı",
         description:
-          "Tekrarlanan işleri girdiden uygulanabilir çıktıya kadar koordine eden amaca özel ajanlar.",
+          "Doğru ürünü ve kullanıcı akışını tasarlarız.",
       },
       {
-        title: "İnsan denetimi",
+        title: "Yapay zeka otomasyonu",
         description:
-          "Açık inceleme noktalarıyla kritik kararların ekibinizin kontrolünde kalması.",
+          "Tekrarlanan işleri hızlandırır ve ekibinizi destekler.",
       },
       {
         title: "Veri entegrasyonu",
         description:
-          "Operasyonunuzun hâlihazırda dayandığı bilgi ve sistemlerle çalışacak şekilde tasarım.",
+          "Kullandığınız sistemleri ve veriyi bağlarız.",
       },
       {
-        title: "Operasyonel görünürlük",
+        title: "İnsan denetimi",
         description:
-          "Faaliyeti, bağlamı ve sonraki adımları daha anlaşılır kılan yapılandırılmış çıktılar.",
+          "Önemli kararları ekibinizin kontrolünde tutarız.",
       },
       {
-        title: "Kurumsal uygulama",
+        title: "Sürekli gelişim",
         description:
-          "Karmaşık organizasyonların gerçekleriyle uyumlu teknoloji ve uygulama yaklaşımı.",
+          "Kullanımdan öğrenir ve ürünü geliştiririz.",
       },
     ],
   },
   approach: {
     eyebrow: "Nasıl çalışıyoruz",
-    title: "Karmaşık süreçten odaklı çözüme.",
+    title: "İş probleminden çalışan ürüne.",
     description:
-      "Önce işin kendisini anlar, ardından zekayı, kontrol mekanizmalarını ve uygulama modelini buna göre tasarlarız.",
+      "Araçla değil, işinizle başlarız. Sonra ekibinizle birlikte tasarlar, geliştirir ve iyileştiririz.",
     steps: [
       {
         number: "01",
-        title: "Anla",
+        title: "Keşfet",
         description:
-          "Problemi tanımlayan alanı, iş akışını, sınırları ve karar noktalarını haritala.",
+          "Hedeflerinizi, iş akışlarınızı, verinizi ve sorun noktalarını haritalarız.",
       },
       {
         number: "02",
         title: "Tasarla",
         description:
-          "Operasyon bilgisini odaklı bir çözüme ve etkileşim modeline dönüştür.",
+          "Doğru yapay zeka ürününü, kullanıcı deneyimini ve uygulama planını tanımlarız.",
       },
       {
         number: "03",
-        title: "Entegre et",
+        title: "Geliştir",
         description:
-          "Platformu gerçek kullanım için gereken veri ve sistemlerle buluştur.",
+          "Sistemlerinizi bağlar, planı çalışan yazılıma dönüştürürüz.",
       },
       {
         number: "04",
-        title: "Geliştir",
+        title: "İyileştir",
         description:
-          "Operasyon, kanıtlar ve kullanıcı ihtiyaçları geliştikçe sistemi iyileştir.",
+          "Sonuçları izler, kullanımdan öğrenir ve çözümü geliştiririz.",
       },
     ],
   },
   signup: {
-    placeholder: "İş e-postanızı girin",
-    notify: "Demo talep edin",
+    placeholder: "Kurumsal e-posta adresinizi girin",
+    notify: "Demo planlayın",
     sending: "Gönderiliyor",
-    successTitle: "Demo talebiniz alındı",
+    successTitle: "Demo talebinizi aldık",
     successBody:
-      "GBO Vision'a gösterdiğiniz ilgi için teşekkürler. Uygun bir zaman planlamak için sizinle iletişime geçeceğiz.",
+      "İlginiz için teşekkür ederiz. Uygun bir demo zamanı belirlemek için sizinle iletişime geçeceğiz.",
     errors: {
-      required: "E-posta gerekli",
+      required: "E-posta adresinizi girin",
       invalid: "Lütfen geçerli bir e-posta adresi girin",
       submission:
-        "Demo talebinizi şu anda gönderemedik. Lütfen kısa süre sonra tekrar deneyin.",
+        "Demo talebiniz şu anda gönderilemedi. Lütfen biraz sonra tekrar deneyin.",
     },
   },
   finalCta: {
-    eyebrow: "Demo talep edin",
-    title: "Uzman yapay zekanın operasyonunuza katabileceklerini keşfedin.",
+    eyebrow: "Demo planlayın",
+    title: "Bir sonraki iş probleminizi çalışan bir yapay zeka çözümüne dönüştürün.",
     description:
-      "Operasyonunuzu anlatın; GBO Vision'a odaklı bir giriş planlamak için sizinle iletişime geçelim.",
+      "İşin nerede yavaş ya da zor olduğunu anlatın. Size uygulanabilir bir sonraki adımı gösterelim.",
     primaryCta: "Demo planlayın",
     secondaryCta: "Çözümleri keşfet",
   },
   footer: {
-    tagline: "İşe özel, kurumsal zeka.",
+    tagline: "İşinize göre tasarlanmış yapay zeka ve yazılım.",
     solutions: "Çözümler",
     platform: "Platform",
     method: "Yaklaşım",
