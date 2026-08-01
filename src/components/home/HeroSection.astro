@@ -39,7 +39,7 @@ const visualCopy =
 ---
 
 <section
-  class="mx-auto w-full max-w-[82.5rem] border-x border-b border-border"
+  class="mx-auto w-full max-w-[83.75rem] border-x border-b border-border"
   aria-labelledby="hero-title"
 >
   <div class="grid grid-cols-1 xl:grid-cols-12">
@@ -53,7 +53,7 @@ const visualCopy =
       >
       </div>
       <svg
-        class="pointer-events-none absolute -right-24 -top-20 h-[24rem] w-[30rem] text-brand opacity-[0.13]"
+        class="pointer-events-none absolute -right-24 -top-20 h-[24rem] w-[30rem] text-muted-foreground opacity-[0.15]"
         viewBox="0 0 544 432"
         fill="none"
         aria-hidden="true"
@@ -90,19 +90,19 @@ const visualCopy =
         </span>
       </div>
 
-      <div class="relative mt-16 max-w-3xl sm:mt-20">
+      <div class="relative mt-10 max-w-3xl sm:mt-16">
         <LogoShape
           glow={false}
           aria-hidden="true"
           focusable="false"
-          className="mb-8 h-12 w-auto text-foreground sm:h-14"
+          className="mb-8 h-16 w-auto text-foreground sm:h-20"
         />
         <h1
           id="hero-title"
           class="text-balance text-[clamp(2.8rem,7vw,4.5rem)] font-medium leading-[0.92] tracking-[-0.055em]"
         >
           <span class="block text-foreground">{messages.hero.titleLead}</span>
-          <span class="mt-2 block text-brand-display">{messages.hero.titleAccent}</span>
+          <span class="mt-2 block text-foreground">{messages.hero.titleAccent}</span>
         </h1>
       </div>
 
