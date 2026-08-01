@@ -1,6 +1,7 @@
 ---
 import { ArrowDownRight, ArrowRight } from "lucide-react";
 import { LogoShape } from "@/components/logo";
+import KollektorHeroVisual from "@/components/home/KollektorHeroVisual.astro";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
 
@@ -10,32 +11,6 @@ interface Props {
 }
 
 const { locale, messages } = Astro.props;
-const visualCopy =
-  locale === "tr"
-    ? {
-        intelligence: "GBO yapay zeka platformu",
-        live: "Platform görünümü",
-        modules: "Modüller",
-        decisionLayer: "Karar katmanı",
-        operational: "Operasyonel",
-        ready: "Hazır",
-        active: "Aktif",
-        review: "İnceleniyor",
-        data: "Veri",
-        controls: "Kontroller",
-      }
-    : {
-        intelligence: "GBO AI platform",
-        live: "Platform view",
-        modules: "Modules",
-        decisionLayer: "Decision layer",
-        operational: "Operational",
-        ready: "Ready",
-        active: "Active",
-        review: "Review",
-        data: "Data",
-        controls: "Controls",
-      };
 ---
 
 <section
@@ -155,7 +130,7 @@ const visualCopy =
     </div>
 
     <div
-      class="relative flex min-h-[34rem] items-center overflow-hidden bg-card/40 p-4 sm:min-h-[38rem] sm:p-8 lg:p-10 xl:col-span-5 xl:min-h-[43rem]"
+      class="relative flex min-h-[34rem] items-stretch overflow-hidden bg-card/40 p-4 sm:min-h-[38rem] sm:p-5 lg:p-6 xl:col-span-5 xl:min-h-[43rem] xl:p-12"
       aria-hidden="true"
     >
       <video
@@ -168,154 +143,7 @@ const visualCopy =
       >
         <source src="/media/delthis.webm" type="video/webm" />
       </video>
-      <div
-        class="panel-shadow relative z-20 mx-auto w-full max-w-lg border border-foreground/15 bg-background"
-      >
-        <div
-          class="flex h-11 items-center justify-between border-b border-border px-4"
-        >
-          <div class="flex items-center gap-2">
-            <span class="size-1.5 bg-brand"></span>
-            <span
-              class="font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/55"
-            >
-              {visualCopy.intelligence}
-            </span>
-          </div>
-          <span
-            class="font-mono text-[9px] uppercase tracking-[0.16em] text-foreground/30"
-          >
-            {visualCopy.live}
-          </span>
-        </div>
-
-        <div class="grid grid-cols-[4.5rem_1fr] sm:grid-cols-[6.5rem_1fr]">
-          <div class="border-r border-border">
-            <div
-              class="flex h-14 items-center border-b border-border px-3 font-mono text-[9px] uppercase tracking-[0.16em] text-foreground/35"
-            >
-              {visualCopy.modules}
-            </div>
-            {
-              ["01", "02", "03"].map((item, index) => (
-                <div
-                  class:list={[
-                    "flex h-16 items-center justify-between border-b border-border px-3 font-mono text-[9px]",
-                    index === 0
-                      ? "bg-brand/[0.07] text-brand"
-                      : "text-foreground/30",
-                  ]}
-                >
-                  {item}
-                  <span
-                    class:list={[
-                      "size-1.5",
-                      index === 0 ? "bg-brand" : "border border-foreground/20",
-                    ]}
-                  />
-                </div>
-              ))
-            }
-            <div class="h-36"></div>
-          </div>
-
-          <div class="min-w-0">
-            <div
-              class="flex h-14 items-center justify-between border-b border-border px-4"
-            >
-              <span
-                class="font-mono text-[9px] uppercase tracking-[0.16em] text-foreground/55"
-              >
-                {visualCopy.decisionLayer}
-              </span>
-              <span
-                class="border border-brand/25 bg-brand/[0.07] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em] text-brand"
-              >
-                {visualCopy.operational}
-              </span>
-            </div>
-
-            <div class="space-y-3 border-b border-border p-4">
-              {
-                [
-                  { label: "Kollektor", value: visualCopy.ready, width: "86%" },
-                  { label: "Intelval", value: visualCopy.active, width: "72%" },
-                  {
-                    label: messages.solutions.enterprise.eyebrow,
-                    value: visualCopy.review,
-                    width: "94%",
-                  },
-                ].map((item) => (
-                  <div>
-                    <div
-                      class="mb-2 flex justify-between font-mono text-[9px] uppercase tracking-[0.1em] text-foreground/45"
-                    >
-                      <span>{item.label}</span>
-                      <span class="text-foreground/25">{item.value}</span>
-                    </div>
-                    <div class="h-1 bg-foreground/[0.06]">
-                      <div
-                        class="h-full bg-brand/60"
-                        style={`width: ${item.width};`}
-                      />
-                    </div>
-                  </div>
-                ))
-              }
-            </div>
-
-            <div class="grid grid-cols-3 border-b border-border">
-              {
-                [
-                  { value: "ON", label: visualCopy.modules },
-                  { value: "SYNC", label: visualCopy.data },
-                  { value: "HITL", label: visualCopy.controls },
-                ].map((item, index) => (
-                  <div
-                    class:list={[
-                      "px-3 py-4",
-                      index !== 2 ? "border-r border-border" : "",
-                    ]}
-                  >
-                    <p class="font-mono text-lg text-foreground/80">{item.value}</p>
-                    <p
-                      class="mt-1 font-mono text-[8px] uppercase tracking-[0.12em] text-foreground/30"
-                    >
-                      {item.label}
-                    </p>
-                  </div>
-                ))
-              }
-            </div>
-
-            <div class="relative h-24 overflow-hidden p-4">
-              <div
-                class="absolute inset-x-4 bottom-4 top-4 opacity-50"
-                style="background-image: linear-gradient(to right, var(--grid-line-strong) 1px, transparent 1px), linear-gradient(to bottom, var(--grid-line-strong) 1px, transparent 1px); background-size: 28px 20px;"
-              >
-              </div>
-              <div
-                class="absolute right-[18%] bottom-4 left-4 h-px origin-left -rotate-[8deg] bg-brand/70"
-              >
-              </div>
-              <div
-                class="absolute right-4 bottom-[45%] left-[78%] h-px origin-left rotate-[23deg] bg-brand/70"
-              >
-              </div>
-              <span
-                class="absolute right-[12%] top-[32%] size-2 bg-brand shadow-[0_0_16px_rgba(5,221,135,0.7)]"
-              ></span>
-            </div>
-          </div>
-        </div>
-
-        <span
-          class="absolute -left-px -top-px size-2.5 border-l border-t border-brand/70"
-        ></span>
-        <span
-          class="absolute -right-px -bottom-px size-2.5 border-r border-b border-brand/70"
-        ></span>
-      </div>
+      <KollektorHeroVisual locale={locale} />
     </div>
   </div>
 </section>
