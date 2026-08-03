@@ -28,7 +28,13 @@ type Caption = { id: string; text: string };
  * Mints a LiveKit token on click (it lives 2 minutes), joins the room, and
  * feeds the agent's audio into the orb's rim wave.
  */
-export function VoiceButton({ labels }: { labels: Labels }) {
+export function VoiceButton({
+  labels,
+  lang,
+}: {
+  labels: Labels;
+  lang: "tr" | "en";
+}) {
   const roomRef = useRef<Room | null>(null);
   const stopLevelRef = useRef<(() => void) | null>(null);
   const tracksRef = useRef<MediaStreamTrack[]>([]);
@@ -59,7 +65,13 @@ export function VoiceButton({ labels }: { labels: Labels }) {
     let token: string;
     let url: string;
     try {
-      const res = await fetch(`${GBO_API}/gbo/session`, { method: "POST" });
+      // The agent picks its instructions, greeting, STT hints and TTS voice
+      // from this, so a visitor on /en/* is not answered in Turkish.
+      const res = await fetch(`${GBO_API}/gbo/session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lang }),
+      });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         throw new Error(body?.error?.message ?? labels.error);

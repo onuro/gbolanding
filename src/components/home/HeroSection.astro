@@ -11,7 +11,7 @@ interface Props {
   messages: Messages;
 }
 
-const { messages } = Astro.props;
+const { locale, messages } = Astro.props;
 ---
 
 <section
@@ -150,6 +150,7 @@ const { messages } = Astro.props;
       />
       <VoiceButton
         client:load
+        lang={locale}
         labels={{
           idle: messages.hero.voiceIdle,
           connecting: messages.hero.voiceConnecting,
