@@ -22,6 +22,10 @@ const trMessages: Messages = {
     primaryCta: "Demo talep edin",
     secondaryCta: "Çözümleri keşfet",
     status: "Demo başvuruları açık",
+    voiceIdle: "AI asistanımızla konuşun",
+    voiceConnecting: "Bağlanıyor…",
+    voiceLive: "Görüşmeyi bitirin",
+    voiceError: "Sesli asistan şu anda kullanılamıyor.",
   },
   proofStrip: {
     label: "Nasıl yardımcı oluruz",

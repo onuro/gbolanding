@@ -22,6 +22,10 @@ const enMessages: Messages = {
     primaryCta: "Schedule a demo",
     secondaryCta: "Explore solutions",
     status: "Demo bookings are open",
+    voiceIdle: "Talk to our AI assistant",
+    voiceConnecting: "Connecting…",
+    voiceLive: "End the call",
+    voiceError: "The voice assistant is unavailable right now.",
   },
   proofStrip: {
     label: "How we help",

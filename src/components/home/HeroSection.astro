@@ -1,7 +1,8 @@
 ---
 import { ArrowDownRight, ArrowRight } from "lucide-react";
 import { LogoShape } from "@/components/logo";
-import KollektorHeroVisual from "@/components/home/KollektorHeroVisual.astro";
+import { StudyOrbGradient } from "@/components/hero-orb/StudyOrbGradient";
+import { VoiceButton } from "@/components/hero-orb/VoiceButton";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
 
@@ -10,7 +11,7 @@ interface Props {
   messages: Messages;
 }
 
-const { locale, messages } = Astro.props;
+const { messages } = Astro.props;
 ---
 
 <section
@@ -130,20 +131,32 @@ const { locale, messages } = Astro.props;
     </div>
 
     <div
-      class="relative flex min-h-[34rem] items-stretch overflow-hidden bg-card/40 p-4 sm:min-h-[38rem] sm:p-5 lg:p-6 xl:col-span-5 xl:min-h-[43rem] xl:p-12"
-      aria-hidden="true"
+      class="@container relative flex min-h-[34rem] items-center justify-center overflow-hidden bg-background sm:min-h-[38rem] xl:col-span-5 xl:min-h-[43rem]"
     >
-      <video
-        class="pointer-events-none absolute inset-0 h-full w-full object-cover object-center motion-reduce:hidden"
-        autoplay
-        loop
-        muted
-        playsinline
-        preload="auto"
+      <div
+        class="pointer-events-none absolute inset-0 opacity-40"
+        style="background-image: radial-gradient(circle, var(--dot-grid-color) 1px, transparent 1px); background-size: 20px 20px;"
       >
-        <source src="/media/delthis.webm" type="video/webm" />
-      </video>
-      <KollektorHeroVisual locale={locale} />
+      </div>
+      {/* Soft stage wash so the orb glow has something to light */}
+      <div
+        class="pointer-events-none absolute inset-0 opacity-40"
+        style="background: radial-gradient(ellipse 70% 60% at 50% 50%, rgb(4 50 38 / 12%), transparent 70%);"
+      >
+      </div>
+      <StudyOrbGradient
+        client:load
+        className="z-10 w-[min(100%,min(101cqmin,46rem))] shrink-0"
+      />
+      <VoiceButton
+        client:load
+        labels={{
+          idle: messages.hero.voiceIdle,
+          connecting: messages.hero.voiceConnecting,
+          live: messages.hero.voiceLive,
+          error: messages.hero.voiceError,
+        }}
+      />
     </div>
   </div>
 </section>

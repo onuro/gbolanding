@@ -37,6 +37,10 @@ export interface Messages {
     primaryCta: string;
     secondaryCta: string;
     status: string;
+    voiceIdle: string;
+    voiceConnecting: string;
+    voiceLive: string;
+    voiceError: string;
   };
   proofStrip: {
     label: string;
