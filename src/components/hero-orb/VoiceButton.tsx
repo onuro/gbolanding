@@ -5,7 +5,13 @@ import { Play, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { connectOrbLevel } from "./orb-level";
 
-const GBO_API = import.meta.env.PUBLIC_GBO_API ?? "http://localhost:3010";
+// Astro inlines PUBLIC_* at build time; when it is missing, a production build
+// must not fall back to a localhost the visitor's browser cannot reach.
+const GBO_API =
+  import.meta.env.PUBLIC_GBO_API ??
+  (import.meta.env.DEV
+    ? "http://localhost:3010"
+    : "https://kollektor.gbovision.com");
 
 type Labels = {
   idle: string;
