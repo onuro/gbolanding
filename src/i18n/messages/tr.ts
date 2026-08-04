@@ -26,6 +26,9 @@ const trMessages: Messages = {
     voiceConnecting: "Bağlanıyor…",
     voiceLive: "Görüşmeyi bitirin",
     voiceError: "Sesli asistan şu anda kullanılamıyor.",
+    voiceMicError:
+      "Mikrofona erişilemedi. Bu site için ve sistem ayarlarınızda mikrofon iznini verin, mikrofonu kullanan diğer uygulamaları kapatın.",
+    voiceSoundBlocked: "Sesi aç",
   },
   proofStrip: {
     label: "Nasıl yardımcı oluruz",

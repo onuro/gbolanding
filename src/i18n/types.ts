@@ -41,6 +41,8 @@ export interface Messages {
     voiceConnecting: string;
     voiceLive: string;
     voiceError: string;
+    voiceMicError: string;
+    voiceSoundBlocked: string;
   };
   proofStrip: {
     label: string;

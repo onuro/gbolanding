@@ -26,6 +26,9 @@ const enMessages: Messages = {
     voiceConnecting: "Connecting…",
     voiceLive: "End the call",
     voiceError: "The voice assistant is unavailable right now.",
+    voiceMicError:
+      "We could not reach your microphone. Allow mic access for this site and in your system settings, and close any other app using it.",
+    voiceSoundBlocked: "Enable sound",
   },
   proofStrip: {
     label: "How we help",

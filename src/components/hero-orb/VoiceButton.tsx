@@ -18,6 +18,8 @@ type Labels = {
   connecting: string;
   live: string;
   error: string;
+  micError: string;
+  soundBlocked: string;
 };
 
 // ponytail: only the utterance being spoken right now — a hero caption, not a
@@ -40,6 +42,7 @@ export function VoiceButton({
   const tracksRef = useRef<MediaStreamTrack[]>([]);
   const [state, setState] = useState<"idle" | "connecting" | "live">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [soundBlocked, setSoundBlocked] = useState(false);
   const [caption, setCaption] = useState<Caption | null>(null);
   const captionRef = useRef<HTMLDivElement>(null);
 
@@ -105,6 +108,12 @@ export function VoiceButton({
       document.body.appendChild(track.attach());
       if (track.mediaStreamTrack) meter(track.mediaStreamTrack);
     });
+    // The agent's track arrives seconds after the click, so its play() lands
+    // outside the gesture window. Without mic permission Chrome has no autoplay
+    // exemption to fall back on and the call goes silent — offer a fresh click.
+    room.on(RoomEvent.AudioPlaybackStatusChanged, () => {
+      setSoundBlocked(!room.canPlaybackAudio);
+    });
     room.on(RoomEvent.Disconnected, () => {
       stopLevelRef.current?.();
       stopLevelRef.current = null;
@@ -113,6 +122,7 @@ export function VoiceButton({
       window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
       roomRef.current = null;
       setCaption(null);
+      setSoundBlocked(false);
       setState("idle");
     });
 
@@ -120,17 +130,27 @@ export function VoiceButton({
       await room.connect(url, token);
       // Both need the user gesture we are still inside of.
       await room.startAudio();
-      // Metering the mic too, so the orb answers your voice as well as the agent's.
-      const microphone = await room.localParticipant.setMicrophoneEnabled(true);
-      if (microphone?.track?.mediaStreamTrack) {
-        meter(microphone.track.mediaStreamTrack);
-      }
       window.dispatchEvent(new CustomEvent("orb-live", { detail: true }));
       setState("live");
     } catch (cause) {
       room.disconnect();
       setError(cause instanceof Error ? cause.message : labels.error);
       setState("idle");
+      return;
+    }
+
+    // Windows blocks a mic in more ways than macOS does: the OS privacy toggle,
+    // a desktop tower with no mic at all, or another app (Teams, Zoom, OBS)
+    // holding the device in WASAPI exclusive mode. None of that should tear
+    // down a call the visitor can still listen to — say what to fix instead.
+    try {
+      // Metering the mic too, so the orb answers your voice as well as the agent's.
+      const microphone = await room.localParticipant.setMicrophoneEnabled(true);
+      if (microphone?.track?.mediaStreamTrack) {
+        meter(microphone.track.mediaStreamTrack);
+      }
+    } catch {
+      setError(labels.micError);
     }
   }
 
@@ -182,6 +202,15 @@ export function VoiceButton({
               {caption.text}
             </p>
           </div>
+        )}
+        {soundBlocked && (
+          <button
+            type="button"
+            onClick={() => void roomRef.current?.startAudio()}
+            className="pointer-events-auto rounded-full border border-border bg-card px-3 py-1 text-xs text-foreground outline-none transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            {labels.soundBlocked}
+          </button>
         )}
         {state === "live" ? (
           <div className="pointer-events-auto flex items-center gap-2">
