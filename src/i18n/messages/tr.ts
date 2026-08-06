@@ -26,8 +26,12 @@ const trMessages: Messages = {
     voiceConnecting: "Bağlanıyor…",
     voiceLive: "Görüşmeyi bitirin",
     voiceError: "Sesli asistan şu anda kullanılamıyor.",
+    voiceMicDenied:
+      "Mikrofon erişimi engellendi. Tarayıcınızda bu siteye izin verin ve sistem gizlilik ayarlarınızı kontrol edin.",
+    voiceMicMissing:
+      "Mikrofon bulunamadı. Bir mikrofon bağlayıp görüşmeyi yeniden başlatın.",
     voiceMicError:
-      "Mikrofona erişilemedi. Bu site için ve sistem ayarlarınızda mikrofon iznini verin, mikrofonu kullanan diğer uygulamaları kapatın.",
+      "Mikrofonunuz başka bir uygulama tarafından kullanılıyor. O uygulamayı (Teams, Zoom, OBS…) kapatıp görüşmeyi yeniden başlatın.",
     voiceSoundBlocked: "Sesi aç",
   },
   proofStrip: {

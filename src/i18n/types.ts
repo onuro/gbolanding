@@ -41,6 +41,8 @@ export interface Messages {
     voiceConnecting: string;
     voiceLive: string;
     voiceError: string;
+    voiceMicDenied: string;
+    voiceMicMissing: string;
     voiceMicError: string;
     voiceSoundBlocked: string;
   };

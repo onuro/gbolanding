@@ -26,8 +26,12 @@ const enMessages: Messages = {
     voiceConnecting: "Connecting…",
     voiceLive: "End the call",
     voiceError: "The voice assistant is unavailable right now.",
+    voiceMicDenied:
+      "Microphone access is blocked. Allow it for this site in your browser, and check your system privacy settings.",
+    voiceMicMissing:
+      "No microphone found. Plug one in, then start the call again.",
     voiceMicError:
-      "We could not reach your microphone. Allow mic access for this site and in your system settings, and close any other app using it.",
+      "Your microphone is in use by another app. Close it (Teams, Zoom, OBS…) and start the call again.",
     voiceSoundBlocked: "Enable sound",
   },
   proofStrip: {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Room, RoomEvent } from "livekit-client";
+import { Room, RoomEvent, Track } from "livekit-client";
 import { Play, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { connectOrbLevel } from "./orb-level";
@@ -18,9 +18,25 @@ type Labels = {
   connecting: string;
   live: string;
   error: string;
+  micDenied: string;
+  micMissing: string;
   micError: string;
   soundBlocked: string;
 };
+
+/**
+ * The three getUserMedia failures worth telling apart — each has a different
+ * fix, and "microphone unavailable" tells a visitor which of them to try.
+ * NotReadableError is the Windows one: another app holds the device.
+ */
+function micLabel(cause: unknown, labels: Labels) {
+  const name = cause instanceof Error ? cause.name : "";
+  if (name === "NotAllowedError" || name === "SecurityError")
+    return labels.micDenied;
+  if (name === "NotFoundError" || name === "OverconstrainedError")
+    return labels.micMissing;
+  return labels.micError;
+}
 
 // ponytail: only the utterance being spoken right now — a hero caption, not a
 // chat log. Keep a transcript array here if the call ever needs history.
@@ -65,6 +81,19 @@ export function VoiceButton({
     setState("connecting");
     setError(null);
 
+    // Ask for the mic first, while the click still counts as user activation.
+    // Requesting it after the token fetch and room.connect (as we used to) puts
+    // the prompt outside that window, and Windows Chrome auto-dismisses it —
+    // every retry then lands on the same silent block with no prompt shown.
+    // A refusal is not fatal: the visitor can still listen to the agent.
+    let mic: MediaStreamTrack | null = null;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mic = stream.getAudioTracks()[0] ?? null;
+    } catch (cause) {
+      setError(micLabel(cause, labels));
+    }
+
     let token: string;
     let url: string;
     try {
@@ -81,6 +110,7 @@ export function VoiceButton({
       }
       ({ token, url } = await res.json());
     } catch (cause) {
+      mic?.stop();
       setError(cause instanceof Error ? cause.message : labels.error);
       setState("idle");
       return;
@@ -133,23 +163,22 @@ export function VoiceButton({
       window.dispatchEvent(new CustomEvent("orb-live", { detail: true }));
       setState("live");
     } catch (cause) {
+      mic?.stop();
       room.disconnect();
       setError(cause instanceof Error ? cause.message : labels.error);
       setState("idle");
       return;
     }
 
-    // Windows blocks a mic in more ways than macOS does: the OS privacy toggle,
-    // a desktop tower with no mic at all, or another app (Teams, Zoom, OBS)
-    // holding the device in WASAPI exclusive mode. None of that should tear
-    // down a call the visitor can still listen to — say what to fix instead.
+    if (!mic) return;
     try {
+      await room.localParticipant.publishTrack(mic, {
+        source: Track.Source.Microphone,
+      });
       // Metering the mic too, so the orb answers your voice as well as the agent's.
-      const microphone = await room.localParticipant.setMicrophoneEnabled(true);
-      if (microphone?.track?.mediaStreamTrack) {
-        meter(microphone.track.mediaStreamTrack);
-      }
+      meter(mic);
     } catch {
+      mic.stop();
       setError(labels.micError);
     }
   }
