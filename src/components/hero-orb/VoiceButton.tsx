@@ -3,6 +3,7 @@
 import { Room, RoomEvent, Track } from "livekit-client";
 import { Play, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { denoise, MIC_CONSTRAINTS } from "./denoise";
 import { connectOrbLevel } from "./orb-level";
 
 // Astro inlines PUBLIC_* at build time; when it is missing, a production build
@@ -55,6 +56,7 @@ export function VoiceButton({
 }) {
   const roomRef = useRef<Room | null>(null);
   const stopLevelRef = useRef<(() => void) | null>(null);
+  const stopMicRef = useRef<(() => void) | null>(null);
   const tracksRef = useRef<MediaStreamTrack[]>([]);
   const [state, setState] = useState<"idle" | "connecting" | "live">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +73,7 @@ export function VoiceButton({
   useEffect(
     () => () => {
       stopLevelRef.current?.();
+      stopMicRef.current?.();
       roomRef.current?.disconnect();
       window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
     },
@@ -88,10 +91,26 @@ export function VoiceButton({
     // A refusal is not fatal: the visitor can still listen to the agent.
     let mic: MediaStreamTrack | null = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: MIC_CONSTRAINTS,
+      });
       mic = stream.getAudioTracks()[0] ?? null;
     } catch (cause) {
       setError(micLabel(cause, labels));
+    }
+
+    // RNNoise on top of the browser filters. It loads a worklet and ~150 kB of
+    // wasm, so a failure here must not end the call — publish the raw mic.
+    if (mic) {
+      const raw = mic;
+      stopMicRef.current = () => raw.stop();
+      try {
+        const filter = await denoise(raw);
+        mic = filter.track;
+        stopMicRef.current = filter.stop;
+      } catch (cause) {
+        console.warn("rnnoise unavailable, using the raw microphone", cause);
+      }
     }
 
     let token: string;
@@ -110,7 +129,7 @@ export function VoiceButton({
       }
       ({ token, url } = await res.json());
     } catch (cause) {
-      mic?.stop();
+      releaseMic();
       setError(cause instanceof Error ? cause.message : labels.error);
       setState("idle");
       return;
@@ -147,6 +166,7 @@ export function VoiceButton({
     room.on(RoomEvent.Disconnected, () => {
       stopLevelRef.current?.();
       stopLevelRef.current = null;
+      releaseMic();
       tracksRef.current = [];
       window.dispatchEvent(new CustomEvent("orb-level", { detail: 0 }));
       window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
@@ -163,7 +183,7 @@ export function VoiceButton({
       window.dispatchEvent(new CustomEvent("orb-live", { detail: true }));
       setState("live");
     } catch (cause) {
-      mic?.stop();
+      releaseMic();
       room.disconnect();
       setError(cause instanceof Error ? cause.message : labels.error);
       setState("idle");
@@ -178,9 +198,15 @@ export function VoiceButton({
       // Metering the mic too, so the orb answers your voice as well as the agent's.
       meter(mic);
     } catch {
-      mic.stop();
+      releaseMic();
       setError(labels.micError);
     }
+  }
+
+  // The raw mic lives in our own AudioContext, so LiveKit cannot free it.
+  function releaseMic() {
+    stopMicRef.current?.();
+    stopMicRef.current = null;
   }
 
   // Tracks trickle in (agent audio, then mic), so rebuild the meter each time.
