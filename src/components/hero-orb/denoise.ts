@@ -1,7 +1,3 @@
-import {
-  loadRnnoise,
-  RnnoiseWorkletNode,
-} from "@sapphi-red/web-noise-suppressor";
 import rnnoiseWasmUrl from "@sapphi-red/web-noise-suppressor/rnnoise.wasm?url";
 import rnnoiseSimdWasmUrl from "@sapphi-red/web-noise-suppressor/rnnoise_simd.wasm?url";
 import rnnoiseWorkletUrl from "@sapphi-red/web-noise-suppressor/rnnoiseWorklet.js?url";
@@ -26,6 +22,14 @@ const RNNOISE_SAMPLE_RATE = 48000;
  * Call it inside the click, so the AudioContext starts on a user gesture.
  */
 export async function denoise(mic: MediaStreamTrack) {
+  // Imported here, not at the top: the package subclasses AudioWorkletNode at
+  // module scope, so a static import throws while Astro renders the island on
+  // the server and every page answers 500. It also keeps the wasm loader out of
+  // the first client bundle — nothing needs it until the visitor clicks.
+  const { loadRnnoise, RnnoiseWorkletNode } = await import(
+    "@sapphi-red/web-noise-suppressor"
+  );
+
   const ctx = new AudioContext({ sampleRate: RNNOISE_SAMPLE_RATE });
   const [wasmBinary] = await Promise.all([
     loadRnnoise({ url: rnnoiseWasmUrl, simdUrl: rnnoiseSimdWasmUrl }),
