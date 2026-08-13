@@ -3,6 +3,7 @@
 import { Room, RoomEvent, Track } from "livekit-client";
 import { Play, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Logomark } from "@/components/logo";
 import { denoise, MIC_CONSTRAINTS } from "./denoise";
 import { connectOrbLevel } from "./orb-level";
 
@@ -226,6 +227,14 @@ export function VoiceButton({
   return (
     <>
       <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+        {/* Takes the play button's place in the hollow once the agent is up. */}
+        <Logomark
+          aria-hidden="true"
+          focusable="false"
+          className={`absolute w-20 text-foreground transition-opacity duration-500 sm:w-24 ${
+            state === "live" ? "opacity-100" : "opacity-0"
+          }`}
+        />
         <button
           type="button"
           onClick={start}
