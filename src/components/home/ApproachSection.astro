@@ -25,7 +25,7 @@ const stepIcons = [Search, Blocks, Plug, RefreshCw] as const;
         <p
           class="inline-flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground"
         >
-          <span aria-hidden="true" class="size-1.5 bg-brand"></span>
+          <span aria-hidden="true" class="size-1.5 bg-foreground/30"></span>
           {messages.approach.eyebrow}
         </p>
         <h2
@@ -53,7 +53,7 @@ const stepIcons = [Search, Blocks, Plug, RefreshCw] as const;
           return (
             <li class="relative flex min-h-72 flex-col bg-background p-6 sm:p-8">
               <div class="flex items-center justify-between">
-                <span class="font-mono text-xs font-medium tracking-[0.2em] text-brand">
+                <span class="font-mono text-xs font-medium tracking-[0.2em] text-foreground/45">
                   {step.number}
                 </span>
                 <Icon
@@ -75,7 +75,7 @@ const stepIcons = [Search, Blocks, Plug, RefreshCw] as const;
 
               <span
                 aria-hidden="true"
-                class="absolute bottom-0 left-0 h-px w-8 bg-brand/50"
+                class="absolute bottom-0 left-0 h-px w-8 bg-foreground/25"
               ></span>
             </li>
           );

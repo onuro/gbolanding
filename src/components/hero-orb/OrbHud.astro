@@ -1,0 +1,284 @@
+---
+/**
+ * Instrument ring around the hero orb.
+ *
+ * Radii are in a 1000×1000 viewBox. The shader disc sits at 345 of that box
+ * when the HUD is the same size as the canvas; the overlay is drawn larger so
+ * the instrument rings sit farther from the orb. Everything drawn lives outside
+ * the disc.
+ */
+const C = 500;
+const DISC = 345;
+
+const polar = (r: number, deg: number) => {
+  const rad = ((deg - 90) * Math.PI) / 180;
+  return [C + r * Math.cos(rad), C + r * Math.sin(rad)] as const;
+};
+
+const n = (value: number) => Number(value.toFixed(2));
+
+const arc = (r: number, from: number, to: number) => {
+  const [x1, y1] = polar(r, from);
+  const [x2, y2] = polar(r, to);
+  const large = Math.abs(to - from) > 180 ? 1 : 0;
+  return `M ${n(x1)} ${n(y1)} A ${r} ${r} 0 ${large} 1 ${n(x2)} ${n(y2)}`;
+};
+
+const radial = (from: number, to: number, deg: number) => {
+  const [x1, y1] = polar(from, deg);
+  const [x2, y2] = polar(to, deg);
+  return { x1: n(x1), y1: n(y1), x2: n(x2), y2: n(y2) };
+};
+
+const GRADUATION = 412;
+const graduations = Array.from({ length: 120 }, (_, i) => {
+  const deg = i * 3;
+  const major = i % 5 === 0;
+  return { ...radial(GRADUATION - (major ? 16 : 7), GRADUATION, deg), major };
+});
+
+// Five arcs with gaps, so the ring reads as machined rather than drawn.
+const SEGMENT = 444;
+const segments = [0, 72, 144, 216, 288].map((start) =>
+  arc(SEGMENT, start, start + 52),
+);
+
+// Trailing comet that sweeps the segmented ring while a call is up.
+const sweep = Array.from({ length: 7 }, (_, i) => ({
+  d: arc(SEGMENT, -i * 7 - 7, -i * 7),
+  opacity: n(0.85 - i * 0.12),
+}));
+
+const OUTER = 478;
+const outerArcs = [20, 140, 260].map((start) => ({
+  d: arc(OUTER, start, start + 26),
+  caps: [polar(OUTER, start), polar(OUTER, start + 26)].map(([x, y]) => ({
+    x: n(x),
+    y: n(y),
+  })),
+}));
+
+// Bar-code cluster: reads as a readout without pretending to be text.
+const cells = Array.from({ length: 15 }, (_, i) => {
+  const deg = 297 + i * 3.2;
+  const length = i % 3 === 0 ? 13 : 7;
+  return radial(466 - length / 2, 466 + length / 2, deg);
+});
+
+const BRACKET = 494;
+const brackets = [45, 135, 225, 315].flatMap((deg) => [
+  { type: "arc" as const, d: arc(BRACKET, deg - 8, deg + 8) },
+  { type: "tick" as const, ...radial(BRACKET, BRACKET + 8, deg - 8) },
+  { type: "tick" as const, ...radial(BRACKET, BRACKET + 8, deg + 8) },
+]);
+
+const axes = [0, 90, 180, 270].map((deg) => radial(DISC + 42, 498, deg));
+---
+
+<div
+  class="orb-hud pointer-events-none absolute left-1/2 top-1/2 z-10 size-[128%] -translate-x-1/2 -translate-y-1/2"
+  aria-hidden="true"
+  data-orb-hud
+>
+  <svg viewBox="0 0 1000 1000" fill="none" class="size-full text-foreground">
+    <g class="hud-static">
+      <circle cx={C} cy={C} r={DISC + 48} stroke="currentColor" stroke-width="1" stroke-opacity="0.16" />
+
+      {axes.map((line) => (
+        <line {...line} stroke="currentColor" stroke-width="1" stroke-opacity="0.1" />
+      ))}
+
+      {graduations.map((tick) => (
+        <line
+          x1={tick.x1}
+          y1={tick.y1}
+          x2={tick.x2}
+          y2={tick.y2}
+          stroke="currentColor"
+          stroke-width={tick.major ? 1.4 : 1}
+          stroke-opacity={tick.major ? 0.4 : 0.18}
+        />
+      ))}
+
+      {brackets.map((part) =>
+        part.type === "arc" ? (
+          <path d={part.d} stroke="currentColor" stroke-width="1.4" stroke-opacity="0.32" />
+        ) : (
+          <line
+            x1={part.x1}
+            y1={part.y1}
+            x2={part.x2}
+            y2={part.y2}
+            stroke="currentColor"
+            stroke-width="1.4"
+            stroke-opacity="0.32"
+          />
+        ),
+      )}
+    </g>
+
+    <g class="hud-spin-slow">
+      {segments.map((d) => (
+        <path d={d} stroke="currentColor" stroke-width="1.6" stroke-opacity="0.3" stroke-linecap="round" />
+      ))}
+    </g>
+
+    <g class="hud-spin-reverse">
+      <circle
+        cx={C}
+        cy={C}
+        r="458"
+        stroke="currentColor"
+        stroke-width="1"
+        stroke-opacity="0.22"
+        stroke-dasharray="3 10"
+      />
+    </g>
+
+    <g class="hud-spin-outer">
+      {outerArcs.map((item) => (
+        <>
+          <path d={item.d} stroke="currentColor" stroke-width="1.2" stroke-opacity="0.26" />
+          {item.caps.map((cap) => (
+            <circle cx={cap.x} cy={cap.y} r="2.4" fill="currentColor" fill-opacity="0.35" />
+          ))}
+        </>
+      ))}
+      {cells.map((cell) => (
+        <line
+          x1={cell.x1}
+          y1={cell.y1}
+          x2={cell.x2}
+          y2={cell.y2}
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-opacity="0.28"
+        />
+      ))}
+    </g>
+
+    <g class="hud-sweep">
+      {sweep.map((part) => (
+        <path
+          d={part.d}
+          stroke="var(--brand)"
+          stroke-width="2.2"
+          stroke-opacity={part.opacity}
+          stroke-linecap="round"
+        />
+      ))}
+    </g>
+  </svg>
+</div>
+
+<script>
+  const hud = document.querySelector<HTMLElement>("[data-orb-hud]");
+
+  if (hud && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    let target = 0;
+    let eased = 0;
+    let raf = 0;
+
+    const frame = () => {
+      eased += (target - eased) * 0.14;
+      hud.style.setProperty("--hud-level", eased.toFixed(3));
+      raf = requestAnimationFrame(frame);
+    };
+
+    // Only metered while a call is up; off-call the ring holds its resting look.
+    const setLive = (live: boolean) => {
+      hud.classList.toggle("is-live", live);
+      if (live && !raf) {
+        raf = requestAnimationFrame(frame);
+      } else if (!live && raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+        target = 0;
+        eased = 0;
+        hud.style.setProperty("--hud-level", "0");
+      }
+    };
+
+    window.addEventListener("orb-level", (event) => {
+      target = (event as CustomEvent<number>).detail ?? 0;
+    });
+    window.addEventListener("orb-live", (event) => {
+      setLive((event as CustomEvent<boolean>).detail === true);
+    });
+    window.addEventListener(
+      "pagehide",
+      () => {
+        if (raf) cancelAnimationFrame(raf);
+      },
+      { once: true },
+    );
+  }
+</script>
+
+<style>
+  .orb-hud {
+    --hud-level: 0;
+    opacity: calc(0.62 + var(--hud-level) * 0.38);
+    transition: opacity 240ms linear;
+  }
+
+  .orb-hud svg > g {
+    transform-box: view-box;
+    transform-origin: 50% 50%;
+  }
+
+  .hud-spin-slow,
+  .hud-spin-reverse,
+  .hud-spin-outer,
+  .hud-sweep {
+    animation-name: hud-rotate;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    will-change: transform;
+  }
+
+  .hud-spin-slow {
+    animation-duration: 72s;
+  }
+
+  .hud-spin-reverse {
+    animation-duration: 48s;
+    animation-direction: reverse;
+  }
+
+  .hud-spin-outer {
+    animation-duration: 104s;
+    animation-direction: reverse;
+  }
+
+  /* The sweep is the only part that reads as "scanning", so it stays hidden
+     until there is something to scan. */
+  .hud-sweep {
+    animation-duration: 9s;
+    opacity: 0;
+    transition: opacity 400ms ease;
+  }
+
+  .orb-hud.is-live .hud-sweep {
+    opacity: calc(0.35 + var(--hud-level) * 0.65);
+  }
+
+  @keyframes hud-rotate {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hud-spin-slow,
+    .hud-spin-reverse,
+    .hud-spin-outer,
+    .hud-sweep {
+      animation: none;
+    }
+
+    .hud-sweep {
+      display: none;
+    }
+  }
+</style>

@@ -94,7 +94,7 @@ const homeHref = locale === "tr" ? "/tr" : "/";
             aria-current={locale === "en" ? "page" : undefined}
             class:list={[
               "flex min-h-11 items-center justify-center bg-background px-4 font-mono text-xs font-medium transition-colors hover:bg-card hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand",
-              locale === "en" ? "text-brand" : "text-muted-foreground",
+              locale === "en" ? "text-foreground" : "text-muted-foreground",
             ]}
           >
             EN
@@ -106,7 +106,7 @@ const homeHref = locale === "tr" ? "/tr" : "/";
             aria-current={locale === "tr" ? "page" : undefined}
             class:list={[
               "flex min-h-11 items-center justify-center bg-background px-4 font-mono text-xs font-medium transition-colors hover:bg-card hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand",
-              locale === "tr" ? "text-brand" : "text-muted-foreground",
+              locale === "tr" ? "text-foreground" : "text-muted-foreground",
             ]}
           >
             TR

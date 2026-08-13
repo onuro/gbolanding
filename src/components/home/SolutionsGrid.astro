@@ -3,7 +3,6 @@ import {
   ArrowUpRight,
   BriefcaseBusiness,
   ChartNoAxesCombined,
-  Check,
   Database,
   Network,
   Scale,
@@ -33,10 +32,22 @@ const visualCopy =
         review: "İncele",
         contact: "İletişim",
         resolve: "Sonuçlandır",
+        live: "Canlı",
+        openCases: "Açık dosya",
+        contactRate: "Temas oranı",
+        avgCycle: "Ort. döngü",
+        days: "gün",
+        stage: "Aşama",
         analysis: "Analiz",
         method: "Yöntem",
         market: "Piyasa",
         assets: "Varlıklar",
+        concluded: "Sonuçlanan değer",
+        valueRange: "Değer aralığı (M)",
+        low: "Alt",
+        high: "Üst",
+        weight: "Ağırlık",
+        methodsLabel: "yöntem",
         fabric: "Kurumsal yapay zeka platformu",
         connected: "Bağlı",
         operations: "Operasyon",
@@ -62,10 +73,22 @@ const visualCopy =
         review: "Review",
         contact: "Contact",
         resolve: "Resolve",
+        live: "Live",
+        openCases: "Open cases",
+        contactRate: "Contact rate",
+        avgCycle: "Avg. cycle",
+        days: "days",
+        stage: "Stage",
         analysis: "Analysis",
         method: "Method",
         market: "Market",
         assets: "Assets",
+        concluded: "Concluded value",
+        valueRange: "Value range (M)",
+        low: "Low",
+        high: "High",
+        weight: "Weight",
+        methodsLabel: "methods",
         fabric: "Enterprise AI platform",
         connected: "Connected",
         operations: "Operations",
@@ -80,6 +103,39 @@ const visualCopy =
         active: "Active",
         humanReviewReady: "Human review",
       };
+
+// One case is being worked right now; that is the only thing in either console
+// allowed to carry the brand colour.
+const caseRows = [
+  { id: "K-2084", path: 82, stage: visualCopy.review, priority: 82 },
+  { id: "K-1973", path: 68, stage: visualCopy.contact, priority: 68 },
+  {
+    id: "K-1911",
+    path: 94,
+    stage: visualCopy.resolve,
+    priority: 91,
+    live: true,
+  },
+  { id: "K-1865", path: 54, stage: visualCopy.review, priority: 54 },
+];
+
+const caseStats = [
+  { value: "1 248", label: visualCopy.openCases },
+  { value: "64%", label: visualCopy.contactRate },
+  { value: `18 ${visualCopy.days}`, label: visualCopy.avgCycle },
+];
+
+// Three methods bracket a range, and the concluded figure is the output.
+const valuation = { low: 3.9, high: 4.6, concluded: 4.24 };
+const methods = [
+  { key: "DCF", label: visualCopy.method, value: "4.10", weight: 45 },
+  { key: "MKT", label: visualCopy.market, value: "3.90", weight: 30 },
+  { key: "NAV", label: visualCopy.assets, value: "4.60", weight: 25 },
+];
+const concludedAt = Math.round(
+  ((valuation.concluded - valuation.low) / (valuation.high - valuation.low)) *
+    100,
+);
 ---
 
 <section
@@ -92,9 +148,9 @@ const visualCopy =
   >
     <div class="px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12 lg:py-18">
       <p
-        class="mb-5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-brand"
+        class="mb-5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
       >
-        <span class="h-px w-5 bg-brand/60" aria-hidden="true"></span>
+        <span class="h-px w-5 bg-foreground/25" aria-hidden="true"></span>
         {messages.intro.eyebrow}
       </p>
       <h2
@@ -120,7 +176,7 @@ const visualCopy =
       <div class="relative z-10 px-5 pt-8 sm:px-8 sm:pt-10">
         <div class="mb-8 flex items-start justify-between gap-5">
           <span
-            class="flex size-10 items-center justify-center border border-border bg-card text-brand"
+            class="flex size-10 items-center justify-center border border-border bg-card text-foreground/70"
           >
             <Scale aria-hidden="true" className="size-4" strokeWidth={1.5} />
           </span>
@@ -132,7 +188,7 @@ const visualCopy =
         </div>
 
         <p
-          class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-brand"
+          class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
         >
           {kollektor.eyebrow}
         </p>
@@ -143,120 +199,118 @@ const visualCopy =
           {kollektor.description}
         </p>
 
-        <ul class="mt-6 flex flex-wrap gap-x-5 gap-y-2">
+        <ul
+          class="mt-7 flex flex-wrap items-baseline gap-x-7 gap-y-2 border-t border-border pt-4"
+        >
           {
-            kollektor.highlights.map((highlight) => (
-              <li
-                class="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.08em] text-foreground/55"
-              >
-                <Check
-                  aria-hidden="true"
-                  className="size-3 text-brand"
-                  strokeWidth={2}
-                />
-                {highlight}
+            kollektor.highlights.map((highlight, index) => (
+              <li class="flex items-baseline gap-2">
+                <span class="font-mono text-[9px] tabular-nums text-foreground/25">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-foreground/60">
+                  {highlight}
+                </span>
               </li>
             ))
           }
         </ul>
       </div>
 
-      <div
-        class="relative mt-10 min-h-64 flex-1 px-5 sm:px-8"
-        aria-hidden="true"
-      >
-        <div
-          class="panel-shadow absolute right-0 bottom-0 left-5 border border-b-0 border-foreground/15 bg-card sm:left-8"
-        >
+      <div class="mt-10 flex flex-1 items-end" aria-hidden="true">
+        <div class="w-full border-t border-border bg-card/40">
           <div
-            class="flex h-10 items-center justify-between border-b border-border px-4"
+            class="flex h-9 items-center justify-between border-b border-border px-5 sm:px-8"
           >
-            <div class="flex items-center gap-2">
-              <span class="size-1.5 bg-brand"></span>
-              <span
-                class="font-mono text-[8px] uppercase tracking-[0.16em] text-foreground/55"
-              >
-                Kollektor / {visualCopy.caseCommand}
-              </span>
-            </div>
             <span
-              class="font-mono text-[8px] uppercase tracking-[0.12em] text-foreground/25"
+              class="font-mono text-[9px] uppercase tracking-[0.16em] text-foreground/45"
             >
-              {visualCopy.queue}
+              Kollektor / {visualCopy.caseCommand}
+            </span>
+            <span
+              class="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.14em] text-brand"
+            >
+              <span class="size-1.5 rounded-full bg-brand"></span>
+              {visualCopy.live}
             </span>
           </div>
 
-          <div class="grid grid-cols-[1fr_5rem] sm:grid-cols-[1fr_7rem]">
-            <div class="min-w-0">
-              <div
-                class="grid grid-cols-[4rem_1fr_3rem] border-b border-border px-3 py-2 font-mono text-[7px] uppercase tracking-[0.14em] text-foreground/25 sm:grid-cols-[5rem_1fr_4rem]"
-              >
-                <span>{visualCopy.case}</span>
-                <span>{visualCopy.recoveryPath}</span>
-                <span class="text-right">{visualCopy.score}</span>
-              </div>
-              {
-                [
-                  { id: "K-2084", value: "82", width: "82%" },
-                  { id: "K-1973", value: "68", width: "68%" },
-                  { id: "K-1911", value: "91", width: "91%" },
-                  { id: "K-1865", value: "54", width: "54%" },
-                ].map((row, index) => (
-                  <div
-                    class:list={[
-                      "grid h-11 grid-cols-[4rem_1fr_3rem] items-center px-3 font-mono text-[8px] sm:grid-cols-[5rem_1fr_4rem]",
-                      index !== 3 ? "border-b border-border" : "",
-                    ]}
-                  >
-                    <span class="text-foreground/45">{row.id}</span>
-                    <span class="mr-3 h-1 bg-foreground/[0.06]">
-                      <span
-                        class="block h-full bg-brand/55"
-                        style={`width: ${row.width};`}
-                      />
-                    </span>
-                    <span class="text-right text-foreground/30">{row.value}</span>
-                  </div>
-                ))
-              }
-            </div>
-
-            <div class="border-l border-border p-3">
-              <p
-                class="font-mono text-[7px] uppercase tracking-[0.14em] text-foreground/25"
-              >
-                {visualCopy.workflow}
-              </p>
-              <div class="mt-4 space-y-3">
-                {
-                  [
-                    visualCopy.review,
-                    visualCopy.contact,
-                    visualCopy.resolve,
-                  ].map((step, index) => (
-                    <div class="flex items-center gap-2">
-                      <span
-                        class:list={[
-                          "size-1.5",
-                          index < 2
-                            ? "bg-brand"
-                            : "border border-foreground/20",
-                        ]}
-                      />
-                      <span
-                        class:list={[
-                          "font-mono text-[7px] uppercase tracking-[0.08em]",
-                          index < 2 ? "text-foreground/50" : "text-foreground/20",
-                        ]}
-                      >
-                        {step}
-                      </span>
-                    </div>
-                  ))
-                }
-              </div>
-            </div>
+          <div class="grid grid-cols-3 border-b border-border">
+            {
+              caseStats.map((stat, index) => (
+                <div
+                  class:list={[
+                    "px-5 py-4 sm:px-8",
+                    index !== 2 ? "border-r border-border" : "",
+                  ]}
+                >
+                  <p class="font-mono text-xl tabular-nums text-foreground/85">
+                    {stat.value}
+                  </p>
+                  <p class="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.14em] text-foreground/30">
+                    {stat.label}
+                  </p>
+                </div>
+              ))
+            }
           </div>
+
+          <div
+            class="grid grid-cols-[4.5rem_1fr_2.5rem] items-center gap-4 border-b border-border px-5 py-2 font-mono text-[8px] uppercase tracking-[0.14em] text-foreground/25 sm:grid-cols-[5.5rem_1fr_6rem_3rem] sm:px-8"
+          >
+            <span>{visualCopy.case}</span>
+            <span>{visualCopy.recoveryPath}</span>
+            <span class="hidden sm:block">{visualCopy.stage}</span>
+            <span class="text-right">{visualCopy.score}</span>
+          </div>
+
+          {
+            caseRows.map((row) => (
+              <div
+                class:list={[
+                  "relative grid h-12 grid-cols-[4.5rem_1fr_2.5rem] items-center gap-4 border-b border-border px-5 font-mono text-[10px] last:border-b-0 sm:grid-cols-[5.5rem_1fr_6rem_3rem] sm:px-8",
+                  row.live && "bg-brand/[0.04]",
+                ]}
+              >
+                {row.live && (
+                  <span class="absolute inset-y-0 left-0 w-0.5 bg-brand" />
+                )}
+                <span
+                  class:list={[
+                    "tabular-nums",
+                    row.live ? "text-foreground/85" : "text-foreground/45",
+                  ]}
+                >
+                  {row.id}
+                </span>
+                <span class="h-1 bg-foreground/[0.07]">
+                  <span
+                    class:list={[
+                      "block h-full",
+                      row.live ? "bg-brand" : "bg-foreground/25",
+                    ]}
+                    style={`width: ${row.path}%;`}
+                  />
+                </span>
+                <span
+                  class:list={[
+                    "hidden truncate text-[9px] uppercase tracking-[0.1em] sm:block",
+                    row.live ? "text-brand" : "text-foreground/35",
+                  ]}
+                >
+                  {row.stage}
+                </span>
+                <span
+                  class:list={[
+                    "text-right tabular-nums",
+                    row.live ? "text-foreground/85" : "text-foreground/35",
+                  ]}
+                >
+                  {row.priority}
+                </span>
+              </div>
+            ))
+          }
         </div>
       </div>
 
@@ -267,7 +321,7 @@ const visualCopy =
         {kollektor.cta}
         <ArrowUpRight
           aria-hidden="true"
-          className="size-4 text-brand transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          className="size-4 text-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
           strokeWidth={1.5}
         />
       </a>
@@ -279,7 +333,7 @@ const visualCopy =
       <div class="relative z-10 px-5 pt-8 sm:px-8 sm:pt-10">
         <div class="mb-8 flex items-start justify-between gap-5">
           <span
-            class="flex size-10 items-center justify-center border border-border bg-card text-brand"
+            class="flex size-10 items-center justify-center border border-border bg-card text-foreground/70"
           >
             <ChartNoAxesCombined
               aria-hidden="true"
@@ -295,7 +349,7 @@ const visualCopy =
         </div>
 
         <p
-          class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-brand"
+          class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
         >
           {intelval.eyebrow}
         </p>
@@ -306,76 +360,111 @@ const visualCopy =
           {intelval.description}
         </p>
 
-        <ul class="mt-6 space-y-2">
+        <ul
+          class="mt-7 flex flex-wrap items-baseline gap-x-7 gap-y-2 border-t border-border pt-4"
+        >
           {
-            intelval.highlights.map((highlight) => (
-              <li
-                class="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.08em] text-foreground/55"
-              >
-                <Check
-                  aria-hidden="true"
-                  className="size-3 text-brand"
-                  strokeWidth={2}
-                />
-                {highlight}
+            intelval.highlights.map((highlight, index) => (
+              <li class="flex items-baseline gap-2">
+                <span class="font-mono text-[9px] tabular-nums text-foreground/25">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-foreground/60">
+                  {highlight}
+                </span>
               </li>
             ))
           }
         </ul>
       </div>
 
-      <div class="relative mt-10 flex flex-1 items-end px-5 sm:px-8" aria-hidden="true">
-        <div
-          class="panel-shadow w-full border border-b-0 border-foreground/15 bg-card"
-        >
+      <div class="mt-10 flex flex-1 items-end" aria-hidden="true">
+        <div class="w-full border-t border-border bg-card/40">
           <div
-            class="flex h-10 items-center justify-between border-b border-border px-4"
+            class="flex h-9 items-center justify-between border-b border-border px-5 sm:px-8"
           >
             <span
-              class="font-mono text-[8px] uppercase tracking-[0.16em] text-foreground/55"
+              class="font-mono text-[9px] uppercase tracking-[0.16em] text-foreground/45"
             >
               Intelval / {visualCopy.analysis}
             </span>
-            <span class="size-1.5 bg-brand"></span>
+            <span
+              class="font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/25"
+            >
+              {methods.length} {visualCopy.methodsLabel}
+            </span>
           </div>
 
-          <div class="grid grid-cols-3 border-b border-border">
+          <div class="border-b border-border px-5 py-5 sm:px-8">
+            <p
+              class="font-mono text-[8px] uppercase tracking-[0.14em] text-foreground/30"
+            >
+              {visualCopy.concluded}
+            </p>
+            <p
+              class="mt-2 font-mono text-4xl tabular-nums leading-none tracking-[-0.02em] text-brand"
+            >
+              {valuation.concluded.toFixed(2)}
+            </p>
+
+            <div class="mt-5">
+              <div class="relative h-6">
+                <span
+                  class="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-foreground/15"
+                ></span>
+                {
+                  methods.map((method) => (
+                    <span
+                      class="absolute top-1/2 h-2 w-px -translate-y-1/2 bg-foreground/30"
+                      style={`left: ${Math.round(((Number(method.value) - valuation.low) / (valuation.high - valuation.low)) * 100)}%;`}
+                    />
+                  ))
+                }
+                <span
+                  class="absolute top-1/2 h-4 w-0.5 -translate-x-1/2 -translate-y-1/2 bg-brand"
+                  style={`left: ${concludedAt}%;`}
+                ></span>
+              </div>
+              <div
+                class="flex items-center justify-between font-mono text-[8px] uppercase tracking-[0.12em] text-foreground/30"
+              >
+                <span>{visualCopy.low} {valuation.low.toFixed(2)}</span>
+                <span>{visualCopy.valueRange}</span>
+                <span>{valuation.high.toFixed(2)} {visualCopy.high}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3">
             {
-              [
-                { value: "DCF", label: visualCopy.method },
-                { value: "MKT", label: visualCopy.market },
-                { value: "NAV", label: visualCopy.assets },
-              ].map((item, index) => (
+              methods.map((method, index) => (
                 <div
                   class:list={[
-                    "px-3 py-4",
+                    "px-5 py-4 sm:px-6",
                     index !== 2 ? "border-r border-border" : "",
                   ]}
                 >
-                  <p class="font-mono text-lg text-foreground/80">{item.value}</p>
-                  <p
-                    class="mt-1 font-mono text-[7px] uppercase tracking-[0.12em] text-foreground/25"
-                  >
-                    {item.label}
+                  <div class="flex items-baseline justify-between gap-2">
+                    <span class="font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/45">
+                      {method.key}
+                    </span>
+                    <span class="font-mono text-[9px] tabular-nums text-foreground/30">
+                      {method.weight}%
+                    </span>
+                  </div>
+                  <p class="mt-2 font-mono text-lg tabular-nums text-foreground/85">
+                    {method.value}
+                  </p>
+                  <span class="mt-3 block h-0.5 bg-foreground/[0.07]">
+                    <span
+                      class="block h-full bg-foreground/25"
+                      style={`width: ${method.weight * 2}%;`}
+                    />
+                  </span>
+                  <p class="mt-2 truncate font-mono text-[8px] uppercase tracking-[0.12em] text-foreground/25">
+                    {method.label}
                   </p>
                 </div>
-              ))
-            }
-          </div>
-
-          <div
-            class="relative flex h-36 items-end gap-2 overflow-hidden px-4 pt-5"
-            style="background-image: linear-gradient(to bottom, var(--grid-line-subtle) 1px, transparent 1px); background-size: 100% 25%;"
-          >
-            {
-              [34, 47, 42, 61, 56, 76, 68, 88, 81].map((height, index) => (
-                <span
-                  class:list={[
-                    "min-w-0 flex-1",
-                    index === 7 ? "bg-brand" : "bg-foreground/10",
-                  ]}
-                  style={`height: ${height}%;`}
-                />
               ))
             }
           </div>
@@ -389,7 +478,7 @@ const visualCopy =
         {intelval.cta}
         <ArrowUpRight
           aria-hidden="true"
-          className="size-4 text-brand transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          className="size-4 text-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
           strokeWidth={1.5}
         />
       </a>
@@ -403,7 +492,7 @@ const visualCopy =
       >
         <div class="mb-10 flex items-start justify-between gap-5">
           <span
-            class="flex size-10 items-center justify-center border border-border bg-card text-brand"
+            class="flex size-10 items-center justify-center border border-border bg-card text-foreground/70"
           >
             <Network aria-hidden="true" className="size-4" strokeWidth={1.5} />
           </span>
@@ -415,7 +504,7 @@ const visualCopy =
         </div>
 
         <p
-          class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-brand"
+          class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
         >
           {enterprise.eyebrow}
         </p>
@@ -428,18 +517,18 @@ const visualCopy =
           {enterprise.description}
         </p>
 
-        <ul class="mt-7 space-y-2">
+        <ul
+          class="mt-7 flex flex-wrap items-baseline gap-x-7 gap-y-2 border-t border-border pt-4"
+        >
           {
-            enterprise.highlights.map((highlight) => (
-              <li
-                class="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.08em] text-foreground/55"
-              >
-                <Check
-                  aria-hidden="true"
-                  className="size-3 text-brand"
-                  strokeWidth={2}
-                />
-                {highlight}
+            enterprise.highlights.map((highlight, index) => (
+              <li class="flex items-baseline gap-2">
+                <span class="font-mono text-[9px] tabular-nums text-foreground/25">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-foreground/60">
+                  {highlight}
+                </span>
               </li>
             ))
           }
@@ -478,7 +567,7 @@ const visualCopy =
               {visualCopy.fabric}
             </span>
             <span
-              class="font-mono text-[8px] uppercase tracking-[0.12em] text-brand"
+              class="font-mono text-[8px] uppercase tracking-[0.12em] text-foreground/30"
             >
               {visualCopy.connected}
             </span>
@@ -515,9 +604,9 @@ const visualCopy =
             >
               <span class="absolute inset-y-0 left-1/2 w-px bg-border"></span>
               <span
-                class="relative z-10 flex size-7 items-center justify-center border border-brand/40 bg-background"
+                class="relative z-10 flex size-7 items-center justify-center border border-border-strong bg-background"
               >
-                <span class="size-1.5 bg-brand"></span>
+                <span class="size-1.5 bg-foreground/35"></span>
               </span>
             </div>
 
@@ -553,9 +642,9 @@ const visualCopy =
                         <span>{item.label}</span>
                         <span>{item.status}</span>
                       </div>
-                      <div class="h-1 bg-foreground/[0.06]">
+                      <div class="h-1 bg-foreground/[0.07]">
                         <div
-                          class="h-full bg-brand/55"
+                          class="h-full bg-foreground/25"
                           style={`width: ${item.width};`}
                         />
                       </div>
@@ -577,10 +666,10 @@ const visualCopy =
           </div>
 
           <span
-            class="absolute -left-px -top-px size-2.5 border-l border-t border-brand/70"
+            class="absolute -left-px -top-px size-2.5 border-l border-t border-foreground/30"
           ></span>
           <span
-            class="absolute -right-px -bottom-px size-2.5 border-r border-b border-brand/70"
+            class="absolute -right-px -bottom-px size-2.5 border-r border-b border-foreground/30"
           ></span>
         </div>
       </div>
