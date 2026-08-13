@@ -4,6 +4,11 @@ import { Room, RoomEvent, Track } from "livekit-client";
 import { Play, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { denoise, MIC_CONSTRAINTS } from "./denoise";
+import {
+  isMimickingTalk,
+  startMimicTalking,
+  stopMimicTalking,
+} from "./mimic-talking";
 import { connectOrbLevel } from "./orb-level";
 
 // Astro inlines PUBLIC_* at build time; when it is missing, a production build
@@ -75,12 +80,15 @@ export function VoiceButton({
       stopLevelRef.current?.();
       stopMicRef.current?.();
       roomRef.current?.disconnect();
-      window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
+      if (!isMimickingTalk()) {
+        window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
+      }
     },
     [],
   );
 
   async function start() {
+    stopMimicTalking();
     setState("connecting");
     setError(null);
 
@@ -132,6 +140,7 @@ export function VoiceButton({
       releaseMic();
       setError(cause instanceof Error ? cause.message : labels.error);
       setState("idle");
+      startMimicTalking();
       return;
     }
 
@@ -169,7 +178,10 @@ export function VoiceButton({
       releaseMic();
       tracksRef.current = [];
       window.dispatchEvent(new CustomEvent("orb-level", { detail: 0 }));
-      window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
+      startMimicTalking();
+      if (!isMimickingTalk()) {
+        window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
+      }
       roomRef.current = null;
       setCaption(null);
       setSoundBlocked(false);
@@ -187,6 +199,7 @@ export function VoiceButton({
       room.disconnect();
       setError(cause instanceof Error ? cause.message : labels.error);
       setState("idle");
+      startMimicTalking();
       return;
     }
 

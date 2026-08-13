@@ -138,12 +138,6 @@ const { locale, messages } = Astro.props;
         style="background-image: radial-gradient(circle, var(--dot-grid-color) 1px, transparent 1px); background-size: 20px 20px;"
       >
       </div>
-      {/* Soft stage wash so the orb glow has something to light */}
-      <div
-        class="pointer-events-none absolute inset-0 opacity-40"
-        style="background: radial-gradient(ellipse 70% 60% at 50% 50%, rgb(4 50 38 / 12%), transparent 70%);"
-      >
-      </div>
       <StudyOrbGradient
         client:load
         className="z-10 w-[min(100%,min(101cqmin,46rem))] shrink-0"

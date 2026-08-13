@@ -139,7 +139,9 @@ export function createStudyOrbGradient(
       : 1 / 60;
     previousFrameTime = now;
     const current = finalUniforms.u_level.value as number;
-    const rate = targetLevel > current ? 18 : 4;
+    // The decay has to outrun the gaps between syllables, or the level sits
+    // near its peak and the swell never visibly returns.
+    const rate = targetLevel > current ? 18 : 8;
     const level = current + (targetLevel - current) * Math.min(1, delta * rate);
     finalUniforms.u_level.value = level;
 

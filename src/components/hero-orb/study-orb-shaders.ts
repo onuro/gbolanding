@@ -23,9 +23,9 @@ uniform vec3 u_paletteDark;
 uniform vec3 u_paletteMid;
 uniform vec3 u_paletteCool;
 uniform vec3 u_paletteLight;
-// 0 = idle, 1 = loud. Drives the rim wave + halo lift.
+// 0 = idle, 1 = loud. Twists the interior flow; never touches the silhouette.
 uniform float u_level;
-// 0 = no call, 1 = call in progress. Sustained glow + travelling rays.
+// 0 = no call, 1 = call in progress.
 uniform float u_active;
 // Brand accent tinting the drifting cloud layer over the disc.
 uniform vec3 u_paletteAccent;
@@ -164,7 +164,30 @@ float filmGrain(vec2 fragCoord, float time) {
   return ((n + n2 + n3) / 3.0 - 0.5) * 0.14;
 }
 
-vec3 sampleOrbColor(vec2 baseUv) {
+/**
+ * Speech twists the flow around the centre. Rotating preserves each pixel's
+ * radius, so the pattern turns instead of smearing outward.
+ */
+vec2 swirl(vec2 baseUv, float voice) {
+  vec2 centered = (baseUv - 0.5) * 2.0;
+  float radius = length(centered);
+  if (radius < 0.0001) return baseUv;
+
+  // Sampling the noise along the direction vector rather than the angle keeps
+  // it seamless where atan wraps; the radius term makes rings turn by
+  // different amounts, which is what reads as fluid.
+  vec2 direction = centered / radius;
+  float noise = simplexNoise(
+    vec3(direction * (1.2 + radius * 0.8), u_time * 0.16)
+  );
+
+  float theta = atan(centered.y, centered.x) + noise * mix(0.06, 0.34, voice);
+  return 0.5 + vec2(cos(theta), sin(theta)) * radius * 0.5;
+}
+
+vec3 sampleOrbColor(vec2 inputUv) {
+  float voice = u_level * u_active;
+  vec2 baseUv = swirl(inputUv, voice);
   vec2 uv = baseUv;
 
   // Spherical projection. These are the measured idle values: scale .9,
@@ -175,6 +198,11 @@ vec3 sampleOrbColor(vec2 baseUv) {
   vec3 normals = vec3(uvDot, depth);
   uvDot /= (vec2(depth) + vec2(1.0)) * (1.0 / vec2(0.9));
   uv = (uvDot + 1.0) * 0.5;
+
+  // Each syllable swells the liquid outward. Applied after the sphere normals
+  // are taken, so only the contents scale — the orb keeps its size and its
+  // curvature at the rim.
+  uv = 0.5 + (uv - 0.5) / (1.0 + voice * 0.55);
 
   // Four-octave domain warp.
   vec2 fbmUv = uv * 3.25;
@@ -204,10 +232,9 @@ vec3 sampleOrbColor(vec2 baseUv) {
     simplexNoise(vec3(simplexUv * 0.65 + vec2(54.0), simplexTimeY))
   );
 
-  // Voice pushes the internal flow, so the pattern churns while the agent talks.
-  float voice = u_level * u_active;
-  uv += normals.xy * (remap - 0.5) * (0.65 + voice * 1.1);
-  uv += simplexDisplacement * (0.15 + voice * 0.3);
+  // Warp amounts stay fixed; speech is carried by the swirl and the clock.
+  uv += normals.xy * (remap - 0.5) * 0.65;
+  uv += simplexDisplacement * 0.15;
 
   vec3 sampleColor = texture2D(
     u_texture,
@@ -219,46 +246,21 @@ vec3 sampleOrbColor(vec2 baseUv) {
 }
 
 void main() {
-  // 2.9 (not 2.0) shrinks the disc to ~69% of the quad so the halo has room
-  // to fade before the canvas edge instead of being cut into a square.
+  // 2.9 (not 2.0) shrinks the disc to ~69% of the quad so it is not cut into
+  // a square by the canvas edge.
   vec2 centered = (v_uv - 0.5) * 2.9;
   float radial = length(centered);
 
-  // Voice wave: two out-of-phase ripples travelling around the rim. Idle keeps
-  // a little breathing so the orb never looks frozen.
-  // Idle breathing only while a call is up; a dormant orb stays perfectly still.
-  float level = max(u_level, 0.09 * u_active);
-  float angle = atan(centered.y, centered.x);
-  float wave =
-    sin(angle * 5.0 - u_time * 2.6) * 0.6 +
-    sin(angle * 9.0 + u_time * 1.7) * 0.4;
-  float edge = 1.0 + level * wave * 0.1;
+  // The silhouette is a fixed circle: speech never moves the edge, and there
+  // is no exterior glow or rays.
+  float circle = 1.0 - smoothstep(0.978, 1.0, radial);
 
-  // Hard disc + soft outer halo that inherits the rim colour.
-  float circle = 1.0 - smoothstep(0.978 * edge, edge, radial);
-  float halo = exp(-1.7 * max(radial - 0.94 * edge, 0.0));
-  halo *= 1.0 - smoothstep(edge, 1.44, radial);
-  halo *= 1.0 + level * 1.8;
-  // Off-call there is no exterior glow at all; the disc's own edge smoothstep
-  // is what keeps the silhouette soft.
-  halo *= u_active;
-  // While a call is live: steady lift plus rays sweeping around the rim.
-  float rays = 0.5 + 0.5 * sin(angle * 6.0 + u_time * 1.3);
-  halo *= 1.0 + u_active * (0.55 + rays * 0.75);
-
-  if (circle <= 0.001 && halo <= 0.001) {
+  if (circle <= 0.001) {
     gl_FragColor = vec4(0.0);
     return;
   }
 
-  // For exterior glow pixels, pull colour from the rim so the bloom
-  // matches the edge instead of a flat fill.
-  // Keep the interior pattern at its original scale despite the smaller disc.
   vec2 colourUv = 0.5 + centered * 0.5;
-  if (radial > 0.999) {
-    colourUv = 0.5 + normalize(centered) * 0.492;
-  }
-
   vec3 color = sampleOrbColor(colourUv);
 
   // Cloud layer: two noise octaves drifting across the disc, tinted with the
@@ -270,9 +272,6 @@ void main() {
   clouds = smoothstep(0.05, 0.7, clouds * 0.5 + 0.5);
   color = mix(color, u_paletteAccent, clouds * 0.24 * circle);
 
-  float alpha = clamp(max(circle, halo * 0.45), 0.0, 1.0);
-  // Premultiplied; brighten the halo slightly so rays read as light.
-  vec3 lit = color * (1.0 + halo * (1.0 - circle) * 0.35);
-  gl_FragColor = vec4(lit * alpha, alpha);
+  gl_FragColor = vec4(color * circle, circle);
 }
 `;
