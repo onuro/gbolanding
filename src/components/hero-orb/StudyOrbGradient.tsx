@@ -5,8 +5,6 @@ import {
   createStudyOrbGradient,
   type StudyOrbGradientHandle,
 } from "./study-orb-gradient-engine";
-import { startMimicTalking, stopMimicTalking } from "./mimic-talking";
-
 const CLEAR: Record<"light" | "dark", [number, number, number]> = {
   light: [1, 1, 1],
   dark: [0.043, 0.055, 0.047],
@@ -108,12 +106,21 @@ export function StudyOrbGradient({ className }: StudyOrbGradientProps) {
     document.addEventListener("visibilitychange", onVisibilityChange);
     reducedMotion.addEventListener("change", onMotionPreferenceChange);
     applyPlayingState();
-    if (!reducedMotion.matches) startMimicTalking();
+
+    // Dev-only scripted speech for tuning the talking motion. The condition is
+    // folded away in a production build, taking the module with it.
+    let mimic: typeof import("./mimic-talking") | null = null;
+    if (import.meta.env.DEV && !reducedMotion.matches) {
+      void import("./mimic-talking").then((module) => {
+        if (cancelled) return;
+        mimic = module;
+        module.startMimicTalking();
+      });
+    }
 
     return () => {
       cancelled = true;
-      stopMimicTalking();
-      window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
+      mimic?.stopMimicTalking();
       intersectionObserver.disconnect();
       window.removeEventListener("orb-level", onLevel);
       window.removeEventListener("orb-live", onLive);

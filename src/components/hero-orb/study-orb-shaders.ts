@@ -252,8 +252,12 @@ void main() {
   float radial = length(centered);
 
   // The silhouette is a fixed circle: speech never moves the edge, and there
-  // is no exterior glow or rays.
+  // is no exterior glow or rays. The centre is hollow, so the orb reads as a
+  // ring of liquid.
   float circle = 1.0 - smoothstep(0.978, 1.0, radial);
+  // Hard edge: the feather is one pixel wide, purely to keep it from aliasing.
+  float hollowAa = fwidth(radial);
+  circle *= smoothstep(0.46 - hollowAa, 0.46 + hollowAa, radial);
 
   if (circle <= 0.001) {
     gl_FragColor = vec4(0.0);

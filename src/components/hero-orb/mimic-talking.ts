@@ -7,28 +7,36 @@
  * counted per word, punctuation becomes breath, and the two speakers trade
  * turns, so the rhythm matches a conversation rather than random noise.
  *
- * Off by default. Opt in with `?talk=1` on a dev server; never runs in a
- * production build. Safe to delete along with its three call sites.
+ * Off by default. Opt in with `?talk=1` on a dev server. It is pulled in by a
+ * dev-only dynamic import, so no part of this file reaches a production
+ * bundle. It steps aside on its own when a real call takes over, which is why
+ * nothing else in the app has to import it.
  */
 
 type Turn = { speaker: "agent" | "debtor"; text: string };
 
-const SCRIPT: Turn[] = [
-  {
-    speaker: "agent",
-    text: "Good afternoon, this is Kollektor calling on behalf of your creditor.",
-  },
-  { speaker: "debtor", text: "Yes, I was expecting this call." },
-  {
-    speaker: "agent",
-    text: "Your payment of twelve thousand five hundred is overdue. Will you be able to settle it today?",
-  },
-  { speaker: "debtor", text: "I can pay it by six this evening." },
-  {
-    speaker: "agent",
-    text: "Thank you. I have recorded a payment promise for today at eighteen hundred.",
-  },
-];
+// Built lazily rather than at module scope: that keeps the literals reachable
+// only from dead code, so a production build drops the script entirely.
+let cachedScript: Turn[] | null = null;
+function script(): Turn[] {
+  cachedScript ??= [
+    {
+      speaker: "agent",
+      text: "Good afternoon, this is Kollektor calling on behalf of your creditor.",
+    },
+    { speaker: "debtor", text: "Yes, I was expecting this call." },
+    {
+      speaker: "agent",
+      text: "Your payment of twelve thousand five hundred is overdue. Will you be able to settle it today?",
+    },
+    { speaker: "debtor", text: "I can pay it by six this evening." },
+    {
+      speaker: "agent",
+      text: "Thank you. I have recorded a payment promise for today at eighteen hundred.",
+    },
+  ];
+  return cachedScript;
+}
 
 // The agent is on the line; the caller is further from their microphone.
 const GAIN = { agent: 1, debtor: 0.72 } as const;
@@ -108,14 +116,15 @@ function ensure(until: number) {
   }
 
   while (generatedUntil < until) {
-    const current = SCRIPT[turn % SCRIPT.length]!;
-    const next = SCRIPT[(turn + 1) % SCRIPT.length]!;
+    const lines = script();
+    const current = lines[turn % lines.length]!;
+    const next = lines[(turn + 1) % lines.length]!;
     let t = writeTurn(generatedUntil, current);
 
     // Answering is quick; composing a reply takes a beat longer.
     t += next.speaker === "agent" ? rand(0.7, 1.1) : rand(0.35, 0.6);
     // A pause before the script starts over, so loops do not run together.
-    if ((turn + 1) % SCRIPT.length === 0) t += rand(1.2, 1.8);
+    if ((turn + 1) % lines.length === 0) t += rand(1.2, 1.8);
 
     push(t, 0);
     generatedUntil = t;
@@ -155,9 +164,14 @@ function tick(now: number) {
   raf = requestAnimationFrame(tick);
 }
 
-export function startMimicTalking() {
-  if (!allowed()) return;
-  window.dispatchEvent(new CustomEvent("orb-live", { detail: true }));
+let announcing = false;
+function announceLive(live: boolean) {
+  announcing = true;
+  window.dispatchEvent(new CustomEvent("orb-live", { detail: live }));
+  announcing = false;
+}
+
+function play() {
   if (running) return;
   running = true;
   origin = 0;
@@ -165,10 +179,11 @@ export function startMimicTalking() {
   turn = 0;
   generatedUntil = 0;
   keys = [];
+  announceLive(true);
   raf = requestAnimationFrame(tick);
 }
 
-export function stopMimicTalking() {
+function pause() {
   if (!running) return;
   running = false;
   cancelAnimationFrame(raf);
@@ -176,6 +191,20 @@ export function stopMimicTalking() {
   window.dispatchEvent(new CustomEvent("orb-level", { detail: 0 }));
 }
 
-export function isMimickingTalk() {
-  return running;
+/** A real call owns the orb while it lasts; the script resumes afterwards. */
+function onLive(event: Event) {
+  if (announcing) return;
+  if ((event as CustomEvent<boolean>).detail === true) pause();
+  else play();
+}
+
+export function startMimicTalking() {
+  if (!allowed()) return;
+  window.addEventListener("orb-live", onLive);
+  play();
+}
+
+export function stopMimicTalking() {
+  window.removeEventListener("orb-live", onLive);
+  pause();
 }

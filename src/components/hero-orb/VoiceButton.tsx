@@ -4,11 +4,6 @@ import { Room, RoomEvent, Track } from "livekit-client";
 import { Play, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { denoise, MIC_CONSTRAINTS } from "./denoise";
-import {
-  isMimickingTalk,
-  startMimicTalking,
-  stopMimicTalking,
-} from "./mimic-talking";
 import { connectOrbLevel } from "./orb-level";
 
 // Astro inlines PUBLIC_* at build time; when it is missing, a production build
@@ -80,15 +75,12 @@ export function VoiceButton({
       stopLevelRef.current?.();
       stopMicRef.current?.();
       roomRef.current?.disconnect();
-      if (!isMimickingTalk()) {
-        window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
-      }
+      window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
     },
     [],
   );
 
   async function start() {
-    stopMimicTalking();
     setState("connecting");
     setError(null);
 
@@ -140,7 +132,6 @@ export function VoiceButton({
       releaseMic();
       setError(cause instanceof Error ? cause.message : labels.error);
       setState("idle");
-      startMimicTalking();
       return;
     }
 
@@ -178,10 +169,7 @@ export function VoiceButton({
       releaseMic();
       tracksRef.current = [];
       window.dispatchEvent(new CustomEvent("orb-level", { detail: 0 }));
-      startMimicTalking();
-      if (!isMimickingTalk()) {
-        window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
-      }
+      window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
       roomRef.current = null;
       setCaption(null);
       setSoundBlocked(false);
@@ -199,7 +187,6 @@ export function VoiceButton({
       room.disconnect();
       setError(cause instanceof Error ? cause.message : labels.error);
       setState("idle");
-      startMimicTalking();
       return;
     }
 
@@ -244,7 +231,7 @@ export function VoiceButton({
           onClick={start}
           disabled={state !== "idle"}
           aria-hidden={state !== "idle"}
-          className={`flex size-14 items-center justify-center rounded-full bg-white text-neutral-900 shadow-lg shadow-black/30 outline-none transition duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+          className={`flex size-14 items-center justify-center rounded-full bg-foreground text-background outline-none transition duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
             state === "idle"
               ? "pointer-events-auto opacity-100"
               : "pointer-events-none scale-90 opacity-0"
