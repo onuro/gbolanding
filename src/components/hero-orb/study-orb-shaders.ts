@@ -181,7 +181,7 @@ vec2 swirl(vec2 baseUv, float voice) {
     vec3(direction * (1.2 + radius * 0.8), u_time * 0.16)
   );
 
-  float theta = atan(centered.y, centered.x) + noise * mix(0.06, 0.34, voice);
+  float theta = atan(centered.y, centered.x) + noise * mix(0.06, 0.6, voice);
   return 0.5 + vec2(cos(theta), sin(theta)) * radius * 0.5;
 }
 
@@ -202,7 +202,7 @@ vec3 sampleOrbColor(vec2 inputUv) {
   // Each syllable swells the liquid outward. Applied after the sphere normals
   // are taken, so only the contents scale — the orb keeps its size and its
   // curvature at the rim.
-  uv = 0.5 + (uv - 0.5) / (1.0 + voice * 0.55);
+  uv = 0.5 + (uv - 0.5) / (1.0 + voice * 1.9);
 
   // Four-octave domain warp.
   vec2 fbmUv = uv * 3.25;

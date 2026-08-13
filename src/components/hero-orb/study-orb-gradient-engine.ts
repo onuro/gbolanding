@@ -152,7 +152,7 @@ export function createStudyOrbGradient(
 
     // Loud speech runs the clock faster, so the liquid churns instead of just
     // wobbling harder.
-    elapsedSeconds += delta * (1 + level * activeEase * 1.6);
+    elapsedSeconds += delta * (1 + level * activeEase * 2.4);
     finalUniforms.u_time.value = elapsedSeconds * TIME_SCALE;
 
     renderFinal();

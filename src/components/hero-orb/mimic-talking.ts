@@ -3,9 +3,35 @@
  * `orb-live` — the same events a real LiveKit call emits — so the talking
  * motion can be tuned without dialling the agent.
  *
+ * The envelope is synthesised from a real Kollektor call script: syllables are
+ * counted per word, punctuation becomes breath, and the two speakers trade
+ * turns, so the rhythm matches a conversation rather than random noise.
+ *
  * Off by default. Opt in with `?talk=1` on a dev server; never runs in a
  * production build. Safe to delete along with its three call sites.
  */
+
+type Turn = { speaker: "agent" | "debtor"; text: string };
+
+const SCRIPT: Turn[] = [
+  {
+    speaker: "agent",
+    text: "Good afternoon, this is Kollektor calling on behalf of your creditor.",
+  },
+  { speaker: "debtor", text: "Yes, I was expecting this call." },
+  {
+    speaker: "agent",
+    text: "Your payment of twelve thousand five hundred is overdue. Will you be able to settle it today?",
+  },
+  { speaker: "debtor", text: "I can pay it by six this evening." },
+  {
+    speaker: "agent",
+    text: "Thank you. I have recorded a payment promise for today at eighteen hundred.",
+  },
+];
+
+// The agent is on the line; the caller is further from their microphone.
+const GAIN = { agent: 1, debtor: 0.72 } as const;
 
 type Key = { t: number; v: number };
 
@@ -13,6 +39,7 @@ let raf = 0;
 let running = false;
 let origin = 0;
 let cursor = 0;
+let turn = 0;
 let generatedUntil = 0;
 let keys: Key[] = [];
 
@@ -24,34 +51,54 @@ function push(t: number, v: number) {
   keys.push({ t, v: Math.min(1, Math.max(0, v)) });
 }
 
-function writePhrase(start: number) {
-  let t = start;
-  const bursts = 1 + Math.floor(Math.random() * 2);
+/** Vowel groups are a good enough syllable count for both English and Turkish. */
+function syllables(word: string) {
+  const groups = word.toLowerCase().match(/[aeıioöuüàâäéèêëîïôùûy]+/g);
+  return Math.max(1, groups?.length ?? 1);
+}
 
-  for (let burst = 0; burst < bursts; burst += 1) {
-    const syllables = 3 + Math.floor(Math.random() * 3);
-    for (let i = 0; i < syllables; i += 1) {
-      const peak = rand(0.42, 0.88);
-      const attack = rand(0.07, 0.12);
-      const hold = rand(0.16, 0.28);
-      const decay = rand(0.18, 0.32);
-      push(t, rand(0.04, 0.1));
+function writeTurn(start: number, { speaker, text }: Turn) {
+  const gain = GAIN[speaker];
+  const words = text.split(/\s+/).filter(Boolean);
+  const total = words.length;
+  let t = start;
+
+  words.forEach((word, index) => {
+    const count = syllables(word);
+    // Energy tails off across a sentence the way a spoken line does.
+    const declination = 1 - (index / Math.max(1, total - 1)) * 0.3;
+
+    for (let i = 0; i < count; i += 1) {
+      // The first syllable of a word carries the stress.
+      const stress = i === 0 ? 1 : 0.82;
+      const peak = rand(0.72, 1.0) * gain * declination * stress;
+      const attack = rand(0.05, 0.09);
+      const hold = rand(0.07, 0.14);
+      const decay = rand(0.08, 0.15);
+
+      push(t, rand(0.05, 0.14) * gain);
       t += attack;
       push(t, peak);
       t += hold;
-      push(t, peak * rand(0.72, 0.9));
+      push(t, peak * rand(0.8, 0.95));
       t += decay;
-      push(t, rand(0.03, 0.08));
+      push(t, rand(0.03, 0.1) * gain);
+      t += rand(0.015, 0.045);
     }
-    if (burst < bursts - 1) {
-      t += rand(0.28, 0.5);
-      push(t, 0);
-    }
-  }
 
-  t += rand(1.1, 1.8);
+    if (/[,;:]$/.test(word)) {
+      push(t, 0.02);
+      t += rand(0.2, 0.32);
+    } else if (/[.!?]$/.test(word) && index < total - 1) {
+      push(t, 0);
+      t += rand(0.42, 0.62);
+    } else {
+      t += rand(0.03, 0.07);
+    }
+  });
+
   push(t, 0);
-  generatedUntil = t;
+  return t;
 }
 
 function ensure(until: number) {
@@ -59,7 +106,22 @@ function ensure(until: number) {
     push(0, 0);
     generatedUntil = 0;
   }
-  while (generatedUntil < until) writePhrase(generatedUntil);
+
+  while (generatedUntil < until) {
+    const current = SCRIPT[turn % SCRIPT.length]!;
+    const next = SCRIPT[(turn + 1) % SCRIPT.length]!;
+    let t = writeTurn(generatedUntil, current);
+
+    // Answering is quick; composing a reply takes a beat longer.
+    t += next.speaker === "agent" ? rand(0.7, 1.1) : rand(0.35, 0.6);
+    // A pause before the script starts over, so loops do not run together.
+    if ((turn + 1) % SCRIPT.length === 0) t += rand(1.2, 1.8);
+
+    push(t, 0);
+    generatedUntil = t;
+    turn += 1;
+  }
+
   const keepFrom = until - 1.2;
   if (keys[0] && keys[0].t < keepFrom) {
     const firstKept = keys.findIndex((key) => key.t >= keepFrom);
@@ -100,6 +162,7 @@ export function startMimicTalking() {
   running = true;
   origin = 0;
   cursor = 0;
+  turn = 0;
   generatedUntil = 0;
   keys = [];
   raf = requestAnimationFrame(tick);
