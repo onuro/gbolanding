@@ -63,6 +63,7 @@ export function VoiceButton({
   const [error, setError] = useState<string | null>(null);
   const [soundBlocked, setSoundBlocked] = useState(false);
   const [caption, setCaption] = useState<Caption | null>(null);
+  const captionSegment = useRef<{ id: string; startedAt: number } | null>(null);
 
   useEffect(
     () => () => {
@@ -135,11 +136,25 @@ export function VoiceButton({
 
     // Agent + user speech arrive as text streams, one per utterance, growing
     // chunk by chunk while the turn is still being spoken.
+    // The agent sends one stream per reply and appends to it. Speech recognition
+    // works the other way: every revision of what you just said arrives as a
+    // *fresh* stream carrying the whole sentence again, several times a second.
+    // Keying on the stream id therefore reads each revision as a new utterance.
+    // The segment id is the one that holds still for the length of an utterance,
+    // whoever is speaking.
     room.registerTextStreamHandler("lk.transcription", async (reader) => {
-      const id = reader.info.id;
+      const id = reader.info.attributes?.["lk.segment_id"] ?? reader.info.id;
+      const startedAt = reader.info.timestamp;
       let text = "";
       for await (const chunk of reader) {
         text += chunk;
+        // On a barge-in both sides stream at once; without this the caption
+        // would flip between the two utterances on every chunk.
+        const showing = captionSegment.current;
+        if (showing && showing.id !== id && showing.startedAt > startedAt) {
+          continue;
+        }
+        captionSegment.current = { id, startedAt };
         setCaption({ id, text });
       }
     });
@@ -165,6 +180,7 @@ export function VoiceButton({
       window.dispatchEvent(new CustomEvent("orb-level", { detail: 0 }));
       window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
       roomRef.current = null;
+      captionSegment.current = null;
       setCaption(null);
       setSoundBlocked(false);
       setState("idle");
@@ -256,7 +272,7 @@ export function VoiceButton({
           <button
             type="button"
             onClick={() => void roomRef.current?.startAudio()}
-            className="pointer-events-auto rounded-full border border-border bg-card px-3 py-1 text-xs text-foreground outline-none transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-brand"
+            className="pointer-events-auto rounded-full border border-attention-line bg-attention-soft px-3 py-1 text-xs text-attention outline-none transition hover:bg-attention-soft/60 focus-visible:ring-2 focus-visible:ring-attention"
           >
             {labels.soundBlocked}
           </button>
@@ -470,10 +486,18 @@ function CircularCaption({ id, text }: Caption) {
   });
   // A turn starts from the top again; reading that off the state rather than
   // resetting it in an effect keeps the first chunk from rendering trimmed.
-  const active =
+  const carried =
     ring.turn === id
       ? ring
       : { turn: id, drop: 0, retired: 0, spin: -180, snap: false };
+  // Speech recognition rewrites an utterance as it goes, so it can get shorter
+  // as well as longer. Both pointers have to stay inside the line.
+  const last = Math.max(0, words.length - 1);
+  const active = {
+    ...carried,
+    drop: Math.min(carried.drop, last),
+    retired: Math.min(carried.retired, last),
+  };
   const line = words.join(" ");
 
   // Measured off a straight copy of the line: the advance is the same as on the

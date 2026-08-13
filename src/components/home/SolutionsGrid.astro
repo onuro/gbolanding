@@ -107,7 +107,9 @@ const visualCopy =
 // One case is being worked right now; that is the only thing in either console
 // allowed to carry the brand colour.
 const caseRows = [
-  { id: "K-2084", path: 82, stage: visualCopy.review, priority: 82 },
+  // One case is waiting on a person and one is being worked: the two states the
+  // product is actually about, and the only two rows carrying a colour.
+  { id: "K-2084", path: 82, stage: visualCopy.review, priority: 82, hold: true },
   { id: "K-1973", path: 68, stage: visualCopy.contact, priority: 68 },
   {
     id: "K-1911",
@@ -116,7 +118,7 @@ const caseRows = [
     priority: 91,
     live: true,
   },
-  { id: "K-1865", path: 54, stage: visualCopy.review, priority: 54 },
+  { id: "K-1865", path: 54, stage: visualCopy.contact, priority: 54 },
 ];
 
 const caseStats = [
@@ -275,6 +277,9 @@ const concludedAt = Math.round(
                 {row.live && (
                   <span class="absolute inset-y-0 left-0 w-0.5 bg-brand" />
                 )}
+                {row.hold && (
+                  <span class="absolute inset-y-0 left-0 w-0.5 bg-attention" />
+                )}
                 <span
                   class:list={[
                     "tabular-nums",
@@ -295,7 +300,9 @@ const concludedAt = Math.round(
                 <span
                   class:list={[
                     "hidden truncate text-[9px] uppercase tracking-[0.1em] sm:block",
-                    row.live ? "text-brand" : "text-foreground/35",
+                    row.live && "text-brand",
+                    row.hold && "text-attention",
+                    !row.live && !row.hold && "text-foreground/35",
                   ]}
                 >
                   {row.stage}
@@ -653,11 +660,11 @@ const concludedAt = Math.round(
                 }
               </div>
               <div
-                class="mt-6 flex items-center gap-2 border border-brand/20 bg-brand/[0.06] px-3 py-2"
+                class="mt-6 flex items-center gap-2 border border-attention-line bg-attention-soft px-3 py-2"
               >
-                <span class="size-1.5 bg-brand"></span>
+                <span class="size-1.5 bg-attention"></span>
                 <span
-                  class="font-mono text-[7px] uppercase tracking-[0.12em] text-brand"
+                  class="font-mono text-[7px] uppercase tracking-[0.12em] text-attention"
                 >
                   {visualCopy.humanReviewReady}
                 </span>

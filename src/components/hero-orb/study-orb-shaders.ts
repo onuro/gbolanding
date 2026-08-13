@@ -29,6 +29,14 @@ uniform float u_level;
 uniform float u_active;
 // Brand accent tinting the drifting cloud layer over the disc.
 uniform vec3 u_paletteAccent;
+// Desaturated orange burning through the folds of the liquid, and how much of
+// it to let through.
+uniform vec3 u_paletteWarm;
+uniform float u_warmth;
+// Dot matrix: how many cells span the canvas, and how dark the gaps between
+// them go. The count is fixed, so the orb keeps one resolution at any size.
+uniform float u_matrixCells;
+uniform float u_matrix;
 
 vec3 permute(vec3 x) {
   return mod(((x * 34.0) + 1.0) * x, 289.0);
@@ -153,7 +161,28 @@ vec3 remapToPalette(vec3 sampleColor) {
 
   vec3 mapped = mix(u_paletteDark, u_paletteMid, smoothstep(0.0, 0.55, energy));
   mapped = mix(mapped, u_paletteCool, coolBias * 0.55 * (1.0 - energy * 0.35));
+
+  // The warm sits in a band of the ramp rather than over the whole disc, so it
+  // reads as heat in the shadowed folds instead of an orange wash. Warm regions
+  // are also the ones the poster keeps coolest, so the two never fight.
+  float ember =
+    smoothstep(0.14, 0.33, energy) * (1.0 - smoothstep(0.4, 0.62, energy));
+  mapped = mix(mapped, u_paletteWarm, ember * u_warmth * (1.0 - coolBias));
+
   return mix(mapped, u_paletteLight, smoothstep(0.62, 1.0, energy) * 0.85);
+}
+
+/**
+ * Lit cell on a fixed grid, the way a cockpit panel draws everything: 1 at the
+ * centre of a cell, 0 in the gutter between them.
+ */
+float dotMatrix(vec2 fragCoord) {
+  float cell = max(u_resolution.x, 1.0) / u_matrixCells;
+  vec2 offset = fract(fragCoord / cell) - 0.5;
+  // Normalised so the falloff is independent of how many device pixels a cell
+  // happens to cover.
+  float distance = length(offset) * 2.0;
+  return 1.0 - smoothstep(0.44, 0.92, distance);
 }
 
 float filmGrain(vec2 fragCoord, float time) {
@@ -275,6 +304,10 @@ void main() {
     simplexNoise(vec3(cloudUv * 2.1 + vec2(u_time * -0.02, u_time * 0.035), u_time * 0.07)) * 0.35;
   clouds = smoothstep(0.05, 0.7, clouds * 0.5 + 0.5);
   color = mix(color, u_paletteAccent, clouds * 0.24 * circle);
+
+  // Applied to the colour and not the alpha, so the silhouette stays a clean
+  // circle while the liquid inside it resolves into cells.
+  color *= mix(1.0 - u_matrix, 1.0, dotMatrix(gl_FragCoord.xy));
 
   gl_FragColor = vec4(color * circle, circle);
 }

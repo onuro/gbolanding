@@ -8,6 +8,11 @@ const MAX_DPR = 2;
 const MAX_BUFFER_DIMENSION = 1024;
 const POSTER_SIZE = 512;
 const TIME_SCALE = 1.4;
+/** How much orange the folds are allowed. Past ~0.6 the disc stops reading green. */
+const DEFAULT_WARMTH = 0.45;
+/** Cells across the canvas, and how far the gutters between them drop. */
+const MATRIX_CELLS = 214;
+const MATRIX_DEPTH = 0.3;
 
 export const STUDY_ORB_POSTER_PATHS = {
   light: "/brand/study-orb-poster-light.png",
@@ -16,19 +21,25 @@ export const STUDY_ORB_POSTER_PATHS = {
 
 type ThemeMode = keyof typeof STUDY_ORB_POSTER_PATHS;
 
-/** GBO darker green / cool blue / soft white remaps over the study posters. */
+/**
+ * GBO darker green / cool blue / soft white remaps over the study posters, plus
+ * a desaturated orange for the folds — the green-and-burnt-amber pairing that
+ * cockpit displays run on.
+ */
 export const STUDY_ORB_PALETTES = {
   dark: {
     dark: [0.01, 0.055, 0.048] as [number, number, number],
     mid: [0.03, 0.55, 0.34] as [number, number, number],
     cool: [0.05, 0.28, 0.42] as [number, number, number],
     light: [0.55, 0.88, 0.78] as [number, number, number],
+    warm: [0.62, 0.29, 0.11] as [number, number, number],
   },
   light: {
     dark: [0.06, 0.26, 0.22] as [number, number, number],
     mid: [0.05, 0.58, 0.42] as [number, number, number],
     cool: [0.14, 0.38, 0.52] as [number, number, number],
     light: [0.82, 0.96, 0.92] as [number, number, number],
+    warm: [0.72, 0.4, 0.18] as [number, number, number],
   },
 } as const;
 
@@ -84,6 +95,10 @@ export function createStudyOrbGradient(
     u_paletteMid: { value: new THREE.Color(...palette.mid) },
     u_paletteCool: { value: new THREE.Color(...palette.cool) },
     u_paletteLight: { value: new THREE.Color(...palette.light) },
+    u_paletteWarm: { value: new THREE.Color(...palette.warm) },
+    u_warmth: { value: DEFAULT_WARMTH },
+    u_matrixCells: { value: MATRIX_CELLS },
+    u_matrix: { value: MATRIX_DEPTH },
     u_level: { value: 0 },
     // GBO brand green tinting the cloud layer.
     u_paletteAccent: { value: new THREE.Color(0.02, 0.867, 0.529) },
@@ -184,6 +199,7 @@ export function createStudyOrbGradient(
     (finalUniforms.u_paletteMid.value as THREE.Color).setRGB(...next.mid);
     (finalUniforms.u_paletteCool.value as THREE.Color).setRGB(...next.cool);
     (finalUniforms.u_paletteLight.value as THREE.Color).setRGB(...next.light);
+    (finalUniforms.u_paletteWarm.value as THREE.Color).setRGB(...next.warm);
   };
 
   const activateTexture = () => {

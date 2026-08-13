@@ -30,18 +30,34 @@ const radial = (from: number, to: number, deg: number) => {
   return { x1: n(x1), y1: n(y1), x2: n(x2), y2: n(y2) };
 };
 
+/**
+ * Every mark comes up on its own, and they have to arrive out of order or the
+ * ring reads as a wipe rather than a panel finding power. Hashed from the index
+ * so the server and the client agree on the scatter.
+ */
+const scatter = (seed: number, span: number) =>
+  Math.round((Math.abs(Math.sin(seed * 12.9898) * 43758.5453) % 1) * span);
+
+const boot = (base: number, seed: number, span: number) =>
+  `--boot:${base + scatter(seed, span)}ms`;
+
 const GRADUATION = 412;
 const graduations = Array.from({ length: 120 }, (_, i) => {
   const deg = i * 3;
   const major = i % 5 === 0;
-  return { ...radial(GRADUATION - (major ? 16 : 7), GRADUATION, deg), major };
+  return {
+    ...radial(GRADUATION - (major ? 16 : 7), GRADUATION, deg),
+    major,
+    boot: boot(120, i + 1, 420),
+  };
 });
 
 // Five arcs with gaps, so the ring reads as machined rather than drawn.
 const SEGMENT = 444;
-const segments = [0, 72, 144, 216, 288].map((start) =>
-  arc(SEGMENT, start, start + 52),
-);
+const segments = [0, 72, 144, 216, 288].map((start, i) => ({
+  d: arc(SEGMENT, start, start + 52),
+  boot: boot(340, i + 200, 220),
+}));
 
 // Trailing comet that sweeps the segmented ring while a call is up.
 const sweep = Array.from({ length: 7 }, (_, i) => ({
@@ -50,11 +66,13 @@ const sweep = Array.from({ length: 7 }, (_, i) => ({
 }));
 
 const OUTER = 478;
-const outerArcs = [20, 140, 260].map((start) => ({
+const outerArcs = [20, 140, 260].map((start, i) => ({
   d: arc(OUTER, start, start + 26),
-  caps: [polar(OUTER, start), polar(OUTER, start + 26)].map(([x, y]) => ({
+  boot: boot(460, i + 300, 240),
+  caps: [polar(OUTER, start), polar(OUTER, start + 26)].map(([x, y], cap) => ({
     x: n(x),
     y: n(y),
+    boot: boot(520, i * 2 + cap + 320, 220),
   })),
 }));
 
@@ -62,17 +80,51 @@ const outerArcs = [20, 140, 260].map((start) => ({
 const cells = Array.from({ length: 15 }, (_, i) => {
   const deg = 297 + i * 3.2;
   const length = i % 3 === 0 ? 13 : 7;
-  return radial(466 - length / 2, 466 + length / 2, deg);
+  return {
+    ...radial(466 - length / 2, 466 + length / 2, deg),
+    boot: boot(520, i + 400, 240),
+  };
 });
 
 const BRACKET = 494;
-const brackets = [45, 135, 225, 315].flatMap((deg) => [
-  { type: "arc" as const, d: arc(BRACKET, deg - 8, deg + 8) },
-  { type: "tick" as const, ...radial(BRACKET, BRACKET + 8, deg - 8) },
-  { type: "tick" as const, ...radial(BRACKET, BRACKET + 8, deg + 8) },
+const brackets = [45, 135, 225, 315].flatMap((deg, i) => [
+  {
+    type: "arc" as const,
+    d: arc(BRACKET, deg - 8, deg + 8),
+    boot: boot(300, i + 500, 260),
+  },
+  {
+    type: "tick" as const,
+    ...radial(BRACKET, BRACKET + 8, deg - 8),
+    boot: boot(300, i + 520, 260),
+  },
+  {
+    type: "tick" as const,
+    ...radial(BRACKET, BRACKET + 8, deg + 8),
+    boot: boot(300, i + 540, 260),
+  },
 ]);
 
-const axes = [0, 90, 180, 270].map((deg) => radial(DISC + 42, 498, deg));
+const axes = [0, 90, 180, 270].map((deg, i) => ({
+  ...radial(DISC + 42, 498, deg),
+  boot: boot(260, i + 600, 220),
+}));
+
+// Level gauge, in the manner of a cockpit dot matrix: the whole track is always
+// drawn so you can read capacity, and it fills with the voice. It grows from 6
+// o'clock out to both sides, so `t` is how far round a dot sits from the bottom.
+const METER_COUNT = 96;
+const METER_R = 359;
+const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
+  const deg = (i * 360) / METER_COUNT;
+  const [x, y] = polar(METER_R, deg);
+  return {
+    x: n(x),
+    y: n(y),
+    t: n(Math.abs(180 - deg) / 180),
+    boot: boot(0, i + 700, 380),
+  };
+});
 ---
 
 <div
@@ -82,14 +134,35 @@ const axes = [0, 90, 180, 270].map((deg) => radial(DISC + 42, 498, deg));
 >
   <svg viewBox="0 0 1000 1000" fill="none" class="size-full text-foreground">
     <g class="hud-static">
-      <circle cx={C} cy={C} r={DISC + 48} stroke="currentColor" stroke-width="1" stroke-opacity="0.16" />
+      <circle
+        class="hud-cell"
+        style="--boot:220ms"
+        cx={C}
+        cy={C}
+        r={DISC + 48}
+        stroke="currentColor"
+        stroke-width="1"
+        stroke-opacity="0.16"
+      />
 
       {axes.map((line) => (
-        <line {...line} stroke="currentColor" stroke-width="1" stroke-opacity="0.1" />
+        <line
+          class="hud-cell"
+          style={line.boot}
+          x1={line.x1}
+          y1={line.y1}
+          x2={line.x2}
+          y2={line.y2}
+          stroke="currentColor"
+          stroke-width="1"
+          stroke-opacity="0.1"
+        />
       ))}
 
       {graduations.map((tick) => (
         <line
+          class="hud-cell"
+          style={tick.boot}
           x1={tick.x1}
           y1={tick.y1}
           x2={tick.x2}
@@ -102,9 +175,18 @@ const axes = [0, 90, 180, 270].map((deg) => radial(DISC + 42, 498, deg));
 
       {brackets.map((part) =>
         part.type === "arc" ? (
-          <path d={part.d} stroke="currentColor" stroke-width="1.4" stroke-opacity="0.32" />
+          <path
+            class="hud-cell"
+            style={part.boot}
+            d={part.d}
+            stroke="currentColor"
+            stroke-width="1.4"
+            stroke-opacity="0.32"
+          />
         ) : (
           <line
+            class="hud-cell"
+            style={part.boot}
             x1={part.x1}
             y1={part.y1}
             x2={part.x2}
@@ -117,14 +199,48 @@ const axes = [0, 90, 180, 270].map((deg) => radial(DISC + 42, 498, deg));
       )}
     </g>
 
+    <g class="hud-meter">
+      {meterDots.map((dot) => (
+        <circle
+          class="hud-cell"
+          style={dot.boot}
+          cx={dot.x}
+          cy={dot.y}
+          r="3.4"
+          fill="currentColor"
+          fill-opacity="0.1"
+        />
+      ))}
+      {meterDots.map((dot) => (
+        <circle
+          class="hud-meter-lit"
+          cx={dot.x}
+          cy={dot.y}
+          r="3.4"
+          fill="var(--brand)"
+          style={`--t:${dot.t}`}
+        />
+      ))}
+    </g>
+
     <g class="hud-spin-slow">
-      {segments.map((d) => (
-        <path d={d} stroke="currentColor" stroke-width="1.6" stroke-opacity="0.3" stroke-linecap="round" />
+      {segments.map((segment) => (
+        <path
+          class="hud-cell"
+          style={segment.boot}
+          d={segment.d}
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-opacity="0.3"
+          stroke-linecap="round"
+        />
       ))}
     </g>
 
     <g class="hud-spin-reverse">
       <circle
+        class="hud-cell"
+        style="--boot:420ms"
         cx={C}
         cy={C}
         r="458"
@@ -138,14 +254,31 @@ const axes = [0, 90, 180, 270].map((deg) => radial(DISC + 42, 498, deg));
     <g class="hud-spin-outer">
       {outerArcs.map((item) => (
         <>
-          <path d={item.d} stroke="currentColor" stroke-width="1.2" stroke-opacity="0.26" />
+          <path
+            class="hud-cell"
+            style={item.boot}
+            d={item.d}
+            stroke="currentColor"
+            stroke-width="1.2"
+            stroke-opacity="0.26"
+          />
           {item.caps.map((cap) => (
-            <circle cx={cap.x} cy={cap.y} r="2.4" fill="currentColor" fill-opacity="0.35" />
+            <circle
+              class="hud-cell"
+              style={cap.boot}
+              cx={cap.x}
+              cy={cap.y}
+              r="2.4"
+              fill="currentColor"
+              fill-opacity="0.35"
+            />
           ))}
         </>
       ))}
       {cells.map((cell) => (
         <line
+          class="hud-cell"
+          style={cell.boot}
           x1={cell.x1}
           y1={cell.y1}
           x2={cell.x2}
@@ -227,6 +360,20 @@ const axes = [0, 90, 180, 270].map((deg) => radial(DISC + 42, 498, deg));
     transform-origin: 50% 50%;
   }
 
+  /* One mark at a time: a couple of hard frames on and off, no fading, so it
+     reads as cells being addressed rather than a group animating. */
+  .hud-cell {
+    animation: hud-cell-in 260ms steps(1, end) both;
+    animation-delay: var(--boot, 0ms);
+  }
+
+  @keyframes hud-cell-in {
+    0%, 34% { opacity: 0; }
+    38%, 52% { opacity: 1; }
+    56%, 68% { opacity: 0.08; }
+    72%, 100% { opacity: 1; }
+  }
+
   .hud-spin-slow,
   .hud-spin-reverse,
   .hud-spin-outer,
@@ -251,6 +398,16 @@ const axes = [0, 90, 180, 270].map((deg) => radial(DISC + 42, 498, deg));
     animation-direction: reverse;
   }
 
+  /* A dot lights once the level passes its position on the track. The multiplier
+     is what gives each one a quick on rather than a slow dissolve. */
+  .hud-meter-lit {
+    opacity: 0;
+  }
+
+  .orb-hud.is-live .hud-meter-lit {
+    opacity: clamp(0, calc((var(--hud-level) - var(--t)) * 24), 1);
+  }
+
   /* The sweep is the only part that reads as "scanning", so it stays hidden
      until there is something to scan. */
   .hud-sweep {
@@ -270,6 +427,7 @@ const axes = [0, 90, 180, 270].map((deg) => radial(DISC + 42, 498, deg));
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .hud-cell,
     .hud-spin-slow,
     .hud-spin-reverse,
     .hud-spin-outer,
