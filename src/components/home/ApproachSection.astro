@@ -1,6 +1,7 @@
 ---
 import { Blocks, Plug, RefreshCw, Search } from "lucide-react";
 
+import BlinkText from "@/components/BlinkText";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
 
@@ -31,7 +32,7 @@ const stepIcons = [Search, Blocks, Plug, RefreshCw] as const;
           id="method-heading"
           class="mt-5 max-w-3xl text-balance text-3xl font-medium leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl"
         >
-          {messages.approach.title}
+          <BlinkText client:visible text={messages.approach.title} />
         </h2>
       </div>
 

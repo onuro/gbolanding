@@ -1,5 +1,6 @@
 ---
 import { ArrowDownRight, ArrowRight } from "lucide-react";
+import BlinkText from "@/components/BlinkText";
 import { LogoShape } from "@/components/logo";
 import { StudyOrbGradient } from "@/components/hero-orb/StudyOrbGradient";
 import { VoiceButton } from "@/components/hero-orb/VoiceButton";
@@ -77,8 +78,19 @@ const { locale, messages } = Astro.props;
           id="hero-title"
           class="text-balance text-[clamp(2.8rem,7vw,4.5rem)] font-medium leading-[0.92] tracking-[-0.055em]"
         >
-          <span class="block text-foreground">{messages.hero.titleLead}</span>
-          <span class="mt-2 block text-foreground">{messages.hero.titleAccent}</span>
+          <BlinkText
+            client:load
+            text={messages.hero.titleLead}
+            className="block text-foreground"
+            timingConfig={{ fadeTime: 0.33, randomHoldMax: 0.4, blinkTimeMax: 0.72 }}
+          />
+          <BlinkText
+            client:load
+            text={messages.hero.titleAccent}
+            className="mt-2 block text-foreground"
+            delay={0.45}
+            timingConfig={{ fadeTime: 0.36, randomHoldMax: 0.48, blinkTimeMax: 0.84 }}
+          />
         </h1>
       </div>
 

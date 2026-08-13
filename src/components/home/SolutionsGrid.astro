@@ -9,6 +9,7 @@ import {
   Scale,
   ShieldCheck,
 } from "lucide-react";
+import BlinkText from "@/components/BlinkText";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
 
@@ -100,7 +101,7 @@ const visualCopy =
         id="solutions-title"
         class="max-w-3xl text-balance text-3xl font-medium leading-[1.05] tracking-[-0.035em] sm:text-5xl"
       >
-        {messages.intro.title}
+        <BlinkText client:visible text={messages.intro.title} />
       </h2>
     </div>
     <div

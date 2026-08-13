@@ -30,6 +30,9 @@ const socialImageAlt =
     <meta name="color-scheme" content="dark light" />
     <script is:inline>
       (() => {
+        // Lets CSS hide anything that scripted animation will reveal, without
+        // hiding it from visitors who never get the script.
+        document.documentElement.classList.add("js");
         try {
           const savedTheme = localStorage.getItem("gbo_theme");
           const theme = savedTheme === "light" ? "light" : "dark";

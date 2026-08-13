@@ -8,6 +8,7 @@ import {
   Workflow,
 } from "lucide-react";
 
+import BlinkText from "@/components/BlinkText";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
 
@@ -50,7 +51,7 @@ const capabilityIcons = [
           id="platform-heading"
           class="max-w-3xl text-balance text-3xl font-medium leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl"
         >
-          {messages.platform.title}
+          <BlinkText client:visible text={messages.platform.title} />
         </h2>
         <p
           class="mt-5 max-w-2xl text-pretty text-base leading-7 text-muted-foreground sm:text-lg"
