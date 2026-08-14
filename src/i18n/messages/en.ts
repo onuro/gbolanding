@@ -51,14 +51,14 @@ const enMessages: Messages = {
   },
   solutions: {
     kollektor: {
-      eyebrow: "Legal AI for debt collection",
+      eyebrow: "Voice AI for debt collection",
       title: "Kollektor",
       description:
-        "Kollektor helps law firms manage debt collection. It reduces routine work and keeps people in control.",
+        "Kollektor is a voice assistant that phones debtors on behalf of law firms. It runs up to 5,000 calls a day, works out a payment plan, and has recovered $500K so far.",
       highlights: [
-        "Case priority",
-        "Client outreach",
-        "Human review",
+        "5,000 calls a day",
+        "$500K recovered",
+        "Escalates to your team",
       ],
       cta: "Schedule a Kollektor demo",
     },

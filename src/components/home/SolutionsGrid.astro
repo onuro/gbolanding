@@ -23,21 +23,22 @@ const visualCopy =
   locale === "tr"
     ? {
         solution: "Çözüm",
-        caseCommand: "Dosya iş akışı",
-        queue: "İş kuyruğu",
+        caseCommand: "Çağrı paneli",
         case: "Dosya",
-        recoveryPath: "Tahsilat akışı",
-        score: "Öncelik",
-        workflow: "İş akışı",
-        review: "İncele",
-        contact: "İletişim",
-        resolve: "Sonuçlandır",
         live: "Canlı",
-        openCases: "Açık dosya",
-        contactRate: "Temas oranı",
-        avgCycle: "Ort. döngü",
-        days: "gün",
-        stage: "Aşama",
+        callsToday: "Bugünkü arama",
+        recovered: "Toplam tahsilat",
+        connectRate: "Ulaşma oranı",
+        callState: "Durum",
+        amount: "Tutar",
+        onCall: "Görüşmede",
+        promised: "Ödeme taahhüdü",
+        callback: "Tekrar aranacak",
+        settled: "Tahsil edildi",
+        escalated: "Ekibe devredildi",
+        // Converted at the TCMB rate for 11 Aug 2026, 47,7364 ₺/$.
+        recoveredTotal: "₺23,9M",
+        amounts: ["₺48.200", "₺12.750", "₺31.400", "₺7.900"],
         analysis: "Analiz",
         method: "Yöntem",
         market: "Piyasa",
@@ -64,21 +65,21 @@ const visualCopy =
       }
     : {
         solution: "Solution",
-        caseCommand: "Case workflow",
-        queue: "Work queue",
+        caseCommand: "Call floor",
         case: "Case",
-        recoveryPath: "Recovery path",
-        score: "Priority",
-        workflow: "Workflow",
-        review: "Review",
-        contact: "Contact",
-        resolve: "Resolve",
         live: "Live",
-        openCases: "Open cases",
-        contactRate: "Contact rate",
-        avgCycle: "Avg. cycle",
-        days: "days",
-        stage: "Stage",
+        callsToday: "Calls today",
+        recovered: "Recovered",
+        connectRate: "Connect rate",
+        callState: "State",
+        amount: "Amount",
+        onCall: "On call",
+        promised: "Promise to pay",
+        callback: "Call back",
+        settled: "Settled",
+        escalated: "To your team",
+        recoveredTotal: "$500K",
+        amounts: ["$1,010", "$267", "$658", "$166"],
         analysis: "Analysis",
         method: "Method",
         market: "Market",
@@ -106,26 +107,47 @@ const visualCopy =
 
 // One case is being worked right now; that is the only thing in either console
 // allowed to carry the brand colour.
+// A minute on the call floor: one call in progress, one handed to the firm, and
+// closed outcomes either side. Those two are the only rows carrying a colour.
 const caseRows = [
-  // One case is waiting on a person and one is being worked: the two states the
-  // product is actually about, and the only two rows carrying a colour.
-  { id: "K-2084", path: 82, stage: visualCopy.review, priority: 82, hold: true },
-  { id: "K-1973", path: 68, stage: visualCopy.contact, priority: 68 },
+  {
+    id: "K-2084",
+    state: visualCopy.escalated,
+    amount: visualCopy.amounts[0],
+    bar: 62,
+    hold: true,
+  },
+  {
+    id: "K-1973",
+    state: visualCopy.promised,
+    amount: visualCopy.amounts[1],
+    bar: 88,
+  },
   {
     id: "K-1911",
-    path: 94,
-    stage: visualCopy.resolve,
-    priority: 91,
+    state: visualCopy.onCall,
+    amount: visualCopy.amounts[2],
+    bar: 46,
     live: true,
+    timer: "02:14",
   },
-  { id: "K-1865", path: 54, stage: visualCopy.contact, priority: 54 },
+  {
+    id: "K-1865",
+    state: visualCopy.callback,
+    amount: visualCopy.amounts[3],
+    bar: 24,
+  },
 ];
 
 const caseStats = [
-  { value: "1 248", label: visualCopy.openCases },
-  { value: "64%", label: visualCopy.contactRate },
-  { value: `18 ${visualCopy.days}`, label: visualCopy.avgCycle },
+  { value: "4 812", label: visualCopy.callsToday },
+  { value: "68%", label: visualCopy.connectRate },
+  { value: visualCopy.recoveredTotal, label: visualCopy.recovered },
 ];
+
+// Speech on the wire versus a line that has hung up.
+const LIVE_WAVE = [38, 72, 54, 96, 62, 88, 44, 78, 58, 92, 48, 70, 36, 84, 52];
+const QUIET_WAVE = [22, 34, 26, 40, 30, 44, 24, 38, 28, 42, 26, 36, 22, 32, 24];
 
 // Three methods bracket a range, and the concluded figure is the output.
 const valuation = { low: 3.9, high: 4.6, concluded: 4.24 };
@@ -258,19 +280,19 @@ const concludedAt = Math.round(
           </div>
 
           <div
-            class="grid grid-cols-[4.5rem_1fr_2.5rem] items-center gap-4 border-b border-border px-5 py-2 font-mono text-[8px] uppercase tracking-[0.14em] text-foreground/25 sm:grid-cols-[5.5rem_1fr_6rem_3rem] sm:px-8"
+            class="grid grid-cols-[4.5rem_1fr_4.5rem] items-center gap-4 border-b border-border px-5 py-2 font-mono text-[8px] uppercase tracking-[0.14em] text-foreground/25 sm:grid-cols-[5rem_1fr_8.5rem_4.5rem] sm:px-8"
           >
             <span>{visualCopy.case}</span>
-            <span>{visualCopy.recoveryPath}</span>
-            <span class="hidden sm:block">{visualCopy.stage}</span>
-            <span class="text-right">{visualCopy.score}</span>
+            <span>{visualCopy.callState}</span>
+            <span class="hidden sm:block" />
+            <span class="text-right">{visualCopy.amount}</span>
           </div>
 
           {
             caseRows.map((row) => (
               <div
                 class:list={[
-                  "relative grid h-12 grid-cols-[4.5rem_1fr_2.5rem] items-center gap-4 border-b border-border px-5 font-mono text-[10px] last:border-b-0 sm:grid-cols-[5.5rem_1fr_6rem_3rem] sm:px-8",
+                  "relative grid h-12 grid-cols-[4.5rem_1fr_4.5rem] items-center gap-4 border-b border-border px-5 font-mono text-[10px] last:border-b-0 sm:grid-cols-[5rem_1fr_8.5rem_4.5rem] sm:px-8",
                   row.live && "bg-brand/[0.04]",
                 ]}
               >
@@ -288,14 +310,27 @@ const concludedAt = Math.round(
                 >
                   {row.id}
                 </span>
-                <span class="h-1 bg-foreground/[0.07]">
-                  <span
-                    class:list={[
-                      "block h-full",
-                      row.live ? "bg-brand" : "bg-foreground/25",
-                    ]}
-                    style={`width: ${row.path}%;`}
-                  />
+                {/* A live call shows its waveform running; a finished one shows
+                    how far through the script it got before it closed. */}
+                <span class="flex h-3 items-center gap-[3px] overflow-hidden">
+                  {row.live
+                    ? LIVE_WAVE.map((height) => (
+                        <span
+                          class="w-[3px] shrink-0 bg-brand"
+                          style={`height: ${height}%;`}
+                        />
+                      ))
+                    : QUIET_WAVE.map((height, bar) => (
+                        <span
+                          class:list={[
+                            "w-[3px] shrink-0",
+                            bar * 5 < row.bar
+                              ? "bg-foreground/25"
+                              : "bg-foreground/[0.08]",
+                          ]}
+                          style={`height: ${height}%;`}
+                        />
+                      ))}
                 </span>
                 <span
                   class:list={[
@@ -305,7 +340,7 @@ const concludedAt = Math.round(
                     !row.live && !row.hold && "text-foreground/35",
                   ]}
                 >
-                  {row.stage}
+                  {row.live ? `${row.state} ${row.timer}` : row.state}
                 </span>
                 <span
                   class:list={[
@@ -313,7 +348,7 @@ const concludedAt = Math.round(
                     row.live ? "text-foreground/85" : "text-foreground/35",
                   ]}
                 >
-                  {row.priority}
+                  {row.amount}
                 </span>
               </div>
             ))

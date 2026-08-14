@@ -22,7 +22,7 @@ const trMessages: Messages = {
     primaryCta: "Demo talep edin",
     secondaryCta: "Çözümleri keşfet",
     status: "Demo başvuruları açık",
-    voiceIdle: "AI asistanımızla konuşun",
+    voiceIdle: "Yapay zeka asistanımızla konuşun",
     voiceConnecting: "Bağlanıyor…",
     voiceLive: "Görüşmeyi bitirin",
     voiceError: "Sesli asistan şu anda kullanılamıyor.",
@@ -45,20 +45,20 @@ const trMessages: Messages = {
   },
   intro: {
     eyebrow: "Yapay zeka iş ortağınız",
-    title: "İş sorunlarını çalışan yapay zeka çözümlerine dönüştürüyoruz.",
+    title: "İş sorunlarını gerçekten işe yarayan yapay zekaya dönüştürüyoruz.",
     description:
       "Ekibinizin nasıl çalıştığını anlarız. Sonra yapay zekanın en çok nerede yardımcı olacağını belirleriz.",
   },
   solutions: {
     kollektor: {
-      eyebrow: "Hukukta yapay zeka",
+      eyebrow: "Sesli yapay zeka ile tahsilat",
       title: "Kollektor",
       description:
-        "Kollektor, hukuk bürolarında alacak tahsilatını destekler. Rutin işleri azaltır ve insan denetimini korur.",
+        "Kollektor, hukuk büroları adına borçluları telefonla arayan bir yapay zeka asistanı. Günde 5.000'e kadar görüşme yapıyor, ödeme planını konuşuyor ve bugüne kadar 23,9 milyon TL tahsilat sağladı.",
       highlights: [
-        "Dosya önceliği",
-        "İletişim desteği",
-        "İnsan denetimi",
+        "Günde 5.000 arama",
+        "23,9 milyon TL tahsilat",
+        "Ekibinize devreder",
       ],
       cta: "Kollektor demosu planlayın",
     },
@@ -78,7 +78,7 @@ const trMessages: Messages = {
       eyebrow: "Özel yapay zeka ve yazılım",
       title: "İşinize göre tasarlandı.",
       description:
-        "İş akışlarınıza, verinize ve hedeflerinize göre yapay zeka araçları ve özel yazılımlar tasarlarız. Genel amaçlı SaaS değil.",
+        "İş akışınıza, verinize ve hedeflerinize göre yapay zeka araçları ve özel yazılımlar tasarlarız. Hazır paket bir SaaS değil.",
       highlights: [
         "Yapay zeka stratejisi",
         "Özel yazılım",
@@ -89,14 +89,14 @@ const trMessages: Messages = {
   },
   platform: {
     eyebrow: "Nasıl geliştiriyoruz",
-    title: "İçgörüden çalışan yapay zekaya.",
+    title: "Analizden gerçek çözüme.",
     description:
       "İşinizin nasıl çalıştığını anlarız. Sonra doğru yapay zeka aracını tasarlar, bağlar ve geliştiririz.",
     capabilities: [
       {
         title: "İş analizi",
         description:
-          "Hedeflerinizi, verinizi ve günlük iş akışlarınızı haritalarız.",
+          "Hedeflerinizi, verinizi ve günlük iş akışınızı baştan sona çıkarırız.",
       },
       {
         title: "Çözüm tasarımı",
@@ -119,7 +119,7 @@ const trMessages: Messages = {
           "Önemli kararları ekibinizin kontrolünde tutarız.",
       },
       {
-        title: "Sürekli gelişim",
+        title: "Sürekli iyileştirme",
         description:
           "Kullanımdan öğrenir ve ürünü geliştiririz.",
       },
@@ -135,7 +135,7 @@ const trMessages: Messages = {
         number: "01",
         title: "Keşfet",
         description:
-          "Hedeflerinizi, iş akışlarınızı, verinizi ve sorun noktalarını haritalarız.",
+          "Hedeflerinizi, iş akışınızı, verinizi ve aksayan noktaları tek tek çıkarırız.",
       },
       {
         number: "02",
@@ -173,9 +173,9 @@ const trMessages: Messages = {
   },
   finalCta: {
     eyebrow: "Demo talep edin",
-    title: "Bir sonraki iş probleminizi çalışan bir yapay zeka çözümüne dönüştürün.",
+    title: "Bir sonraki iş probleminizi işe yarayan bir yapay zekaya dönüştürün.",
     description:
-      "İşin nerede yavaş ya da zor olduğunu anlatın. Size uygulanabilir bir sonraki adımı gösterelim.",
+      "İşin nerede yavaşladığını ya da zorlaştığını anlatın. Somut bir sonraki adımı birlikte belirleyelim.",
     primaryCta: "Demo talep edin",
     secondaryCta: "Çözümleri keşfet",
   },
