@@ -20,6 +20,19 @@ const socialImageAlt =
   locale === "tr"
     ? "GBO Vision — İş büyümesi için kurumsal yapay zeka ve özel yazılım."
     : "GBO Vision — Enterprise AI and custom software for business growth.";
+
+// Nothing else on the page states, in a form Google parses, that GBO Vision is
+// an organisation and this is its site — so a search for the brand has no
+// entity to attach the domain to. sameAs is left off until there are real
+// profiles to point at; a wrong one is worse than none.
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "GBO Vision",
+  url: englishUrl.href,
+  logo: new URL("/gbobo2.svg", siteOrigin).href,
+  description: metadata.description,
+};
 ---
 
 <!doctype html>
@@ -76,6 +89,11 @@ const socialImageAlt =
     <meta name="twitter:title" content={metadata.title} />
     <meta name="twitter:description" content={metadata.description} />
     <meta name="twitter:image" content={socialImageUrl} />
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(organizationSchema)}
+    />
     {/* Inert unless the URL carries ?probe=1. */}
     <CrashProbe />
   </head>

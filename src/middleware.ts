@@ -4,6 +4,18 @@ import { defaultLocale, hasLocale, localeCookieName } from "@/i18n/config";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
+// Googlebot crawls from wherever it likes, including Turkey. Bouncing it off
+// `/` files the English page as a redirect rather than a page, and `/` is what
+// both the canonical and hreflang x-default point at — so crawlers get the URL
+// they asked for and the locale guess is left to visitors. Spoofing this only
+// wins you the English page, which is the same page anyone can reach by link.
+const crawlerPattern =
+  /bot|crawler|spider|slurp|facebookexternalhit|embedly|quora link preview|whatsapp|telegram|discord|slack|pinterest|vkshare|w3c_validator|preview/i;
+
+function isCrawler(request: Request) {
+  return crawlerPattern.test(request.headers.get("user-agent") ?? "");
+}
+
 function preferredLocale(request: Request, cookieValue?: string) {
   if (cookieValue && hasLocale(cookieValue)) {
     return cookieValue;
@@ -88,7 +100,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const locale = preferredLocale(request, cookies.get(localeCookieName)?.value);
 
-  if (pathname === "/" && locale === "tr") {
+  if (pathname === "/" && locale === "tr" && !isCrawler(request)) {
     cookies.set(localeCookieName, "tr", {
       path: "/",
       sameSite: "lax",
