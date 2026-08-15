@@ -55,7 +55,7 @@
   --muted-foreground: oklch(0.68 0.012 160);
   --tertiary-foreground: oklch(0.52 0.012 160);
 
-  --border: oklch(0.92 0.008 160 / 10%);
+  --border: oklch(0.92 0.008 160 / 12%);
   --border-strong: oklch(0.92 0.008 160 / 18%);
   --input: oklch(0.92 0.008 160 / 16%);
 
@@ -112,7 +112,7 @@ html[data-theme="light"] {
   --muted-foreground: oklch(0.43 0.018 160);
   --tertiary-foreground: oklch(0.54 0.016 160);
 
-  --border: oklch(0.2 0.015 160 / 13%);
+  --border: oklch(0.2 0.015 160 / 10%);
   --border-strong: oklch(0.2 0.015 160 / 23%);
   --input: oklch(0.2 0.015 160 / 20%);
 

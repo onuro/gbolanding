@@ -14,14 +14,14 @@ const trMessages: Messages = {
     scheduleDemo: "Demo talep edin",
   },
   hero: {
-    eyebrow: "İş büyümesi için kurumsal yapay zeka",
+    eyebrow: "Entegre yapay zeka sistemleri",
     titleLead: "Büyüme odaklı",
     titleAccent: "kurumsal yapay zeka ajansı.",
     description:
-      "GBO Vision, yapay zeka ürünleri ve özel yazılımlar geliştirir. Karmaşık işleri ve dağınık veriyi, manuel işi azaltan ve iş büyümesini destekleyen çözümlere dönüştürür.",
+      "GBO Vision, yapay zeka ürünleri ve özel yazılımlar geliştirir. Karmaşık işleri ve tekrar eden görevleri, iş yükünü azaltan ve büyümeyi destekleyen çözümlere dönüştürür. AI çağına hoş geldiniz.",
     primaryCta: "Demo talep edin",
     secondaryCta: "Çözümleri keşfet",
-    status: "Demo başvuruları açık",
+    status: "Hemen başlayın",
     voiceIdle: "Yapay zeka asistanımızla konuşun",
     voiceConnecting: "Bağlanıyor…",
     voiceLive: "Görüşmeyi bitirin",
@@ -47,7 +47,7 @@ const trMessages: Messages = {
   },
   intro: {
     eyebrow: "Yapay zeka iş ortağınız",
-    title: "İş sorunlarını gerçekten işe yarayan yapay zekaya dönüştürüyoruz.",
+    title: "Sorunları işletmeniz için kazançlı yapay zekaya dönüştürüyoruz.",
     description:
       "Ekibinizin nasıl çalıştığını anlarız. Sonra yapay zekanın en çok nerede yardımcı olacağını belirleriz.",
   },

@@ -592,7 +592,7 @@ const CAPTION_CIRC = 2 * Math.PI * CAPTION_R;
 // A line may run the whole ring, less a gap at 12 o'clock so the head and the
 // tail never meet and read as one word.
 const CAPTION_ARC = CAPTION_CIRC * 0.92;
-const CAPTION_SIZE = 30;
+const CAPTION_SIZE = 36;
 // How long a word that has run off the head lingers while it fades out.
 const CAPTION_FADE = 420;
 
