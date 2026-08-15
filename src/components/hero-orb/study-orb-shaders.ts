@@ -275,9 +275,10 @@ vec3 sampleOrbColor(vec2 inputUv) {
 }
 
 void main() {
-  // 2.9 (not 2.0) shrinks the disc to ~69% of the quad so it is not cut into
-  // a square by the canvas edge.
-  vec2 centered = (v_uv - 0.5) * 2.9;
+  // 2.6 (not 2.0) shrinks the disc to ~77% of the quad so it is not cut into
+  // a square by the canvas edge. Was 2.9 / ~69% — the ring grew, the hole did
+  // not: 0.412 keeps the hollow at the same absolute size as 0.46 at 2.9.
+  vec2 centered = (v_uv - 0.5) * 2.6;
   float radial = length(centered);
 
   // The silhouette is a fixed circle: speech never moves the edge, and there
@@ -286,7 +287,7 @@ void main() {
   float circle = 1.0 - smoothstep(0.978, 1.0, radial);
   // Hard edge: the feather is one pixel wide, purely to keep it from aliasing.
   float hollowAa = fwidth(radial);
-  circle *= smoothstep(0.46 - hollowAa, 0.46 + hollowAa, radial);
+  circle *= smoothstep(0.412 - hollowAa, 0.412 + hollowAa, radial);
 
   if (circle <= 0.001) {
     gl_FragColor = vec4(0.0);

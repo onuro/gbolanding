@@ -2,7 +2,7 @@
 /**
  * Instrument ring around the hero orb.
  *
- * Radii are in a 1000×1000 viewBox. The shader disc sits at 345 of that box
+ * Radii are in a 1000×1000 viewBox. The shader disc sits at ~385 of that box
  * when the HUD is the same size as the canvas; the overlay is drawn larger so
  * the instrument rings sit farther from the orb. Everything drawn lives outside
  * the disc.
@@ -181,7 +181,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
             d={part.d}
             stroke="currentColor"
             stroke-width="1.4"
-            stroke-opacity="0.32"
+            stroke-opacity="0.12"
           />
         ) : (
           <line
@@ -193,7 +193,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
             y2={part.y2}
             stroke="currentColor"
             stroke-width="1.4"
-            stroke-opacity="0.32"
+            stroke-opacity="0.12"
           />
         ),
       )}
@@ -231,7 +231,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
           d={segment.d}
           stroke="currentColor"
           stroke-width="1.6"
-          stroke-opacity="0.3"
+          stroke-opacity="0.12"
           stroke-linecap="round"
         />
       ))}

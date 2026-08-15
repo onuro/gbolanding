@@ -489,7 +489,7 @@ function ring(r: number, sweep: 0 | 1) {
   return `M 500 ${top} A ${r} ${r} 0 0 ${sweep} 500 ${bottom} A ${r} ${r} 0 0 ${sweep} 500 ${top}`;
 }
 
-// The shader hollow is 0.46 of the disc, so ~159 in this space. Clockwise from
+// The shader hollow is ~159 in this space (held while the disc grew). Clockwise from
 // 12 o'clock, with the glyphs sitting outside the baseline, puts the ring just
 // inside that hole and reads the right way up across the top.
 const BADGE_R = 126;
@@ -581,7 +581,7 @@ function HollowLabel({ text, hidden }: { text: string; hidden: boolean }) {
   );
 }
 
-// Same 1000² space as the orb canvas: the disc edge is at 345 and the first HUD
+// Same 1000² space as the orb canvas: the disc edge is at ~385 and the first HUD
 // ring at ~503, so the line rides the empty band between them and hugs the orb.
 const CAPTION_C = 500;
 const CAPTION_R = 420;
