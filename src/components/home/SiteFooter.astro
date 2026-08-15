@@ -47,6 +47,7 @@ const homeHref = locale === "tr" ? "/tr" : "/";
           {
             [
               { href: "#solutions", label: messages.footer.solutions },
+              { href: "#kollektor", label: messages.footer.kollektor },
               { href: "#platform", label: messages.footer.platform },
               { href: "#method", label: messages.footer.method },
             ].map(({ href, label }) => (
@@ -85,7 +86,7 @@ const homeHref = locale === "tr" ? "/tr" : "/";
         <div
           role="group"
           aria-label={messages.nav.languageLabel}
-          class="mt-8 grid grid-cols-2 gap-px bg-border"
+          class="mt-8 flex items-center gap-1 rounded-full border border-border p-1"
         >
           <a
             href="/en"
@@ -93,8 +94,8 @@ const homeHref = locale === "tr" ? "/tr" : "/";
             lang="en"
             aria-current={locale === "en" ? "page" : undefined}
             class:list={[
-              "flex min-h-11 items-center justify-center bg-background px-4 font-mono text-xs font-medium transition-colors hover:bg-card hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand",
-              locale === "en" ? "text-foreground" : "text-muted-foreground",
+              "flex min-h-11 flex-1 items-center justify-center rounded-full px-4 font-mono text-xs font-medium transition-colors hover:bg-card hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand",
+              locale === "en" ? "bg-foreground/[0.07] text-foreground" : "text-muted-foreground",
             ]}
           >
             EN
@@ -105,8 +106,8 @@ const homeHref = locale === "tr" ? "/tr" : "/";
             lang="tr"
             aria-current={locale === "tr" ? "page" : undefined}
             class:list={[
-              "flex min-h-11 items-center justify-center bg-background px-4 font-mono text-xs font-medium transition-colors hover:bg-card hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand",
-              locale === "tr" ? "text-foreground" : "text-muted-foreground",
+              "flex min-h-11 flex-1 items-center justify-center rounded-full px-4 font-mono text-xs font-medium transition-colors hover:bg-card hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand",
+              locale === "tr" ? "bg-foreground/[0.07] text-foreground" : "text-muted-foreground",
             ]}
           >
             TR

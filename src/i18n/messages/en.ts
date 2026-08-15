@@ -8,6 +8,7 @@ const enMessages: Messages = {
   },
   nav: {
     solutions: "Solutions",
+    kollektor: "Kollektor",
     platform: "Platform",
     method: "How we work",
     languageLabel: "Language",
@@ -62,7 +63,7 @@ const enMessages: Messages = {
         "$500K recovered",
         "Escalates to your team",
       ],
-      cta: "Schedule a Kollektor demo",
+      cta: "See how Kollektor works",
     },
     intelval: {
       eyebrow: "Valuation intelligence",
@@ -88,6 +89,107 @@ const enMessages: Messages = {
       ],
       cta: "Explore the platform",
     },
+  },
+  kollektorDeep: {
+    eyebrow: "Product · Kollektor",
+    title: "A collector on the phone. A live desk for your team.",
+    description:
+      "Kollektor calls debtors in Turkish, runs the conversation end to end, and streams every turn to operators. Debtors never see an app. Your team sees the floor.",
+    pipelineLabel: "From list to recovery",
+    pipeline: [
+      {
+        number: "01",
+        title: "Import",
+        description: "Load a debtor list. Numbers are checked before a campaign starts.",
+      },
+      {
+        number: "02",
+        title: "Campaign",
+        description: "Open a call group. The queue works the file without an agent on every line.",
+      },
+      {
+        number: "03",
+        title: "Call",
+        description: "The voice agent verifies identity, presses for payment, and stays in Turkish.",
+      },
+      {
+        number: "04",
+        title: "Capture",
+        description: "Promises, amounts, and callback slots are written as they are spoken.",
+      },
+      {
+        number: "05",
+        title: "Escalate",
+        description: "Hostile callers, third-party denials, and loops go to a person.",
+      },
+      {
+        number: "06",
+        title: "Report",
+        description: "Reach, promises, and recovered amounts land on the same dashboard.",
+      },
+    ],
+    chapters: [
+      {
+        title: "Campaigns that start from a list",
+        description:
+          "Upload debtors, open a call group, and watch progress as the floor works the file.",
+      },
+      {
+        title: "A live voice pipeline",
+        description:
+          "Speech in, a collector model, speech out. The agent is a debt collector — firm, direct, and in Turkish.",
+      },
+      {
+        title: "Promises and callbacks, not notes",
+        description:
+          "Payment amounts and dates persist as they are spoken. Callback slots are computed, not guessed.",
+      },
+      {
+        title: "Operators stay on the hard calls",
+        description:
+          "Live transcript, scenario hits, and P0–P2 triage. Your team takes the line when the model should not.",
+      },
+    ],
+    split: {
+      eyebrow: "Asymmetric by design",
+      title: "Two sides. One call.",
+      description:
+        "The debtor only hears a phone call. Operators get the live desk: transcript, classification, listen-in, and history.",
+      debtorTitle: "What the debtor hears",
+      debtorBody: "No app. No portal. No link. A named collector, a debt, and a next step.",
+      debtorBeats: [
+        "Identity is verified before any debt is discussed",
+        "The agent presses for payment, a split, or a date",
+        "A promise or callback is captured on the call",
+        "Hostile or looping callers are handed to a person",
+      ],
+      operatorTitle: "What your team sees",
+      operatorBody: "A React floor that updates as the call happens — no refresh, no extra wire.",
+      operatorBeats: [
+        "Live transcript and call state",
+        "Scenario hits and triage priority",
+        "Payment promise amount and date",
+        "Calendar of computed callback slots",
+      ],
+    },
+    guardrails: {
+      title: "Built for Turkish collection desks",
+      items: [
+        {
+          title: "KVKK",
+          description: "Phones masked to last 4. TC kimlik stored as last 4. Transcripts purge after 90 days.",
+        },
+        {
+          title: "Law 6502",
+          description: "Collector tone with the legal frame in the playbook, not bolted on after the call.",
+        },
+        {
+          title: "Human control",
+          description: "P0–P2 triage only escalates. Your team takes over; the model never talks down a priority.",
+        },
+      ],
+    },
+    cta: "Schedule a Kollektor demo",
   },
   platform: {
     eyebrow: "How we deliver",
@@ -183,6 +285,7 @@ const enMessages: Messages = {
   footer: {
     tagline: "AI and software, built for your business.",
     solutions: "Solutions",
+    kollektor: "Kollektor",
     platform: "Platform",
     method: "How we work",
     rightsReserved: "All rights reserved",

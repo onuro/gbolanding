@@ -16,6 +16,7 @@ const primaryNavigationLabel =
 const menuLabel = locale === "tr" ? "Menü" : "Menu";
 const navItems = [
   { href: "#solutions", label: messages.nav.solutions },
+  { href: "#kollektor", label: messages.nav.kollektor },
   { href: "#platform", label: messages.nav.platform },
   { href: "#method", label: messages.nav.method },
 ];
@@ -49,10 +50,10 @@ const navItems = [
         navItems.map((item) => (
           <a
             href={item.href}
-            class="group relative flex items-center border-r border-border px-5 font-mono text-[12px] uppercase tracking-[0.14em] text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:bg-foreground/[0.06] focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset lg:px-6"
+            class="group relative flex items-center border-r border-border px-4 font-mono text-[12px] uppercase tracking-[0.14em] text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:bg-foreground/[0.06] focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset lg:px-5"
           >
             {item.label}
-            <span class="absolute inset-x-5 bottom-0 h-px origin-left scale-x-0 bg-brand transition-transform group-hover:scale-x-100 group-focus-visible:scale-x-100 lg:inset-x-6" />
+            <span class="absolute inset-x-4 bottom-0 h-px origin-left scale-x-0 bg-brand transition-transform group-hover:scale-x-100 group-focus-visible:scale-x-100 lg:inset-x-5" />
           </a>
         ))
       }
@@ -71,7 +72,7 @@ const navItems = [
           lang="en"
           aria-current={locale === "en" ? "page" : undefined}
           class:list={[
-            "px-2 py-1.5 font-mono text-[12px] uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+            "rounded-full px-2.5 py-1.5 font-mono text-[12px] uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
             locale === "en"
               ? "bg-foreground/[0.07] text-foreground"
               : "text-muted-foreground hover:text-foreground",
@@ -85,7 +86,7 @@ const navItems = [
           lang="tr"
           aria-current={locale === "tr" ? "page" : undefined}
           class:list={[
-            "px-2 py-1.5 font-mono text-[12px] uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+            "rounded-full px-2.5 py-1.5 font-mono text-[12px] uppercase tracking-[0.12em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
             locale === "tr"
               ? "bg-foreground/[0.07] text-foreground"
               : "text-muted-foreground hover:text-foreground",
@@ -95,9 +96,10 @@ const navItems = [
         </a>
       </nav>
 
+      <div class="flex items-center border-l border-border px-2 sm:px-3">
       <a
         href="#demo"
-        class="group flex items-center justify-center gap-2 border-l border-border bg-foreground px-3 text-sm font-medium text-background outline-none transition-colors hover:bg-foreground/90 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-inset sm:px-5"
+        class="group inline-flex h-10 items-center justify-center gap-2 rounded-full bg-foreground px-3 text-sm font-medium text-background outline-none transition-colors hover:bg-foreground/90 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:px-4"
       >
         <span class="sr-only sm:not-sr-only">{messages.nav.scheduleDemo}</span>
         <ArrowRight
@@ -106,6 +108,7 @@ const navItems = [
           strokeWidth={1.75}
         />
       </a>
+      </div>
 
       <details
         class="group relative border-l border-border md:hidden"
@@ -123,7 +126,7 @@ const navItems = [
         </summary>
 
         <div
-          class="panel-shadow absolute right-0 top-full mt-px w-64 border border-border bg-background"
+          class="panel-shadow absolute right-0 top-full mt-2 w-64 overflow-hidden rounded-2xl border border-border bg-background"
         >
           <nav aria-label={primaryNavigationLabel} class="flex flex-col">
             {
@@ -152,7 +155,7 @@ const navItems = [
                 lang="en"
                 aria-current={locale === "en" ? "page" : undefined}
                 class:list={[
-                  "px-2 py-1.5 font-mono text-[12px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+                  "rounded-full px-2.5 py-1.5 font-mono text-[12px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
                   locale === "en"
                     ? "bg-foreground/[0.07] text-foreground"
                     : "text-muted-foreground hover:text-foreground",
@@ -166,7 +169,7 @@ const navItems = [
                 lang="tr"
                 aria-current={locale === "tr" ? "page" : undefined}
                 class:list={[
-                  "px-2 py-1.5 font-mono text-[12px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+                  "rounded-full px-2.5 py-1.5 font-mono text-[12px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
                   locale === "tr"
                     ? "bg-foreground/[0.07] text-foreground"
                     : "text-muted-foreground hover:text-foreground",

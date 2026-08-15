@@ -136,10 +136,10 @@ const reportBars = [58, 78, 94];
     ))}
   </div>
 
-  <div class="kollektor-panel panel-shadow relative flex min-h-0 flex-1 flex-col overflow-hidden border border-foreground/20">
+  <div class="kollektor-panel panel-shadow relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-foreground/20">
     <div class="kollektor-header flex h-12 items-center justify-between border-b border-border px-3.5 sm:px-4">
       <div class="flex min-w-0 items-center gap-2.5">
-        <span class="size-1.5 shrink-0 bg-brand"></span>
+        <span class="size-1.5 shrink-0 rounded-full bg-brand"></span>
         <span class="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/80">
           Kollektor
         </span>
@@ -263,10 +263,10 @@ const reportBars = [58, 78, 94];
         </div>
 
         <div class="mt-5 border border-border bg-background/80 p-3">
-          <div class="flex h-14 items-center gap-1.5 overflow-hidden" data-k-waveform>
+          <div class="flex h-14 items-center justify-center gap-[3px] overflow-hidden" data-k-waveform>
             {waveform.map((height, index) => (
               <span
-                class:list={["kollektor-wave-bar w-1 flex-1 origin-center rounded-full bg-live", index > 11 ? "hidden sm:block" : ""]}
+                class:list={["kollektor-wave-bar w-[2px] shrink-0 origin-center bg-live", index > 11 ? "hidden sm:block" : ""]}
                 style={`height:${height}%;`}
                 data-k-wave-bar
               ></span>

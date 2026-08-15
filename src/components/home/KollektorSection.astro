@@ -1,0 +1,583 @@
+---
+import { ArrowRight, Phone, Radio } from "lucide-react";
+import BlinkText from "@/components/BlinkText";
+import KollektorHeroVisual from "@/components/home/KollektorHeroVisual.astro";
+import type { Locale } from "@/i18n/config";
+import type { Messages } from "@/i18n/types";
+
+interface Props {
+  locale: Locale;
+  messages: Messages;
+}
+
+const { locale, messages } = Astro.props;
+const copy = messages.kollektorDeep;
+const ui =
+  locale === "tr"
+    ? {
+        campaign: "Arama grubu",
+        file: "borclular.xlsx",
+        records: "142 kayıt",
+        reached: "Görüşülen",
+        calling: "Aranıyor",
+        live: "Canlı",
+        listening: "Dinliyor",
+        kollektor: "Kollektor",
+        debtor: "Borçlu",
+        agentLine: "Ödemeniz gecikti. Bugün ödeme yapacak mısınız?",
+        debtorLine: "12.500 TL'yi saat 18.00'e kadar ödeyebilirim.",
+        toolVerify: "Kimlik doğrulandı",
+        toolPromise: "Ödeme sözü kaydedildi",
+        promise: "Ödeme sözü",
+        amount: "₺12.500",
+        due: "Bugün, 18:00",
+        slots: ["09:00", "11:30", "14:00", "16:30", "18:00"],
+        slotHeld: "Tutuldu",
+        p0: "P0 · Sert arama",
+        p1: "P1 · Üçüncü kişi",
+        p2: "P2 · Döngü",
+        takeover: "Hattı al",
+        listen: "Dinle",
+        phone: "Yalnızca telefon",
+      }
+    : {
+        campaign: "Call group",
+        file: "debtors.xlsx",
+        records: "142 records",
+        reached: "Reached",
+        calling: "Calling",
+        live: "Live",
+        listening: "Listening",
+        kollektor: "Kollektor",
+        debtor: "Debtor",
+        agentLine: "Your payment is overdue. Will you pay today?",
+        debtorLine: "I can pay $12,500 by 18:00.",
+        toolVerify: "Identity verified",
+        toolPromise: "Payment promise recorded",
+        promise: "Promise to pay",
+        amount: "$12,500",
+        due: "Today, 18:00",
+        slots: ["09:00", "11:30", "14:00", "16:30", "18:00"],
+        slotHeld: "Held",
+        p0: "P0 · Hostile",
+        p1: "P1 · Third party",
+        p2: "P2 · Loop",
+        takeover: "Take the line",
+        listen: "Listen in",
+        phone: "Phone only",
+      };
+
+const campaignRows = [
+  { id: "0842", amount: locale === "tr" ? "₺12.500" : "$12,500", state: ui.calling, live: true },
+  { id: "0843", amount: locale === "tr" ? "₺8.400" : "$8,400", state: ui.reached },
+  { id: "0844", amount: locale === "tr" ? "₺21.750" : "$21,750", state: ui.reached },
+];
+
+const wave = [
+  22, 38, 54, 30, 72, 48, 90, 64, 42, 78, 56, 96, 70, 44, 82, 58, 34, 76, 50,
+  88, 40, 66, 28, 52, 36, 24,
+];
+const triage = [
+  { code: "P0", label: ui.p0, tone: "danger" as const },
+  { code: "P1", label: ui.p1, tone: "attention" as const },
+  { code: "P2", label: ui.p2, tone: "muted" as const },
+];
+---
+
+<section
+  id="kollektor"
+  aria-labelledby="kollektor-heading"
+  class="scroll-mt-20 border-b border-border bg-background"
+>
+  <div class="mx-auto w-full max-w-[83.75rem] border-x border-border">
+    <header class="grid border-b border-border lg:grid-cols-12">
+      <div class="px-6 py-9 sm:px-8 sm:py-11 lg:col-span-7 lg:px-12 lg:py-14">
+        <p
+          class="inline-flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground"
+        >
+          <span aria-hidden="true" class="size-1.5 rounded-full bg-foreground/30"></span>
+          {copy.eyebrow}
+        </p>
+        <h2
+          id="kollektor-heading"
+          class="mt-5 max-w-3xl text-3xl font-medium leading-[1.1] tracking-tight text-foreground sm:text-4xl lg:text-5xl"
+        >
+          <BlinkText client:visible text={copy.title} />
+        </h2>
+      </div>
+      <div
+        class="flex items-end border-t border-border px-6 py-9 sm:px-8 lg:col-span-5 lg:border-t-0 lg:border-l lg:px-10 lg:py-14"
+      >
+        <p class="max-w-lg text-pretty text-base leading-7 text-muted-foreground">
+          {copy.description}
+        </p>
+      </div>
+    </header>
+
+    <div class="border-b border-border bg-card/25 px-4 py-6 sm:px-8 sm:py-10 lg:px-12">
+      <KollektorHeroVisual locale={locale} />
+    </div>
+
+    <div class="border-b border-border" data-kp-track>
+      <div class="py-12 sm:py-16" data-kp-stage>
+        <div class="px-6 sm:px-8 lg:px-12">
+          <div class="mb-8 flex items-center justify-between gap-4">
+            <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45">
+              {copy.pipelineLabel}
+            </p>
+            <p
+              class="font-mono text-[10px] uppercase tracking-[0.16em] tabular-nums text-foreground/40"
+              data-kp-page
+            >
+              01 / 06
+            </p>
+          </div>
+
+          <div class="overflow-hidden" data-kp-viewport>
+            <ol class="relative flex" data-kp-rail>
+              <span
+                aria-hidden="true"
+                class="pointer-events-none absolute inset-x-0 top-5 h-px bg-border"
+              ></span>
+              {
+                copy.pipeline.map((step) => (
+                  <li class="k-step relative shrink-0 pr-10" data-kp-step>
+                    <span class="relative z-10 mb-5 flex size-10 items-center justify-center rounded-full border border-border bg-background font-mono text-xs text-foreground/70">
+                      {step.number}
+                    </span>
+                    <h3 class="text-xl font-medium tracking-tight text-foreground sm:text-2xl">
+                      {step.title}
+                    </h3>
+                    <p class="mt-3 max-w-sm text-base leading-7 text-muted-foreground">
+                      {step.description}
+                    </p>
+                  </li>
+                ))
+              }
+            </ol>
+          </div>
+
+          <div class="mt-8 h-px w-full bg-border" aria-hidden="true">
+            <span
+              class="k-progress block h-px w-0 bg-foreground/60"
+              data-kp-progress
+            ></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2" data-k-chapters>
+      <article class="border-b border-border md:border-r">
+        <div class="relative h-[17.5rem] overflow-hidden bg-card/30 p-5 sm:p-6" aria-hidden="true">
+          <div class="mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-background">
+            <div class="flex h-10 items-center justify-between border-b border-border px-4">
+              <span class="font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/50">
+                {ui.campaign}
+              </span>
+              <span class="rounded-full border border-brand-line bg-brand-soft px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.12em] text-brand">
+                {ui.live}
+              </span>
+            </div>
+            <div class="flex items-center justify-between border-b border-border px-4 py-3">
+              <span class="font-mono text-[11px] text-foreground/70">{ui.file}</span>
+              <span class="font-mono text-[10px] text-foreground/40">{ui.records}</span>
+            </div>
+            <div class="px-4 py-3">
+              <div class="mb-2 flex justify-between font-mono text-[8px] uppercase tracking-[0.12em] text-foreground/35">
+                <span>41 / 142</span>
+                <span>29%</span>
+              </div>
+              <div class="h-1.5 overflow-hidden rounded-full bg-foreground/[0.07]">
+                <span class="k-bar block h-full w-[29%] rounded-full bg-brand"></span>
+              </div>
+            </div>
+            <ul class="min-h-0 flex-1">
+              {
+                campaignRows.map((row) => (
+                  <li class="grid grid-cols-[4.5rem_1fr_auto] items-center border-t border-border px-4 py-2.5 font-mono text-[10px]">
+                    <span class="text-foreground/40">{row.id}</span>
+                    <span class:list={[row.live ? "text-brand" : "text-foreground/55"]}>
+                      {row.state}
+                    </span>
+                    <span class="tabular-nums text-foreground/70">{row.amount}</span>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+        <div class="px-6 py-6 sm:px-8">
+          <h3 class="text-xl font-medium tracking-tight text-foreground">
+            {copy.chapters[0].title}
+          </h3>
+          <p class="mt-3 max-w-md text-sm leading-6 text-muted-foreground sm:text-base">
+            {copy.chapters[0].description}
+          </p>
+        </div>
+      </article>
+
+      <article class="border-b border-border">
+        <div class="relative h-[17.5rem] overflow-hidden bg-card/30 p-5 sm:p-6" aria-hidden="true">
+          <div class="mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-background">
+            <div class="flex h-10 items-center justify-between border-b border-border px-4">
+              <span class="font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/50">
+                {ui.kollektor}
+              </span>
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-brand-line bg-brand-soft px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.12em] text-brand">
+                <span class="size-1.5 rounded-full bg-brand"></span>
+                {ui.listening}
+              </span>
+            </div>
+            <div class="flex h-16 items-center justify-center gap-[3px] border-b border-border px-4">
+              {
+                wave.map((height, index) => (
+                  <span
+                    class="k-wave w-[2px] shrink-0 origin-center bg-brand"
+                    style={`height:${height}%; animation-delay:${index * 55}ms`}
+                  />
+                ))
+              }
+            </div>
+            <div class="space-y-3 p-4">
+              <p class="flex gap-3 text-[11px] leading-5">
+                <span class="w-16 shrink-0 font-mono text-[8px] uppercase tracking-[0.12em] text-brand">
+                  {ui.kollektor}
+                </span>
+                <span class="text-foreground/75">{ui.agentLine}</span>
+              </p>
+              <p class="flex gap-3 border-t border-border pt-3 text-[11px] leading-5">
+                <span class="w-16 shrink-0 font-mono text-[8px] uppercase tracking-[0.12em] text-foreground/40">
+                  {ui.debtor}
+                </span>
+                <span class="text-foreground/75">{ui.debtorLine}</span>
+              </p>
+            </div>
+            <div class="mt-auto flex flex-wrap gap-1.5 border-t border-border px-4 py-3">
+              <span class="rounded-full border border-border px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.1em] text-foreground/45">
+                {ui.toolVerify}
+              </span>
+              <span class="rounded-full border border-brand-line bg-brand-soft px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.1em] text-brand">
+                {ui.toolPromise}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="px-6 py-6 sm:px-8">
+          <h3 class="text-xl font-medium tracking-tight text-foreground">
+            {copy.chapters[1].title}
+          </h3>
+          <p class="mt-3 max-w-md text-sm leading-6 text-muted-foreground sm:text-base">
+            {copy.chapters[1].description}
+          </p>
+        </div>
+      </article>
+
+      <article class="border-b border-border md:border-r md:border-b-0">
+        <div class="relative h-[17.5rem] overflow-hidden bg-card/30 p-5 sm:p-6" aria-hidden="true">
+          <div class="mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-background">
+            <div class="flex h-10 items-center justify-between border-b border-border px-4">
+              <span class="font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/50">
+                {ui.promise}
+              </span>
+              <span class="rounded-full border border-border px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.12em] text-foreground/40">
+                {ui.slotHeld}
+              </span>
+            </div>
+            <div class="px-4 py-5 text-center">
+              <p class="font-mono text-3xl tabular-nums tracking-tight text-foreground">
+                {ui.amount}
+              </p>
+              <p class="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/40">
+                {ui.due}
+              </p>
+            </div>
+            <div class="mt-auto grid grid-cols-5 gap-1.5 border-t border-border p-3">
+              {
+                ui.slots.map((slot, index) => (
+                  <span
+                    class:list={[
+                      "rounded-full px-1 py-2 text-center font-mono text-[9px] tabular-nums",
+                      index === 4
+                        ? "border border-brand-line bg-brand-soft text-brand"
+                        : "border border-border text-foreground/40",
+                    ]}
+                  >
+                    {slot}
+                  </span>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+        <div class="px-6 py-6 sm:px-8">
+          <h3 class="text-xl font-medium tracking-tight text-foreground">
+            {copy.chapters[2].title}
+          </h3>
+          <p class="mt-3 max-w-md text-sm leading-6 text-muted-foreground sm:text-base">
+            {copy.chapters[2].description}
+          </p>
+        </div>
+      </article>
+
+      <article class="border-b border-border md:border-b-0">
+        <div class="relative h-[17.5rem] overflow-hidden bg-card/30 p-5 sm:p-6" aria-hidden="true">
+          <div class="mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-background">
+            <div class="flex h-10 items-center justify-between border-b border-border px-4">
+              <span class="font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/50">
+                {ui.listen}
+              </span>
+              <span class="rounded-full bg-foreground px-2.5 py-1 font-mono text-[8px] uppercase tracking-[0.12em] text-background">
+                {ui.takeover}
+              </span>
+            </div>
+            <ul class="flex flex-1 flex-col justify-center gap-2 p-3">
+              {
+                triage.map((row) => (
+                  <li
+                    class:list={[
+                      "flex items-center justify-between rounded-2xl border px-3 py-2.5",
+                      row.tone === "danger" && "border-danger/30 bg-danger/5",
+                      row.tone === "attention" && "border-attention-line bg-attention-soft",
+                      row.tone === "muted" && "border-border bg-card/40",
+                    ]}
+                  >
+                    <span class="font-mono text-[10px] uppercase tracking-[0.1em] text-foreground/70">
+                      {row.label}
+                    </span>
+                    <span
+                      class:list={[
+                        "size-2 rounded-full",
+                        row.tone === "danger" && "bg-danger",
+                        row.tone === "attention" && "bg-attention",
+                        row.tone === "muted" && "bg-foreground/25",
+                      ]}
+                    />
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+        <div class="px-6 py-6 sm:px-8">
+          <h3 class="text-xl font-medium tracking-tight text-foreground">
+            {copy.chapters[3].title}
+          </h3>
+          <p class="mt-3 max-w-md text-sm leading-6 text-muted-foreground sm:text-base">
+            {copy.chapters[3].description}
+          </p>
+        </div>
+      </article>
+    </div>
+
+    <div class="grid border-t border-border lg:grid-cols-12">
+      <div class="px-6 py-9 sm:px-8 lg:col-span-5 lg:px-12 lg:py-14">
+        <p
+          class="inline-flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground"
+        >
+          <span aria-hidden="true" class="size-1.5 rounded-full bg-foreground/30"></span>
+          {copy.split.eyebrow}
+        </p>
+        <h3 class="mt-5 text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+          {copy.split.title}
+        </h3>
+        <p class="mt-4 max-w-md text-pretty text-base leading-7 text-muted-foreground">
+          {copy.split.description}
+        </p>
+      </div>
+
+      <div class="grid border-t border-border sm:grid-cols-2 lg:col-span-7 lg:border-t-0 lg:border-l">
+        <div class="border-b border-border p-6 sm:border-b-0 sm:border-r sm:p-8">
+          <span class="mb-4 flex size-10 items-center justify-center rounded-full border border-border bg-card text-foreground/70">
+            <Phone aria-hidden="true" className="size-4" strokeWidth={1.5} />
+          </span>
+          <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-foreground/40">
+            {ui.phone}
+          </p>
+          <h4 class="mt-2 text-lg font-medium tracking-tight">{copy.split.debtorTitle}</h4>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">{copy.split.debtorBody}</p>
+          <ol class="mt-5 space-y-3">
+            {
+              copy.split.debtorBeats.map((beat, index) => (
+                <li class="flex gap-3 text-sm leading-6 text-foreground/75">
+                  <span class="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border border-border font-mono text-[9px] text-foreground/40">
+                    {index + 1}
+                  </span>
+                  {beat}
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+
+        <div class="p-6 sm:p-8">
+          <span class="mb-4 flex size-10 items-center justify-center rounded-full border border-border bg-card text-foreground/70">
+            <Radio aria-hidden="true" className="size-4" strokeWidth={1.5} />
+          </span>
+          <p class="font-mono text-[9px] uppercase tracking-[0.16em] text-foreground/40">
+            {ui.live}
+          </p>
+          <h4 class="mt-2 text-lg font-medium tracking-tight">{copy.split.operatorTitle}</h4>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">{copy.split.operatorBody}</p>
+          <ol class="mt-5 space-y-3">
+            {
+              copy.split.operatorBeats.map((beat, index) => (
+                <li class="flex gap-3 text-sm leading-6 text-foreground/75">
+                  <span class="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border border-border font-mono text-[9px] text-foreground/40">
+                    {index + 1}
+                  </span>
+                  {beat}
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid border-t border-border lg:grid-cols-12">
+      <div class="px-6 py-8 sm:px-8 lg:col-span-4 lg:px-12 lg:py-12">
+        <h3 class="text-xl font-medium tracking-tight text-foreground">
+          {copy.guardrails.title}
+        </h3>
+        <a
+          href="#demo"
+          class="group mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-brand px-5 text-sm font-medium text-brand-foreground outline-none transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          {copy.cta}
+          <ArrowRight
+            aria-hidden="true"
+            className="size-4 transition-transform group-hover:translate-x-0.5"
+            strokeWidth={1.75}
+          />
+        </a>
+      </div>
+      <ul class="grid border-t border-border sm:grid-cols-3 lg:col-span-8 lg:border-t-0 lg:border-l">
+        {
+          copy.guardrails.items.map((item) => (
+            <li class="border-b border-border p-6 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 sm:p-8">
+              <h4 class="font-mono text-[11px] uppercase tracking-[0.16em] text-foreground/55">
+                {item.title}
+              </h4>
+              <p class="mt-3 text-sm leading-6 text-muted-foreground">{item.description}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  (() => {
+    const track = document.querySelector("[data-kp-track]");
+    if (!track) return;
+    const viewport = track.querySelector("[data-kp-viewport]");
+    const rail = track.querySelector("[data-kp-rail]");
+    const page = track.querySelector("[data-kp-page]");
+    const bar = track.querySelector("[data-kp-progress]");
+    const steps = [...track.querySelectorAll("[data-kp-step]")];
+    if (!viewport || !rail || !steps.length) return;
+
+    const total = steps.length;
+
+    const perView = () => {
+      if (window.innerWidth >= 1024) return 3;
+      if (window.innerWidth >= 640) return 2;
+      return 1;
+    };
+
+    const layout = () => {
+      const width = viewport.clientWidth / perView();
+      for (const step of steps) step.style.width = `${width}px`;
+    };
+
+    const sync = () => {
+      // Progress runs across the block's own trip through the viewport: it
+      // starts when the block enters from the bottom and finishes as it leaves
+      // the top, so every step gets screen time without pinning the page.
+      const rect = track.getBoundingClientRect();
+      const start = window.innerHeight * 0.8;
+      const end = -rect.height * 0.15;
+      const progress = Math.min(
+        1,
+        Math.max(0, (start - rect.top) / (start - end)),
+      );
+
+      const index = Math.min(total - 1, Math.floor(progress * total));
+      const columns = perView();
+      const group = Math.floor(index / columns);
+
+      rail.style.transform = `translate3d(${-group * viewport.clientWidth}px, 0, 0)`;
+      steps.forEach((step, i) => step.classList.toggle("is-in", i === index));
+
+      if (page) {
+        page.textContent = `${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
+      }
+      if (bar) bar.style.width = `${((index + 1) / total) * 100}%`;
+    };
+
+    const frame = () => {
+      layout();
+      sync();
+    };
+
+    frame();
+    requestAnimationFrame(frame);
+    window.addEventListener("scroll", sync, { passive: true });
+    window.addEventListener("resize", frame);
+  })();
+</script>
+
+<style>
+  .k-wave {
+    animation: k-wave 1.1s ease-in-out infinite;
+  }
+
+  @keyframes k-wave {
+    0%,
+    100% {
+      transform: scaleY(0.45);
+      opacity: 0.55;
+    }
+    50% {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+  }
+
+
+  [data-kp-rail] {
+    transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .k-progress {
+    transition: width 320ms ease;
+  }
+
+  .k-step {
+    opacity: 0.38;
+    transition: opacity 280ms ease;
+  }
+
+  .k-step.is-in {
+    opacity: 1;
+  }
+
+  .k-step.is-in :global(span:first-child) {
+    border-color: color-mix(in srgb, var(--foreground) 45%, transparent);
+    background: var(--foreground);
+    color: var(--background);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .k-wave {
+      animation: none;
+    }
+
+    [data-kp-rail],
+    .k-progress {
+      transition: none;
+    }
+  }
+</style>

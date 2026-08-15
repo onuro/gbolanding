@@ -8,6 +8,7 @@ const trMessages: Messages = {
   },
   nav: {
     solutions: "Çözümler",
+    kollektor: "Kollektor",
     platform: "Platform",
     method: "Yaklaşım",
     languageLabel: "Dil",
@@ -62,7 +63,7 @@ const trMessages: Messages = {
         "23,9 milyon TL tahsilat",
         "Ekibinize devreder",
       ],
-      cta: "Kollektor demosu planlayın",
+      cta: "Kollektor nasıl çalışır",
     },
     intelval: {
       eyebrow: "Değerleme için yapay zeka",
@@ -88,6 +89,107 @@ const trMessages: Messages = {
       ],
       cta: "Platformu inceleyin",
     },
+  },
+  kollektorDeep: {
+    eyebrow: "Ürün · Kollektor",
+    title: "Telefonda tahsildar. Ekranda canlı operasyon.",
+    description:
+      "Kollektor, borçluları arar, görüşmeyi baştan sona yürütür ve her turu operatör masasına canlı iletir. Borçlu bir uygulama görmez. Ekibiniz tüm operasyonu görür.",
+    pipelineLabel: "Listeden tahsilata",
+    pipeline: [
+      {
+        number: "01",
+        title: "Liste",
+        description: "Borçlu listesini yükleyin. Kampanya başlamadan numaralar kontrol edilir.",
+      },
+      {
+        number: "02",
+        title: "Arama grubu",
+        description: "Kuyruk dosyayı tarar. Her hat için bir ajan gerekmez.",
+      },
+      {
+        number: "03",
+        title: "Görüşme",
+        description: "Asistan kimliği doğrular, ödeme ister ve Türkçe kalır.",
+      },
+      {
+        number: "04",
+        title: "Kayıt",
+        description: "Söz, tutar ve geri arama saati konuşulduğu anda yazılır.",
+      },
+      {
+        number: "05",
+        title: "Devir",
+        description: "Sert arayan, üçüncü kişi ve döngüler bir kişiye gider.",
+      },
+      {
+        number: "06",
+        title: "Rapor",
+        description: "Ulaşma, söz ve tahsilat aynı panelde toplanır.",
+      },
+    ],
+    chapters: [
+      {
+        title: "Listeden açılan arama grupları",
+        description:
+          "Borçluları yükleyin, bir arama grubu açın ve katın dosyayı işlemesini izleyin.",
+      },
+      {
+        title: "Canlı ses hattı",
+        description:
+          "Konuşma girer, tahsildar model çalışır, ses çıkar. Asistan bir tahsildardır — net, doğrudan, Türkçe.",
+      },
+      {
+        title: "Söz ve takvim, not değil",
+        description:
+          "Ödeme tutarı ve tarihi konuşulduğu anda kaydolur. Geri arama saatleri hesaplanır, tahmin edilmez.",
+      },
+      {
+        title: "Zor aramalar masada kalır",
+        description:
+          "Canlı transkript, senaryo eşleşmeleri ve P0–P2 triyaj. Modelin konuşmaması gereken yerde ekibiniz hattı alır.",
+      },
+    ],
+    split: {
+      eyebrow: "Asimetrik tasarım",
+      title: "İki taraf. Tek arama.",
+      description:
+        "Borçlu yalnızca bir telefon görüşmesi duyar. Operatörler canlı masayı görür: transkript, sınıflandırma, dinleme ve geçmiş.",
+      debtorTitle: "Borçlunun duyduğu",
+      debtorBody: "Uygulama yok. Portal yok. Bağlantı yok. İsimli bir tahsildar, bir borç ve bir sonraki adım.",
+      debtorBeats: [
+        "Borç konuşulmadan önce kimlik doğrulanır",
+        "Asistan ödeme, taksit veya tarih ister",
+        "Söz veya geri arama görüşmede kaydedilir",
+        "Sert veya dönen aramalar bir kişiye devredilir",
+      ],
+      operatorTitle: "Ekibinizin gördüğü",
+      operatorBody: "Arama olurken güncellenen bir operasyon ekranı — yenileme yok, ekstra hat yok.",
+      operatorBeats: [
+        "Canlı transkript ve arama durumu",
+        "Senaryo eşleşmeleri ve triyaj önceliği",
+        "Ödeme sözü tutarı ve tarihi",
+        "Hesaplanan geri arama takvimi",
+      ],
+    },
+    guardrails: {
+      title: "Türk tahsilat masaları için",
+      items: [
+        {
+          title: "KVKK",
+          description: "Telefonlar son 4 hane. TC kimlik son 4 hane. Transkriptler 90 günde silinir.",
+        },
+        {
+          title: "6502 sayılı kanun",
+          description: "Tahsildar üslubu ve yasal çerçeve senaryonun içinde, görüşmeden sonra eklenmez.",
+        },
+        {
+          title: "İnsan kontrolü",
+          description: "P0–P2 triyaj yalnızca yükseltir. Ekibiniz hattı alır; model önceliği düşürmez.",
+        },
+      ],
+    },
+    cta: "Kollektor demosu planlayın",
   },
   platform: {
     eyebrow: "Nasıl geliştiriyoruz",
@@ -184,6 +286,7 @@ const trMessages: Messages = {
   footer: {
     tagline: "İşinize göre tasarlanmış yapay zeka ve yazılım.",
     solutions: "Çözümler",
+    kollektor: "Kollektor",
     platform: "Platform",
     method: "Yaklaşım",
     rightsReserved: "Tüm hakları saklıdır",

@@ -4,6 +4,7 @@ import type { Messages } from "@/i18n/types";
 import ApproachSection from "@/components/home/ApproachSection.astro";
 import FinalCta from "@/components/home/FinalCta.astro";
 import HeroSection from "@/components/home/HeroSection.astro";
+import KollektorSection from "@/components/home/KollektorSection.astro";
 import PlatformSection from "@/components/home/PlatformSection.astro";
 import SolutionsGrid from "@/components/home/SolutionsGrid.astro";
 import ProofStrip from "@/components/home/ProofStrip.astro";
@@ -28,6 +29,7 @@ const skipLink = locale === "tr" ? "Ana içeriğe geç" : "Skip to content";
     <HeroSection locale={locale} messages={messages} />
     <ProofStrip locale={locale} messages={messages} />
     <SolutionsGrid locale={locale} messages={messages} />
+    <KollektorSection locale={locale} messages={messages} />
     <PlatformSection locale={locale} messages={messages} />
     <ApproachSection locale={locale} messages={messages} />
     <FinalCta locale={locale} messages={messages} />

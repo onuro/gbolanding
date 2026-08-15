@@ -24,6 +24,7 @@ export interface Messages {
   };
   nav: {
     solutions: string;
+    kollektor: string;
     platform: string;
     method: string;
     languageLabel: string;
@@ -60,6 +61,46 @@ export interface Messages {
     kollektor: SolutionMessage;
     intelval: SolutionMessage;
     enterprise: SolutionMessage;
+  };
+  kollektorDeep: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    pipelineLabel: string;
+    pipeline: [
+      ApproachStepMessage,
+      ApproachStepMessage,
+      ApproachStepMessage,
+      ApproachStepMessage,
+      ApproachStepMessage,
+      ApproachStepMessage,
+    ];
+    chapters: [
+      CapabilityMessage,
+      CapabilityMessage,
+      CapabilityMessage,
+      CapabilityMessage,
+    ];
+    split: {
+      eyebrow: string;
+      title: string;
+      description: string;
+      debtorTitle: string;
+      debtorBody: string;
+      debtorBeats: [string, string, string, string];
+      operatorTitle: string;
+      operatorBody: string;
+      operatorBeats: [string, string, string, string];
+    };
+    guardrails: {
+      title: string;
+      items: [
+        CapabilityMessage,
+        CapabilityMessage,
+        CapabilityMessage,
+      ];
+    };
+    cta: string;
   };
   platform: {
     eyebrow: string;
@@ -107,6 +148,7 @@ export interface Messages {
   footer: {
     tagline: string;
     solutions: string;
+    kollektor: string;
     platform: string;
     method: string;
     rightsReserved: string;
