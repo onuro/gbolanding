@@ -24,14 +24,20 @@ interface BlinkTextProps {
   maxDuration?: number;
   timingConfig?: BlinkTimingConfig;
   className?: string;
+  /**
+   * Keep the line painted from first HTML. LCP cannot fire on opacity:0, so
+   * the hero title uses this and only flickers after it is already readable.
+   */
+  priority?: boolean;
 }
 
 /**
  * Reveals a line word by word, each one flickering as it lands.
  *
- * The text is rendered server-side and only hidden once `html.js` is set, so a
- * visitor without the script still reads it. Pair with `client:visible` below
- * the fold and `client:load` above it.
+ * The text is rendered server-side. Below-the-fold lines stay hidden until
+ * hydrate (`html.js [data-blink=idle]`); the hero passes `priority` so LCP
+ * can paint immediately. Pair with `client:visible` below the fold and
+ * `client:idle` on the hero.
  */
 export default function BlinkText({
   text,
@@ -41,6 +47,7 @@ export default function BlinkText({
   maxDuration = 3,
   timingConfig,
   className,
+  priority = false,
 }: BlinkTextProps) {
   const containerRef = useRef<HTMLSpanElement>(null);
   const scopeRef = useRef<ReturnType<typeof createScope> | null>(null);
@@ -70,11 +77,13 @@ export default function BlinkText({
       const split = splitText(container, { [mode]: true });
       const parts = mode === "chars" ? split.chars : split.words;
 
-      // Hide the pieces before revealing the container, so the line never
-      // shows in full for a frame.
-      parts.forEach((part) => {
-        part.style.opacity = "0";
-      });
+      // Priority lines are already the LCP element — do not blank them.
+      // Other lines hide first so they never flash complete for a frame.
+      if (!priority) {
+        parts.forEach((part) => {
+          part.style.opacity = "0";
+        });
+      }
       container.dataset.blink = "done";
 
       // Long headings would otherwise run past the budget on stagger alone, so
@@ -110,10 +119,14 @@ export default function BlinkText({
     return () => {
       scopeRef.current?.revert();
     };
-  }, [text, mode, staggerDelay, delay, maxDuration, timingConfig]);
+  }, [text, mode, staggerDelay, delay, maxDuration, timingConfig, priority]);
 
   return (
-    <span ref={containerRef} className={className} data-blink="idle">
+    <span
+      ref={containerRef}
+      className={className}
+      data-blink={priority ? "done" : "idle"}
+    >
       {text}
     </span>
   );

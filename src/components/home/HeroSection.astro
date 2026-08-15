@@ -80,13 +80,15 @@ const { locale, messages } = Astro.props;
           class="text-balance text-[clamp(2.8rem,7vw,4.5rem)] font-medium leading-[0.92] tracking-[-0.055em]"
         >
           <BlinkText
-            client:load
+            client:idle
+            priority
             text={messages.hero.titleLead}
             className="block text-foreground"
             timingConfig={{ fadeTime: 0.33, randomHoldMax: 0.4, blinkTimeMax: 0.72 }}
           />
           <BlinkText
-            client:load
+            client:idle
+            priority
             text={messages.hero.titleAccent}
             className="mt-2 block text-foreground"
             delay={0.45}
@@ -154,11 +156,11 @@ const { locale, messages } = Astro.props;
       <div
         class="relative z-10 aspect-square w-[min(100%,min(101cqmin,46rem))] shrink-0 overflow-visible"
       >
-        <StudyOrbGradient client:load className="absolute inset-0 w-full" />
+        <StudyOrbGradient client:idle className="absolute inset-0 w-full" />
         <OrbHud />
       </div>
       <VoiceButton
-        client:load
+        client:idle
         lang={locale}
         labels={{
           idle: messages.hero.voiceIdle,

@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  RemoteAudioTrack,
-  Room,
-  RoomEvent,
-  Track,
-  type RemoteTrack,
-} from "livekit-client";
+import type { RemoteTrack, Room } from "livekit-client";
 import { Play, Square } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Logomark } from "@/components/logo";
@@ -133,6 +127,7 @@ export function VoiceButton({
   async function start() {
     setState("connecting");
     setError(null);
+    const livekitPromise = import("livekit-client");
 
     // One AudioContext for the whole call: the RNNoise chain, LiveKit's
     // playback graph and both orb meters all hang off this one.
@@ -218,6 +213,10 @@ export function VoiceButton({
     // it the element renders the track *and* the meter opens a second reader on
     // the same remote track — two sinks on one incoming stream, which is the
     // other half of what iOS would not survive.
+    // LiveKit is a large client — keep it out of the first paint and only
+    // pull it in when someone actually starts a call. The download starts at
+    // click so it overlaps the mic prompt and token fetch.
+    const { RemoteAudioTrack, Room, RoomEvent, Track } = await livekitPromise;
     const room = new Room({ webAudioMix: { audioContext: context } });
     roomRef.current = room;
     setCaption(null);
