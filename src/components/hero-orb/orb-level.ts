@@ -1,32 +1,37 @@
 /**
  * Feeds the hero orb's rim wave from whoever is talking — agent, mic, or both.
  *
- *   connectOrbLevel(agentTrack, micTrack);
+ *   const meter = createOrbLevelMeter();
+ *   meter.add(micTrack);
+ *   meter.add(agentTrack);
  *
  * Dispatches `orb-level` (detail: 0..1) on window; StudyOrbGradient listens.
  * Decoupled through an event so any island — or plain script — can drive it.
+ *
+ * Tracks join an existing graph rather than rebuilding it. Tearing down an
+ * AudioContext that holds a live microphone and opening a replacement in the
+ * same tick kills the media process on iOS, and the agent's track arrives
+ * mid-call — the browser would take the page down the moment it started
+ * speaking.
  */
-export function connectOrbLevel(
-  ...sources: (HTMLMediaElement | MediaStreamTrack)[]
-) {
+export interface OrbLevelMeter {
+  add(track: MediaStreamTrack): void;
+  stop(): void;
+}
+
+export function createOrbLevelMeter(): OrbLevelMeter {
   const context = new AudioContext();
   // Created after `await room.connect(...)`, so the gesture may already be
   // spent and the context born suspended — a suspended context meters silence.
   void context.resume();
-  const meters = sources.map((source) => {
-    const node =
-      source instanceof MediaStreamTrack
-        ? context.createMediaStreamSource(new MediaStream([source]))
-        : context.createMediaElementSource(source);
-    const analyser = context.createAnalyser();
-    analyser.fftSize = 512;
-    node.connect(analyser);
-    // Media elements still need a path to the speakers; raw tracks do not.
-    if (!(source instanceof MediaStreamTrack)) analyser.connect(context.destination);
-    return { analyser, samples: new Uint8Array(analyser.fftSize) };
-  });
 
+  const meters: {
+    analyser: AnalyserNode;
+    samples: Uint8Array<ArrayBuffer>;
+  }[] = [];
   let raf = 0;
+  let stopped = false;
+
   const tick = () => {
     let level = 0;
     for (const meter of meters) {
@@ -45,10 +50,26 @@ export function connectOrbLevel(
     window.dispatchEvent(new CustomEvent("orb-level", { detail: level }));
     raf = requestAnimationFrame(tick);
   };
-  tick();
 
-  return () => {
-    cancelAnimationFrame(raf);
-    void context.close();
+  return {
+    add(track) {
+      if (stopped) return;
+      const node = context.createMediaStreamSource(new MediaStream([track]));
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 512;
+      node.connect(analyser);
+      meters.push({
+        analyser,
+        samples: new Uint8Array(new ArrayBuffer(analyser.fftSize)),
+      });
+      if (!raf) tick();
+    },
+    stop() {
+      stopped = true;
+      cancelAnimationFrame(raf);
+      raf = 0;
+      meters.length = 0;
+      void context.close();
+    },
   };
 }

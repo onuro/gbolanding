@@ -5,7 +5,7 @@ import { Play, Square } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Logomark } from "@/components/logo";
 import { denoise, MIC_CONSTRAINTS } from "./denoise";
-import { connectOrbLevel } from "./orb-level";
+import { createOrbLevelMeter, type OrbLevelMeter } from "./orb-level";
 
 // Astro inlines PUBLIC_* at build time; when it is missing, a production build
 // must not fall back to a localhost the visitor's browser cannot reach.
@@ -56,9 +56,11 @@ export function VoiceButton({
   lang: "tr" | "en";
 }) {
   const roomRef = useRef<Room | null>(null);
-  const stopLevelRef = useRef<(() => void) | null>(null);
+  const levelRef = useRef<OrbLevelMeter | null>(null);
   const stopMicRef = useRef<(() => void) | null>(null);
-  const tracksRef = useRef<MediaStreamTrack[]>([]);
+  // Attached agent audio has to be taken back out of the DOM on hang-up, or the
+  // elements pile up holding media resources for the rest of the visit.
+  const audioRef = useRef<HTMLMediaElement[]>([]);
   const [state, setState] = useState<"idle" | "connecting" | "live">("idle");
   const [error, setError] = useState<string | null>(null);
   const [soundBlocked, setSoundBlocked] = useState(false);
@@ -67,8 +69,9 @@ export function VoiceButton({
 
   useEffect(
     () => () => {
-      stopLevelRef.current?.();
+      levelRef.current?.stop();
       stopMicRef.current?.();
+      audioRef.current.forEach((element) => element.remove());
       roomRef.current?.disconnect();
       window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
     },
@@ -163,8 +166,13 @@ export function VoiceButton({
     // and drive the orb wave from the same track.
     room.on(RoomEvent.TrackSubscribed, (track) => {
       if (track.kind !== "audio") return;
-      document.body.appendChild(track.attach());
+      const element = track.attach();
+      audioRef.current.push(element);
+      document.body.appendChild(element);
       if (track.mediaStreamTrack) meter(track.mediaStreamTrack);
+    });
+    room.on(RoomEvent.TrackUnsubscribed, (track) => {
+      track.detach().forEach((element) => element.remove());
     });
     // The agent's track arrives seconds after the click, so its play() lands
     // outside the gesture window. Without mic permission Chrome has no autoplay
@@ -173,10 +181,11 @@ export function VoiceButton({
       setSoundBlocked(!room.canPlaybackAudio);
     });
     room.on(RoomEvent.Disconnected, () => {
-      stopLevelRef.current?.();
-      stopLevelRef.current = null;
+      levelRef.current?.stop();
+      levelRef.current = null;
       releaseMic();
-      tracksRef.current = [];
+      audioRef.current.forEach((element) => element.remove());
+      audioRef.current = [];
       window.dispatchEvent(new CustomEvent("orb-level", { detail: 0 }));
       window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
       roomRef.current = null;
@@ -219,11 +228,10 @@ export function VoiceButton({
     stopMicRef.current = null;
   }
 
-  // Tracks trickle in (agent audio, then mic), so rebuild the meter each time.
+  // Tracks trickle in (mic, then agent audio) and join the graph as they do.
   function meter(track: MediaStreamTrack) {
-    tracksRef.current = [...tracksRef.current, track];
-    stopLevelRef.current?.();
-    stopLevelRef.current = connectOrbLevel(...tracksRef.current);
+    levelRef.current ??= createOrbLevelMeter();
+    levelRef.current.add(track);
   }
 
   const label =
