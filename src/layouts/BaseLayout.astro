@@ -49,7 +49,16 @@ const organizationSchema = {
         document.documentElement.classList.add("js");
         try {
           const savedTheme = localStorage.getItem("gbo_theme");
-          const theme = savedTheme === "light" ? "light" : "dark";
+          // An explicit toggle click wins. Failing that the OS decides, which
+          // is the only preference a first-time visitor hands us. Dark stays
+          // the answer when the OS expresses none, when storage throws, and
+          // when the script never runs at all.
+          const theme =
+            savedTheme === "light" || savedTheme === "dark"
+              ? savedTheme
+              : window.matchMedia("(prefers-color-scheme: light)").matches
+                ? "light"
+                : "dark";
           const root = document.documentElement;
           root.dataset.theme = theme;
           root.style.colorScheme = theme;
