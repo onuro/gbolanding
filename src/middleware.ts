@@ -21,7 +21,14 @@ function preferredLocale(request: Request, cookieValue?: string) {
     return cookieValue;
   }
 
-  const country = request.headers.get("x-vercel-ip-country");
+  // Production sits behind Cloudflare's proxy, so Vercel sees an edge IP and
+  // x-vercel-ip-country stops reporting the visitor's country. Cloudflare puts
+  // it in cf-ipcountry instead. Both are read so this keeps working whichever
+  // way the proxy is pointed, and falls through to accept-language if a zone
+  // has IP geolocation switched off and neither header arrives.
+  const country =
+    request.headers.get("cf-ipcountry") ??
+    request.headers.get("x-vercel-ip-country");
   if (country?.toUpperCase() === "TR") {
     return "tr" as const;
   }
