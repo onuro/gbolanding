@@ -32,6 +32,8 @@ const trMessages: Messages = {
       "Mikrofon bulunamadı. Bir mikrofon bağlayıp görüşmeyi yeniden başlatın.",
     voiceMicError:
       "Mikrofonunuz başka bir uygulama tarafından kullanılıyor. O uygulamayı (Teams, Zoom, OBS…) kapatıp görüşmeyi yeniden başlatın.",
+    voiceMicInsecure:
+      "Mikrofon için güvenli bir bağlantı gerekiyor. Bu sayfayı https üzerinden açıp görüşmeyi yeniden başlatın.",
     voiceSoundBlocked: "Sesi aç",
   },
   proofStrip: {

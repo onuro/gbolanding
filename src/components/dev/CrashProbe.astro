@@ -1,0 +1,459 @@
+---
+/**
+ * Breadcrumb recorder for the "the page reloads itself mid-call on iPhone"
+ * bug.
+ *
+ * A WebContent crash takes the console with it, so nothing survives to be read
+ * afterwards — and on a phone there is no console to read in the first place.
+ * This writes a rolling log to sessionStorage, which *does* survive a reload of
+ * the same tab, and paints the previous page-life back on screen the moment the
+ * new one starts. Whatever the last breadcrumb was is the thing that killed it.
+ *
+ * It also answers the first question that has to be answered: was it a crash at
+ * all? `performance.getEntriesByType("navigation")[0].type` reads "reload" when
+ * the tab came back on its own and "navigate" when something actually sent the
+ * browser somewhere, which splits the two families of cause apart.
+ *
+ * Instrumentation is monkey-patched from here rather than wired into the app,
+ * so nothing in the call path has to know it exists. Off unless ?probe=1, so it
+ * can ride along to production and be turned on against the real site.
+ */
+---
+
+<script is:inline>
+  (() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("probe") !== "1") return;
+
+    // ?probe=1&kill=orb,hud,caption,transcription,meter,denoise — bisecting by
+    // switching pieces off. Deliberately behind the probe gate: these each
+    // disable something a visitor came for, and a stray ?kill=meter link that
+    // worked on its own would serve someone a quietly broken demo.
+    const kill = params.get("kill");
+    if (kill) document.documentElement.dataset.kill = kill;
+
+    const KEY = "gbo_probe_log";
+    const START = performance.now();
+    const MAX = 400;
+
+    /** @type {{t:number,tag:string,info?:string}[]} */
+    const log = [];
+    let flushTimer = 0;
+    let panel = null;
+    let body = null;
+    let titleEl = null;
+
+    const previous = (() => {
+      try {
+        return JSON.parse(sessionStorage.getItem(KEY) ?? "null");
+      } catch {
+        return null;
+      }
+    })();
+
+    // Breadcrumbs also go to the dev server as they happen, so a log from a
+    // handset lands on the machine running the fix instead of on a screen
+    // someone has to read back. sendBeacon because it is fire-and-forget and
+    // survives the page going away mid-request. 404s in production, where the
+    // on-screen panel is the only readout.
+    const SESSION = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+    // Its own queue rather than an index into `log`, which is capped and shifts.
+    const pending = [];
+    const post = (kind, entries) => {
+      if (!entries.length) return;
+      try {
+        navigator.sendBeacon?.(
+          "/gbo/probe",
+          new Blob(
+            [JSON.stringify({ session: SESSION, kind, ua: navigator.userAgent, entries })],
+            { type: "application/json" },
+          ),
+        );
+      } catch {
+        // Beacon queue full, or no beacon at all. sessionStorage still has it.
+      }
+    };
+
+    const flush = () => {
+      flushTimer = 0;
+      try {
+        sessionStorage.setItem(KEY, JSON.stringify(log.slice(-MAX)));
+      } catch {
+        // Private mode, or the quota is gone. The on-screen list still works.
+      }
+      if (pending.length) {
+        post("live", pending.splice(0, pending.length));
+      }
+    };
+
+    const add = (tag, info) => {
+      const entry = { t: Math.round(performance.now() - START), tag };
+      if (info !== undefined) entry.info = String(info).slice(0, 220);
+      log.push(entry);
+      pending.push(entry);
+      if (log.length > MAX) log.shift();
+      paint(entry);
+      // A crash never fires pagehide, so the log has to already be off the page.
+      if (!flushTimer) flushTimer = setTimeout(flush, 250);
+    };
+
+    // ---- on-screen panel -------------------------------------------------
+
+    const line = (entry, stale) => {
+      const el = document.createElement("div");
+      el.textContent = `${String(entry.t).padStart(6)}ms  ${entry.tag}${entry.info ? "  " + entry.info : ""}`;
+      el.style.cssText = `white-space:pre-wrap;word-break:break-word;${stale ? "color:#ff9b6a" : ""}`;
+      return el;
+    };
+
+    const paint = (entry) => {
+      if (titleEl) {
+        titleEl.textContent = `${entry.tag}${entry.info ? " " + entry.info : ""}`;
+      }
+      if (!body) return;
+      body.appendChild(line(entry, false));
+      body.scrollTop = body.scrollHeight;
+    };
+
+    const mount = () => {
+      panel = document.createElement("div");
+      panel.style.cssText =
+        "position:fixed;inset:auto 0 0 0;z-index:2147483647;" +
+        "background:rgba(0,0,0,.88);color:#7cf;font:10px/1.45 ui-monospace,Menlo,monospace;" +
+        "padding:6px 8px;backdrop-filter:blur(4px)";
+
+      const bar = document.createElement("div");
+      bar.style.cssText =
+        "display:flex;gap:8px;align-items:center;position:sticky;top:0;background:inherit;padding-bottom:4px";
+      const title = document.createElement("strong");
+      title.style.cssText =
+        "color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+      title.textContent = "probe";
+      const button = (text) => {
+        const el = document.createElement("button");
+        el.textContent = text;
+        el.style.cssText =
+          "background:#222;color:#7cf;border:1px solid #444;border-radius:4px;padding:3px 8px;font:inherit";
+        return el;
+      };
+      // Collapsed by default: the call has to be made with the orb and its
+      // button reachable, and the log only wants reading after the page dies.
+      // A previous page life is exactly that moment, so it opens itself.
+      let open = Boolean(previous?.length);
+      const toggle = button("");
+      const applyOpen = () => {
+        toggle.textContent = open ? "hide" : "log";
+        panel.style.maxHeight = open ? "45vh" : "";
+        panel.style.overflow = open ? "auto" : "hidden";
+        panel.style.webkitOverflowScrolling = "touch";
+        body.style.display = open ? "" : "none";
+        if (open) body.scrollTop = body.scrollHeight;
+      };
+      toggle.onclick = () => {
+        open = !open;
+        applyOpen();
+      };
+      const clear = button("clear");
+      clear.onclick = () => {
+        try {
+          sessionStorage.removeItem(KEY);
+        } catch {}
+        body.textContent = "";
+      };
+      bar.append(title, clear, toggle);
+
+      body = document.createElement("div");
+      panel.append(bar, body);
+      document.body.appendChild(panel);
+      applyOpen();
+      // Collapsed, the title bar is the readout: the newest breadcrumb.
+      titleEl = title;
+
+      if (previous?.length) {
+        const head = document.createElement("div");
+        head.style.cssText = "color:#ff9b6a;font-weight:700";
+        head.textContent = `── previous page life (${previous.length} entries) ──`;
+        body.appendChild(head);
+        for (const entry of previous) body.appendChild(line(entry, true));
+        const tail = document.createElement("div");
+        tail.style.cssText = "color:#ff9b6a;font-weight:700";
+        tail.textContent = "── this page life ──";
+        body.appendChild(tail);
+      }
+      for (const entry of log) body.appendChild(line(entry, false));
+      body.scrollTop = body.scrollHeight;
+    };
+
+    // ---- what kind of page load is this ---------------------------------
+
+    const navigation = performance.getEntriesByType("navigation")[0];
+    const type = navigation?.type ?? "?";
+    add("load", `type=${type} ref=${document.referrer || "-"} url=${location.pathname}${location.search}`);
+    if (previous?.length) {
+      const last = previous[previous.length - 1];
+      add("PREV-DIED-AT", `${last.tag} ${last.info ?? ""} @${last.t}ms`);
+      // Leaving on purpose — a tap, a swipe back, a reload — always says so
+      // first. Nothing said anything, so nothing left: the tab was taken.
+      //
+      // `back_forward` is not the giveaway it looks like. WebKit rebuilds a
+      // jettisoned tab out of its session history, and that reads as
+      // back_forward with the scroll position restored, exactly like a swipe
+      // back. What separates them is this script running at all: a real
+      // back/forward restores the page from the bfcache with its JS still
+      // live, so this line would never be reached a second time. Reaching it
+      // means the document was executed again from nothing.
+      const left = previous.some(
+        (e) => e.tag === "pagehide" || e.tag === "beforeunload",
+      );
+      add(
+        "VERDICT",
+        left
+          ? `${type} after a clean pagehide — the page was navigated away from`
+          : `${type} WITH NO PAGEHIDE, and the document re-executed` +
+            " → the tab was killed and rebuilt from session history" +
+            " (memory jetsam or a media/GPU fault)",
+      );
+      // The dead page's own beacons may never have left the device — a killed
+      // process takes its queue with it — so replay the whole of it from here,
+      // where sessionStorage kept it.
+      post("previous-page-life", previous);
+    }
+    add("ua", navigator.userAgent);
+    add("screen", `${screen.width}x${screen.height}@${window.devicePixelRatio} vp=${innerWidth}x${innerHeight}`);
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", mount, { once: true });
+    } else {
+      mount();
+    }
+
+    // ---- lifecycle -------------------------------------------------------
+
+    addEventListener("pagehide", (e) => {
+      add("pagehide", `persisted=${e.persisted}`);
+      flush();
+    });
+    addEventListener("beforeunload", () => {
+      add("beforeunload");
+      flush();
+    });
+    addEventListener("freeze", () => add("freeze"));
+    addEventListener("resume", () => add("resume"));
+    document.addEventListener("visibilitychange", () =>
+      add("visibility", document.visibilityState),
+    );
+    addEventListener("error", (e) =>
+      add("ERROR", `${e.message} @ ${e.filename}:${e.lineno}`),
+    );
+    addEventListener("unhandledrejection", (e) =>
+      add("REJECT", e.reason?.message ?? String(e.reason)),
+    );
+    // A navigation that is not a link click shows up here before it happens.
+    for (const method of ["pushState", "replaceState"]) {
+      const original = history[method];
+      history[method] = function (...args) {
+        add(`history.${method}`, args[2]);
+        return original.apply(this, args);
+      };
+    }
+    const reload = location.reload.bind(location);
+    try {
+      Object.defineProperty(location, "reload", {
+        value: (...args) => {
+          add("location.reload", new Error().stack?.split("\n")[2]?.trim());
+          flush();
+          return reload(...args);
+        },
+      });
+    } catch {
+      // Cross-origin-ish lockdown; the pagehide breadcrumb still tells us.
+    }
+
+    // ---- media stack -----------------------------------------------------
+
+    let agentAt = 0;
+    let contexts = 0;
+    const wrapAudioContext = (name) => {
+      const Original = window[name];
+      if (!Original) return;
+      window[name] = function (...args) {
+        const ctx = new Original(...args);
+        const id = ++contexts;
+        add("AudioContext:new", `#${id} rate=${ctx.sampleRate} state=${ctx.state} live=${contexts}`);
+        ctx.addEventListener("statechange", () =>
+          add("AudioContext:state", `#${id} ${ctx.state}`),
+        );
+        const close = ctx.close.bind(ctx);
+        ctx.close = () => {
+          contexts -= 1;
+          add("AudioContext:close", `#${id} live=${contexts}`);
+          return close();
+        };
+        const createSource = ctx.createMediaStreamSource.bind(ctx);
+        ctx.createMediaStreamSource = (stream) => {
+          const track = stream.getAudioTracks()[0];
+          add(
+            "createMediaStreamSource",
+            `#${id} track=${track?.label || "?"} id=${track?.id?.slice(0, 8)} state=${track?.readyState}`,
+          );
+          return createSource(stream);
+        };
+        return ctx;
+      };
+      window[name].prototype = Original.prototype;
+    };
+    wrapAudioContext("AudioContext");
+    wrapAudioContext("webkitAudioContext");
+
+    if (navigator.mediaDevices?.getUserMedia) {
+      const gum = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+      navigator.mediaDevices.getUserMedia = (constraints) => {
+        add("getUserMedia", "requested");
+        return gum(constraints).then(
+          (stream) => {
+            add("getUserMedia", `ok track=${stream.getAudioTracks()[0]?.label}`);
+            return stream;
+          },
+          (error) => {
+            add("getUserMedia", `FAIL ${error.name}`);
+            throw error;
+          },
+        );
+      };
+    }
+
+    const play = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () {
+      add("media.play", `${this.tagName} src=${this.srcObject ? "srcObject" : this.src || "-"}`);
+      return play.call(this).catch((error) => {
+        add("media.play", `REJECTED ${error.name}`);
+        throw error;
+      });
+    };
+
+    // ---- app signals (the orb already broadcasts these) ------------------
+
+    let levelFrames = 0;
+    let levelReport = 0;
+    addEventListener("orb-live", (e) => add("orb-live", e.detail));
+    addEventListener("orb-level", (e) => {
+      levelFrames += 1;
+      const now = performance.now();
+      // Dated from the first event, not from page load, or the first report
+      // divides one frame by however long the visitor spent reading the page.
+      if (!levelReport) levelReport = now;
+      if (now - levelReport < 2000) return;
+      // Frame rate over the meter loop is the cheapest read on whether the main
+      // thread is drowning in the seconds before it dies.
+      add("orb-level", `${(levelFrames / ((now - levelReport) / 1000)).toFixed(0)}fps last=${Number(e.detail).toFixed(2)}`);
+      levelReport = now;
+      levelFrames = 0;
+    });
+
+    // ---- main thread ------------------------------------------------------
+
+    // A frame that takes a quarter of a second means the main thread was busy
+    // for a quarter of a second. A run of these before the page dies is a very
+    // different story from a clean log that simply stops.
+    let lastFrame = performance.now();
+    let shownAt = performance.now();
+    document.addEventListener("visibilitychange", () => {
+      shownAt = performance.now();
+    });
+    const watchFrames = (now) => {
+      const gap = now - lastFrame;
+      lastFrame = now;
+      // A hidden page has its frames throttled on purpose, and the first frame
+      // after it comes back carries the whole of that gap. Neither is a stall.
+      if (gap > 250 && !document.hidden && now - shownAt > 1000) {
+        add("STALL", `${Math.round(gap)}ms`);
+      }
+      requestAnimationFrame(watchFrames);
+    };
+    requestAnimationFrame(watchFrames);
+
+    // ---- touch, to catch a pull-to-refresh masquerading as a crash --------
+
+    // overscroll-behavior is never set on this page, so a downward drag at the
+    // top of the document is a real reload on iOS — indistinguishable from a
+    // crash unless the gesture is on record next to it.
+    let dragging = false;
+    addEventListener(
+      "touchstart",
+      () => {
+        dragging = false;
+        if (scrollY <= 0) add("touchstart", `scrollY=${Math.round(scrollY)} AT TOP`);
+      },
+      { passive: true },
+    );
+    addEventListener(
+      "touchmove",
+      () => {
+        if (dragging || scrollY > 0) return;
+        dragging = true;
+        add("TOUCHMOVE-AT-TOP", "a downward drag here is iOS pull-to-refresh");
+      },
+      { passive: true },
+    );
+
+    // ---- DOM churn -------------------------------------------------------
+
+    const observe = () => {
+      new MutationObserver((records) => {
+        for (const record of records) {
+          for (const node of record.addedNodes) {
+            if (node.nodeName === "AUDIO" || node.nodeName === "VIDEO") {
+              const total = document.querySelectorAll("audio,video").length;
+              // Anything that is not LiveKit's silent iOS keep-alive is the
+              // agent. That arrival is the clock every death has been on.
+              const dummy = node.id === "livekit-dummy-audio-el";
+              if (!dummy && !agentAt) agentAt = performance.now();
+              add(
+                "media.attached",
+                `${node.nodeName}${dummy ? " (livekit keep-alive)" : " AGENT"} total=${total}`,
+              );
+            }
+          }
+        }
+      }).observe(document.body, { childList: true, subtree: false });
+
+      for (const canvas of document.querySelectorAll("canvas")) {
+        canvas.addEventListener("webglcontextlost", () =>
+          add("WEBGL-CONTEXT-LOST", canvas.dataset.shaderVariant ?? ""),
+        );
+        canvas.addEventListener("webglcontextrestored", () =>
+          add("webglcontextrestored", canvas.dataset.shaderVariant ?? ""),
+        );
+      }
+    };
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", observe, { once: true });
+    } else {
+      observe();
+    }
+
+    // A heartbeat, so a gap in the log dates the moment the main thread stalled.
+    // `cap` is the caption's glyph count: it is supposed to plateau once the
+    // ring fills, so a number that only ever climbs during a reply is the
+    // unbounded-growth story caught in the act.
+    setInterval(() => {
+      const memory = performance.memory
+        ? ` heap=${(performance.memory.usedJSHeapSize / 1048576).toFixed(0)}MB`
+        : "";
+      const caption = document.querySelectorAll(".orb-caption-ring tspan").length;
+      // `call=` is the one number worth comparing across runs: every death so
+      // far has landed ~20s after the agent's audio arrived, whatever else was
+      // switched off, and page-relative timestamps hide that.
+      const call = agentAt ? ` call=${((performance.now() - agentAt) / 1000).toFixed(0)}s` : "";
+      add(
+        "tick",
+        `audio=${contexts}ctx media=${document.querySelectorAll("audio,video").length}` +
+          ` cap=${caption} fading=${document.querySelectorAll(".orb-caption-word-out").length}` +
+          // Discounting the panel, which grows a line per breadcrumb — the
+          // instrument should not show up in its own reading.
+          ` nodes=${document.getElementsByTagName("*").length - (panel?.getElementsByTagName("*").length ?? 0)}` +
+          ` scrollY=${Math.round(scrollY)}${call}${memory}`,
+      );
+    }, 2000);
+  })();
+</script>

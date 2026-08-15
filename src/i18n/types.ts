@@ -44,6 +44,7 @@ export interface Messages {
     voiceMicDenied: string;
     voiceMicMissing: string;
     voiceMicError: string;
+    voiceMicInsecure: string;
     voiceSoundBlocked: string;
   };
   proofStrip: {

@@ -1,5 +1,6 @@
 ---
 import "@/styles/global.css";
+import CrashProbe from "@/components/dev/CrashProbe.astro";
 import type { Locale } from "@/i18n/config";
 import type { PageMetadata } from "@/i18n/metadata";
 
@@ -75,6 +76,8 @@ const socialImageAlt =
     <meta name="twitter:title" content={metadata.title} />
     <meta name="twitter:description" content={metadata.description} />
     <meta name="twitter:image" content={socialImageUrl} />
+    {/* Inert unless the URL carries ?probe=1. */}
+    <CrashProbe />
   </head>
   <body
     class="min-h-full flex flex-col font-sans bg-background text-foreground selection:bg-brand/25 selection:text-foreground"

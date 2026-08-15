@@ -1,11 +1,21 @@
 "use client";
 
-import { Room, RoomEvent, Track } from "livekit-client";
+import {
+  RemoteAudioTrack,
+  Room,
+  RoomEvent,
+  Track,
+  type RemoteTrack,
+} from "livekit-client";
 import { Play, Square } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Logomark } from "@/components/logo";
-import { denoise, MIC_CONSTRAINTS } from "./denoise";
-import { createOrbLevelMeter, type OrbLevelMeter } from "./orb-level";
+import { denoise, MIC_CONSTRAINTS, RNNOISE_SAMPLE_RATE } from "./denoise";
+import {
+  createLevelAnalyser,
+  createOrbLevelMeter,
+  type OrbLevelMeter,
+} from "./orb-level";
 
 // Astro inlines PUBLIC_* at build time; when it is missing, a production build
 // must not fall back to a localhost the visitor's browser cannot reach.
@@ -23,21 +33,42 @@ type Labels = {
   micDenied: string;
   micMissing: string;
   micError: string;
+  micInsecure: string;
   soundBlocked: string;
 };
 
 /**
- * The three getUserMedia failures worth telling apart — each has a different
- * fix, and "microphone unavailable" tells a visitor which of them to try.
+ * The getUserMedia failures worth telling apart — each has a different fix, and
+ * "microphone unavailable" tells a visitor which of them to try.
  * NotReadableError is the Windows one: another app holds the device.
+ *
+ * Outside a secure context there is no mediaDevices to call at all, so the
+ * throw is a TypeError with nothing in it. Left to the generic branch it comes
+ * out as "another app is using your microphone", which sends whoever is testing
+ * over http off hunting for a Zoom window that was never open.
  */
 function micLabel(cause: unknown, labels: Labels) {
+  if (!isMicAvailable()) return labels.micInsecure;
   const name = cause instanceof Error ? cause.name : "";
   if (name === "NotAllowedError" || name === "SecurityError")
     return labels.micDenied;
   if (name === "NotFoundError" || name === "OverconstrainedError")
     return labels.micMissing;
   return labels.micError;
+}
+
+/** ?kill=orb,hud,caption — see CrashProbe. */
+function killed(part: string) {
+  return (
+    document.documentElement.dataset.kill?.split(",").includes(part) ?? false
+  );
+}
+
+function isMicAvailable() {
+  return (
+    window.isSecureContext !== false &&
+    typeof navigator.mediaDevices?.getUserMedia === "function"
+  );
 }
 
 // ponytail: only the utterance being spoken right now — a hero caption, not a
@@ -58,6 +89,11 @@ export function VoiceButton({
   const roomRef = useRef<Room | null>(null);
   const levelRef = useRef<OrbLevelMeter | null>(null);
   const stopMicRef = useRef<(() => void) | null>(null);
+  // One graph for the whole call — see the comment where it is opened.
+  const contextRef = useRef<AudioContext | null>(null);
+  // A track that goes away mid-call has to take its analyser out of the mix
+  // with it, or a reconnect leaves the old one reading a dead node forever.
+  const analysersRef = useRef(new Map<RemoteTrack, () => void>());
   // Attached agent audio has to be taken back out of the DOM on hang-up, or the
   // elements pile up holding media resources for the rest of the visit.
   const audioRef = useRef<HTMLMediaElement[]>([]);
@@ -69,18 +105,51 @@ export function VoiceButton({
 
   useEffect(
     () => () => {
-      levelRef.current?.stop();
-      stopMicRef.current?.();
-      audioRef.current.forEach((element) => element.remove());
+      teardownAudio();
       roomRef.current?.disconnect();
       window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
     },
     [],
   );
 
+  /**
+   * Everything the call put on the audio session, taken back down in one place
+   * so the unmount and the Disconnected handler cannot drift apart.
+   */
+  function teardownAudio() {
+    levelRef.current?.stop();
+    levelRef.current = null;
+    analysersRef.current.clear();
+    releaseMic();
+    audioRef.current.forEach((element) => element.remove());
+    audioRef.current = [];
+    const context = contextRef.current;
+    contextRef.current = null;
+    // close() on an already-closed context rejects, and this runs from both the
+    // Disconnected handler and the unmount that usually follows it.
+    if (context && context.state !== "closed") void context.close();
+  }
+
   async function start() {
     setState("connecting");
     setError(null);
+
+    // One AudioContext for the whole call: the RNNoise chain, LiveKit's
+    // playback graph and both orb meters all hang off this one.
+    //
+    // Safari allows four concurrent AudioContexts per page, and an iOS call
+    // used to want all four — RNNoise, LiveKit's own, the silent oscillator
+    // livekit-client runs on iOS alone to hold the audio session open, and the
+    // orb meter. Desktop only ever wanted three, which is the whole of the
+    // difference between the platform that survived a call and the one that
+    // did not.
+    //
+    // Opened here rather than after `await room.connect(...)` so it is born
+    // inside the click: on iOS a context created outside a gesture starts
+    // suspended, and a suspended context meters silence.
+    const context = new AudioContext({ sampleRate: RNNOISE_SAMPLE_RATE });
+    contextRef.current = context;
+    void context.resume();
 
     // Ask for the mic first, while the click still counts as user activation.
     // Requesting it after the token fetch and room.connect (as we used to) puts
@@ -99,15 +168,26 @@ export function VoiceButton({
 
     // RNNoise on top of the browser filters. It loads a worklet and ~150 kB of
     // wasm, so a failure here must not end the call — publish the raw mic.
+    let micAnalyser: AnalyserNode | null = null;
     if (mic) {
       const raw = mic;
       stopMicRef.current = () => raw.stop();
       try {
-        const filter = await denoise(raw);
+        // ?kill=denoise — see CrashProbe. Takes the RNNoise worklet and its
+        // wasm heap out of the call, leaving the browser's own filters.
+        if (killed("denoise")) throw new Error("denoise killed by ?kill");
+        const filter = await denoise(raw, context);
         mic = filter.track;
+        micAnalyser = filter.analyser;
         stopMicRef.current = filter.stop;
       } catch (cause) {
         console.warn("rnnoise unavailable, using the raw microphone", cause);
+        // Still worth metering: the orb answering your own voice is most of
+        // what makes it feel live. A capture track is safe to tap twice — it
+        // is the remote track that WebKit will not fan out.
+        const source = context.createMediaStreamSource(new MediaStream([raw]));
+        micAnalyser = createLevelAnalyser(context);
+        source.connect(micAnalyser);
       }
     }
 
@@ -127,13 +207,18 @@ export function VoiceButton({
       }
       ({ token, url } = await res.json());
     } catch (cause) {
-      releaseMic();
+      teardownAudio();
       setError(cause instanceof Error ? cause.message : labels.error);
       setState("idle");
       return;
     }
 
-    const room = new Room();
+    // webAudioMix routes the agent through this graph and mutes the <audio>
+    // element that carries it, so the track has exactly one consumer. Without
+    // it the element renders the track *and* the meter opens a second reader on
+    // the same remote track — two sinks on one incoming stream, which is the
+    // other half of what iOS would not survive.
+    const room = new Room({ webAudioMix: { audioContext: context } });
     roomRef.current = room;
     setCaption(null);
 
@@ -145,34 +230,57 @@ export function VoiceButton({
     // Keying on the stream id therefore reads each revision as a new utterance.
     // The segment id is the one that holds still for the length of an utterance,
     // whoever is speaking.
-    room.registerTextStreamHandler("lk.transcription", async (reader) => {
-      const id = reader.info.attributes?.["lk.segment_id"] ?? reader.info.id;
-      const startedAt = reader.info.timestamp;
-      let text = "";
-      for await (const chunk of reader) {
-        text += chunk;
-        // On a barge-in both sides stream at once; without this the caption
-        // would flip between the two utterances on every chunk.
-        const showing = captionSegment.current;
-        if (showing && showing.id !== id && showing.startedAt > startedAt) {
-          continue;
+    // ?kill=transcription — see CrashProbe. Unregistered rather than merely
+    // unrendered: speech recognition opens a *fresh* stream several times a
+    // second, so the readers are a suspect in their own right, separately from
+    // the caption they feed.
+    if (!killed("transcription")) {
+      room.registerTextStreamHandler("lk.transcription", async (reader) => {
+        const id = reader.info.attributes?.["lk.segment_id"] ?? reader.info.id;
+        const startedAt = reader.info.timestamp;
+        let text = "";
+        for await (const chunk of reader) {
+          text += chunk;
+          // On a barge-in both sides stream at once; without this the caption
+          // would flip between the two utterances on every chunk.
+          const showing = captionSegment.current;
+          if (showing && showing.id !== id && showing.startedAt > startedAt) {
+            continue;
+          }
+          captionSegment.current = { id, startedAt };
+          setCaption({ id, text });
         }
-        captionSegment.current = { id, startedAt };
-        setCaption({ id, text });
-      }
-    });
+      });
+    }
 
     // Agent audio never plays itself — attach each subscribed track to the DOM,
-    // and drive the orb wave from the same track.
+    // and drive the orb wave from the same signal.
     room.on(RoomEvent.TrackSubscribed, (track) => {
       if (track.kind !== "audio") return;
+      // The analyser goes *into* LiveKit's own chain rather than alongside it:
+      // source -> analyser -> gain -> destination, one reader on the track.
+      //
+      // Registered before attach(), not after. attach() is what builds the
+      // chain, and setWebAudioPlugins on an already-attached track tears the
+      // chain down and builds a second one — which puts a throwaway
+      // MediaStreamAudioSourceNode on the remote track for a moment, the exact
+      // thing this is here to avoid. Called first, the plugin list is simply
+      // waiting when attach() reads it, and the track gets one source node ever.
+      let analyser: AnalyserNode | null = null;
+      if (track instanceof RemoteAudioTrack) {
+        analyser = createLevelAnalyser(context);
+        track.setWebAudioPlugins([analyser]);
+      }
       const element = track.attach();
       audioRef.current.push(element);
       document.body.appendChild(element);
-      if (track.mediaStreamTrack) meter(track.mediaStreamTrack);
+      if (analyser) analysersRef.current.set(track, meter(analyser));
     });
     room.on(RoomEvent.TrackUnsubscribed, (track) => {
+      analysersRef.current.get(track)?.();
+      analysersRef.current.delete(track);
       track.detach().forEach((element) => element.remove());
+      audioRef.current = audioRef.current.filter((el) => el.isConnected);
     });
     // The agent's track arrives seconds after the click, so its play() lands
     // outside the gesture window. Without mic permission Chrome has no autoplay
@@ -181,12 +289,7 @@ export function VoiceButton({
       setSoundBlocked(!room.canPlaybackAudio);
     });
     room.on(RoomEvent.Disconnected, () => {
-      levelRef.current?.stop();
-      levelRef.current = null;
-      releaseMic();
-      audioRef.current.forEach((element) => element.remove());
-      audioRef.current = [];
-      window.dispatchEvent(new CustomEvent("orb-level", { detail: 0 }));
+      teardownAudio();
       window.dispatchEvent(new CustomEvent("orb-live", { detail: false }));
       roomRef.current = null;
       captionSegment.current = null;
@@ -202,8 +305,14 @@ export function VoiceButton({
       window.dispatchEvent(new CustomEvent("orb-live", { detail: true }));
       setState("live");
     } catch (cause) {
-      releaseMic();
+      // Deafen the room before disconnecting it. disconnect() takes up to a
+      // couple of hundred milliseconds to send the leave and close the socket,
+      // and its Disconnected handler closes over the refs the *next* call will
+      // use — so a second tap inside that window would have this dead room tear
+      // down the live one's AudioContext and microphone.
+      room.removeAllListeners();
       room.disconnect();
+      teardownAudio();
       setError(cause instanceof Error ? cause.message : labels.error);
       setState("idle");
       return;
@@ -214,9 +323,14 @@ export function VoiceButton({
       await room.localParticipant.publishTrack(mic, {
         source: Track.Source.Microphone,
       });
+      // The room can be dropped by the server while this is in flight, in which
+      // case teardown has already run and metering here would start an rAF loop
+      // with nothing left to stop it — the island never unmounts.
+      if (roomRef.current !== room) return;
       // Metering the mic too, so the orb answers your voice as well as the agent's.
-      meter(mic);
+      if (micAnalyser) meter(micAnalyser);
     } catch {
+      if (roomRef.current !== room) return;
       releaseMic();
       setError(labels.micError);
     }
@@ -228,10 +342,16 @@ export function VoiceButton({
     stopMicRef.current = null;
   }
 
-  // Tracks trickle in (mic, then agent audio) and join the graph as they do.
-  function meter(track: MediaStreamTrack) {
+  // Signals trickle in (mic, then agent audio) and join the mix as they do.
+  function meter(analyser: AnalyserNode) {
+    // ?kill=meter — see CrashProbe. Stops the per-frame RMS read and the
+    // `orb-level` event that drives both the shader and the HUD.
+    if (killed("meter")) return () => {};
+    // No call, no meter: teardown clears the context, and a meter built after
+    // it would run for the rest of the visit with nothing left to stop it.
+    if (!contextRef.current) return () => {};
     levelRef.current ??= createOrbLevelMeter();
-    levelRef.current.add(track);
+    return levelRef.current.add(analyser);
   }
 
   const label =
@@ -273,7 +393,9 @@ export function VoiceButton({
 
       <HollowLabel text={label} hidden={state === "live"} />
 
-      {caption && <CircularCaption id={caption.id} text={caption.text} />}
+      {caption && !killed("caption") && (
+        <CircularCaption id={caption.id} text={caption.text} />
+      )}
 
       <div className="pointer-events-none absolute inset-x-0 bottom-6 z-20 flex flex-col items-center gap-3 px-6">
         {soundBlocked && (
@@ -322,12 +444,13 @@ export function VoiceButton({
         }
 
         /* The ring turns to keep the line centred on the bottom of the orb, so
-           a word arriving carries the whole caption round with it. */
+           a word arriving carries the whole caption round with it.
+           No will-change: the group is re-laid-out on every transcript chunk,
+           which makes it the worst possible thing to hold in its own layer. */
         .orb-caption-ring {
           transform-box: view-box;
           transform-origin: 50% 50%;
           transition: transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
-          will-change: transform;
         }
 
         .orb-caption-word-out {
@@ -485,6 +608,7 @@ function CircularCaption({ id, text }: Caption) {
   const words = text.trim().split(/\s+/).filter(Boolean);
   const pathId = `orb-cap-${id.replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const rulerRef = useRef<SVGTextElement>(null);
+  const retireRef = useRef<{ turn: string; timer: number } | null>(null);
   const [ring, setRing] = useState({
     turn: id,
     drop: 0,
@@ -552,15 +676,38 @@ function CircularCaption({ id, text }: Caption) {
   }, [id, line, active.drop, active.retired, active.spin]);
 
   // Unmount the head only once it has finished fading.
+  //
+  // The pending retire is held in a ref rather than being torn down and rebuilt
+  // by the effect: words retire faster than CAPTION_FADE during a continuous
+  // reply, and a timer restarted on every advance of `drop` is a debounce that
+  // never fires. `retired` then stays pinned for the whole reply — the head
+  // never unmounts, every visible word carries the fade-out class, and the line
+  // winds the ring off the orb. One retire in flight, firing on its own clock,
+  // catches up to wherever `drop` has reached by the time it lands.
   useEffect(() => {
-    if (active.retired >= active.drop) return;
-    const timer = window.setTimeout(() => {
-      setRing((prev) =>
-        prev.turn === id ? { ...prev, retired: prev.drop } : prev,
-      );
-    }, CAPTION_FADE);
-    return () => window.clearTimeout(timer);
+    const pending = retireRef.current;
+    if (pending && pending.turn !== id) {
+      window.clearTimeout(pending.timer);
+      retireRef.current = null;
+    }
+    if (active.retired >= active.drop || retireRef.current) return;
+    retireRef.current = {
+      turn: id,
+      timer: window.setTimeout(() => {
+        retireRef.current = null;
+        setRing((prev) =>
+          prev.turn === id ? { ...prev, retired: prev.drop } : prev,
+        );
+      }, CAPTION_FADE),
+    };
   }, [id, active.drop, active.retired]);
+
+  useEffect(
+    () => () => {
+      if (retireRef.current) window.clearTimeout(retireRef.current.timer);
+    },
+    [],
+  );
 
   return (
     <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">

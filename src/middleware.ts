@@ -62,8 +62,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
+  // Redirects are only ever moving a visitor between locales of the same page,
+  // so the query has to come with them — otherwise campaign parameters, and
+  // ?probe=1, are dropped on the way to /tr.
+  const query = url.search;
+
   if (pathname === "/en" || pathname.startsWith("/en/")) {
-    const target = pathname === "/en" ? "/" : pathname.replace(/^\/en/, "");
+    const target = (pathname === "/en" ? "/" : pathname.replace(/^\/en/, "")) + query;
     cookies.set(localeCookieName, "en", {
       path: "/",
       sameSite: "lax",
@@ -89,7 +94,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       sameSite: "lax",
       maxAge: COOKIE_MAX_AGE,
     });
-    return redirect("/tr");
+    return redirect(`/tr${query}`);
   }
 
   if (pathname === "/") {

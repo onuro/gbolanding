@@ -46,6 +46,11 @@ export function StudyOrbGradient({ className }: StudyOrbGradientProps) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    // ?kill=orb — see CrashProbe. The WebGL surface, its two mipmapped posters
+    // and the three.js runtime are the largest single thing this page holds.
+    if (document.documentElement.dataset.kill?.split(",").includes("orb")) {
+      return;
+    }
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let cancelled = false;

@@ -32,6 +32,8 @@ const enMessages: Messages = {
       "No microphone found. Plug one in, then start the call again.",
     voiceMicError:
       "Your microphone is in use by another app. Close it (Teams, Zoom, OBS…) and start the call again.",
+    voiceMicInsecure:
+      "The microphone needs a secure connection. Open this page over https and start the call again.",
     voiceSoundBlocked: "Enable sound",
   },
   proofStrip: {

@@ -307,14 +307,58 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
 <script>
   const hud = document.querySelector<HTMLElement>("[data-orb-hud]");
 
-  if (hud && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  // ?kill=hud — see CrashProbe. Takes the ring off the page entirely, not just
+  // its level animation, so the ~360 SVG nodes go with it.
+  if (document.documentElement.dataset.kill?.split(",").includes("hud")) {
+    hud?.remove();
+  } else if (
+    hud &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
     let target = 0;
     let eased = 0;
     let raf = 0;
 
+    // The dots of the level gauge, ordered the way they light: from 6 o'clock
+    // outwards. Their thresholds never change, so they are read once.
+    //
+    // This used to be one custom property on the container and an
+    // `opacity: clamp(0, calc((var(--hud-level) - var(--t)) * 24), 1)` on each
+    // dot. That is a lovely declarative way to write a bar graph and it is
+    // ruinous: a custom property is inherited, so rewriting it once a frame
+    // invalidated style on every node in the ring — ~360 of them — and repainted
+    // the whole SVG at 60fps for the length of the call. SVG paints in the GPU
+    // process, which is why it killed the tab on iOS about twenty seconds in
+    // while the main thread sat at a comfortable 60fps and JS saw nothing at
+    // all. Toggling a class on the handful of dots that actually cross the
+    // level each frame does the same job and usually touches nothing.
+    const dots = [...hud.querySelectorAll<SVGElement>(".hud-meter-lit")]
+      .map((el) => ({ el, t: Number(el.style.getPropertyValue("--t")) }))
+      .sort((a, b) => a.t - b.t);
+    const sweep = hud.querySelector<SVGElement>(".hud-sweep");
+
+    let lit = 0;
+    let glow = -1;
     const frame = () => {
       eased += (target - eased) * 0.14;
-      hud.style.setProperty("--hud-level", eased.toFixed(3));
+
+      while (lit < dots.length && dots[lit].t < eased) {
+        dots[lit].el.classList.add("is-on");
+        lit += 1;
+      }
+      while (lit > 0 && dots[lit - 1].t >= eased) {
+        lit -= 1;
+        dots[lit].el.classList.remove("is-on");
+      }
+
+      // The sweep is a single group, so it can stay continuous — but in ten
+      // steps rather than every frame, which its 400ms transition smooths out.
+      const step = Math.round(eased * 10) / 10;
+      if (sweep && step !== glow) {
+        glow = step;
+        sweep.style.opacity = String(0.35 + step * 0.65);
+      }
+
       raf = requestAnimationFrame(frame);
     };
 
@@ -328,7 +372,10 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
         raf = 0;
         target = 0;
         eased = 0;
-        hud.style.setProperty("--hud-level", "0");
+        for (const dot of dots) dot.el.classList.remove("is-on");
+        lit = 0;
+        glow = -1;
+        sweep?.style.removeProperty("opacity");
       }
     };
 
@@ -349,10 +396,17 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
 </script>
 
 <style>
+  /* The container brightens for the call, not for the syllable. The lit marks
+     below are what follow the voice, and they do it by class rather than by an
+     inherited custom property — nothing in this subtree reads a per-frame
+     value any more, which is the whole point. */
   .orb-hud {
-    --hud-level: 0;
-    opacity: calc(0.62 + var(--hud-level) * 0.38);
+    opacity: 0.62;
     transition: opacity 240ms linear;
+  }
+
+  .orb-hud.is-live {
+    opacity: 1;
   }
 
   .orb-hud svg > g {
@@ -374,6 +428,10 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
     72%, 100% { opacity: 1; }
   }
 
+  /* No will-change: these are permanently rotating decorative groups, so the
+     promotion is never a hint about something *about* to change — it just
+     parks four composited layers in the GPU process for the whole page life,
+     next to the orb's own WebGL surface. */
   .hud-spin-slow,
   .hud-spin-reverse,
   .hud-spin-outer,
@@ -381,7 +439,6 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
     animation-name: hud-rotate;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
-    will-change: transform;
   }
 
   .hud-spin-slow {
@@ -398,18 +455,20 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
     animation-direction: reverse;
   }
 
-  /* A dot lights once the level passes its position on the track. The multiplier
-     is what gives each one a quick on rather than a slow dissolve. */
+  /* A dot lights once the level passes its position on the track — a hard on,
+     which is what the old multiplier was approximating anyway. The class is put
+     on by the rAF loop above; see the note there for why it is not a calc(). */
   .hud-meter-lit {
     opacity: 0;
   }
 
-  .orb-hud.is-live .hud-meter-lit {
-    opacity: clamp(0, calc((var(--hud-level) - var(--t)) * 24), 1);
+  .orb-hud.is-live .hud-meter-lit.is-on {
+    opacity: 1;
   }
 
   /* The sweep is the only part that reads as "scanning", so it stays hidden
-     until there is something to scan. */
+     until there is something to scan. Its live opacity is written inline by the
+     rAF loop; this is the resting value it fades up from. */
   .hud-sweep {
     animation-duration: 9s;
     opacity: 0;
@@ -417,7 +476,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
   }
 
   .orb-hud.is-live .hud-sweep {
-    opacity: calc(0.35 + var(--hud-level) * 0.65);
+    opacity: 0.35;
   }
 
   @keyframes hud-rotate {

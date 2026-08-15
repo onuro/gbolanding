@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
+    "dev:phone": "node scripts/phone.mjs",
     "check": "tsc --noEmit",
     "build": "astro build",
     "check:ssr": "astro build && node scripts/check-ssr.mjs",
