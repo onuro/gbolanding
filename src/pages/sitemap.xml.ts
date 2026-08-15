@@ -12,8 +12,8 @@ const pages = [
 
 export const GET: APIRoute = ({ site }) => {
   // `site` is set in astro.config.mjs; the fallback only matters if it is ever
-  // unset again, and pointing at the apex would list URLs that redirect.
-  const origin = site ?? new URL("https://www.gbovision.com");
+  // unset again, and pointing at www would list URLs that redirect.
+  const origin = site ?? new URL("https://gbovision.com");
   const href = (path: string) => new URL(path, origin).href;
 
   // Both pages carry the full alternate set, which is what pairs them as one

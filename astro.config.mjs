@@ -13,8 +13,8 @@ const phone = process.env.PHONE === "1";
 export default defineConfig({
   // Canonical, hreflang and OG URLs are built from this rather than from the
   // request origin, so a preview deploy can't hand Google a *.vercel.app URL
-  // that canonicalises to itself. The apex redirects here, so www it is.
-  site: "https://www.gbovision.com",
+  // that canonicalises to itself. www redirects here, not the other way round.
+  site: "https://gbovision.com",
   output: "server",
   adapter: vercel(),
   integrations: [
