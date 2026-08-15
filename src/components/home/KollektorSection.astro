@@ -73,10 +73,12 @@ const campaignRows = [
   { id: "0844", amount: locale === "tr" ? "₺21.750" : "$21,750", state: ui.reached },
 ];
 
-const wave = [
-  22, 38, 54, 30, 72, 48, 90, 64, 42, 78, 56, 96, 70, 44, 82, 58, 34, 76, 50,
-  88, 40, 66, 28, 52, 36, 24,
-];
+const wave = Array.from({ length: 72 }, (_, i) => {
+  const t = i / 71;
+  const envelope = Math.sin(t * Math.PI);
+  const wobble = 0.4 + 0.6 * Math.abs(Math.sin(i * 1.7) * Math.cos(i * 0.85));
+  return Math.round(16 + envelope * wobble * 80);
+});
 const triage = [
   { code: "P0", label: ui.p0, tone: "danger" as const },
   { code: "P1", label: ui.p1, tone: "attention" as const },
@@ -229,12 +231,12 @@ const triage = [
                 {ui.listening}
               </span>
             </div>
-            <div class="flex h-16 items-center justify-center gap-[3px] border-b border-border px-4">
+            <div class="flex h-16 w-full items-center justify-between border-b border-border">
               {
                 wave.map((height, index) => (
                   <span
                     class="k-wave w-[2px] shrink-0 origin-center bg-brand"
-                    style={`height:${height}%; animation-delay:${index * 55}ms`}
+                    style={`height:${height}%; animation-delay:${index * 28}ms`}
                   />
                 ))
               }

@@ -94,7 +94,7 @@ const enMessages: Messages = {
     eyebrow: "Product · Kollektor",
     title: "A collector on the phone. A live desk for your team.",
     description:
-      "Kollektor calls debtors in Turkish, runs the conversation end to end, and streams every turn to operators. Debtors never see an app. Your team sees the floor.",
+      "Kollektor recovers overdue debt on the phone. It presses for payment, locks a plan, and streams every turn to your desk. Debtors never see an app. Your team sees the recovery.",
     pipelineLabel: "From list to recovery",
     pipeline: [
       {

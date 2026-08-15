@@ -94,7 +94,7 @@ const trMessages: Messages = {
     eyebrow: "Ürün · Kollektor",
     title: "Telefonda tahsildar. Ekranda canlı operasyon.",
     description:
-      "Kollektor, borçluları arar, görüşmeyi baştan sona yürütür ve her turu operatör masasına canlı iletir. Borçlu bir uygulama görmez. Ekibiniz tüm operasyonu görür.",
+      "Kollektor gecikmiş alacakları telefonda tahsil eder. Ödeme ister, plan kurar ve her turu masanıza canlı iletir. Borçlu bir uygulama görmez. Ekibiniz tahsilatı görür.",
     pipelineLabel: "Listeden tahsilata",
     pipeline: [
       {
