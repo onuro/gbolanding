@@ -57,9 +57,9 @@ const enMessages: Messages = {
       eyebrow: "Voice AI for debt collection",
       title: "Kollektor",
       description:
-        "Kollektor is a voice assistant that phones debtors on behalf of law firms. It runs up to 5,000 calls a day, works out a payment plan, and has recovered $500K so far.",
+        "Kollektor is a voice assistant that phones debtors on behalf of law firms and asset-receivable portfolios. It runs up to 10,000 calls a day, works out a payment plan, and has recovered $500K so far.",
       highlights: [
-        "5,000 calls a day",
+        "10,000 calls a day",
         "$500K recovered",
         "Escalates to your team",
       ],
@@ -69,7 +69,7 @@ const enMessages: Messages = {
       eyebrow: "Valuation intelligence",
       title: "Intelval",
       description:
-        "Intelval helps teams value businesses and real estate. It brings data, analysis, and reports into one place.",
+        "Intelval analyzes comparable-property and appraisal reports for valuation firms, and produces expert-level reports.",
       highlights: [
         "Business value",
         "Real estate value",
@@ -94,13 +94,13 @@ const enMessages: Messages = {
     eyebrow: "Product · Kollektor",
     title: "A collector on the phone. A live desk for your team.",
     description:
-      "Kollektor recovers overdue debt on the phone. It presses for payment, locks a plan, and streams every turn to your desk. Debtors never see an app. Your team sees the recovery.",
+      "Kollektor collects banks' and institutions' asset receivables by phone. It asks for payment, structures a plan with the debtor, and takes the payments that come in. The whole process runs through an AI voice agent. Your team sees the recovery.",
     pipelineLabel: "From list to recovery",
     pipeline: [
       {
         number: "01",
         title: "Import",
-        description: "Load a debtor list. Numbers are checked before a campaign starts.",
+        description: "Debtor and receivable lists are pulled from the daily pool. Call jobs start.",
       },
       {
         number: "02",
@@ -110,46 +110,62 @@ const enMessages: Messages = {
       {
         number: "03",
         title: "Call",
-        description: "The voice agent verifies identity, presses for payment, and stays in Turkish.",
+        description: "The agent verifies identity, and the call stays KVKK-compliant.",
       },
       {
         number: "04",
         title: "Capture",
-        description: "Promises, amounts, and callback slots are written as they are spoken.",
+        description: "Payment promises, collection records, and branching call scenarios are written as they happen.",
       },
       {
         number: "05",
         title: "Escalate",
-        description: "A payment promise or an actual recovery is written to the file.",
+        description: "Completed calls are recorded as payment, promise, refusal, or another outcome.",
       },
       {
         number: "06",
         title: "Report",
-        description: "Those promises and recoveries land on the same report.",
+        description: "Completed calls are reported daily. Payments, promises, and other outcomes go to the team.",
       },
     ],
     chapters: [
       {
         title: "Campaigns that start from a list",
         description:
-          "Upload debtors, open a call group, and watch progress as the floor works the file.",
+          "Debtors, receivable lists, due dates, and restructuring options are pulled from the database and run automatically.",
       },
       {
         title: "A live voice pipeline",
         description:
-          "Speech in, a collector model, speech out. The agent is a debt collector — firm, direct, and in Turkish.",
+          "The call starts, and the debtor talks as if they are speaking to a real call-center agent. The voice on the other end is Kollektor, an AI agent.",
       },
       {
-        title: "Promises and callbacks, not notes",
+        title: "Not notes — payment promises and collections",
         description:
-          "Payment amounts and dates persist as they are spoken. Callback slots are computed, not guessed.",
-      },
-      {
-        title: "Operators stay on the hard calls",
-        description:
-          "Live transcript, scenario hits, and P0–P2 triage. Your team takes the line when the model should not.",
+          "Payment amounts and dates persist as they are spoken. Callback slots are computed — there is no luxury of guessing.",
       },
     ],
+    faq: {
+      eyebrow: "FAQ",
+      title: "About Kollektor",
+      items: [
+        {
+          question: "Is Kollektor KVKK / GDPR compatible?",
+          answer:
+            "Yes. Kollektor is built for KVKK and GDPR: phones and IDs are masked, transcripts purge on a schedule, and the legal frame sits in the playbook. A DPA and processing addendum are added for your organisation.",
+        },
+        {
+          question: "Do debtors know they have been talking to AI?",
+          answer:
+            "Measured: 97% of debtors do not realise they spoke to an AI. That multiplies the collection success rate many times over — the call lands like a real call-center agent.",
+        },
+        {
+          question: "How fast is Kollektor?",
+          answer:
+            "Kollektor can run up to 20 simultaneous calls, in direct proportion to the capacity of the client's FCT call / dial PBX.",
+        },
+      ],
+    },
     split: {
       eyebrow: "Asymmetric by design",
       title: "Two sides. One call.",
@@ -164,7 +180,7 @@ const enMessages: Messages = {
         "Hostile or looping callers are handed to a person",
       ],
       operatorTitle: "What your team sees",
-      operatorBody: "A React floor that updates as the call happens — no refresh, no extra wire.",
+      operatorBody: "A React floor that updates as the call happens. No refresh, no extra wire.",
       operatorBeats: [
         "Live transcript and call state",
         "Scenario hits and triage priority",

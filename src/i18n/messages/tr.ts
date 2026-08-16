@@ -57,9 +57,9 @@ const trMessages: Messages = {
       eyebrow: "Sesli yapay zeka ile tahsilat",
       title: "Kollektor",
       description:
-        "Kollektor, hukuk büroları adına borçluları telefonla arayan bir yapay zeka asistanı. Günde 5.000'e kadar görüşme yapıyor, ödeme planını konuşuyor ve bugüne kadar 23,9 milyon TL tahsilat sağladı.",
+        "Kollektor, hukuk büroları ve varlık alacakları adına borçluları telefonla arayan bir yapay zeka asistanı. Günde 10.000'e kadar görüşme yapar, ödeme planını konuşur ve bugüne kadar 23,9 milyon TL tahsilat sağladı.",
       highlights: [
-        "Günde 5.000 arama",
+        "Günde 10.000 arama",
         "23,9 milyon TL tahsilat",
         "Ekibinize devreder",
       ],
@@ -69,7 +69,7 @@ const trMessages: Messages = {
       eyebrow: "Değerleme için yapay zeka",
       title: "Intelval",
       description:
-        "Intelval, işletme ve gayrimenkul değerleme ekiplerini destekler. Veri, analiz ve raporları tek yerde toplar.",
+        "Intelval, değerleme firmaları için gayrimenkul emsal ve ekspertiz raporlarını analiz eder ve bilirkişi uzmanlık seviyesinde raporlar oluşturur.",
       highlights: [
         "İşletme değeri",
         "Gayrimenkul değeri",
@@ -94,13 +94,13 @@ const trMessages: Messages = {
     eyebrow: "Ürün · Kollektor",
     title: "Telefonda tahsildar. Ekranda canlı operasyon.",
     description:
-      "Kollektor gecikmiş alacakları telefonda tahsil eder. Ödeme ister, plan kurar ve her turu masanıza canlı iletir. Borçlu bir uygulama görmez. Ekibiniz tahsilatı görür.",
+      "Kollektor, banka ve kurumların varlık alacaklarını telefon aramalarıyla tahsil eder. Ödeme ister, borçluya yapılandırma yapar ve gerçekleşmiş ödemeleri alır. Tüm işlem yapay zeka ses ajanı ile gerçekleşir. Ekibiniz tahsilatı görür.",
     pipelineLabel: "Listeden tahsilata",
     pipeline: [
       {
         number: "01",
         title: "Liste",
-        description: "Borçlu listesini yükleyin. Kampanya başlamadan numaralar kontrol edilir.",
+        description: "Borçlu ve alacak listesi günlük havuzdan işleme alınır. Arama görevleri başlar.",
       },
       {
         number: "02",
@@ -110,46 +110,62 @@ const trMessages: Messages = {
       {
         number: "03",
         title: "Görüşme",
-        description: "Asistan kimliği doğrular, ödeme ister ve Türkçe kalır.",
+        description: "Asistan kimliği doğrular, KVKK uyumlu görüşme gerçekleşir.",
       },
       {
         number: "04",
         title: "Kayıt",
-        description: "Söz, tutar ve geri arama saati konuşulduğu anda yazılır.",
+        description: "Ödeme sözü, tahsilat kayıtları ve değişken görüşme senaryoları anlık kaydedilir.",
       },
       {
         number: "05",
         title: "Devir",
-        description: "Ödeme sözü veya gerçekleşen tahsilat dosyaya işlenir.",
+        description: "Sonuçlanan aramaların ödeme, ödeme sözü, red veya diğer senaryoları kaydedilir.",
       },
       {
         number: "06",
         title: "Rapor",
-        description: "İşlenen söz ve tahsilat aynı raporda toplanır.",
+        description: "Sonuçlanan görüşmeler günlük olarak raporlanır, ödemeler, sözler ve diğer senaryolar ekibe gönderilir.",
       },
     ],
     chapters: [
       {
         title: "Listeden açılan arama grupları",
         description:
-          "Borçluları yükleyin, bir arama grubu açın ve katın dosyayı işlemesini izleyin.",
+          "Borçlu, alacak listesi, vade ve yapılandırma imkânları otomatik olarak veritabanından otomasyon için çalıştırılır.",
       },
       {
         title: "Canlı ses hattı",
         description:
-          "Konuşma girer, tahsildar model çalışır, ses çıkar. Asistan bir tahsildardır — net, doğrudan, Türkçe.",
+          "Görüşme başlar, borçlu gerçek bir call center görevlisiyle konuşur gibi konuşur. Karşı taraftaki Kollektor yapay zeka ajanıdır.",
       },
       {
-        title: "Söz ve takvim, not değil",
+        title: "Notlar değil, ödeme sözü ve tahsilatlar",
         description:
-          "Ödeme tutarı ve tarihi konuşulduğu anda kaydolur. Geri arama saatleri hesaplanır, tahmin edilmez.",
-      },
-      {
-        title: "Zor aramalar masada kalır",
-        description:
-          "Canlı transkript, senaryo eşleşmeleri ve P0–P2 triyaj. Modelin konuşmaması gereken yerde ekibiniz hattı alır.",
+          "Ödeme tutarı ve tarihi konuşulduğu anda kaydolur. Geri arama saatleri hesaplanır, tahmin lüksü yoktur.",
       },
     ],
+    faq: {
+      eyebrow: "Sık sorulanlar",
+      title: "Kollektor hakkında",
+      items: [
+        {
+          question: "Kollektor KVKK / GDPR uyumlu mu?",
+          answer:
+            "Evet, kimlik doğrulanır, transkriptler süreyle sınırlı tutulur ve görüşme yasal çerçevede yürür. Kurumunuza özel DPA ve işleme ekleri ayrıca bağlanır.",
+        },
+        {
+          question: "Borçlular bir yapay zeka ile konuştuğunu anlıyor mu?",
+          answer:
+            "Ölçülen sonuç: borçluların %97'si bir yapay zeka ile konuştuğunu fark etmez. Bu, tahsilat başarı oranını defalarca artırır.",
+        },
+        {
+          question: "Kollektor ne kadar hızlı?",
+          answer:
+            "Kollektor, FCT çağrı / arama santralinin kapasitesiyle doğru orantılı olarak aynı anda 20'ye kadar görüşme yürütür.",
+        },
+      ],
+    },
     split: {
       eyebrow: "Asimetrik tasarım",
       title: "İki taraf. Tek arama.",
@@ -164,7 +180,7 @@ const trMessages: Messages = {
         "Sert veya dönen aramalar bir kişiye devredilir",
       ],
       operatorTitle: "Ekibinizin gördüğü",
-      operatorBody: "Arama olurken güncellenen bir operasyon ekranı — yenileme yok, ekstra hat yok.",
+      operatorBody: "Arama olurken güncellenen bir operasyon ekranı. Yenileme yok, ekstra hat yok.",
       operatorBeats: [
         "Canlı transkript ve arama durumu",
         "Senaryo eşleşmeleri ve triyaj önceliği",

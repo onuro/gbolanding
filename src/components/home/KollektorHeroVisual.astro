@@ -136,18 +136,18 @@ const reportBars = [58, 78, 94];
     ))}
   </div>
 
-  <div class="kollektor-panel panel-shadow relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-foreground/20">
+  <div class="kollektor-panel relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-foreground/20">
     <div class="kollektor-header flex h-12 items-center justify-between border-b border-border px-3.5 sm:px-4">
       <div class="flex min-w-0 items-center gap-2.5">
         <span class="size-1.5 shrink-0 rounded-full bg-brand"></span>
-        <span class="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/80">
+        <span class="truncate font-mono text-[11px] uppercase tracking-[0.16em] text-foreground/85">
           Kollektor
         </span>
-        <span class="hidden font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/35 sm:inline">
+        <span class="hidden font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/55 sm:inline">
           / {copy.workflow}
         </span>
       </div>
-      <span class="hidden items-center gap-2 font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/40 min-[420px]:inline-flex">
+      <span class="hidden items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/55 min-[420px]:inline-flex">
         <span class="size-1.5 rounded-full bg-brand shadow-[0_0_10px_var(--brand)]"></span>
         {copy.liveSystem}
       </span>
@@ -161,11 +161,11 @@ const reportBars = [58, 78, 94];
             data-k-rail
             data-state={index < 4 ? "complete" : "active"}
           >
-            <span class="font-mono text-[9px] tabular-nums" data-k-rail-number>
+            <span class="font-mono text-[10px] tabular-nums" data-k-rail-number>
               {String(index + 1).padStart(2, "0")}
             </span>
-            <span class="min-w-0 flex-1 truncate text-[11px] text-foreground/55">{label}</span>
-            <span class="size-1.5 shrink-0" data-k-rail-dot></span>
+            <span class="min-w-0 flex-1 truncate text-xs text-foreground/55">{label}</span>
+            <span class="size-1.5 shrink-0 rounded-full" data-k-rail-dot></span>
           </li>
         ))}
       </ol>
@@ -563,7 +563,12 @@ const reportBars = [58, 78, 94];
 
   .kollektor-panel {
     background: color-mix(in srgb, var(--background) 96%, transparent);
-    box-shadow: 0 28px 70px -34px rgb(0 0 0 / 70%);
+    box-shadow: 0 16px 36px -28px rgb(0 0 0 / 40%);
+  }
+
+  :global(html[data-theme="light"]) .kollektor-panel {
+    border-color: color-mix(in srgb, var(--foreground) 8%, transparent);
+    box-shadow: 0 6px 16px -10px rgb(20 52 37 / 8%);
   }
 
   .kollektor-header,
@@ -643,6 +648,7 @@ const reportBars = [58, 78, 94];
 
   .kollektor-rail-item [data-k-rail-dot] {
     border: 1px solid color-mix(in srgb, var(--foreground) 22%, transparent);
+    border-radius: 999px;
   }
 
   .kollektor-rail-item[data-state="complete"] {

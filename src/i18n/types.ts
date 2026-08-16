@@ -79,8 +79,16 @@ export interface Messages {
       CapabilityMessage,
       CapabilityMessage,
       CapabilityMessage,
-      CapabilityMessage,
     ];
+    faq: {
+      eyebrow: string;
+      title: string;
+      items: [
+        { question: string; answer: string },
+        { question: string; answer: string },
+        { question: string; answer: string },
+      ];
+    };
     split: {
       eyebrow: string;
       title: string;
