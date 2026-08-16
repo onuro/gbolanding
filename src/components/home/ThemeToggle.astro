@@ -55,6 +55,11 @@ const darkLabel =
       meta.content = theme === "light" ? "#ffffff" : "#0b0e0c";
     }
 
+    const favicon = document.querySelector<HTMLLinkElement>("[data-favicon]");
+    if (favicon) {
+      favicon.href = theme === "light" ? "/favicon-light.svg" : "/favicon-dark.svg";
+    }
+
     if (toggle) {
       const isLight = theme === "light";
       const label = isLight

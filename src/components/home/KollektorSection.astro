@@ -31,8 +31,8 @@ const ui =
         promise: "Ödeme sözü",
         collections: "Tahsilatlar",
         vs: "vs",
-        promiseAmount: "₺62.500",
-        collectedAmount: "₺42.000",
+        promiseAmount: "₺1.742.500",
+        collectedAmount: "₺976.400",
         due: "Bugün, 18:00",
         collectedAt: "Bugün, 14:00",
         slotHeld: "Tutuldu",
@@ -56,8 +56,8 @@ const ui =
         promise: "Promise to pay",
         collections: "Collections",
         vs: "vs",
-        promiseAmount: "$62,500",
-        collectedAmount: "$42,000",
+        promiseAmount: "$1,742,500",
+        collectedAmount: "$976,400",
         due: "Today, 18:00",
         collectedAt: "Today, 14:00",
         slotHeld: "Held",
@@ -150,13 +150,6 @@ const wave = Array.from({ length: 72 }, (_, i) => {
                 ))
               }
             </ol>
-          </div>
-
-          <div class="mt-8 h-px w-full bg-border" aria-hidden="true">
-            <span
-              class="k-progress block h-px w-0 bg-foreground/60"
-              data-kp-progress
-            ></span>
           </div>
         </div>
       </div>
@@ -270,7 +263,7 @@ const wave = Array.from({ length: 72 }, (_, i) => {
 
       <article class="border-b border-border md:border-r md:border-b-0">
         <div class="relative h-[17.5rem] overflow-hidden bg-card/30 p-5 sm:p-6" aria-hidden="true">
-          <div class="mx-auto flex h-full max-w-md overflow-hidden rounded-sm border border-border bg-background">
+          <div class="mx-auto flex h-full w-full max-w-2xl overflow-hidden rounded-sm border border-border bg-background">
             <div class="flex flex-1 flex-col">
               <div class="flex h-10 items-center justify-between border-b border-border px-3">
                 <span class="font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/50">
@@ -481,7 +474,6 @@ const wave = Array.from({ length: 72 }, (_, i) => {
     const viewport = track.querySelector("[data-kp-viewport]");
     const rail = track.querySelector("[data-kp-rail]");
     const page = track.querySelector("[data-kp-page]");
-    const bar = track.querySelector("[data-kp-progress]");
     const steps = [...track.querySelectorAll("[data-kp-step]")];
     if (!viewport || !rail || !steps.length) return;
 
@@ -499,9 +491,6 @@ const wave = Array.from({ length: 72 }, (_, i) => {
     };
 
     const sync = () => {
-      // Progress runs across the block's own trip through the viewport: it
-      // starts when the block enters from the bottom and finishes as it leaves
-      // the top, so every step gets screen time without pinning the page.
       const rect = track.getBoundingClientRect();
       const start = window.innerHeight * 0.8;
       const end = -rect.height * 0.15;
@@ -520,7 +509,6 @@ const wave = Array.from({ length: 72 }, (_, i) => {
       if (page) {
         page.textContent = `${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
       }
-      if (bar) bar.style.width = `${((index + 1) / total) * 100}%`;
     };
 
     const frame = () => {
@@ -589,10 +577,6 @@ const wave = Array.from({ length: 72 }, (_, i) => {
     transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .k-progress {
-    transition: width 320ms ease;
-  }
-
   .k-step {
     opacity: 0.38;
     transition: opacity 280ms ease;
@@ -613,8 +597,7 @@ const wave = Array.from({ length: 72 }, (_, i) => {
       animation: none;
     }
 
-    [data-kp-rail],
-    .k-progress {
+    [data-kp-rail] {
       transition: none;
     }
   }

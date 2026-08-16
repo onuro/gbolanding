@@ -69,6 +69,12 @@ const organizationSchema = {
               "content",
               theme === "light" ? "#ffffff" : "#0b0e0c",
             );
+          document
+            .querySelector("[data-favicon]")
+            ?.setAttribute(
+              "href",
+              theme === "light" ? "/favicon-light.svg" : "/favicon-dark.svg",
+            );
         } catch {
           // Dark remains the no-script and storage-restricted default.
         }
@@ -88,7 +94,10 @@ const organizationSchema = {
       type="font/woff2"
       crossorigin
     />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" data-favicon />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <title>{metadata.title}</title>
     <meta name="description" content={metadata.description} />
     <meta name="keywords" content={metadata.keywords.join(", ")} />
