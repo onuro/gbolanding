@@ -16,7 +16,7 @@ const ui =
   locale === "tr"
     ? {
         campaign: "Arama grubu",
-        file: "borclular.xlsx",
+        file: "Mart tahsilat listesi",
         records: "142 kayıt",
         reached: "Görüşülen",
         calling: "Aranıyor",
@@ -42,7 +42,7 @@ const ui =
       }
     : {
         campaign: "Call group",
-        file: "debtors.xlsx",
+        file: "March recovery list",
         records: "142 records",
         reached: "Reached",
         calling: "Calling",
@@ -172,7 +172,7 @@ const triage = [
     <div class="grid grid-cols-1 md:grid-cols-2" data-k-chapters>
       <article class="border-b border-border md:border-r">
         <div class="relative h-[17.5rem] overflow-hidden bg-card/30 p-5 sm:p-6" aria-hidden="true">
-          <div class="mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-background">
+          <div class="mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-sm border border-border bg-background">
             <div class="flex h-10 items-center justify-between border-b border-border px-4">
               <span class="font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/50">
                 {ui.campaign}
@@ -221,7 +221,7 @@ const triage = [
 
       <article class="border-b border-border">
         <div class="relative h-[17.5rem] overflow-hidden bg-card/30 p-5 sm:p-6" aria-hidden="true">
-          <div class="mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-background">
+          <div class="mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-sm border border-border bg-background">
             <div class="flex h-10 items-center justify-between border-b border-border px-4">
               <span class="font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/50">
                 {ui.kollektor}
@@ -277,7 +277,7 @@ const triage = [
 
       <article class="border-b border-border md:border-r md:border-b-0">
         <div class="relative h-[17.5rem] overflow-hidden bg-card/30 p-5 sm:p-6" aria-hidden="true">
-          <div class="mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-background">
+          <div class="mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-sm border border-border bg-background">
             <div class="flex h-10 items-center justify-between border-b border-border px-4">
               <span class="font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/50">
                 {ui.promise}
@@ -324,7 +324,7 @@ const triage = [
 
       <article class="border-b border-border md:border-b-0">
         <div class="relative h-[17.5rem] overflow-hidden bg-card/30 p-5 sm:p-6" aria-hidden="true">
-          <div class="mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-background">
+          <div class="mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-sm border border-border bg-background">
             <div class="flex h-10 items-center justify-between border-b border-border px-4">
               <span class="font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/50">
                 {ui.listen}
@@ -338,7 +338,7 @@ const triage = [
                 triage.map((row) => (
                   <li
                     class:list={[
-                      "flex items-center justify-between rounded-2xl border px-3 py-2.5",
+                      "flex items-center justify-between rounded-md border px-3 py-2.5",
                       row.tone === "danger" && "border-danger/30 bg-danger/5",
                       row.tone === "attention" && "border-attention-line bg-attention-soft",
                       row.tone === "muted" && "border-border bg-card/40",

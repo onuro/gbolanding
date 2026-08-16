@@ -120,12 +120,12 @@ const enMessages: Messages = {
       {
         number: "05",
         title: "Escalate",
-        description: "Hostile callers, third-party denials, and loops go to a person.",
+        description: "A payment promise or an actual recovery is written to the file.",
       },
       {
         number: "06",
         title: "Report",
-        description: "Reach, promises, and recovered amounts land on the same dashboard.",
+        description: "Those promises and recoveries land on the same report.",
       },
     ],
     chapters: [

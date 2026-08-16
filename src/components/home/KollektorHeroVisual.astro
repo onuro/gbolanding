@@ -126,7 +126,7 @@ const reportBars = [58, 78, 94];
 </script>
 
 <div
-  class="kollektor-visual relative z-20 mx-auto flex w-full max-w-none self-stretch flex-col gap-1"
+  class="kollektor-visual relative z-20 mx-auto flex w-full max-w-none self-stretch flex-col gap-2.5"
   data-kollektor-visual
   data-motion-state="idle"
 >
@@ -136,7 +136,7 @@ const reportBars = [58, 78, 94];
     ))}
   </div>
 
-  <div class="kollektor-panel panel-shadow relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-foreground/20">
+  <div class="kollektor-panel panel-shadow relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-foreground/20">
     <div class="kollektor-header flex h-12 items-center justify-between border-b border-border px-3.5 sm:px-4">
       <div class="flex min-w-0 items-center gap-2.5">
         <span class="size-1.5 shrink-0 rounded-full bg-brand"></span>
@@ -418,15 +418,15 @@ const reportBars = [58, 78, 94];
 
     const timeline = createTimeline({
       autoplay: false,
+      loop: true,
+      loopDelay: 900,
       defaults: { ease: "outCubic" },
       onBegin: () => {
         root.dataset.motionState = "running";
         setActiveStage(0);
       },
-      onComplete: () => {
-        root.dataset.motionState = "complete";
-        setActiveStage(4);
-        utils.set(railTrack, { x: getRailOffset(4) });
+      onLoop: () => {
+        setActiveStage(0);
       },
     });
 
@@ -497,6 +497,16 @@ const reportBars = [58, 78, 94];
       .add(reportBars, { scaleY: 1, duration: 680, delay: stagger(130), ease: "outExpo" }, 9100 + sequenceHold * 4)
       .add(sync, { opacity: 1, x: 0, duration: 440 }, 9860 + sequenceHold * 4)
       .add(stages[4], { opacity: 1, y: 0, duration: 360 }, 10380 + sequenceHold * 4);
+
+    const rewind = 11280 + sequenceHold * 4;
+    exitStage(4, rewind);
+    timeline
+      .add(kpis, { opacity: 0, y: 8, duration: 280 }, rewind)
+      .add(reportBars, { scaleY: 0, duration: 280 }, rewind)
+      .add(sync, { opacity: 0, x: -6, duration: 240 }, rewind)
+      .add(progress, { scaleX: 0, duration: 420, ease: "inQuad" }, rewind + 80)
+      .add(railTrack, { x: 0, duration: 640, ease: "inOutCubic" }, rewind + 120)
+      .call(() => setActiveStage(0), rewind + 760);
 
     timeline.play();
 
@@ -686,6 +696,7 @@ const reportBars = [58, 78, 94];
   }
 
   .kollektor-progress-segment {
+    border-radius: 999px;
     transform: scaleX(1);
     transform-origin: left;
   }

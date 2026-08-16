@@ -120,12 +120,12 @@ const trMessages: Messages = {
       {
         number: "05",
         title: "Devir",
-        description: "Sert arayan, üçüncü kişi ve döngüler bir kişiye gider.",
+        description: "Ödeme sözü veya gerçekleşen tahsilat dosyaya işlenir.",
       },
       {
         number: "06",
         title: "Rapor",
-        description: "Ulaşma, söz ve tahsilat aynı panelde toplanır.",
+        description: "İşlenen söz ve tahsilat aynı raporda toplanır.",
       },
     ],
     chapters: [
