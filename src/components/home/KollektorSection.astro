@@ -1,7 +1,6 @@
 ---
 import { ArrowRight, Phone, Radio } from "lucide-react";
 import BlinkText from "@/components/BlinkText";
-import KollektorHeroVisual from "@/components/home/KollektorHeroVisual.astro";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
 
@@ -108,10 +107,6 @@ const wave = Array.from({ length: 72 }, (_, i) => {
         </p>
       </div>
     </header>
-
-    <div class="border-b border-border bg-card/25 px-4 py-6 sm:px-8 sm:py-10 lg:px-12">
-      <KollektorHeroVisual locale={locale} />
-    </div>
 
     <div class="border-b border-border" data-kp-track>
       <div class="py-12 sm:py-16" data-kp-stage>
@@ -478,6 +473,10 @@ const wave = Array.from({ length: 72 }, (_, i) => {
     if (!viewport || !rail || !steps.length) return;
 
     const total = steps.length;
+    const hold = 1800;
+    const loopDelay = 900;
+    let index = 0;
+    let timer = 0;
 
     const perView = () => {
       if (window.innerWidth >= 1024) return 3;
@@ -485,41 +484,55 @@ const wave = Array.from({ length: 72 }, (_, i) => {
       return 1;
     };
 
-    const layout = () => {
-      const width = viewport.clientWidth / perView();
-      for (const step of steps) step.style.width = `${width}px`;
-    };
-
-    const sync = () => {
-      const rect = track.getBoundingClientRect();
-      const start = window.innerHeight * 0.8;
-      const end = -rect.height * 0.15;
-      const progress = Math.min(
-        1,
-        Math.max(0, (start - rect.top) / (start - end)),
-      );
-
-      const index = Math.min(total - 1, Math.floor(progress * total));
+    const paint = () => {
       const columns = perView();
       const group = Math.floor(index / columns);
-
       rail.style.transform = `translate3d(${-group * viewport.clientWidth}px, 0, 0)`;
       steps.forEach((step, i) => step.classList.toggle("is-in", i === index));
-
       if (page) {
         page.textContent = `${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
       }
     };
 
-    const frame = () => {
-      layout();
-      sync();
+    const layout = () => {
+      const width = viewport.clientWidth / perView();
+      for (const step of steps) step.style.width = `${width}px`;
+      paint();
     };
 
-    frame();
-    requestAnimationFrame(frame);
-    window.addEventListener("scroll", sync, { passive: true });
-    window.addEventListener("resize", frame);
+    const stop = () => {
+      window.clearTimeout(timer);
+    };
+
+    const tick = () => {
+      index = (index + 1) % total;
+      paint();
+      timer = window.setTimeout(tick, index === 0 ? hold + loopDelay : hold);
+    };
+
+    const start = () => {
+      stop();
+      timer = window.setTimeout(tick, hold);
+    };
+
+    layout();
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      window.addEventListener("resize", layout);
+      return;
+    }
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) start();
+        else stop();
+      },
+      { threshold: 0.35 },
+    );
+    io.observe(track);
+
+    window.addEventListener("resize", layout);
+    window.addEventListener("pagehide", stop);
   })();
 </script>
 
@@ -574,7 +587,7 @@ const wave = Array.from({ length: 72 }, (_, i) => {
 
 
   [data-kp-rail] {
-    transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 1100ms cubic-bezier(0.87, 0, 0.13, 1);
   }
 
   .k-step {

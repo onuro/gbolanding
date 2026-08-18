@@ -19,6 +19,9 @@ interface Props {
 
 const { locale, messages } = Astro.props;
 const { kollektor, intelval, enterprise } = messages.solutions;
+
+const numberPart = /^\d[\d.,]*$/;
+const highlightParts = (text: string) => text.split(/(\d[\d.,]*)/).filter(Boolean);
 const visualCopy =
   locale === "tr"
     ? {
@@ -185,7 +188,7 @@ const concludedAt = Math.round(
       </h2>
     </div>
     <div
-      class="flex items-end border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:border-t-0 lg:border-l lg:px-10 lg:py-14"
+      class="flex items-end border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:border-t-0 lg:px-10 lg:py-14"
     >
       <p class="max-w-lg text-pretty text-base leading-relaxed text-muted-foreground">
         {messages.intro.description}
@@ -232,8 +235,16 @@ const concludedAt = Math.round(
                 <span class="font-mono text-[9px] tabular-nums text-foreground/25">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-foreground/60">
-                  {highlight}
+                <span class="text-[10px] uppercase tracking-[0.08em] text-foreground/60">
+                  {
+                    highlightParts(highlight).map((part) =>
+                      numberPart.test(part) ? (
+                        <span class="font-mono tabular-nums tracking-normal">{part}</span>
+                      ) : (
+                        part
+                      ),
+                    )
+                  }
                 </span>
               </li>
             ))
@@ -268,10 +279,10 @@ const concludedAt = Math.round(
                     index !== 2 ? "border-r border-border" : "",
                   ]}
                 >
-                  <p class="font-mono text-xl tabular-nums text-foreground/85">
+                  <p class="text-xl font-medium tabular-nums text-foreground/85">
                     {stat.value}
                   </p>
-                  <p class="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.14em] text-foreground/30">
+                  <p class="mt-1 truncate text-[8px] uppercase tracking-[0.14em] text-foreground/55 dark:text-foreground/30">
                     {stat.label}
                   </p>
                 </div>
@@ -411,8 +422,16 @@ const concludedAt = Math.round(
                 <span class="font-mono text-[9px] tabular-nums text-foreground/25">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-foreground/60">
-                  {highlight}
+                <span class="text-[10px] uppercase tracking-[0.08em] text-foreground/60">
+                  {
+                    highlightParts(highlight).map((part) =>
+                      numberPart.test(part) ? (
+                        <span class="font-mono tabular-nums tracking-normal">{part}</span>
+                      ) : (
+                        part
+                      ),
+                    )
+                  }
                 </span>
               </li>
             ))
@@ -439,7 +458,7 @@ const concludedAt = Math.round(
 
           <div class="border-b border-border px-5 py-5 sm:px-8">
             <p
-              class="font-mono text-[8px] uppercase tracking-[0.14em] text-foreground/30"
+              class="font-mono text-[8px] uppercase tracking-[0.14em] text-foreground/55 dark:text-foreground/30"
             >
               {visualCopy.concluded}
             </p>
@@ -503,7 +522,7 @@ const concludedAt = Math.round(
                       style={`width: ${method.weight * 2}%;`}
                     />
                   </span>
-                  <p class="mt-2 truncate font-mono text-[8px] uppercase tracking-[0.12em] text-foreground/25">
+                  <p class="mt-2 truncate font-mono text-[8px] uppercase tracking-[0.12em] text-foreground/50 dark:text-foreground/25">
                     {method.label}
                   </p>
                 </div>
@@ -568,8 +587,16 @@ const concludedAt = Math.round(
                 <span class="font-mono text-[9px] tabular-nums text-foreground/25">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-foreground/60">
-                  {highlight}
+                <span class="text-[10px] uppercase tracking-[0.08em] text-foreground/60">
+                  {
+                    highlightParts(highlight).map((part) =>
+                      numberPart.test(part) ? (
+                        <span class="font-mono tabular-nums tracking-normal">{part}</span>
+                      ) : (
+                        part
+                      ),
+                    )
+                  }
                 </span>
               </li>
             ))
