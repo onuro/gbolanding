@@ -1,0 +1,120 @@
+---
+import type { Locale } from "@/i18n/config";
+import PhaseVisualFrame from "./PhaseVisualFrame.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const copy =
+  locale === "tr"
+    ? {
+        title: "Plan / Kullanıcı yolculuğu",
+        stepUnit: "adım",
+        steps: ["Talep", "Ayrıştırma", "İş", "Kontrol", "Teslim"],
+        automated: "Yapay zeka devralır",
+        scope: ["Ekranlar", "Roller", "Entegrasyonlar"],
+      }
+    : {
+        title: "Blueprint / User journey",
+        stepUnit: "steps",
+        steps: ["Request", "Triage", "Work", "Review", "Deliver"],
+        automated: "AI takes over",
+        scope: ["Screens", "Roles", "Integrations"],
+      };
+
+// Five steps across the rail; the two the product absorbs carry the brand.
+const AUTOMATED = [1, 2];
+const steps = copy.steps;
+// Node centres sit at 10%, 30%, 50%, 70%, 90% of a five-column grid.
+const bracket = {
+  left: `${AUTOMATED[0] * 20 + 10}%`,
+  width: `${(AUTOMATED.length - 1) * 20}%`,
+  mid: `${((AUTOMATED[0] + AUTOMATED[AUTOMATED.length - 1]) / 2) * 20 + 10}%`,
+};
+
+const scope = [
+  { label: copy.scope[0], count: 12 },
+  { label: copy.scope[1], count: 4 },
+  { label: copy.scope[2], count: 6 },
+];
+---
+
+<PhaseVisualFrame title={copy.title} meta={`0${steps.length} ${copy.stepUnit}`}>
+  <div class="relative">
+    <span
+      class="absolute left-[10%] right-[10%] top-[0.6875rem] h-px bg-foreground/15"
+    ></span>
+    <ol class="relative grid grid-cols-5">
+      {
+        steps.map((step, index) => {
+          const on = AUTOMATED.includes(index);
+          return (
+            <li class="flex flex-col items-center gap-3 px-1 text-center">
+              <span
+                class:list={[
+                  "relative z-10 flex size-[1.375rem] items-center justify-center rounded-full border font-mono text-[8px] tabular-nums",
+                  on
+                    ? "border-brand bg-brand text-brand-foreground"
+                    : "border-border bg-background text-foreground/45",
+                ]}
+              >
+                {index + 1}
+              </span>
+              <span
+                class:list={[
+                  "font-mono text-[8px] uppercase leading-tight tracking-[0.1em] sm:text-[9px]",
+                  on ? "text-foreground/75" : "text-foreground/40",
+                ]}
+              >
+                {step}
+              </span>
+            </li>
+          );
+        })
+      }
+    </ol>
+
+    <div class="relative mt-3 h-8">
+      <span
+        class="absolute top-0 h-2 w-px bg-brand-line"
+        style={`left: ${bracket.left};`}></span>
+      <span
+        class="absolute top-2 h-px bg-brand-line"
+        style={`left: ${bracket.left}; width: ${bracket.width};`}></span>
+      <span
+        class="absolute top-0 h-2 w-px bg-brand-line"
+        style={`left: calc(${bracket.left} + ${bracket.width});`}></span>
+      <span
+        class="absolute top-3.5 -translate-x-1/2 whitespace-nowrap font-mono text-[8px] uppercase tracking-[0.14em] text-brand"
+        style={`left: ${bracket.mid};`}
+      >
+        {copy.automated}
+      </span>
+    </div>
+  </div>
+
+  <div class="mt-5 grid gap-3 border-t border-border pt-4 sm:grid-cols-3 sm:gap-6">
+    {
+      scope.map((row) => (
+        <div class="flex items-center justify-between gap-3">
+          <span class="font-mono text-[9px] uppercase tracking-[0.12em] text-foreground/45">
+            {row.label}
+          </span>
+          <span class="flex items-center gap-2">
+            <span class="flex gap-[2px]">
+              {Array.from({ length: row.count }, () => (
+                <span class="h-2.5 w-[3px] rounded-[1px] bg-foreground/25" />
+              ))}
+            </span>
+            <span class="font-mono text-[10px] tabular-nums text-foreground/50">
+              {row.count}
+            </span>
+          </span>
+        </div>
+      ))
+    }
+  </div>
+</PhaseVisualFrame>

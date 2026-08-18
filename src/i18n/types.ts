@@ -6,6 +6,28 @@ export interface SolutionMessage {
   cta: string;
 }
 
+export interface EnterprisePhaseMessage {
+  number: string;
+  title: string;
+  /** One line for the tab rail. */
+  summary: string;
+  description: string;
+  deliverables: [string, string, string];
+}
+
+export interface EnterpriseSolutionMessage {
+  eyebrow: string;
+  title: string;
+  description: string;
+  phases: [
+    EnterprisePhaseMessage,
+    EnterprisePhaseMessage,
+    EnterprisePhaseMessage,
+    EnterprisePhaseMessage,
+  ];
+  cta: string;
+}
+
 export interface CapabilityMessage {
   title: string;
   description: string;
@@ -60,7 +82,7 @@ export interface Messages {
   solutions: {
     kollektor: SolutionMessage;
     intelval: SolutionMessage;
-    enterprise: SolutionMessage;
+    enterprise: EnterpriseSolutionMessage;
   };
   kollektorDeep: {
     eyebrow: string;

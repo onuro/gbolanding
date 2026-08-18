@@ -81,11 +81,56 @@ const trMessages: Messages = {
       eyebrow: "Özel yapay zeka ve yazılım",
       title: "İşinize göre tasarlandı.",
       description:
-        "İş akışınıza, verinize ve hedeflerinize göre yapay zeka araçları ve özel yazılımlar tasarlarız. Hazır paket bir SaaS değil.",
-      highlights: [
-        "Yapay zeka stratejisi",
-        "Özel yazılım",
-        "Veri entegrasyonu",
+        "Hazır paket bir SaaS değil. Denetimden inşaya, iş akışınıza, verinize ve hedeflerinize göre ilerleriz.",
+      phases: [
+        {
+          number: "01",
+          title: "Denetim",
+          summary: "İşin nerede tıkandığı.",
+          description:
+            "İşi yapan ekiple birlikte oturur, süreci uçtan uca izleriz: kullanıcılar, araçlar, devir noktaları ve altındaki veri. Sürtünmenin size saat, gelir ve doğruluk olarak neye mal olduğunu netleştirir, çözmeye değecek olana göre sıralarız.",
+          deliverables: [
+            "Sürtünme haritası",
+            "Manuel işin maliyeti",
+            "Önceliklendirilmiş fırsatlar",
+          ],
+        },
+        {
+          number: "02",
+          title: "Plan",
+          summary: "Kod yazılmadan önceki plan.",
+          description:
+            "Ürün stratejisi, kullanıcı yolculukları ve kapsam; tüm ekibin tartışabileceği bir dille yazılır. Neyin neden kurulacağı, kimse editörü açmadan önce ortak kararla netleşir.",
+          deliverables: [
+            "Ürün stratejisi",
+            "Kullanıcı yolculukları",
+            "Kapsamı belirlenmiş yol haritası",
+          ],
+        },
+        {
+          number: "03",
+          title: "Mimari",
+          summary: "Ölçeklenecek iskelet.",
+          description:
+            "API'ler, veri modeli, entegrasyonlar ve yapay zeka katmanı tek bir sistem olarak tasarlanır. Bugün kullandığınız araçlara oturur, gelecek yılın hacmine yer bırakır.",
+          deliverables: [
+            "Sistem tasarımı",
+            "Veri modeli",
+            "Entegrasyon planı",
+          ],
+        },
+        {
+          number: "04",
+          title: "İnşa",
+          summary: "Tek seferde değil, sürümlerle.",
+          description:
+            "Yazılım, kullanıp geri bildirim verebileceğiniz kısa sürümlerle şekillenir. Her sürüm testten, güvenlik denetiminden ve kontrollü yayından geçer. Kurumsal kod, yapay zeka hızında.",
+          deliverables: [
+            "Çalışan sürümler",
+            "Test ve güvenlik denetimi",
+            "Devir ve destek",
+          ],
+        },
       ],
       cta: "Platformu inceleyin",
     },

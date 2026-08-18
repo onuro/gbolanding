@@ -1,0 +1,397 @@
+---
+import { ArrowUpRight } from "lucide-react";
+
+import type { Locale } from "@/i18n/config";
+import type { Messages } from "@/i18n/types";
+import PhaseVisualArchitect from "./phase-visuals/PhaseVisualArchitect.astro";
+import PhaseVisualAudit from "./phase-visuals/PhaseVisualAudit.astro";
+import PhaseVisualBlueprint from "./phase-visuals/PhaseVisualBlueprint.astro";
+import PhaseVisualBuild from "./phase-visuals/PhaseVisualBuild.astro";
+
+interface Props {
+  locale: Locale;
+  messages: Messages;
+}
+
+const { locale, messages } = Astro.props;
+const { enterprise } = messages.solutions;
+const phaseSlugs = ["audit", "blueprint", "architect", "build"] as const;
+const total = String(enterprise.phases.length).padStart(2, "0");
+
+const copy =
+  locale === "tr"
+    ? {
+        solution: "Çözüm",
+        cadence: "Çalışma ritmi",
+        phasesUnit: "faz",
+        phase: "Faz",
+        deliverables: "Ne teslim edilir",
+        navLabel: "Çalışma fazları",
+        navHint: "Fazlar arasında gezinmek için ↑ ↓",
+      }
+    : {
+        solution: "Solution",
+        cadence: "Cadence",
+        phasesUnit: "phases",
+        phase: "Phase",
+        deliverables: "What you get",
+        navLabel: "Delivery phases",
+        navHint: "↑ ↓ to move between phases",
+      };
+---
+
+<article
+  class="group relative overflow-hidden bg-background md:col-span-2 xl:col-span-12"
+  data-e-cadence
+>
+  <div class="grid border-b border-border lg:grid-cols-12">
+    <div class="px-5 py-8 sm:px-8 sm:py-10 lg:col-span-7 lg:px-12 lg:py-12">
+      <div class="mb-6 flex items-center justify-between gap-4">
+        <p
+          class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
+        >
+          {enterprise.eyebrow}
+        </p>
+        <span
+          class="font-mono text-[9px] uppercase tracking-[0.18em] text-foreground/30"
+        >
+          {copy.solution} / 03
+        </span>
+      </div>
+      <h3 class="max-w-2xl text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
+        {enterprise.title}
+      </h3>
+    </div>
+    <div
+      class="flex flex-col justify-end gap-6 border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:border-t-0 lg:px-10 lg:py-12"
+    >
+      <p class="max-w-lg text-pretty text-base leading-relaxed text-muted-foreground">
+        {enterprise.description}
+      </p>
+      <a
+        href="#platform"
+        class="inline-flex h-11 w-fit items-center gap-2 rounded-full border border-border bg-card px-5 text-sm outline-none transition-colors hover:border-foreground/25 hover:bg-muted focus-visible:ring-2 focus-visible:ring-brand"
+      >
+        {enterprise.cta}
+        <ArrowUpRight
+          aria-hidden="true"
+          className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          strokeWidth={1.5}
+        />
+      </a>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-12">
+    <div
+      class="flex flex-col border-b border-border lg:col-span-4 lg:border-b-0 lg:border-r"
+    >
+      <div
+        class="flex h-9 items-center justify-between border-b border-border px-5 sm:px-8 lg:px-10"
+      >
+        <span
+          class="font-mono text-[9px] uppercase tracking-[0.16em] text-foreground/45"
+        >
+          {copy.cadence}
+        </span>
+        <span
+          class="font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/25"
+        >
+          {total} {copy.phasesUnit}
+        </span>
+      </div>
+
+      <div role="tablist" aria-orientation="vertical" aria-label={copy.navLabel}>
+        {
+          enterprise.phases.map((phase, index) => (
+            <button
+              type="button"
+              id={phaseSlugs[index]}
+              role="tab"
+              aria-controls={`${phaseSlugs[index]}-panel`}
+              aria-selected={index === 0 ? "true" : "false"}
+              tabindex={index === 0 ? 0 : -1}
+              data-e-phase-tab
+              class:list={[
+                "e-phase-tab relative flex w-full scroll-mt-24 items-start gap-4 border-b border-border px-5 py-5 text-left transition-colors hover:bg-foreground/[0.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sm:px-8 sm:py-6 lg:px-10",
+                index === enterprise.phases.length - 1 && "lg:border-b-0",
+                index === 0 && "is-on",
+              ]}
+            >
+              <span
+                class="relative z-10 mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-background font-mono text-[11px] text-foreground/50 transition-colors"
+                data-e-phase-mark
+              >
+                {phase.number}
+              </span>
+              <span class="min-w-0 flex-1">
+                <span
+                  class="block text-base font-medium tracking-tight text-foreground/40 transition-colors"
+                  data-e-phase-label
+                >
+                  {phase.title}
+                </span>
+                <span
+                  class="mt-1 block text-pretty text-[13px] leading-snug text-muted-foreground/55 transition-colors"
+                  data-e-phase-summary
+                >
+                  {phase.summary}
+                </span>
+              </span>
+              <span
+                aria-hidden="true"
+                class="e-phase-bar pointer-events-none absolute inset-y-0 left-0 w-0.5 origin-top bg-foreground/70"
+              />
+            </button>
+          ))
+        }
+      </div>
+
+      <div
+        class="mt-auto hidden items-center border-t border-border px-10 py-4 font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/25 lg:flex"
+      >
+        {copy.navHint}
+      </div>
+    </div>
+
+    <div class="grid lg:col-span-8">
+      {
+        enterprise.phases.map((phase, index) => (
+          <div
+            id={`${phaseSlugs[index]}-panel`}
+            role="tabpanel"
+            aria-labelledby={phaseSlugs[index]}
+            tabindex="0"
+            data-e-phase-panel
+            class:list={[
+              "col-start-1 row-start-1 flex h-full scroll-mt-20 flex-col focus-visible:outline-none",
+              index !== 0 && "invisible",
+            ]}
+          >
+            <div class="px-5 py-9 sm:px-8 sm:py-11 lg:px-12 lg:py-12">
+              <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/40">
+                {copy.phase} {phase.number} / {total}
+                <span class="text-foreground/20"> · </span>
+                {phase.title}
+              </p>
+              <h4 class="mt-5 max-w-3xl text-4xl font-medium tracking-[-0.04em] text-foreground sm:text-5xl">
+                {phase.title}.
+              </h4>
+              <p class="mt-5 max-w-2xl text-pretty text-base leading-7 text-muted-foreground sm:text-lg">
+                {phase.description}
+              </p>
+
+              <div class="mt-8 border-t border-border pt-5">
+                <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-foreground/35">
+                  {copy.deliverables}
+                </p>
+                <ul class="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-3">
+                  {phase.deliverables.map((item, position) => (
+                    <li class="flex items-baseline gap-2.5">
+                      <span class="font-mono text-[9px] tabular-nums text-foreground/25">
+                        {String(position + 1).padStart(2, "0")}
+                      </span>
+                      <span class="text-pretty text-sm leading-6 text-foreground/75">
+                        {item}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {index === 0 && <PhaseVisualAudit locale={locale} />}
+            {index === 1 && <PhaseVisualBlueprint locale={locale} />}
+            {index === 2 && <PhaseVisualArchitect locale={locale} />}
+            {index === 3 && <PhaseVisualBuild locale={locale} />}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</article>
+
+<script>
+  // Keep in step with --e-hold in the stylesheet below.
+  const HOLD = 7000;
+
+  function initCadence(root: HTMLElement) {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>("[data-e-phase-tab]")];
+    const panels = [...root.querySelectorAll<HTMLElement>("[data-e-phase-panel]")];
+    const rail = root.querySelector<HTMLElement>('[role="tablist"]');
+    if (!tabs.length || tabs.length !== panels.length) return;
+
+    let index = 0;
+    let timer = 0;
+    let startedAt = 0;
+    let left = HOLD;
+    let stopped = false;
+    let hovered = false;
+    let visible = false;
+
+    const setPhase = (next: number, moveFocus = false) => {
+      index = (next + tabs.length) % tabs.length;
+      tabs.forEach((tab, i) => {
+        const on = i === index;
+        tab.setAttribute("aria-selected", on ? "true" : "false");
+        tab.tabIndex = on ? 0 : -1;
+        tab.classList.toggle("is-on", on);
+      });
+      // visibility:hidden keeps the panel's height in the grid cell and
+      // still takes it out of the a11y tree and the tab order.
+      panels.forEach((panel, i) => {
+        panel.classList.toggle("invisible", i !== index);
+      });
+      if (moveFocus) tabs[index]?.focus();
+    };
+
+    // A timeout cannot pause, so bank the time already served and restart with
+    // what is left. The progress bar pauses in CSS on the same signal.
+    const halt = () => {
+      if (!timer) return;
+      window.clearTimeout(timer);
+      timer = 0;
+      left = Math.max(160, left - (Date.now() - startedAt));
+    };
+
+    const run = () => {
+      if (stopped || hovered || !visible || timer) return;
+      startedAt = Date.now();
+      timer = window.setTimeout(() => {
+        timer = 0;
+        left = HOLD;
+        setPhase(index + 1);
+        run();
+      }, left);
+    };
+
+    const select = (next: number, moveFocus = false) => {
+      stopped = true;
+      halt();
+      root.classList.remove("is-running", "is-paused");
+      root.classList.add("is-stopped");
+      setPhase(next, moveFocus);
+      // Below lg the panel sits under the whole rail, so a tap would otherwise
+      // change something the reader cannot see.
+      if (!window.matchMedia("(min-width: 64rem)").matches) {
+        panels[index]?.scrollIntoView({ block: "start" });
+      }
+    };
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => select(i));
+    });
+
+    rail?.addEventListener("keydown", (event) => {
+      const steps: Record<string, number> = {
+        ArrowDown: index + 1,
+        ArrowRight: index + 1,
+        ArrowUp: index - 1,
+        ArrowLeft: index - 1,
+        Home: 0,
+        End: tabs.length - 1,
+      };
+      const next = steps[event.key];
+      if (next === undefined) return;
+      event.preventDefault();
+      select(next, true);
+    });
+
+    setPhase(0);
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    if (window.matchMedia("(hover: hover)").matches) {
+      root.addEventListener("pointerenter", () => {
+        if (stopped) return;
+        hovered = true;
+        halt();
+        root.classList.add("is-paused");
+      });
+      root.addEventListener("pointerleave", () => {
+        hovered = false;
+        root.classList.remove("is-paused");
+        run();
+      });
+    }
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          visible = true;
+          root.classList.add("is-running");
+          run();
+        } else {
+          visible = false;
+          halt();
+          left = HOLD;
+          root.classList.remove("is-running", "is-paused");
+        }
+      },
+      { threshold: 0.2 },
+    );
+    io.observe(root);
+    window.addEventListener("pagehide", halt);
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-e-cadence]").forEach(initCadence);
+</script>
+
+<style>
+  [data-e-cadence] {
+    --e-hold: 7s;
+  }
+
+  .e-phase-tab.is-on {
+    background: var(--control-surface);
+  }
+
+  .e-phase-tab.is-on [data-e-phase-mark] {
+    border-color: color-mix(in srgb, var(--foreground) 45%, transparent);
+    background: var(--foreground);
+    color: var(--background);
+  }
+
+  .e-phase-tab.is-on [data-e-phase-label] {
+    color: var(--foreground);
+  }
+
+  .e-phase-tab.is-on [data-e-phase-summary] {
+    color: var(--muted-foreground);
+  }
+
+  /* The bar only exists while the cadence is playing; a picked phase keeps a
+     static marker instead. */
+  .e-phase-bar {
+    transform: scaleY(0);
+  }
+
+  [data-e-cadence].is-running .e-phase-tab.is-on .e-phase-bar {
+    animation: e-phase-bar var(--e-hold) linear forwards;
+  }
+
+  [data-e-cadence].is-paused .e-phase-tab.is-on .e-phase-bar {
+    animation-play-state: paused;
+  }
+
+  [data-e-cadence].is-stopped .e-phase-tab.is-on .e-phase-bar {
+    animation: none;
+    transform: scaleY(1);
+  }
+
+  @keyframes e-phase-bar {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .e-phase-tab.is-on .e-phase-bar {
+      animation: none;
+      transform: scaleY(1);
+    }
+  }
+</style>

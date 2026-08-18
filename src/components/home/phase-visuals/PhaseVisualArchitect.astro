@@ -1,0 +1,91 @@
+---
+import type { Locale } from "@/i18n/config";
+import PhaseVisualFrame from "./PhaseVisualFrame.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const copy =
+  locale === "tr"
+    ? {
+        title: "Mimari / Sistem tasarımı",
+        layerUnit: "katman",
+        layers: [
+          { label: "Arayüzler", chips: ["Web", "Mobil", "Yönetim"] },
+          { label: "Yapay zeka", chips: ["Ajanlar", "Erişim", "Denetim"] },
+          { label: "Servisler", chips: ["API", "Görevler", "Kimlik"] },
+          { label: "Veri", chips: ["Model", "Depo", "Olaylar"] },
+          { label: "Entegrasyon", chips: ["ERP", "CRM", "E-posta"] },
+        ],
+      }
+    : {
+        title: "Architect / System design",
+        layerUnit: "layers",
+        layers: [
+          { label: "Surfaces", chips: ["Web", "Mobile", "Admin"] },
+          { label: "AI layer", chips: ["Agents", "Retrieval", "Guardrails"] },
+          { label: "Services", chips: ["API", "Jobs", "Auth"] },
+          { label: "Data", chips: ["Model", "Store", "Events"] },
+          { label: "Integrations", chips: ["ERP", "CRM", "Email"] },
+        ],
+      };
+
+// The AI layer is the part we build; everything else is the system it sits in.
+const CORE = 1;
+const layers = copy.layers.map((layer, index) => ({
+  ...layer,
+  core: index === CORE,
+}));
+---
+
+<PhaseVisualFrame
+  title={copy.title}
+  meta={`0${layers.length} ${copy.layerUnit}`}
+>
+  <div class="relative">
+    <span
+      class="absolute bottom-3 left-[0.3125rem] top-3 w-px bg-foreground/20"
+    ></span>
+    <ul class="space-y-2.5">
+      {
+        layers.map((layer) => (
+          <li class="relative grid gap-2 pl-6 sm:grid-cols-[6.5rem_1fr] sm:items-center sm:gap-4">
+            <span
+              class:list={[
+                "absolute left-0 top-[0.375rem] size-2.5 rounded-full border",
+                layer.core
+                  ? "border-brand bg-brand"
+                  : "border-foreground/30 bg-background",
+              ]}
+            />
+            <span
+              class:list={[
+                "font-mono text-[9px] uppercase tracking-[0.14em]",
+                layer.core ? "text-brand" : "text-foreground/45",
+              ]}
+            >
+              {layer.label}
+            </span>
+            <span class="flex flex-wrap gap-1.5">
+              {layer.chips.map((chip) => (
+                <span
+                  class:list={[
+                    "inline-flex h-6 items-center rounded-full border px-2.5 font-mono text-[9px] uppercase tracking-[0.08em]",
+                    layer.core
+                      ? "border-brand-line bg-brand-soft text-brand"
+                      : "border-border text-foreground/45",
+                  ]}
+                >
+                  {chip}
+                </span>
+              ))}
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</PhaseVisualFrame>

@@ -1,0 +1,36 @@
+---
+interface Props {
+  /** Console label, e.g. "Audit / Friction map". */
+  title: string;
+  /** Right-hand meta, e.g. "04 lanes". */
+  meta: string;
+  /** Only the phase that is actively running gets the brand dot. */
+  live?: boolean;
+}
+
+const { title, meta, live = false } = Astro.props;
+---
+
+<div class="mt-auto border-t border-border bg-card/40" aria-hidden="true">
+  <div
+    class="flex h-9 items-center justify-between gap-4 border-b border-border px-5 sm:px-8 lg:px-12"
+  >
+    <span
+      class="truncate font-mono text-[9px] uppercase tracking-[0.16em] text-foreground/45"
+    >
+      {title}
+    </span>
+    <span
+      class:list={[
+        "flex shrink-0 items-center gap-2 font-mono text-[9px] uppercase tracking-[0.14em]",
+        live ? "text-brand" : "text-foreground/25",
+      ]}
+    >
+      {live && <span class="size-1.5 rounded-full bg-brand"></span>}
+      {meta}
+    </span>
+  </div>
+  <div class="min-h-[15rem] px-5 py-6 sm:px-8 lg:px-12">
+    <slot />
+  </div>
+</div>

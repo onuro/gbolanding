@@ -81,11 +81,56 @@ const enMessages: Messages = {
       eyebrow: "Custom AI and software",
       title: "Built for your business.",
       description:
-        "We design AI tools and custom software around your work, data, and goals. No generic SaaS.",
-      highlights: [
-        "AI strategy",
-        "Custom software",
-        "Data integration",
+        "No generic SaaS. From audit to build, we design around your work, data, and goals.",
+      phases: [
+        {
+          number: "01",
+          title: "Audit",
+          summary: "Where the work actually breaks.",
+          description:
+            "We sit with the people doing the work and follow it end to end — users, tools, handoffs, and the data underneath. Then we name where friction is costing you hours, revenue, or accuracy, and rank it by what it is worth to fix.",
+          deliverables: [
+            "Friction map",
+            "Cost of manual work",
+            "Ranked opportunities",
+          ],
+        },
+        {
+          number: "02",
+          title: "Blueprint",
+          summary: "The plan, before a line of code.",
+          description:
+            "Product strategy, user journeys, and scope written in language your whole team can argue with. Everyone agrees on what gets built and why it matters before anyone opens an editor.",
+          deliverables: [
+            "Product strategy",
+            "User journeys",
+            "Scoped roadmap",
+          ],
+        },
+        {
+          number: "03",
+          title: "Architect",
+          summary: "The skeleton that scales.",
+          description:
+            "APIs, data modelling, integrations, and the AI layer designed as one system. It fits the tools you already run today, and leaves room for the volume you expect next year.",
+          deliverables: [
+            "System design",
+            "Data model",
+            "Integration plan",
+          ],
+        },
+        {
+          number: "04",
+          title: "Build",
+          summary: "Shipped in releases, not one reveal.",
+          description:
+            "The software takes shape through short releases you can use and react to. Every one goes through testing, security review, and a controlled rollout. Enterprise-grade code, at AI speed.",
+          deliverables: [
+            "Working releases",
+            "Tests and security review",
+            "Handover and support",
+          ],
+        },
       ],
       cta: "Explore the platform",
     },

@@ -1,0 +1,125 @@
+---
+import { Check } from "lucide-react";
+
+import type { Locale } from "@/i18n/config";
+import PhaseVisualFrame from "./PhaseVisualFrame.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const copy =
+  locale === "tr"
+    ? {
+        title: "İnşa / Sürüm hattı",
+        releaseUnit: "sürüm",
+        prefix: "S",
+        checks: ["Testler", "Güvenlik", "Yayın"],
+        shipping: "yayına çıkıyor",
+      }
+    : {
+        title: "Build / Release train",
+        releaseUnit: "releases",
+        prefix: "R",
+        checks: ["Tests", "Security", "Rollout"],
+        shipping: "shipping",
+      };
+
+// Releases overlap: the next one starts before the last one lands. The one
+// still in flight is the only bar carrying the brand.
+const releases = [
+  { start: 0, width: 24 },
+  { start: 20, width: 26 },
+  { start: 43, width: 28 },
+  { start: 68, width: 32, live: true },
+];
+
+const checks = copy.checks.map((label, index) => ({
+  label,
+  done: index < 2,
+}));
+---
+
+<PhaseVisualFrame
+  title={copy.title}
+  meta={`0${releases.length} ${copy.releaseUnit}`}
+  live
+>
+  <div
+    class="mb-2 grid grid-cols-[2.5rem_1fr] items-end gap-3 sm:grid-cols-[3rem_1fr] sm:gap-4"
+  >
+    <span></span>
+    <span class="flex h-2 items-end gap-px">
+      {
+        Array.from({ length: 24 }, (_, tick) => (
+          <span
+            class:list={[
+              "flex-1 rounded-[1px]",
+              tick % 6 === 0 ? "h-2 bg-foreground/25" : "h-1 bg-foreground/[0.08]",
+            ]}
+          />
+        ))
+      }
+    </span>
+  </div>
+
+  {
+    releases.map((release, index) => (
+      <div class="grid grid-cols-[2.5rem_1fr] items-center gap-3 border-b border-border py-2 last:border-b-0 sm:grid-cols-[3rem_1fr] sm:gap-4">
+        <span
+          class:list={[
+            "font-mono text-[10px] tabular-nums",
+            release.live ? "text-brand" : "text-foreground/40",
+          ]}
+        >
+          {copy.prefix}
+          {index + 1}
+        </span>
+        <span class="relative block h-2.5">
+          <span
+            class:list={[
+              "absolute inset-y-0 rounded-[1px]",
+              release.live ? "bg-brand" : "bg-foreground/25",
+            ]}
+            style={`left: ${release.start}%; width: ${release.width}%;`}
+          />
+        </span>
+      </div>
+    ))
+  }
+
+  <div
+    class="mt-3.5 flex flex-wrap gap-x-6 gap-y-2.5 border-t border-border pt-3.5 sm:grid sm:grid-cols-3 sm:gap-x-4"
+  >
+    {
+      checks.map((check) => (
+        <div class="flex items-center gap-2.5">
+          <span
+            class:list={[
+              "flex size-4 shrink-0 items-center justify-center rounded-full border",
+              check.done
+                ? "border-foreground/25 text-foreground/60"
+                : "border-brand-line",
+            ]}
+          >
+            {check.done ? (
+              <Check aria-hidden="true" className="size-2.5" strokeWidth={2} />
+            ) : (
+              <span class="size-1.5 rounded-full bg-brand" />
+            )}
+          </span>
+          <span
+            class:list={[
+              "font-mono text-[9px] uppercase tracking-[0.12em]",
+              check.done ? "text-foreground/45" : "text-brand",
+            ]}
+          >
+            {check.label}
+          </span>
+        </div>
+      ))
+    }
+  </div>
+</PhaseVisualFrame>
