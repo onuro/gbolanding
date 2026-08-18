@@ -1,38 +1,52 @@
 ---
 import "@/styles/global.css";
 import CrashProbe from "@/components/dev/CrashProbe.astro";
-import type { Locale } from "@/i18n/config";
+import { defaultLocale, locales, type Locale } from "@/i18n/config";
 import type { PageMetadata } from "@/i18n/metadata";
+import { brand } from "@/lib/brand";
+import { buildGraph } from "@/lib/schema";
 
 interface Props {
   locale: Locale;
   metadata: PageMetadata;
+  /** Page-specific JSON-LD nodes appended to the shared @graph. */
+  extraSchema?: Record<string, unknown>[];
 }
 
-const { locale, metadata } = Astro.props;
+const { locale, metadata, extraSchema = [] } = Astro.props;
 const ogLocale = locale === "tr" ? "tr_TR" : "en_US";
-const siteOrigin = Astro.site ?? Astro.url.origin;
+const siteOrigin = new URL(Astro.site ?? Astro.url.origin);
 const canonicalUrl = new URL(metadata.canonicalPath, siteOrigin);
-const englishUrl = new URL("/", siteOrigin);
-const turkishUrl = new URL("/tr", siteOrigin);
+// Derived from the page's own cluster, never from a fixed pair -- otherwise
+// /about would tell Google its Turkish counterpart is the home page.
+const alternateUrls = locales.map((code) => ({
+  code,
+  href: new URL(metadata.alternates[code], siteOrigin).href,
+}));
+const defaultAlternateUrl = new URL(
+  metadata.alternates[defaultLocale],
+  siteOrigin,
+).href;
 const socialImageUrl = new URL("/og.png", siteOrigin);
 const socialImageAlt =
   locale === "tr"
     ? "GBO Vision — İş büyümesi için kurumsal yapay zeka ve özel yazılım."
     : "GBO Vision — Enterprise AI and custom software for business growth.";
 
-// Nothing else on the page states, in a form Google parses, that GBO Vision is
-// an organisation and this is its site — so a search for the brand has no
-// entity to attach the domain to. sameAs is left off until there are real
-// profiles to point at; a wrong one is worse than none.
-const organizationSchema = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "GBO Vision",
-  url: englishUrl.href,
-  logo: new URL("/gbobo2.svg", siteOrigin).href,
+// One @graph rather than a lone Organization: the page, the site and the company
+// are separate nodes that reference each other by @id, so Google reads one entity
+// described from several angles instead of a bare domain it cannot place. That is
+// the part of the "gbovision" → "globovision" correction we can actually control.
+const schemaGraph = buildGraph({
+  origin: siteOrigin,
+  canonical: canonicalUrl,
+  locale,
+  siteDescription: metadata.siteDescription,
+  title: metadata.title,
   description: metadata.description,
-};
+  pageType: metadata.pageType,
+  extraNodes: extraSchema,
+});
 ---
 
 <!doctype html>
@@ -101,16 +115,20 @@ const organizationSchema = {
     <title>{metadata.title}</title>
     <meta name="description" content={metadata.description} />
     <meta name="keywords" content={metadata.keywords.join(", ")} />
-    <meta name="author" content="GBO Vision Team" />
+    <meta name="author" content={`${brand.name} Team`} />
+    <meta name="application-name" content={brand.name} />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href={canonicalUrl} />
-    <link rel="alternate" hreflang="en" href={englishUrl} />
-    <link rel="alternate" hreflang="tr" href={turkishUrl} />
-    <link rel="alternate" hreflang="x-default" href={englishUrl} />
+    {
+      alternateUrls.map(({ code, href }) => (
+        <link rel="alternate" hreflang={code} href={href} />
+      ))
+    }
+    <link rel="alternate" hreflang="x-default" href={defaultAlternateUrl} />
     <meta property="og:title" content={metadata.title} />
     <meta property="og:description" content={metadata.description} />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="GBO Vision" />
+    <meta property="og:site_name" content={brand.name} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:locale" content={ogLocale} />
     <meta property="og:image" content={socialImageUrl} />
@@ -124,10 +142,20 @@ const organizationSchema = {
     <script
       type="application/ld+json"
       is:inline
-      set:html={JSON.stringify(organizationSchema)}
+      set:html={JSON.stringify(schemaGraph)}
     />
     {/* Inert unless the URL carries ?probe=1. */}
     <CrashProbe />
+    {
+      import.meta.env.PROD && (
+        <script
+          src="https://app.rybbit.io/api/script.js"
+          data-site-id="3b0d7d9849c5"
+          defer
+          is:inline
+        />
+      )
+    }
   </head>
   <body
     class="min-h-full flex flex-col font-sans bg-background text-foreground selection:bg-brand/25 selection:text-foreground"

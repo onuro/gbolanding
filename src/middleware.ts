@@ -1,6 +1,7 @@
 import { defineMiddleware } from "astro:middleware";
 
 import { defaultLocale, hasLocale, localeCookieName } from "@/i18n/config";
+import { turkishCounterpart } from "@/i18n/routes";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
@@ -107,16 +108,21 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const locale = preferredLocale(request, cookies.get(localeCookieName)?.value);
 
-  if (pathname === "/" && locale === "tr" && !isCrawler(request)) {
+  // Only paths that actually have a Turkish twin are candidates, so /api/* and
+  // /gbo/* can never be redirected into a locale prefix that does not exist --
+  // by construction rather than by remembering to exclude them.
+  const turkishPath = turkishCounterpart(pathname);
+
+  if (turkishPath && locale === "tr" && !isCrawler(request)) {
     cookies.set(localeCookieName, "tr", {
       path: "/",
       sameSite: "lax",
       maxAge: COOKIE_MAX_AGE,
     });
-    return redirect(`/tr${query}`);
+    return redirect(`${turkishPath}${query}`);
   }
 
-  if (pathname === "/") {
+  if (turkishPath) {
     cookies.set(localeCookieName, "en", {
       path: "/",
       sameSite: "lax",

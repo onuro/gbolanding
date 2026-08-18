@@ -14,11 +14,15 @@ const homeHref = locale === "tr" ? "/tr" : "/";
 const primaryNavigationLabel =
   locale === "tr" ? "Ana menü" : "Primary navigation";
 const menuLabel = locale === "tr" ? "Menü" : "Menu";
+const aboutHref = locale === "tr" ? "/tr/about" : "/about";
+// Anchored to the home page rather than left as bare fragments: the same header
+// renders on /about, where "#solutions" would point at a section that is not on
+// the page. On the home page these still resolve to a same-page jump.
 const navItems = [
-  { href: "#solutions", label: messages.nav.solutions },
-  { href: "#kollektor", label: messages.nav.kollektor },
-  { href: "#platform", label: messages.nav.platform },
-  { href: "#method", label: messages.nav.method },
+  { href: `${homeHref}#solutions`, label: messages.nav.solutions },
+  { href: `${homeHref}#kollektor`, label: messages.nav.kollektor },
+  { href: `${homeHref}#method`, label: messages.nav.method },
+  { href: aboutHref, label: messages.nav.about },
 ];
 ---
 
@@ -145,7 +149,7 @@ const navItems = [
             aria-label={messages.nav.languageLabel}
             class="flex items-center justify-between px-5 py-3"
           >
-            <span class="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+            <span class="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
               {messages.nav.languageLabel}
             </span>
             <span class="flex items-center gap-1">

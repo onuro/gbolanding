@@ -39,16 +39,45 @@ export interface ApproachStepMessage {
   description: string;
 }
 
+export interface AboutMessages {
+  /** Own title/description: /about must never share the home page's metadata. */
+  metaTitle: string;
+  metaDescription: string;
+  eyebrow: string;
+  title: string;
+  /** Names the company in the first sentence, in both spellings. */
+  lead: string;
+  bodyTitle: string;
+  body: [string, string];
+  productsTitle: string;
+  productsIntro: string;
+  factsTitle: string;
+  factLabels: {
+    legalName: string;
+    based: string;
+    languages: string;
+    products: string;
+    contact: string;
+    site: string;
+  };
+  factValues: {
+    based: string;
+    languages: string;
+    products: string;
+  };
+}
+
 export interface Messages {
   metadata: {
     title: string;
     description: string;
   };
+  about: AboutMessages;
   nav: {
     solutions: string;
     kollektor: string;
-    platform: string;
     method: string;
+    about: string;
     languageLabel: string;
     scheduleDemo: string;
   };
@@ -181,6 +210,7 @@ export interface Messages {
     kollektor: string;
     platform: string;
     method: string;
+    about: string;
     rightsReserved: string;
   };
 }

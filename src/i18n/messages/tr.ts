@@ -4,13 +4,43 @@ const trMessages: Messages = {
   metadata: {
     title: "Kurumsal Yapay Zeka ve Özel Yazılım | GBO Vision",
     description:
-      "GBO Vision, kurumsal yapay zeka ve özel yazılım geliştirir. Karmaşık işleri ve dağınık veriyi, manuel işi azaltan ve iş büyümesini destekleyen araçlara dönüştürür.",
+      "GBO Vision, kurumsal yapay zeka ve özel yazılım geliştirir. Karmaşık işleri ve dağınık veriyi, el emeğini azaltan ve büyümeyi hızlandıran araçlara çevirir.",
+  },
+  about: {
+    metaTitle: "GBO Vision Hakkında | Kurumsal Yapay Zeka Ajansı",
+    metaDescription:
+      "GBO Vision (gbovision.com), Türkiye merkezli bir kurumsal yapay zeka ajansıdır. Şirketler için yapay zeka ürünleri ve özel yazılım geliştiriyoruz.",
+    eyebrow: "Şirket hakkında",
+    title: "GBO Vision, işinize yarayan yapay zeka kurar.",
+    lead: "GBO Vision, ya da gbovision, kurumsal bir yapay zeka ajansıdır. Yapay zeka ürünleri ve özel yazılım kurarız. Yavaş ilerleyen el işlerini, ekiplerin her gün açtığı araçlara çeviririz.",
+    bodyTitle: "Kimlerle çalışıyoruz",
+    body: [
+      "Hukuk büroları, bankalar ve değerleme firmaları ile çalışırız. Müşterilerimizin çoğu Türkiye'de. Yurt dışındaki ekiplere de iş yaparız. İngilizce ve Türkçe çalışırız.",
+      "Biz aynı zamanda bir ürün şirketiyiz. Kendi yazılımımızı yayına alır ve işletiriz. Kollektor ve Intelval şu an canlıda. İkisi de gerçek müşteri işinden doğdu.",
+    ],
+    productsTitle: "Neler kurduk",
+    productsIntro:
+      "İki ürün bizim adımızı taşır. İkisi de müşteri işi olarak başladı, sonra kendi ürünümüz oldu.",
+    factsTitle: "Şirket bilgileri",
+    factLabels: {
+      legalName: "Ticari unvan",
+      based: "Merkez",
+      languages: "Diller",
+      products: "Ürünler",
+      contact: "İletişim",
+      site: "Site",
+    },
+    factValues: {
+      based: "Türkiye",
+      languages: "İngilizce, Türkçe",
+      products: "Kollektor, Intelval",
+    },
   },
   nav: {
     solutions: "Çözümler",
     kollektor: "Kollektor",
-    platform: "Platform",
     method: "Yaklaşım",
+    about: "Hakkımızda",
     languageLabel: "Dil",
     scheduleDemo: "Demo talep edin",
   },
@@ -48,16 +78,16 @@ const trMessages: Messages = {
   },
   intro: {
     eyebrow: "Yapay zeka iş ortağınız",
-    title: "Sorunları işletmeniz için kazançlı yapay zekaya dönüştürüyoruz.",
+    title: "Operasyonel sorunları kazançlı yapay zekaya dönüştürüyoruz.",
     description:
-      "Ekibinizin nasıl çalıştığını anlarız. Sonra yapay zekanın en çok nerede yardımcı olacağını belirleriz.",
+      "Ekibinizin nasıl çalıştığını anlarız. Sonra yapay zekanın en çok nerede ve nasıl yardımcı olacağını belirleriz.",
   },
   solutions: {
     kollektor: {
       eyebrow: "Sesli yapay zeka ile tahsilat",
       title: "Kollektor",
       description:
-        "Kollektor, hukuk büroları ve varlık alacakları adına borçluları telefonla arayan bir yapay zeka asistanı. Günde 10.000'e kadar görüşme yapar, ödeme planını konuşur ve bugüne kadar 23,9 milyon TL tahsilat sağladı.",
+        "Kollektor, hukuk büroları ve varlık alacakları adına borçluları telefonla arar. Bir yapay zeka asistanıdır. Günde 10.000'e kadar görüşme yapar. Ödeme planını konuşur. Bugüne kadar 23,9 milyon TL tahsilat sağladı.",
       highlights: [
         "Günde 10.000 arama",
         "23,9 milyon TL tahsilat",
@@ -69,7 +99,7 @@ const trMessages: Messages = {
       eyebrow: "Değerleme için yapay zeka",
       title: "Intelval",
       description:
-        "Intelval, değerleme firmaları için gayrimenkul emsal ve ekspertiz raporlarını analiz eder ve bilirkişi uzmanlık seviyesinde raporlar oluşturur.",
+        "Intelval, değerleme firmaları için emsal ve ekspertiz raporlarını okur. Gayrimenkul ve şirket değerini analiz eder. Sonra uzman düzeyinde bir rapor yazar.",
       highlights: [
         "İşletme değeri",
         "Gayrimenkul değeri",
@@ -81,14 +111,14 @@ const trMessages: Messages = {
       eyebrow: "Özel yapay zeka ve yazılım",
       title: "İşinize göre tasarlandı.",
       description:
-        "Hazır paket bir SaaS değil. Denetimden inşaya, iş akışınıza, verinize ve hedeflerinize göre ilerleriz.",
+        "Hazır paket bir SaaS değil. Analizden inşaya, iş akışınıza, verinize ve hedeflerinize göre ilerleriz.",
       phases: [
         {
           number: "01",
-          title: "Denetim",
+          title: "Analiz",
           summary: "İşin nerede tıkandığı.",
           description:
-            "İşi yapan ekiple birlikte oturur, süreci uçtan uca izleriz: kullanıcılar, araçlar, devir noktaları ve altındaki veri. Sürtünmenin size saat, gelir ve doğruluk olarak neye mal olduğunu netleştirir, çözmeye değecek olana göre sıralarız.",
+            "İşi yapan ekiple oturur, süreci baştan sona izleriz. Kullanıcılar, araçlar, devir noktaları ve veri. Sonra sürtünmenin size neye mal olduğunu ortaya koyarız: saat, gelir, doğruluk. Çözmeye değecek olana göre sıralarız.",
           deliverables: [
             "Sürtünme haritası",
             "Manuel işin maliyeti",
@@ -139,7 +169,7 @@ const trMessages: Messages = {
     eyebrow: "Ürün · Kollektor",
     title: "Telefonda tahsildar. Ekranda canlı operasyon.",
     description:
-      "Kollektor, banka ve kurumların varlık alacaklarını telefon aramalarıyla tahsil eder. Ödeme ister, borçluya yapılandırma yapar ve gerçekleşmiş ödemeleri alır. Tüm işlem yapay zeka ses ajanı ile gerçekleşir. Ekibiniz tahsilatı görür.",
+      "Kollektor, banka ve kurumların varlık alacaklarını telefonla tahsil eder. Ödeme ister. Borçluyla ödeme planı kurar. Gelen ödemeleri alır. Tüm süreç yapay zeka ses ajanı ile işler. Ekibiniz tahsilatı görür.",
     pipelineLabel: "Listeden tahsilata",
     pipeline: [
       {
@@ -160,24 +190,24 @@ const trMessages: Messages = {
       {
         number: "04",
         title: "Kayıt",
-        description: "Ödeme sözü, tahsilat kayıtları ve değişken görüşme senaryoları anlık kaydedilir.",
+        description: "Ödeme sözü ve tahsilat kaydı anında yazılır. Görüşme akışı da öyle.",
       },
       {
         number: "05",
         title: "Devir",
-        description: "Sonuçlanan aramaların ödeme, ödeme sözü, red veya diğer senaryoları kaydedilir.",
+        description: "Biten aramalar kaydedilir: ödeme, ödeme sözü, red ya da başka bir sonuç.",
       },
       {
         number: "06",
         title: "Rapor",
-        description: "Sonuçlanan görüşmeler günlük olarak raporlanır, ödemeler, sözler ve diğer senaryolar ekibe gönderilir.",
+        description: "Biten görüşmeler her gün raporlanır. Ödemeler, sözler ve diğer sonuçlar ekibe gider.",
       },
     ],
     chapters: [
       {
         title: "Listeden açılan arama grupları",
         description:
-          "Borçlu, alacak listesi, vade ve yapılandırma imkânları otomatik olarak veritabanından otomasyon için çalıştırılır.",
+          "Borçlu ve alacak listeleri veri tabanından gelir. Vade ve ödeme planı da gelir. Aramalar otomatik başlar.",
       },
       {
         title: "Canlı ses hattı",
@@ -271,7 +301,7 @@ const trMessages: Messages = {
       {
         title: "Yapay zeka otomasyonu",
         description:
-          "Tekrarlanan işleri hızlandırır ve ekibinizi destekler.",
+          "Rutin işleri hızlandırır. Ekibinize destek olur.",
       },
       {
         title: "Veri entegrasyonu",
@@ -281,7 +311,7 @@ const trMessages: Messages = {
       {
         title: "İnsan denetimi",
         description:
-          "Önemli kararları ekibinizin kontrolünde tutarız.",
+          "Önemli kararlar sizde kalır.",
       },
       {
         title: "Sürekli iyileştirme",
@@ -294,25 +324,25 @@ const trMessages: Messages = {
     eyebrow: "Nasıl çalışıyoruz",
     title: "İş probleminden çalışan ürüne.",
     description:
-      "Araçla değil, işinizle başlarız. Sonra ekibinizle birlikte tasarlar, geliştirir ve iyileştiririz.",
+      "Araçla değil, işinizle başlarız. Sonra ekibinizle tasarlar, kurar ve iyileştiririz.",
     steps: [
       {
         number: "01",
         title: "Keşfet",
         description:
-          "Hedeflerinizi, iş akışınızı, verinizi ve aksayan noktaları tek tek çıkarırız.",
+          "Hedefleri, iş akışını, veriyi ve aksayan noktaları tek tek çıkarırız.",
       },
       {
         number: "02",
         title: "Tasarla",
         description:
-          "Doğru yapay zeka ürününü, kullanıcı deneyimini ve uygulama planını tanımlarız.",
+          "Doğru ürünü seçeriz. Kullanıcı akışını ve teslim planını yazarız.",
       },
       {
         number: "03",
         title: "Geliştir",
         description:
-          "Sistemlerinizi bağlar, planı çalışan yazılıma dönüştürürüz.",
+          "Sistemleri bağlarız. Planı çalışan yazılıma çeviririz.",
       },
       {
         number: "04",
@@ -350,6 +380,7 @@ const trMessages: Messages = {
     kollektor: "Kollektor",
     platform: "Platform",
     method: "Yaklaşım",
+    about: "Hakkımızda",
     rightsReserved: "Tüm hakları saklıdır",
   },
 };

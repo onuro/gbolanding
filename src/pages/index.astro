@@ -3,12 +3,18 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import HomePage from "@/components/HomePage.astro";
 import { getMessages } from "@/i18n/getMessages";
 import { buildMetadata } from "@/i18n/metadata";
+import { buildProductNodes } from "@/lib/schema";
 
 const locale = "en" as const;
 const messages = await getMessages(locale);
 const metadata = buildMetadata(locale, messages);
+// Kollektor and Intelval only, and only here -- they are named on this page.
+const productSchema = buildProductNodes(
+  new URL(Astro.site ?? Astro.url.origin),
+  messages,
+);
 ---
 
-<BaseLayout locale={locale} metadata={metadata}>
+<BaseLayout locale={locale} metadata={metadata} extraSchema={productSchema}>
   <HomePage locale={locale} messages={messages} />
 </BaseLayout>

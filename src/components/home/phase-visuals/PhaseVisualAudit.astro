@@ -11,14 +11,14 @@ const { locale } = Astro.props;
 const copy =
   locale === "tr"
     ? {
-        title: "Denetim / Sürtünme haritası",
+        title: "Analiz / Sürtünme haritası",
         lanes: ["Kullanıcılar", "Araçlar", "Devirler", "Veri"],
         laneUnit: "akış",
         flagged: "sürtünme noktası",
         clear: "sorunsuz",
       }
     : {
-        title: "Audit / Friction map",
+        title: "Analyze / Friction map",
         lanes: ["Users", "Tools", "Handoffs", "Data"],
         laneUnit: "lanes",
         flagged: "friction points",
@@ -51,7 +51,7 @@ const flagged = lanes.reduce((total, lane) => total + lane.hot.length, 0);
     {
       lanes.map((lane) => (
         <div class="grid grid-cols-[4.25rem_1fr_1.75rem] items-center gap-3 sm:grid-cols-[6rem_1fr_2rem] sm:gap-4">
-          <span class="truncate font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/45">
+          <span class="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/45">
             {lane.label}
           </span>
           <span class="flex h-4 items-stretch gap-[2px]">
@@ -80,7 +80,7 @@ const flagged = lanes.reduce((total, lane) => total + lane.hot.length, 0);
   </div>
 
   <div
-    class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-border pt-4 font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/40"
+    class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-border pt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/40"
   >
     <span class="flex items-center gap-2">
       <span class="size-1.5 rounded-[1px] bg-attention"></span>

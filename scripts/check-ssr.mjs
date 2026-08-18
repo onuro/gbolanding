@@ -10,7 +10,7 @@ const entry = new URL(
 const { default: handler } = await import(entry.href);
 
 // The two routes that render the orb. /en/* only redirects, so it renders nothing.
-for (const path of ["/", "/tr"]) {
+for (const path of ["/", "/tr", "/about", "/tr/about"]) {
   const res = await handler.fetch(new Request(`https://gbovision.com${path}`));
   if (res.status >= 500) {
     console.error(`FAIL ${path} -> ${res.status}`);

@@ -53,7 +53,7 @@ const copy =
           {enterprise.eyebrow}
         </p>
         <span
-          class="font-mono text-[9px] uppercase tracking-[0.18em] text-foreground/30"
+          class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/30"
         >
           {copy.solution} / 03
         </span>
@@ -90,12 +90,12 @@ const copy =
         class="flex h-9 items-center justify-between border-b border-border px-5 sm:px-8 lg:px-10"
       >
         <span
-          class="font-mono text-[9px] uppercase tracking-[0.16em] text-foreground/45"
+          class="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/45"
         >
           {copy.cadence}
         </span>
         <span
-          class="font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/25"
+          class="font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/25"
         >
           {total} {copy.phasesUnit}
         </span>
@@ -148,7 +148,7 @@ const copy =
       </div>
 
       <div
-        class="mt-auto hidden items-center border-t border-border px-10 py-4 font-mono text-[9px] uppercase tracking-[0.14em] text-foreground/25 lg:flex"
+        class="mt-auto hidden items-center border-t border-border px-10 py-4 font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/25 lg:flex"
       >
         {copy.navHint}
       </div>
@@ -182,13 +182,13 @@ const copy =
               </p>
 
               <div class="mt-8 border-t border-border pt-5">
-                <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-foreground/35">
+                <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/35">
                   {copy.deliverables}
                 </p>
                 <ul class="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-3">
                   {phase.deliverables.map((item, position) => (
                     <li class="flex items-baseline gap-2.5">
-                      <span class="font-mono text-[9px] tabular-nums text-foreground/25">
+                      <span class="font-mono text-[10px] tabular-nums text-foreground/25">
                         {String(position + 1).padStart(2, "0")}
                       </span>
                       <span class="text-pretty text-sm leading-6 text-foreground/75">

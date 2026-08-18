@@ -1,0 +1,14 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import AboutPage from "@/components/AboutPage.astro";
+import { getMessages } from "@/i18n/getMessages";
+import { buildMetadata } from "@/i18n/metadata";
+
+const locale = "tr" as const;
+const messages = await getMessages(locale);
+const metadata = buildMetadata(locale, messages, "about");
+---
+
+<BaseLayout locale={locale} metadata={metadata}>
+  <AboutPage locale={locale} messages={messages} />
+</BaseLayout>

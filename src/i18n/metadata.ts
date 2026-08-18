@@ -1,17 +1,32 @@
 import type { Locale } from "@/i18n/config";
+import { routes, type PageKey } from "@/i18n/routes";
 import type { Messages } from "@/i18n/types";
 
 export interface PageMetadata {
   title: string;
   description: string;
   canonicalPath: string;
+  /**
+   * Every locale's URL for *this* page. BaseLayout emits hreflang from this
+   * rather than from hardcoded "/" and "/tr", which would otherwise advertise
+   * the home page as the Turkish alternate of /about.
+   */
+  alternates: Record<Locale, string>;
   locale: Locale;
   keywords: string[];
+  page: PageKey;
+  pageType: "WebPage" | "AboutPage";
+  /** The company description, identical on every page, for the JSON-LD entity. */
+  siteDescription: string;
 }
 
-export function buildMetadata(locale: Locale, messages: Messages): PageMetadata {
+export function buildMetadata(
+  locale: Locale,
+  messages: Messages,
+  page: PageKey = "home",
+): PageMetadata {
   const isDefault = locale === "en";
-  const canonicalPath = isDefault ? "/" : `/${locale}`;
+  const canonicalPath = routes[page][locale];
   const keywords = isDefault
     ? [
         "GBO Vision",
@@ -39,11 +54,19 @@ export function buildMetadata(locale: Locale, messages: Messages): PageMetadata 
         "değerleme yazılımı",
       ];
 
+  const isAbout = page === "about";
+
   return {
-    title: messages.metadata.title,
-    description: messages.metadata.description,
+    title: isAbout ? messages.about.metaTitle : messages.metadata.title,
+    description: isAbout
+      ? messages.about.metaDescription
+      : messages.metadata.description,
     canonicalPath,
+    alternates: { ...routes[page] },
     locale,
     keywords,
+    page,
+    pageType: isAbout ? "AboutPage" : "WebPage",
+    siteDescription: messages.metadata.description,
   };
 }

@@ -1,6 +1,6 @@
 ---
 interface Props {
-  /** Console label, e.g. "Audit / Friction map". */
+  /** Console label, e.g. "Analyze / Friction map". */
   title: string;
   /** Right-hand meta, e.g. "04 lanes". */
   meta: string;
@@ -16,13 +16,13 @@ const { title, meta, live = false } = Astro.props;
     class="flex h-9 items-center justify-between gap-4 border-b border-border px-5 sm:px-8 lg:px-12"
   >
     <span
-      class="truncate font-mono text-[9px] uppercase tracking-[0.16em] text-foreground/45"
+      class="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/45"
     >
       {title}
     </span>
     <span
       class:list={[
-        "flex shrink-0 items-center gap-2 font-mono text-[9px] uppercase tracking-[0.14em]",
+        "flex shrink-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em]",
         live ? "text-brand" : "text-foreground/25",
       ]}
     >

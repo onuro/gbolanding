@@ -6,11 +6,41 @@ const enMessages: Messages = {
     description:
       "GBO Vision builds enterprise AI and custom software. We turn complex work and scattered data into tools that cut manual work and help your business grow.",
   },
+  about: {
+    metaTitle: "About GBO Vision | Enterprise AI Agency",
+    metaDescription:
+      "GBO Vision (gbovision.com) is an enterprise AI agency based in Türkiye. We build AI products and custom software for companies that want to grow.",
+    eyebrow: "About the company",
+    title: "GBO Vision builds AI that teams actually use.",
+    lead: "GBO Vision, or gbovision, is an enterprise AI agency. We build AI products and custom software. Our work turns slow manual processes into tools teams use every day.",
+    bodyTitle: "Who we work with",
+    body: [
+      "We work with law firms, banks, and valuation firms. Most of our clients are in Türkiye, and we build for teams outside it too. We work in English and Turkish.",
+      "We are a product company as much as an agency. We ship our own software and we run it. Kollektor and Intelval are both live, and both grew out of real client work.",
+    ],
+    productsTitle: "What we have built",
+    productsIntro:
+      "Two products carry our name. Each one started as client work and became something we run ourselves.",
+    factsTitle: "Company details",
+    factLabels: {
+      legalName: "Legal name",
+      based: "Based in",
+      languages: "Languages",
+      products: "Products",
+      contact: "Contact",
+      site: "Site",
+    },
+    factValues: {
+      based: "Türkiye",
+      languages: "English, Turkish",
+      products: "Kollektor, Intelval",
+    },
+  },
   nav: {
     solutions: "Solutions",
     kollektor: "Kollektor",
-    platform: "Platform",
     method: "How we work",
+    about: "About",
     languageLabel: "Language",
     scheduleDemo: "Schedule a demo",
   },
@@ -81,11 +111,11 @@ const enMessages: Messages = {
       eyebrow: "Custom AI and software",
       title: "Built for your business.",
       description:
-        "No generic SaaS. From audit to build, we design around your work, data, and goals.",
+        "No generic SaaS. From analysis to build, we design around your work, data, and goals.",
       phases: [
         {
           number: "01",
-          title: "Audit",
+          title: "Analyze",
           summary: "Where the work actually breaks.",
           description:
             "We sit with the people doing the work and follow it end to end — users, tools, handoffs, and the data underneath. Then we name where friction is costing you hours, revenue, or accuracy, and rank it by what it is worth to fix.",
@@ -349,6 +379,7 @@ const enMessages: Messages = {
     kollektor: "Kollektor",
     platform: "Platform",
     method: "How we work",
+    about: "About",
     rightsReserved: "All rights reserved",
   },
 };

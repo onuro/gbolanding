@@ -55,7 +55,7 @@ const scope = [
             <li class="flex flex-col items-center gap-3 px-1 text-center">
               <span
                 class:list={[
-                  "relative z-10 flex size-[1.375rem] items-center justify-center rounded-full border font-mono text-[8px] tabular-nums",
+                  "relative z-10 flex size-[1.375rem] items-center justify-center rounded-full border font-mono text-[10px] tabular-nums",
                   on
                     ? "border-brand bg-brand text-brand-foreground"
                     : "border-border bg-background text-foreground/45",
@@ -65,7 +65,7 @@ const scope = [
               </span>
               <span
                 class:list={[
-                  "font-mono text-[8px] uppercase leading-tight tracking-[0.1em] sm:text-[9px]",
+                  "font-mono text-[10px] uppercase leading-tight tracking-[0.1em]",
                   on ? "text-foreground/75" : "text-foreground/40",
                 ]}
               >
@@ -88,7 +88,7 @@ const scope = [
         class="absolute top-0 h-2 w-px bg-brand-line"
         style={`left: calc(${bracket.left} + ${bracket.width});`}></span>
       <span
-        class="absolute top-3.5 -translate-x-1/2 whitespace-nowrap font-mono text-[8px] uppercase tracking-[0.14em] text-brand"
+        class="absolute top-3.5 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.14em] text-brand"
         style={`left: ${bracket.mid};`}
       >
         {copy.automated}
@@ -100,7 +100,7 @@ const scope = [
     {
       scope.map((row) => (
         <div class="flex items-center justify-between gap-3">
-          <span class="font-mono text-[9px] uppercase tracking-[0.12em] text-foreground/45">
+          <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-foreground/45">
             {row.label}
           </span>
           <span class="flex items-center gap-2">
