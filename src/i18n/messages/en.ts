@@ -15,7 +15,7 @@ const enMessages: Messages = {
     lead: "GBO Vision, or gbovision, is an enterprise AI agency. We build AI products and custom software. Our work turns slow manual processes into tools teams use every day.",
     bodyTitle: "Who we work with",
     body: [
-      "We work with law firms, banks, and valuation firms. Most of our clients are in Türkiye, and we build for teams outside it too. We work in English and Turkish.",
+      "We work with law firms, banks, and valuation firms. Most of our clients are in Türkiye, and we build for teams outside it too. We work in English, German, and Turkish.",
       "We are a product company as much as an agency. We ship our own software and we run it. Kollektor and Intelval are both live, and both grew out of real client work.",
     ],
     productsTitle: "What we have built",
@@ -32,7 +32,7 @@ const enMessages: Messages = {
     },
     factValues: {
       based: "Türkiye",
-      languages: "English, Turkish",
+      languages: "English, German, Turkish",
       products: "Kollektor, Intelval",
     },
   },

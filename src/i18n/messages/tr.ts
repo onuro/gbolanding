@@ -11,14 +11,14 @@ const trMessages: Messages = {
     metaDescription:
       "GBO Vision (gbovision.com), Türkiye merkezli bir kurumsal yapay zeka ajansıdır. Şirketler için yapay zeka ürünleri ve özel yazılım geliştiriyoruz.",
     eyebrow: "Şirket hakkında",
-    title: "GBO Vision, işinize yarayan yapay zeka kurar.",
-    lead: "GBO Vision, ya da gbovision, kurumsal bir yapay zeka ajansıdır. Yapay zeka ürünleri ve özel yazılım kurarız. Yavaş ilerleyen el işlerini, ekiplerin her gün açtığı araçlara çeviririz.",
-    bodyTitle: "Kimlerle çalışıyoruz",
+    title: "GBO Vision, işinize yarayan yapay zeka üretir.",
+    lead: "GBO Vision, ya da gbovision, kurumsal bir yapay zeka ajansıdır. Yapay zeka ürünleri ve özel yazılımlar oluştururuz. Yavaş ilerleyen el işlerini, ekiplerin her gün açtığı araçlara çeviririz.",
+    bodyTitle: "Kimlerle çalışıyoruz?",
     body: [
-      "Hukuk büroları, bankalar ve değerleme firmaları ile çalışırız. Müşterilerimizin çoğu Türkiye'de. Yurt dışındaki ekiplere de iş yaparız. İngilizce ve Türkçe çalışırız.",
+      "Hukuk büroları, bankalar ve değerleme firmaları ile çalışırız. Müşterilerimizin çoğu Türkiye'de. Yurt dışındaki ekiplere de iş yaparız. İngilizce, Almanca ve Türkçe çalışırız.",
       "Biz aynı zamanda bir ürün şirketiyiz. Kendi yazılımımızı yayına alır ve işletiriz. Kollektor ve Intelval şu an canlıda. İkisi de gerçek müşteri işinden doğdu.",
     ],
-    productsTitle: "Neler kurduk",
+    productsTitle: "Neler ürettik",
     productsIntro:
       "İki ürün bizim adımızı taşır. İkisi de müşteri işi olarak başladı, sonra kendi ürünümüz oldu.",
     factsTitle: "Şirket bilgileri",
@@ -32,7 +32,7 @@ const trMessages: Messages = {
     },
     factValues: {
       based: "Türkiye",
-      languages: "İngilizce, Türkçe",
+      languages: "İngilizce, Almanca, Türkçe",
       products: "Kollektor, Intelval",
     },
   },
