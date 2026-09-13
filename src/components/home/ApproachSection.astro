@@ -1,6 +1,8 @@
 ---
+import { Image } from "astro:assets";
 import { Blocks, Plug, RefreshCw, Search } from "lucide-react";
 
+import worktableImage from "@/assets/editorial/collaborative-worktable.png";
 import BlinkText from "@/components/BlinkText";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
@@ -44,6 +46,20 @@ const stepIcons = [Search, Blocks, Plug, RefreshCw] as const;
         </p>
       </div>
     </header>
+
+    <div class="h-64 overflow-hidden border-b border-border bg-muted sm:h-80 lg:h-96" aria-hidden="true">
+      <Image
+        src={worktableImage}
+        alt=""
+        widths={[480, 800, 1340, 1536]}
+        sizes="(min-width: 1340px) 1340px, 100vw"
+        format="webp"
+        quality={82}
+        loading="lazy"
+        decoding="async"
+        class="h-full w-full object-cover object-[50%_54%]"
+      />
+    </div>
 
     <ol class="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
       {
