@@ -15,6 +15,13 @@ export default defineConfig({
   // request origin, so a preview deploy can't hand Google a *.vercel.app URL
   // that canonicalises to itself. www redirects here, not the other way round.
   site: "https://gbovision.com",
+  trailingSlash: "never",
+  // Legacy Turkish links redirect at the hosting layer. The homepage itself
+  // serves Turkish directly, with no location, language or cookie negotiation.
+  redirects: {
+    "/tr": { destination: "/", status: 301 },
+    "/tr/about": { destination: "/about", status: 301 },
+  },
   output: "server",
   adapter: vercel(),
   integrations: [

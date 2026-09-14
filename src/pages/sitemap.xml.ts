@@ -1,14 +1,12 @@
 import type { APIRoute } from "astro";
 
-import { locales } from "@/i18n/config";
+import { defaultLocale, locales } from "@/i18n/config";
 import { pageKeys, routes } from "@/i18n/routes";
 
-export const prerender = false;
+export const prerender = true;
 
-// @astrojs/sitemap only emits prerendered routes and every page here is SSR, so
-// the URLs are built by hand from the shared route table. /en is a redirect and
-// stays out -- a sitemap that lists redirects is how you teach Google to
-// distrust the sitemap.
+// Only canonical pages belong in the sitemap; legacy /tr redirect URLs stay out.
+// The shared route table also keeps each page's language alternates together.
 export const GET: APIRoute = ({ site }) => {
   // `site` is set in astro.config.mjs; the fallback only matters if it is ever
   // unset again, and pointing at www would list URLs that redirect.
@@ -26,7 +24,7 @@ export const GET: APIRoute = ({ site }) => {
         (code) =>
           `    <xhtml:link rel="alternate" hreflang="${code}" href="${href(cluster[code])}"/>`,
       ),
-      `    <xhtml:link rel="alternate" hreflang="x-default" href="${href(cluster.en)}"/>`,
+      `    <xhtml:link rel="alternate" hreflang="x-default" href="${href(cluster[defaultLocale])}"/>`,
     ].join("\n");
 
     return locales.map(
@@ -46,7 +44,6 @@ ${urls.join("\n")}
   return new Response(body, {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600",
     },
   });
 };

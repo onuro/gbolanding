@@ -179,10 +179,10 @@ if (en.fk > THRESHOLDS.en.fk)
 
 // ---- Metadata ----------------------------------------------------------------
 const pages = [
-  { id: "en /", title: field(enSource, "metadata", "title"), description: field(enSource, "metadata", "description") },
-  { id: "en /about", title: field(enSource, "about", "metaTitle"), description: field(enSource, "about", "metaDescription") },
-  { id: "tr /tr", title: field(trSource, "metadata", "title"), description: field(trSource, "metadata", "description") },
-  { id: "tr /tr/about", title: field(trSource, "about", "metaTitle"), description: field(trSource, "about", "metaDescription") },
+  { id: "en /en", title: field(enSource, "metadata", "title"), description: field(enSource, "metadata", "description") },
+  { id: "en /en/about", title: field(enSource, "about", "metaTitle"), description: field(enSource, "about", "metaDescription") },
+  { id: "tr /", title: field(trSource, "metadata", "title"), description: field(trSource, "metadata", "description") },
+  { id: "tr /about", title: field(trSource, "about", "metaTitle"), description: field(trSource, "about", "metaDescription") },
 ];
 
 console.log("\nMetadata");

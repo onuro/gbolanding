@@ -2,8 +2,8 @@
   "id": "/",
   "name": "GBO Vision",
   "short_name": "GBO",
-  "description": "GBO Vision (gbovision.com) is an enterprise AI agency. We build AI products and custom software.",
-  "lang": "en",
+  "description": "GBO Vision (gbovision.com), kurumsal yapay zeka ürünleri ve özel yazılım geliştirir.",
+  "lang": "tr",
   "scope": "/",
   "start_url": "/",
   "icons": [

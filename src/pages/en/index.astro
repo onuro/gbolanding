@@ -1,3 +1,21 @@
 ---
-return Astro.redirect("/", 302);
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import HomePage from "@/components/HomePage.astro";
+import { getMessages } from "@/i18n/getMessages";
+import { buildMetadata } from "@/i18n/metadata";
+import { buildProductNodes } from "@/lib/schema";
+
+export const prerender = true;
+
+const locale = "en" as const;
+const messages = await getMessages(locale);
+const metadata = buildMetadata(locale, messages);
+const productSchema = buildProductNodes(
+  new URL(Astro.site ?? Astro.url.origin),
+  messages,
+);
 ---
+
+<BaseLayout locale={locale} metadata={metadata} extraSchema={productSchema}>
+  <HomePage locale={locale} messages={messages} />
+</BaseLayout>

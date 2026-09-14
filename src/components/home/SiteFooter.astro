@@ -2,6 +2,7 @@
 import { ArrowUpRight, Languages } from "lucide-react";
 
 import type { Locale } from "@/i18n/config";
+import { pageKeys, pathFor, routes } from "@/i18n/routes";
 import type { Messages } from "@/i18n/types";
 import { brand } from "@/lib/brand";
 
@@ -12,10 +13,15 @@ interface Props {
 
 const { locale, messages } = Astro.props;
 const year = new Date().getFullYear();
-const homeHref = locale === "tr" ? "/tr" : "/";
+const homeHref = pathFor("home", locale);
+const pathname = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const currentPage =
+  pageKeys.find((page) =>
+    Object.values(routes[page]).some((path) => path === pathname),
+  ) ?? "home";
 // Fragments are anchored to the home page because this footer also renders on
 // /about, where the sections they point at do not exist.
-const aboutHref = locale === "tr" ? "/tr/about" : "/about";
+const aboutHref = pathFor("about", locale);
 ---
 
 <footer class="bg-background">
@@ -94,7 +100,7 @@ const aboutHref = locale === "tr" ? "/tr/about" : "/about";
           class="mt-8 flex items-center gap-1 rounded-full border border-border p-1"
         >
           <a
-            href="/en"
+            href={pathFor(currentPage, "en")}
             hreflang="en"
             lang="en"
             aria-current={locale === "en" ? "page" : undefined}
@@ -106,7 +112,7 @@ const aboutHref = locale === "tr" ? "/tr/about" : "/about";
             EN
           </a>
           <a
-            href="/tr"
+            href={pathFor(currentPage, "tr")}
             hreflang="tr"
             lang="tr"
             aria-current={locale === "tr" ? "page" : undefined}

@@ -8,8 +8,7 @@ export interface PageMetadata {
   canonicalPath: string;
   /**
    * Every locale's URL for *this* page. BaseLayout emits hreflang from this
-   * rather than from hardcoded "/" and "/tr", which would otherwise advertise
-   * the home page as the Turkish alternate of /about.
+   * rather than a hardcoded homepage pair, so About also switches correctly.
    */
   alternates: Record<Locale, string>;
   locale: Locale;
@@ -25,9 +24,9 @@ export function buildMetadata(
   messages: Messages,
   page: PageKey = "home",
 ): PageMetadata {
-  const isDefault = locale === "en";
+  const isEnglish = locale === "en";
   const canonicalPath = routes[page][locale];
-  const keywords = isDefault
+  const keywords = isEnglish
     ? [
         "GBO Vision",
         "enterprise AI agency",

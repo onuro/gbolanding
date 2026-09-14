@@ -82,7 +82,7 @@ function banner(url) {
 │  so whatever the last line of the "previous page life" block says
 │  is the thing that took the page down.
 │
-│  Turkish page:  ${url}/tr?probe=1
+│  Turkish page:  ${url}/?probe=1
 │  No overlay:    ${url}/
 ${lan ? `│  LAN (no mic — http is not a secure context): http://${lan}:${PORT}/\n` : ""}│
 │  Safari console over USB: iPhone Settings › Safari › Advanced ›
