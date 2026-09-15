@@ -184,6 +184,21 @@ for (const test of [
   console.log(`ok server POST ${test.path} -> ${test.status}`);
 }
 
+// The cost model at /maliyet is an unlisted one-off: served to anyone holding
+// the link, but kept out of the sitemap and out of search results. It is not a
+// marketing page, so none of the canonical/alternate rules above apply to it.
+const maliyet = await handler.fetch(new Request(absolute("/maliyet")));
+assert.equal(maliyet.status, 200, "/maliyet: served to anyone with the link");
+assert.match(
+  maliyet.headers.get("content-type") ?? "",
+  /^text\/html/,
+  "/maliyet: served as HTML, not as a download",
+);
+assert.match(maliyet.headers.get("x-robots-tag") ?? "", /noindex/, "/maliyet: noindex");
+assert.ok((await maliyet.text()).includes("GB200"), "/maliyet: serves the cost model");
+assert.ok(!/maliyet/.test(sitemap), "/maliyet: stays out of the sitemap");
+console.log("ok server GET /maliyet -> 200, HTML, noindex, unlisted");
+
 // Optional integration coverage against an already-running local dev server.
 // This tests request independence, not Vercel's redirect query forwarding.
 if (process.env.DEV_BASE_URL) {

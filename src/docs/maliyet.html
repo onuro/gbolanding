@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Türkiye'de barındırılan sesli yapay zekâ altyapısı — H100 / H200 / GB200 maliyet modeli (Eylül 2026)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F7F5; --surface:#FFFFFF; --ink:#17233A; --muted:#5B6473; --line:#D9DDE3;
+  --accent:#0F7B85; --accent-soft:#DCEFF0; --accent-ink:#0B5F67;
+  --seg1:#17233A; --seg2:#2F4A6B; --seg3:#5C7A99; --seg4:#8FA6BF; --seg5:#B9C7D6; --seg6:#0F7B85; --margin:#E0B84A;
+  --ok:#0F7B85; --est:#6B7280; --quote:#C2410C; --quote-soft:#FBE9E0; --no:#B3261E;
+  --radius:6px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F141B; --surface:#161C25; --ink:#E8ECF2; --muted:#9AA5B4; --line:#2A3341;
+    --accent:#52C7CF; --accent-soft:#12343A; --accent-ink:#8FDDE3;
+    --seg1:#DCE4EE; --seg2:#B4C3D6; --seg3:#8CA2BC; --seg4:#6A82A0; --seg5:#4B6280; --seg6:#52C7CF; --margin:#E0B84A;
+    --ok:#52C7CF; --est:#9AA5B4; --quote:#F08A5C; --quote-soft:#3A2418; --no:#F28B82;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F141B; --surface:#161C25; --ink:#E8ECF2; --muted:#9AA5B4; --line:#2A3341;
+  --accent:#52C7CF; --accent-soft:#12343A; --accent-ink:#8FDDE3;
+  --seg1:#DCE4EE; --seg2:#B4C3D6; --seg3:#8CA2BC; --seg4:#6A82A0; --seg5:#4B6280; --seg6:#52C7CF; --margin:#E0B84A;
+  --ok:#52C7CF; --est:#9AA5B4; --quote:#F08A5C; --quote-soft:#3A2418; --no:#F28B82;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;font-feature-settings:"tnum" 1,"kern" 1}
+a{color:var(--accent-ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px}
+a:hover{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:32px 20px 80px}
+header h1{font-size:clamp(26px,3.6vw,36px);line-height:1.15;font-weight:600;margin:0 0 10px;letter-spacing:-0.01em;max-width:26ch}
+header .meta{color:var(--muted);font-size:14px;margin:0 0 6px}
+header .scope{max-width:72ch;margin:14px 0 0}
+h2{font-size:22px;font-weight:600;margin:48px 0 14px;letter-spacing:-0.005em}
+h3{font-size:16px;font-weight:600;margin:22px 0 8px}
+p{margin:0 0 12px;max-width:72ch}
+ul,ol{margin:0 0 12px;padding-left:22px;max-width:72ch}
+li{margin:0 0 6px}
+small,.small{font-size:13.5px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+
+.hero{margin-top:28px}
+.hero .toprow{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.presets button,.seg-toggle button{font:inherit;font-size:14px;padding:7px 12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--radius);cursor:pointer}
+.presets button[aria-pressed="true"],.seg-toggle button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .presets button[aria-pressed="true"],:root[data-theme="dark"] .seg-toggle button[aria-pressed="true"]{color:#0F141B}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .presets button[aria-pressed="true"],:root:not([data-theme="light"]) .seg-toggle button[aria-pressed="true"]{color:#0F141B}}
+.seg-toggle{display:flex;gap:0}
+.seg-toggle button:first-child{border-radius:var(--radius) 0 0 var(--radius)}
+.seg-toggle button:last-child{border-radius:0 var(--radius) var(--radius) 0;margin-left:-1px}
+.ledger{position:relative;height:56px;border-radius:var(--radius);overflow:hidden;display:flex;background:var(--line)}
+.ledger .seg{height:100%;min-width:0;transition:width .25s ease}
+@media (prefers-reduced-motion: reduce){.ledger .seg{transition:none}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:12px 0 0;padding:0;list-style:none;font-size:13.5px}
+.legend li{display:flex;align-items:center;gap:7px;color:var(--muted)}
+.legend .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.figures{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px}
+.fig{border-top:2px solid var(--line);padding-top:10px}
+.fig .n{font-size:clamp(20px,2.3vw,28px);font-weight:600;letter-spacing:-0.01em;line-height:1.1}
+.fig .l{color:var(--muted);font-size:14px;margin-top:4px}
+.fig .s{font-size:13.5px;color:var(--muted);margin-top:2px}
+.fig.client{border-top-color:var(--margin)}
+.tiernote{margin:14px 0 0;padding:10px 12px;border-left:3px solid var(--accent);background:var(--accent-soft);font-size:14px;border-radius:0 var(--radius) var(--radius) 0}
+.tiernote.warn{border-left-color:var(--quote);background:var(--quote-soft)}
+
+.model{display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start;margin-top:18px}
+.inputs{position:sticky;top:16px}
+.inputs h3{margin-top:0}
+.field{display:grid;grid-template-columns:1fr 112px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.field:last-child{border-bottom:0}
+.field label{font-size:14px;line-height:1.3}
+.field label small{display:block;color:var(--muted);font-size:12.5px}
+.field input[type="number"]{font:inherit;font-size:14px;width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);text-align:right}
+.field input[type="number"][readonly]{color:var(--muted);border-style:dashed}
+.field input[type="checkbox"]{width:18px;height:18px;justify-self:end;accent-color:var(--accent)}
+.field.group{padding-top:14px;border-bottom:0}
+.field.group span{font-size:13px;color:var(--muted);grid-column:1/-1}
+.inputs .note{font-size:13px;color:var(--muted);margin:12px 0 0}
+
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--muted);font-size:13px}
+td.num,th.num{text-align:right;white-space:nowrap}
+tr.sub td{font-weight:600;border-top:2px solid var(--line)}
+tr.total td{font-weight:600;font-size:16px;border-bottom:0;border-top:2px solid var(--ink)}
+tr.client td{background:var(--accent-soft)}
+tr.active td{background:var(--accent-soft)}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.st::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--est)}
+.st.ok::before{background:var(--ok)}
+.st.quote::before{background:var(--quote)}
+.st.est::before{background:var(--est)}
+.st.no::before{background:var(--no)}
+td .d{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+table.spec th:first-child,table.spec td:first-child{width:22%;color:var(--muted);font-weight:500}
+table.spec td{font-size:14px}
+table.capex input[type="number"]{font:inherit;font-size:14px;width:120px;padding:5px 8px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);text-align:right}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:6px 14px;font-size:14.5px}
+.kv div:nth-child(even){text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kv .h{font-weight:600;border-top:1px solid var(--line);padding-top:6px;margin-top:4px}
+.stack{display:grid;gap:14px}
+.arch{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.arch .box{border:1px solid var(--line);border-radius:var(--radius);padding:14px;background:var(--surface)}
+.arch .box h3{margin-top:0}
+.arch ul{margin:0;padding-left:18px;font-size:14.5px}
+.tagline{font-size:13.5px;color:var(--muted)}
+.proposal{border:1px solid var(--accent);border-radius:var(--radius);padding:22px;background:var(--surface)}
+.proposal h2{margin-top:0}
+.proposal .price{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:14px 0 18px}
+.proposal .price .n{font-size:26px;font-weight:600;letter-spacing:-0.01em}
+.proposal .price .l{color:var(--muted);font-size:14px}
+.sources ol{font-size:14px;padding-left:20px}
+.sources li{margin-bottom:4px;overflow-wrap:anywhere}
+.overflow{overflow-x:auto}
+@media (max-width:900px){
+  .model{grid-template-columns:1fr}
+  .inputs{position:static}
+  .figures{grid-template-columns:1fr 1fr}
+  .grid2,.arch,.proposal .price{grid-template-columns:1fr}
+}
+@media (max-width:560px){.figures{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="meta">GBO Vision — dahili maliyet raporu ve müşteri fiyatlandırma modeli, GPU sınıfına göre. Hazırlanma tarihi: 15 Eylül 2026. Fiyatlar %20 KDV hariçtir. USD/TRY kuru girdilerden ayarlanır (14 Eylül 2026 piyasa ortası ≈ 48,5).</p>
+  <h1>Türkiye'de barındırılan sesli yapay zekâ altyapısı: H100, H200 ve GB200 için maliyet modeli</h1>
+  <p class="scope">Kapsam: Kişisel verinin her baytını Türkiye içinde tutan, tek kiracılı bir üretim yığını — İstanbul'daki Tier III bir veri merkezinde GPU üzerinde vLLM ile sunulan Gemma 4 31B, Türkçe TTS için on-premise Cartesia Sonic, STT için self-hosted Whisper ve orkestrasyon, veritabanı ve kayıtlar için bir CPU sunucusu. Üç GPU sınıfı yan yana: H100 (temel üretim), H200 (tek kartta daha fazla bellek ve pay), GB200 / B200 (Blackwell — Türkiye'de kiralanamıyor, yalnızca satın alma yolu var). Herhangi bir girdiyi değiştirin; sayfadaki tüm rakamlar yeniden hesaplanır.</p>
+</header>
+
+<section class="hero card" aria-labelledby="ledger-h">
+  <div class="toprow">
+    <div>
+      <h2 id="ledger-h" style="margin:0;font-size:18px">Müşterinin aylık ödemesi nereye gidiyor — <span id="tier-name">H100</span></h2>
+      <span class="tagline">Çubuk genişliği = müşteri fiyatı. Dilimler oransaldır.</span>
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+      <div class="presets" role="group" aria-label="GPU sınıfı">
+        <button type="button" data-tier="h100" aria-pressed="true">H100</button>
+        <button type="button" data-tier="h200" aria-pressed="false">H200</button>
+        <button type="button" data-tier="b200" aria-pressed="false">GB200 / B200</button>
+      </div>
+      <div class="seg-toggle" role="group" aria-label="Para birimi">
+        <button type="button" data-cur="USD" aria-pressed="true">USD</button>
+        <button type="button" data-cur="TRY" aria-pressed="false">TL</button>
+      </div>
+    </div>
+  </div>
+  <div class="ledger" id="ledger" role="img" aria-label="Müşterinin aylık fiyatının oransal dağılımı"></div>
+  <ul class="legend" id="legend"></ul>
+  <div class="figures">
+    <div class="fig"><div class="n" id="f-internal">—</div><div class="l">Aylık dahili maliyet</div><div class="s" id="f-internal-s"></div></div>
+    <div class="fig client"><div class="n" id="f-client">—</div><div class="l">Aylık müşteri fiyatı</div><div class="s" id="f-client-s"></div></div>
+    <div class="fig client"><div class="n" id="f-annual">—</div><div class="l">Yıllık müşteri fiyatı, peşin</div><div class="s" id="f-annual-s"></div></div>
+    <div class="fig"><div class="n" id="f-percall">—</div><div class="l">Eşzamanlı çağrı başına aylık fiyat</div><div class="s" id="f-percall-s"></div></div>
+  </div>
+  <div class="tiernote" id="tier-note"></div>
+</section>
+
+<section class="model" aria-label="Maliyet modeli">
+  <aside class="inputs card">
+    <h3>Girdiler</h3>
+    <div class="field group"><span>GPU sınıfı — Türkiye'de aylık maliyet (USD) ve tahmini eşzamanlı çağrı</span></div>
+    <div class="field"><label for="t-h100-gpu">H100 tahsisli sunucu<small>80 GB SXM / 94 GB NVL, İstanbul Tier III; kiralama tahmini</small></label><input id="t-h100-gpu" type="number" min="0" step="50" value="3000"></div>
+    <div class="field"><label for="t-h100-cap">H100 eşzamanlı çağrı<small>Tahmin: 30–50</small></label><input id="t-h100-cap" type="number" min="1" step="1" value="40"></div>
+    <div class="field"><label for="t-h200-gpu">H200 tahsisli sunucu<small>141 GB HBM3e; Turkticaret H100'ün ~1,15–1,5 katı</small></label><input id="t-h200-gpu" type="number" min="0" step="50" value="4500"></div>
+    <div class="field"><label for="t-h200-cap">H200 eşzamanlı çağrı<small>Türetilmiş tahmin: 40–70</small></label><input id="t-h200-cap" type="number" min="1" step="1" value="55"></div>
+    <div class="field"><label for="t-b200-gpu">GB200 / B200 sınıfı<small>Kiralanamıyor; 8 GPU'lu HGX B200 satın alma amortismanı + colocation (aşağıdaki CapEx tablosundan hesaplanır)</small></label><input id="t-b200-gpu" type="number" readonly value="0"></div>
+    <div class="field"><label for="t-b200-cap">B200 8 GPU eşzamanlı çağrı<small>Türetilmiş tahmin: GPU başına 80–120</small></label><input id="t-b200-cap" type="number" min="1" step="10" value="800"></div>
+
+    <div class="field group"><span>Diğer altyapı, aylık (USD)</span></div>
+    <div class="field"><label for="i-gpu2on">TTS + STT için ikinci GPU sunucusu<small>L40S / L4 sınıfı; H100'de ses gecikmesini LLM yükünden ayırır</small></label><input id="i-gpu2on" type="checkbox"></div>
+    <div class="field"><label for="i-gpu2">İkinci GPU sunucusu fiyatı</label><input id="i-gpu2" type="number" min="0" step="50" value="1200"></div>
+    <div class="field"><label for="i-app">Orkestrasyon + veritabanı sunucusu<small>16 vCPU / 64 GB, İstanbul</small></label><input id="i-app" type="number" min="0" step="10" value="300"></div>
+    <div class="field"><label for="i-storage">Nesne depolama + yedekleme<small>1 TB, yurt içi</small></label><input id="i-storage" type="number" min="0" step="10" value="50"></div>
+    <div class="field"><label for="i-net">Ağ, DDoS, ek IP</label><input id="i-net" type="number" min="0" step="10" value="100"></div>
+    <div class="field"><label for="i-buffer">Sağlayıcı fiyat tamponu (%)<small>Teklifler USD endeksli ve oynak; bantlar ±%20</small></label><input id="i-buffer" type="number" min="0" max="50" step="1" value="10"></div>
+
+    <div class="field group"><span>Lisanslar, aylık (USD)</span></div>
+    <div class="field"><label for="i-cartesia">Cartesia on-prem lisansı<small>Yer tutucu — Cartesia satış ekibinden teklif gerekir</small></label><input id="i-cartesia" type="number" min="0" step="50" value="1000"></div>
+
+    <div class="field group"><span>Operasyon iş gücünüz</span></div>
+    <div class="field"><label for="i-opsh">Aylık operasyon saati<small>İzleme, güncelleme, nöbet</small></label><input id="i-opsh" type="number" min="0" step="1" value="15"></div>
+    <div class="field"><label for="i-opsr">Saatlik dahili maliyet (USD)</label><input id="i-opsr" type="number" min="0" step="5" value="50"></div>
+
+    <div class="field group"><span>Tek seferlik kurulum</span></div>
+    <div class="field"><label for="i-setuph">Mühendislik saati</label><input id="i-setuph" type="number" min="0" step="4" value="80"></div>
+    <div class="field"><label for="i-setupr">Saatlik dahili maliyet (USD)</label><input id="i-setupr" type="number" min="0" step="5" value="50"></div>
+    <div class="field"><label for="i-setupfee">Sağlayıcı kurulum ücretleri (USD)</label><input id="i-setupfee" type="number" min="0" step="50" value="500"></div>
+
+    <div class="field group"><span>Fiyatlandırma</span></div>
+    <div class="field"><label for="i-margin">Brüt kâr marjı (%)<small>Müşteri fiyatının kâr olan payı</small></label><input id="i-margin" type="number" min="0" max="80" step="1" value="40"></div>
+    <div class="field"><label for="i-annual">Yıllık peşin ödeme indirimi (%)<small>Sağlayıcılarınız 12 ay peşinde %10–15 indirim veriyor</small></label><input id="i-annual" type="number" min="0" max="40" step="1" value="10"></div>
+    <div class="field"><label for="i-fx">USD/TRY</label><input id="i-fx" type="number" min="1" step="0.1" value="48.5"></div>
+    <p class="note">GPU satırları bu sayfadaki en belirsiz rakamlardır — kanıt sütununa bakın ve müşteriye bir şey göndermeden önce üç teklif alın. Eşzamanlı çağrı sayıları ölçüm değil, tahmindir.</p>
+  </aside>
+
+  <div class="stack">
+    <div class="card overflow">
+      <h3 style="margin-top:0">Aylık kalemler — <span id="lines-tier">H100</span></h3>
+      <table id="lines">
+        <thead><tr><th>Kalem</th><th>Kanıt</th><th class="num">Aylık maliyet</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="small" style="margin:12px 0 0">Kanıt açıklaması: <span class="st ok">doğrulanmış kamuya açık fiyat</span> &nbsp; <span class="st est">yayımlanmış aralıklardan tahmin</span> &nbsp; <span class="st quote">teklif gerekli</span> &nbsp; <span class="st no">Türkiye'de kiralanamıyor</span></p>
+    </div>
+
+    <div class="card overflow">
+      <h3 style="margin-top:0">Üç sınıf yan yana — aynı girdiler, canlı</h3>
+      <table id="sidebyside">
+        <thead><tr><th>Sınıf</th><th class="num">GPU kalemi / ay</th><th class="num">Dahili / ay</th><th class="num">Müşteri / ay</th><th class="num">Müşteri / yıl, peşin</th><th class="num">Eşzamanlı çağrı</th><th class="num">Çağrı başına / ay</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="small" style="margin:12px 0 0">İkinci GPU, tampon, Cartesia, iş gücü ve marj üç satıra aynı şekilde uygulanır. GB200/B200 satırı Türkiye'de tek gerçekçi yol olan satın alma amortismanını kullanır.</p>
+    </div>
+
+    <div class="card overflow">
+      <h3 style="margin-top:0">Tek seferlik kurulum</h3>
+      <table id="setup">
+        <thead><tr><th>Kalem</th><th>Kanıt</th><th class="num">Maliyet</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Yıllık görünüm — <span id="annual-tier">H100</span></h3>
+      <div class="kv" id="annual"></div>
+    </div>
+  </div>
+</section>
+
+<h2>Üç GPU sınıfı: ne satın alıyorsunuz, ne kadar, nerede var</h2>
+<div class="card overflow">
+<table class="spec">
+  <thead><tr><th></th><th>H100</th><th>H200</th><th>GB200 / B200 (Blackwell)</th></tr></thead>
+  <tbody>
+    <tr><td>Bellek ve bant genişliği</td><td>80 GB HBM3 (NVL: 94 GB), 3,35 TB/s</td><td>141 GB HBM3e, 4,8 TB/s — H100 ile aynı işlem gücü, %43 daha fazla bant genişliği</td><td>GPU başına 180–192 GB HBM3e, 8 TB/s; GB200'de her 2 GPU bir Grace CPU ile eşlenir</td></tr>
+    <tr><td>Satış birimi</td><td>Tek kart (PCIe/NVL) veya 8'li HGX</td><td>Tek kart (NVL) veya 8'li HGX</td><td>GB200 yalnızca NVL72 rack (72 GPU) olarak satılır; bulutta en küçük birim 4 GPU'lu instance. Tek kart yok. B200: 8'li HGX sunucu.</td></tr>
+    <tr><td>Türkiye'de kiralama</td><td><span class="st ok">Evet</span> — gpukiralama.com.tr, GTM Cloud, DALNET, Turkticaret, Cloudvist, Türk Telekom GPUaaS</td><td><span class="st quote">Evet, teklifle</span> — gpukiralama.com.tr, GTM Cloud, DALNET; Turkticaret H200 NVL ön sipariş</td><td><span class="st no">Bulunamadı</span> — hiçbir yerli sağlayıcı B200 veya GB200 kiralamıyor. GTM Teknoloji HGX B200/B300 ve GB200/GB300 NVL72 sistemlerini satıyor; GTM Cloud yalnızca GB10 (masaüstü sınıfı Blackwell) kiralıyor. DALNET'in Blackwell seçeneği yurt dışı hyperscaler üzerinden.</td></tr>
+    <tr><td>Uluslararası kiralama (GPU-saat)</td><td>Uzman bulutlarda medyan 3,38 $; 1,38–3,20 $ pazar yeri; hyperscaler 8–12 $</td><td>2,60 $ (GMI) – 6,31 $ (CoreWeave); stokta en ucuz 2,77 $; Jarvislabs 3,99 $</td><td>GB200: 10,50 $ (CoreWeave, 4 GPU minimum = 42 $/sa ≈ 30.660 $/ay) – 16–18+ $ (Oracle, hyperscaler). B200: 4,50–8,60 $ uzman bulut, 14–16 $ hyperscaler</td></tr>
+    <tr><td>Türkiye kiralama tahmini (aylık)</td><td>3.000 $ (1.800–6.000)</td><td>4.500 $ (2.600–9.000)</td><td>— (kiralanamıyor)</td></tr>
+    <tr><td>Satın alma</td><td>25–40 bin $ / kart</td><td>30–40 bin $ / kart; 8'li ~315 bin $</td><td>B200 30–50 bin $ / GPU; 8 GPU'lu HGX B200 sunucu 390–500 bin $; GB200 NVL72 rack 2–3 M$ (teklifler 3,4 M$'a kadar)</td></tr>
+    <tr><td>Güç ve soğutma</td><td>350–700 W, hava</td><td>600–700 W, hava</td><td>NVL72: rack başına 120–130 kW, zorunlu sıvı soğutma — Türkiye'de çok az tesis sunuyor. HGX B200: ~1.000 W/GPU, 8'li sunucu 10 kW+</td></tr>
+    <tr><td>Gemma 4 31B</td><td>Ölçülmüş: ~1.260 token/sn toplam (128 eşzamanlı, kısa istek); BF16 sığar, FP8 ~30 GB</td><td>Türetilmiş: bant genişliği oranıyla ~1,3–1,4× H100; KV önbelleği için +61 GB — LLM + Sonic + Whisper aynı kartta rahat</td><td>Türetilmiş: GPU başına FP8'de ~2–2,4× H100, FP4'te daha fazla; tek akış gecikmesi H200'e yakın</td></tr>
+    <tr><td>Tahmini eşzamanlı çağrı</td><td>30–50</td><td>40–70</td><td>GPU başına 80–120; 4 GPU'lu GB200 instance 300–500; 8 GPU'lu HGX B200 640–960</td></tr>
+    <tr><td>Sesli ajan için anlamı</td><td>Temel üretim. Tek müşteri için doğru başlangıç.</td><td>Aynı kartta LLM+TTS+STT, uzun bağlam, 50+ eşzamanlı çağrı. İkinci GPU'ya gerek kalmaz.</td><td>Tek müşterili bir ürün için aşırı. Anlamlı olduğu yer: yüzlerce eşzamanlı çağrıyı tek altyapıdan paylaştıran çok kiracılı ölçek veya model eğitimi. Türkiye'de bugün: satın al ve barındır.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>GPU satırları neden bir rakam değil, bir aralık</h2>
+<p>Türkiye'deki GPU sağlayıcıları fiyat değil, teknik özellik yayımlıyor; tahsisli her kart teklifle satılıyor. Planlama rakamları şu kamuya açık noktalardan üçgenlendi:</p>
+<ul>
+  <li><strong>H100 — Turkticaret.net</strong> (Tier III) H100 NVL için MIG dilimleri listeliyor: kartın %3,57'si aylık 260 $ (kampanya; liste 520 $), %14,28'i aylık 780 $ (liste 1.560 $); tam kart "bize ulaşın". Doğrusal ölçeklendiğinde kampanyalı dilimler tam kart için kabaca 5.500–7.300 $/ay ima ediyor; dilim fiyatlaması prim taşıdığından bunu tavan sayın. <strong>KEYDAL</strong>'ın 2026 rehberi tahsisli GPU sunucuları aylık 60.000 TL'den (≈ 1.240 $) başlatıyor ve yerli sağlayıcıları Avrupa'nın %20–40 üzerinde konumlandırıyor. Uluslararası uzman bulut medyanı 3,38 $/sa (AIMultiple, 25 Ağustos 2026) ≈ 2.470 $/ay.</li>
+  <li><strong>H200 — Turkticaret</strong> H200 paketlerini H100'ün 1,15–1,5 katı fiyatlıyor ("H200 Extreme = Enterprise × 1,5"). Uluslararası tek H200 2,60–6,31 $/sa (1.900–4.600 $/ay); üzerine yerel prim. Hopper stoklarının 2026 Q3'e kadar tükendiği bildiriliyor, H200 zaman zaman B200'ün de üzerinde işlem görüyor.</li>
+  <li><strong>GB200 / B200 — Türkiye'de kiralık yok.</strong> Uluslararası GB200 NVL72 bulutta 4 GPU'lu instance olarak 10,50 $/GPU-sa (CoreWeave) ile 16–18+ $ (Oracle, hyperscaler) arasında; kapasite büyük ölçüde hyperscaler'lara tahsisli ve "büyük oranda satılmış". Türkiye'de tek yol satın alma: 8 GPU'lu HGX B200 sunucu 390–500 bin $, GB200 NVL72 rack 2–3 M$ ve 120–130 kW sıvı soğutma. Tek kiracılı bir ürün için Blackwell istiyorsanız, Türkiye'de satın alınabilir en makul Blackwell hâlâ RTX PRO 6000 Blackwell Server (96 GB, ~16.000 $).</li>
+</ul>
+
+<h2>Satın al ve barındır (colocation) — üç sınıf için</h2>
+<div class="card overflow">
+<table class="capex" id="capex">
+  <thead><tr><th>Kalem</th><th class="num">H100 (1 kart + sunucu)</th><th class="num">H200 (1 kart + sunucu)</th><th class="num">HGX B200 (8 GPU sunucu)</th></tr></thead>
+  <tbody>
+    <tr><td>Sistem fiyatı (USD)<span class="d">H100/H200: kart + 2U EPYC, 128 GB, 2× 1,92 TB NVMe, çift PSU. B200: eksiksiz 8 GPU'lu HGX sunucu.</span></td>
+        <td class="num"><input id="c-h100" type="number" min="0" step="500" value="37000"></td>
+        <td class="num"><input id="c-h200" type="number" min="0" step="500" value="42000"></td>
+        <td class="num"><input id="c-b200" type="number" min="0" step="5000" value="450000"></td></tr>
+    <tr><td>Aylık colocation (USD)<span class="d">1 kW paket 12.000–18.000 TL; 8 kW yüksek yoğunluk 50.000–90.000 TL + soğutma primi</span></td>
+        <td class="num"><input id="c-h100-colo" type="number" min="0" step="10" value="350"></td>
+        <td class="num"><input id="c-h200-colo" type="number" min="0" step="10" value="350"></td>
+        <td class="num"><input id="c-b200-colo" type="number" min="0" step="50" value="2500"></td></tr>
+    <tr><td>Yerine ulaşma maliyet artışı (%)<span class="d">KDV %20 (indirilebilir) + menşeye göre navlun/gümrük — üç sütuna ortak</span></td>
+        <td class="num" colspan="3"><input id="c-uplift" type="number" min="0" max="60" step="1" value="25"></td></tr>
+    <tr><td>Amortisman (ay) — ortak</td>
+        <td class="num" colspan="3"><input id="c-months" type="number" min="12" max="60" step="6" value="36"></td></tr>
+    <tr class="sub"><td>Yerine ulaşmış donanım</td><td class="num" id="x-h100-landed">—</td><td class="num" id="x-h200-landed">—</td><td class="num" id="x-b200-landed">—</td></tr>
+    <tr><td>Aylık amortisman + colocation</td><td class="num" id="x-h100-month">—</td><td class="num" id="x-h200-month">—</td><td class="num" id="x-b200-month">—</td></tr>
+    <tr><td>Türkiye kiralama tahmini (girdi)</td><td class="num" id="x-h100-rent">—</td><td class="num" id="x-h200-rent">—</td><td class="num">— (kiralık yok)</td></tr>
+    <tr><td>Kiralamaya göre nakit başabaş</td><td class="num" id="x-h100-be">—</td><td class="num" id="x-h200-be">—</td><td class="num">—</td></tr>
+  </tbody>
+</table>
+<p class="small" style="margin:12px 0 0">Kira rakamının gizlediği ve CapEx rakamının görmezden geldiği şeyler: satıcı SLA'sı olmadan donanım arızası (yedek kart bütçesi ayırın), saatlik 500–1.500 TL remote-hands ücreti, 36 aylık bağlılık ve müşteri sözleşmesi 12 aylıkken bağlanan sermaye. 8 GPU'lu B200 sunucu için ayrıca yüksek yoğunluklu kabin (özel cage, arka kapı soğutma veya sıvı) gerekir; KEYDAL'a göre bu kapasiteyi Türkiye'de az sayıda tesis sunuyor. B200 satırındaki aylık karşılık, üstteki hesaplayıcıda GB200 / B200 sınıfının GPU kalemi olarak kullanılır.</p>
+</div>
+
+<h2>Mimari ve Türkiye'de kalanlar</h2>
+<div class="arch">
+  <div class="box">
+    <h3>GPU sunucusu (İstanbul Tier III)</h3>
+    <ul>
+      <li>Gemma 4 31B-it, vLLM üzerinde, FP8. ~30 GB ağırlık + KV önbelleği; BF16 (~59 GB) 80 GB karta da sığar.</li>
+      <li>Cartesia Sonic (TTS) on-prem konteyneri — Türkçe destekleniyor. GPU ayak izi Cartesia ile teyit edilmeli.</li>
+      <li>STT: faster-whisper ile Whisper large-v3 (MIT, Türkçe). 3–6 GB VRAM. Cartesia Ink-2 yalnızca İngilizce; Ink-Whisper çok dilli model.</li>
+      <li>H100: üçü tek kartta çalışır; ses gecikmesini korumak için ikinci GPU (L40S sınıfı) önerilir. H200: 141 GB ile ikinci karta gerek kalmaz. B200 8'li: LLM'i tensör paralelliğiyle değil, kartları çoğaltarak kullanın — her kart bağımsız bir vLLM örneği taşır.</li>
+    </ul>
+  </div>
+  <div class="box">
+    <h3>Orkestrasyon sunucusu (CPU)</h3>
+    <ul>
+      <li>Ses hattı (LiveKit / Pipecat / Dograh), API, PostgreSQL, Redis.</li>
+      <li>Çağrı kayıtları ve transkriptler yurt içi S3 uyumlu depolamada; yedekler de yurt içinde.</li>
+      <li>Prometheus + Grafana self-hosted — loglar kişisel veri içerdiğinden Türkiye dışında barındırılan gözlemlenebilirlik servisi yok.</li>
+      <li>AWS odaklı müşteriler için alternatif: AWS Local Zone İstanbul (eu-central-1-ist-1a, 20 Mayıs 2026'da genel kullanıma açıldı) — C7i/M7i/R7i, S3 One Zone-IA, EBS, EKS. GPU örneği yok.</li>
+    </ul>
+  </div>
+  <div class="box">
+    <h3>Yurt dışına çıkanlar (kişisel veri içermez)</h3>
+    <ul>
+      <li>Model ağırlığı indirmeleri, konteyner imajları, kod depoları.</li>
+      <li>Statik varlıklar ve müşteri paneli için CDN.</li>
+      <li>Canlı bir çağrıdan hiçbir şey.</li>
+    </ul>
+  </div>
+  <div class="box">
+    <h3>Telefoni</h3>
+    <ul>
+      <li>BTK lisanslı bir operatörden SIP trunk (Netgsm, Türk Telekom, Turkcell). Dakika bazlı; marjınızla müşteriye yansıtılır.</li>
+      <li>Bu sayfadaki altyapı fiyatına dahil değildir.</li>
+    </ul>
+  </div>
+</div>
+
+<h3>Uyum durumu, açıkça</h3>
+<p>KVKK verinin Türkiye'de kalmasını zorunlu kılmaz. 9. madde değişikliğinin 1 Haziran 2024'te yürürlüğe girmesinden bu yana kişisel veri; bir yeterlilik kararıyla, uygun güvencelerle — Kurul'un standart sözleşmeleri (imzadan itibaren beş iş günü içinde Kurul'a bildirilmesi gerekir), bağlayıcı şirket kuralları veya yazılı taahhütnameler — ya da sayılan istisnai hâllerde yurt dışına aktarılabilir. Bu rapor için incelenen kaynaklarda herhangi bir ülke için verilmiş bir yeterlilik kararından söz edilmiyor; güncel liste için kvkk.gov.tr'ye bakın. Pratikte tüm hattı yurt içinde tutmak aktarım sorusunu ve beş günlük bildirim yükünü tamamen ortadan kaldırır; regüle alıcıların (hukuk büroları, finans, telekom) RFP'lerine yazdığı da budur. Sattığınız değer bu. Bu yüzden yurt dışında kiralanan bir GB200 instance'ı — ne kadar güçlü olursa olsun — bu teklifin parçası olamaz.</p>
+<p>GDPR yalnızca müşteri AB'de yerleşik kişilerin verisini işliyorsa geçerlidir. Öyleyse Türkiye GDPR açısından üçüncü ülkedir (Türkiye için AB yeterlilik kararı yok) ve Türkiye'de barındırma tek başına GDPR'ı karşılamaz — SCC'ler ters yönde işler. Teklifte bir cümleye değer, fazlasına değil.</p>
+
+<h3>Cartesia: üç kurulum yolu, vaade uyan tek yol</h3>
+<ul>
+  <li><strong>On-prem (bu teklif için önerilen).</strong> Sonic ve Ink konteynerleri İstanbul'daki GPU'nuzda. Yalnızca Enterprise, özel fiyat; DPA, SSO ve güvenlik anketleri dahil. Cartesia'nın kamuya açık "kendi bulutunuz" yolu (Baseten, SageMaker, Together AI) Türkiye dışında çalıştığından burada işe yaramaz.</li>
+  <li><strong>KVKK standart sözleşmesiyle Cartesia bulutu.</strong> Scale planı aylık 299 $; ~10.667 TTS dakikası ve 15 eşzamanlı istek, daha fazlası için Enterprise. Açık ara en ucuzu, ancak ses ve metin Türkiye'den çıkar. Yalnızca müşteri evrak işini kabul ederse "hibrit" katman olarak sunun.</li>
+  <li><strong>Açık ağırlıklı yedek.</strong> Chatterbox Multilingual / Turbo (MIT, Türkçe listede, Turbo için ~75 ms gecikme iddiası), sıfır lisans maliyeti. Türkçe kalitesi, bir müşteri çağrısına yaklaşmadan önce test edilmeli; XTTS-v2 ticari kullanıma kapalı olduğundan devre dışı.</li>
+</ul>
+
+<h3>Kapasite tahminleri nasıl türetildi</h3>
+<p>Ölçülmüş tek veri noktası H100: Gemma 4 31B bir H100'de kısa istekli iş yükünde 128 eşzamanlılıkta ~1.260 token/sn toplam üretim (256 çıktı token'ında ≈ 5 istek/sn); tek akışta ~40 token/sn, Google'ın spekülatif çözümleme taslakçısıyla 120+. Bir ses turu, çağrı başına kabaca her 10–15 saniyede ~60–120 çıktı token'ı ister; bu, konuşma gecikmesini koruyarak kart başına 30–50 eşzamanlı çağrı demektir. H200 ve B200 için Gemma 4 31B'ye özel yayımlanmış benchmark bulunamadı; tahminler bant genişliği ve FP8 işlem gücü oranlarından türetildi (H200: 4,8 / 3,35 TB/s; B200: 8 / 3,35 TB/s), tek akış gecikmesinin Blackwell'de Hopper'a yakın kaldığını gösteren vLLM ölçümleri dikkate alındı. Bunlar müşteriye taahhüt değil, boyutlandırma başlangıç noktasıdır; her sınıf için kendi yük testinizi yapın. 26B-A4B MoE kardeşi, kalite promptlarınızda tutuyorsa her sınıfta daha ucuzdur.</p>
+
+<h2>Kimden teklif alınmalı</h2>
+<div class="card overflow">
+<table>
+  <thead><tr><th>Sağlayıcı</th><th>Listeledikleri</th><th>Notlar</th></tr></thead>
+  <tbody>
+    <tr><td>gpukiralama.com.tr</td><td>H100, H200, A100, L40S, RTX 5090/4090, MI300X — İstanbul Maslak</td><td>Saatlik veya aylık, teklif bazlı; aylık paketlerde %30'a varan indirim iddiası. H200 için ilk durak.</td></tr>
+    <tr><td>GTM Cloud / GTM Teknoloji</td><td>Kiralık: H100, H200, RTX 6000, GB10. Satış: HGX H200, HGX B200/B300, GB200/GB300 NVL72 (Supermicro)</td><td>NVIDIA NPN Elite partneri ve Supermicro distribütörü. Türkiye'de Blackwell'in tek yolu olan satın alma için doğal muhatap; "önce kirala, memnun kalırsan satın al" seçeneği sunuyor.</td></tr>
+    <tr><td>DALNET</td><td>A100, H100, H200 — İstanbul Tier III</td><td>Saatlik faturalandırma; 7/24 altyapı desteği. B200/GB200'ü yalnızca yurt dışı hyperscaler üzerinden yönetiyor — KVKK vaadine uymaz.</td></tr>
+    <tr><td>Turkticaret.net</td><td>H100 NVL, H200 NVL — kamuya açık fiyatlı MIG dilimleri, tahsisli kart talep üzerine</td><td>Türkiye'deki tek kamuya açık H100/H200 fiyat noktaları; H200 dilimleri H100'ün 1,15–1,5 katı.</td></tr>
+    <tr><td>Türk Telekom</td><td>GPUaaS (sanal) ve dedike GPU'lu sunucu kiralama, TT veri merkezlerinde</td><td>SKU ve fiyat yayımlamıyor; kurumsal müşteri temsilcisi üzerinden başvuru. Büyük kurumsal müşterilere "Türk Telekom'da barındırılıyor" demek için değerli.</td></tr>
+    <tr><td>Cloudvist</td><td>A100, H100, L40S, RTX 4090/5090 — Tier III</td><td>Siparişten sonra 24 saat içinde teslim.</td></tr>
+    <tr><td>Uygulama katmanı</td><td>Türk Telekom Bulut, Turkcell Bulut, Vargonen, Radore, AWS Local Zone İstanbul</td><td>Orta sınıf tahsisli sunucular aylık 8.000–18.000 TL; VDS ~1.000 TL'den başlıyor.</td></tr>
+  </tbody>
+</table>
+<p class="small" style="margin:12px 0 0">Henüz seçenek değil: Turkcell ile Google Cloud Türkiye bölgesi 2028–2029 için planlanıyor (Ankara); Google'ın A4X (GB200) instance'ları o tarihe kadar Türkiye'de olmayacak. Azure'un Türkiye bölgesi yok.</p>
+</div>
+
+<h2>Teklife doğrudan yapıştırılabilir</h2>
+<div class="proposal" id="proposal">
+  <h2>Egemen sesli yapay zekâ platformu — tamamen Türkiye'de barındırılır (<span id="p-tier">H100</span>)</h2>
+  <div class="price">
+    <div><div class="n" id="p-month">—</div><div class="l">aylık</div></div>
+    <div><div class="n" id="p-year">—</div><div class="l">yıllık, peşin (%<span id="p-disc">10</span> indirim)</div></div>
+    <div><div class="n" id="p-setup">—</div><div class="l">tek seferlik kurulum</div></div>
+  </div>
+  <div class="overflow">
+  <table id="p-tiers">
+    <thead><tr><th>Katman</th><th>GPU</th><th class="num">Eşzamanlı çağrı</th><th class="num">Aylık</th><th class="num">Yıllık, peşin</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  </div>
+  <p class="small" style="margin-top:12px">Fiyatlar KDV hariçtir. Para birimi: <span id="p-cur">USD</span>. TL tutarlar girdilerdeki kurla çevrilir; sözleşmede sabitlenmeli veya endekslenmelidir. Blackwell katmanı satın alınan donanım üzerinde sunulur; asgari sözleşme süresi amortisman süresiyle eşleşmelidir.</p>
+  <div class="grid2">
+    <div>
+      <h3>Dahil olanlar</h3>
+      <ul>
+        <li>İstanbul'da Tier III veri merkezinde tahsisli GPU inference; paylaşımlı kiracılık yok</li>
+        <li>Apache 2.0 lisanslı Gemma 4 31B dil modeli, yalnızca sizin donanımınızda çalışır</li>
+        <li>On-premise kurulmuş Cartesia Sonic Türkçe metin okuma</li>
+        <li>Türkçe konuşma tanıma, orkestrasyon, veritabanı, şifreli kayıtlar ve yurt içi yedekler</li>
+        <li>GBO Vision tarafından izleme, güncelleme ve nöbet operasyonu</li>
+        <li>KVKK: yurt dışı aktarım yok, standart sözleşme bildirimi gerekmez</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Dahil olmayanlar</h3>
+      <ul>
+        <li>Telefoni dakikaları (SIP trunk, dakika başına maliyet + marj)</li>
+        <li>Yüksek erişilebilirlik için ikinci GPU (H100 katmanında ek seçenek)</li>
+        <li>Müşteriye özel entegrasyonlar (CRM, arama listeleri, raporlama)</li>
+        <li>Kararlaştırılan eşzamanlı çağrı tavanının üzerindeki kullanım</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h2>Varsayımlar</h2>
+<ul>
+  <li>Sesli ajan iş yükü (Talkbase tarzı dış aramalar), Türkçe, tek kiracı, tek bölge; H100 ve H200 katmanlarında GPU yedekliliği yok.</li>
+  <li>GPU ve lisans teklifleri USD endeksli olduğundan fiyatlandırma para birimi USD; TL rakamlar girdideki kuru kullanır ve KDV hariçtir.</li>
+  <li>Eşzamanlı çağrı sayıları: H100 için ölçülmüş throughput'tan, H200 ve B200 için bant genişliği/işlem gücü oranlarından türetilmiş tahminlerdir. Ölçüm değildir.</li>
+  <li>GB200 / B200 katmanı Türkiye'de kiralanamadığından, GPU kalemi 8 GPU'lu HGX B200 sunucunun 36 aylık amortismanı + yüksek yoğunluklu colocation olarak modellendi. Tek kiracılı bir sesli ajan için bu kapasitenin çoğu boş kalır.</li>
+  <li>İş gücü oranları (saatlik 50 $) ve saatler (80 kurulum, aylık 15 operasyon) yer tutucudur — gerçek dahili maliyetinizle değiştirin. 8 GPU'lu sunucu için kurulum saati gerçekte daha yüksektir.</li>
+  <li>Cartesia on-prem kalemi, Cartesia'nın yayımlamadığı bir rakam için yer tutucudur. Teklifle değiştirilene kadar rapor müşteri karşısında inandırıcı değildir.</li>
+  <li>%10 tampon, tekliften faturaya kaymayı karşılar (KEYDAL, ek kalemler sayıldığında colocation'da teklif ile gerçekleşen fiyat arasında %30–60 fark bildiriyor; tahsisli kiralamada fark daha dar).</li>
+  <li>Marj, fiyat üzerinden brüt marjdır (fiyat = maliyet ÷ (1 − marj)), maliyet üzerine ekleme değil. %40 marjda maliyet üzerine ekleme %66,7'dir.</li>
+</ul>
+
+<h2>Kaynaklar</h2>
+<div class="sources">
+<ol>
+  <li>Cartesia fiyatlandırma: <a href="https://www.cartesia.ai/pricing">cartesia.ai/pricing</a>; on-prem kurulumlar: <a href="https://www.cartesia.ai/deployments">cartesia.ai/deployments</a>; Sonic-3.6 duyurusu: <a href="https://www.cartesia.ai/blog/sonic-3.6">cartesia.ai/blog/sonic-3.6</a>; Türkçe: <a href="https://cartesia.ai/languages/turkish">cartesia.ai/languages/turkish</a></li>
+  <li>Ink-2 yalnızca İngilizce (Pipecat): <a href="https://reference-server.pipecat.ai/en/stable/api/pipecat.services.cartesia.turns.stt.html">reference-server.pipecat.ai</a>; Ink-Whisper (ServiceNow model kartı): <a href="https://downloads.docs.servicenow.com/resource/enus/infocard/sn-voice.pdf">servicenow.com</a></li>
+  <li>Gemma 4 31B: <a href="https://huggingface.co/google/gemma-4-31B-it">huggingface.co/google/gemma-4-31B-it</a>; Google duyurusu: <a href="https://blog.google/innovation-and-ai/technology/developers-tools/gemma-4/">blog.google</a>; Apache 2.0: <a href="https://openrouter.ai/google/gemma-4-31b-it">openrouter.ai</a>; vLLM tarifi: <a href="https://recipes.vllm.ai/Google/gemma-4-31B-it">recipes.vllm.ai</a></li>
+  <li>Gemma 4 31B benchmark — H100: <a href="https://inferencebench.io/blog/gemma-4-31b-h100-complete-inference-benchmark/">inferencebench.io</a>; RTX PRO 6000 FP8: <a href="https://huggingface.co/blog/hexgridcloud/gemma-4-31b-vllm-on-rtx-6000-pro">huggingface.co/blog/hexgridcloud</a>; tek akış: <a href="https://markaicode.com/benchmarks/hugging-face-gemma-4-h100-latency-benchmark/">markaicode.com</a>; VRAM: <a href="https://www.spheron.network/blog/deploy-gemma-4-gpu-cloud/">spheron.network</a>; B200 ≈ H200 tek akış (32B model, vLLM): <a href="https://github.com/vllm-project/vllm/issues/18725">github.com/vllm-project</a></li>
+  <li>H100 kiralama medyanı 3,38 $/sa ve H200/B200 primleri: <a href="https://shattered.io/h100-h200-b200-cloud-gpu-pricing-2026/">shattered.io</a>; uzman bulut vs hyperscaler: <a href="https://www.thundercompute.com/blog/ai-gpu-rental-market-trends">thundercompute.com</a></li>
+  <li>H200 kiralama ve satın alma (3,99 $/sa; 30–40 bin $): <a href="https://jarvislabs.ai/blog/h200-price">jarvislabs.ai</a>; canlı H200 fiyatları (2,14–3,59 $; stokta 2,77 $): <a href="https://gpufinder.dev/gpu/h200">gpufinder.dev</a>; sağlayıcı karşılaştırması (GMI 2,60 $ – CoreWeave 6,31 $): <a href="https://www.gmicloud.ai/en/blog/h200-gpu-provider-pricing">gmicloud.ai</a></li>
+  <li>B200 kiralama (6–10 $ uzman, 14–16 $ hyperscaler): <a href="https://www.thundercompute.com/blog/nvidia-b200-pricing">thundercompute.com</a>, <a href="https://www.spheron.network/blog/nvidia-b200-cloud-pricing-2026/">spheron.network</a></li>
+  <li>GB200 NVL72 kiralama (CoreWeave 10,50 $/GPU-sa, 4 GPU'lu instance 42 $/sa; Oracle ~16 $; hyperscaler 18+ $): <a href="https://www.cloudzero.com/blog/coreweave-pricing/">cloudzero.com</a>, <a href="https://www.spheron.network/blog/coreweave-gpu-pricing-2026/">spheron.network</a>, <a href="https://intuitionlabs.ai/articles/data-center-gpu-pricing-2026">intuitionlabs.ai</a>, <a href="https://getdeploying.com/gpus/nvidia-gb200">getdeploying.com</a>, <a href="https://gpuaas.com/clusters-gb200">gpuaas.com</a></li>
+  <li>Satın alma fiyatları — H100 25–40 bin $, H200 ~31 bin $ (8'li 315 bin $), B200 30–50 bin $, 8'li HGX B200 390–500 bin $, GB200 NVL72 2–3 M$: <a href="https://intuitionlabs.ai/articles/nvidia-ai-gpu-pricing-guide">intuitionlabs.ai</a>, <a href="https://gpusmith.com/articles/en/nvidia-data-center-gpu-pricing-guide">gpusmith.com</a>, <a href="https://siliconanalysts.com/analysis/nvidia-b200-blackwell-cost-breakdown">siliconanalysts.com</a>; NVL72 rack gereksinimleri (120–130 kW, sıvı soğutma, rack olarak satılır): <a href="https://gpuaas.com/blog/gb200-nvl72-enterprise-buyers-guide-2026">gpuaas.com</a></li>
+  <li>RTX PRO 6000 Blackwell 16.000 $ (Eylül 2026): <a href="https://www.thundercompute.com/blog/nvidia-rtx-pro-6000-pricing">thundercompute.com</a>; Hopper'ın 2026 Q3'e kadar tükendiği bilgisi: <a href="https://gpuperhour.com/compare/h100-nvl-vs-rtx-pro-6000-blackwell">gpuperhour.com</a></li>
+  <li>Turkticaret.net H100/H200 NVL paketleri: <a href="https://www.turkticaret.net/yapay-zeka-sunucu">turkticaret.net/yapay-zeka-sunucu</a></li>
+  <li>KEYDAL, Sunucu Barındırma Fiyatları 2026 (colocation, GPU, güç yoğunluğu, sıvı soğutma, DDoS, remote hands): <a href="https://www.keydal.tr/blog/sunucu-barindirma-fiyatlari-rehberi-2026">keydal.tr</a></li>
+  <li>Türkiye sağlayıcıları: <a href="https://gpukiralama.com.tr/">gpukiralama.com.tr</a>, <a href="https://gtmteknoloji.com/gtm-cloud-cloud-gpu-kiralama-hizmetleri-gtm-teknoloji/">GTM Cloud</a>, GTM Blackwell sistemleri: <a href="https://gtmteknoloji.com/b2b/nvidia-hgx-b300-8-gpu-nvidia-hgx-b200-8-gpu-nvidia-hgx-h200-8-gpu-sunucular/">gtmteknoloji.com</a>, GB10 kiralama: <a href="https://gtmteknoloji.com/">gtmteknoloji.com</a>; <a href="https://www.dalnet.tr/bulut-hizmetleri/gpu/">DALNET</a>; <a href="https://cloudvist.com/gpu-sunucu/">Cloudvist</a>; <a href="https://kurumsal.turktelekom.com.tr/bilisim-teknolojileri/veri-merkezi-ve-bulut/sanallastirma-cozumleri/gpulu-sunucu-hizmetleri">Türk Telekom GPU'lu Sunucu Hizmetleri</a></li>
+  <li>AWS Local Zone İstanbul: <a href="https://aws.amazon.com/de/about-aws/whats-new/2026/05/aws-local-zones-istanbul-turkiye/">aws.amazon.com</a>, <a href="https://aws.amazon.com/tr/blogs/turkey/acildik-aws-local-zone-istanbulda/">AWS Türkçe Blog</a>; Google Cloud Türkiye bölgesi 2028–2029: <a href="https://www.bloomberght.com/turkcell-ve-google-clouddan-turkiyede-ilk-hiper-olcekli-veri-merkezi-anlasmasi-3761329">bloomberght.com</a></li>
+  <li>KVKK 9. madde ve aktarım mekanizmaları: <a href="https://www.kvkk.gov.tr/Icerik/2053/Yurtdisina-Aktarim">kvkk.gov.tr</a>; yorumlar: <a href="https://www.erdem-erdem.av.tr/bilgi-bankasi/kisisel-verilerin-korunmasi-kanununda-neler-degisti">Erdem &amp; Erdem</a>, <a href="https://fgtastan.com/wiki/kvkk-degisiklikler/">fgtastan.com</a></li>
+  <li>Türkçe destekli açık ağırlıklı TTS (Chatterbox, MIT): <a href="https://pinggy.io/blog/best_open_source_self_hosted_text_to_speech_models/">pinggy.io</a></li>
+  <li>USD/TRY ≈ 48,6, 14 Eylül 2026: <a href="https://tradingeconomics.com/turkey/currency">tradingeconomics.com</a></li>
+</ol>
+</div>
+
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const ids = ['t-h100-gpu','t-h100-cap','t-h200-gpu','t-h200-cap','t-b200-cap','i-gpu2on','i-gpu2','i-app','i-storage','i-net','i-buffer','i-cartesia','i-opsh','i-opsr','i-setuph','i-setupr','i-setupfee','i-margin','i-annual','i-fx','c-h100','c-h200','c-b200','c-h100-colo','c-h200-colo','c-b200-colo','c-uplift','c-months'];
+  let cur = 'USD';
+  let tier = 'h100';
+  const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
+  const fx = () => Math.max(1, num('i-fx'));
+  const fmt = n => Math.round(n).toLocaleString('tr-TR');
+  function money(usd, forceCur){
+    const c = forceCur || cur;
+    if (c === 'TRY') return fmt(usd * fx()) + ' ₺';
+    return fmt(usd) + ' $';
+  }
+  const other = () => cur === 'USD' ? 'TRY' : 'USD';
+  const curLabel = () => cur === 'TRY' ? 'TL' : 'USD';
+  const pct = x => '%' + Math.round(x);
+
+  const TIERS = {
+    h100:{ name:'H100', gpuLabel:'H100 tahsisli sunucu', gpuDesc:'80 GB SXM / 94 GB NVL, İstanbul Tier III, 1 Gbps, L3/4 DDoS dahil', st:'est', stTxt:'Tahmin — aralık 1.800–6.000 $', capTxt:'30–50 (ölçülmüş throughput\'tan)',
+           note:'H100: Türkiye\'de beş sağlayıcıdan kiralanabilir; tek müşterili sesli ajan için doğru başlangıç. Ses gecikmesi için ikinci GPU\'yu (L40S sınıfı) açmayı düşünün.', warn:false },
+    h200:{ name:'H200', gpuLabel:'H200 tahsisli sunucu', gpuDesc:'141 GB HBM3e, İstanbul Tier III; H100 ile aynı işlem gücü, %43 daha fazla bant genişliği', st:'quote', stTxt:'Teklif gerekli — aralık 2.600–9.000 $', capTxt:'40–70 (bant genişliği oranından türetildi)',
+           note:'H200: Türkiye\'de teklifle kiralanabilir (gpukiralama.com.tr, GTM Cloud, DALNET; Turkticaret ön sipariş). 141 GB ile LLM, Sonic ve Whisper tek kartta rahat sığar — ikinci GPU\'ya gerek kalmaz.', warn:false },
+    b200:{ name:'GB200 / B200', gpuLabel:'GB200 / B200 sınıfı — 8 GPU\'lu HGX B200, satın alma', gpuDesc:'Türkiye\'de kiralık yok; 36 ay amortisman + yüksek yoğunluklu colocation (CapEx tablosu)', st:'no', stTxt:'Kiralanamıyor — satın alma amortismanı', capTxt:'640–960 (8 GPU × 80–120, türetilmiş)',
+           note:'GB200 / B200: hiçbir yerli sağlayıcı kiralamıyor; yurt dışı instance\'lar KVKK vaadini bozar. Türkiye\'de tek yol satın alma (GTM Teknoloji). Tek müşterili bir sesli ajan için kapasitenin çoğu boş kalır — bu katman ancak çok kiracılı ölçekte anlamlıdır.', warn:true }
+  };
+
+  function tierBtnState(){
+    document.querySelectorAll('.presets button').forEach(b => b.setAttribute('aria-pressed', b.dataset.tier === tier ? 'true' : 'false'));
+  }
+  document.querySelectorAll('.presets button').forEach(b => b.addEventListener('click', () => { tier = b.dataset.tier; tierBtnState(); recalc(); }));
+  document.querySelectorAll('.seg-toggle button').forEach(b => b.addEventListener('click', () => {
+    cur = b.dataset.cur;
+    document.querySelectorAll('.seg-toggle button').forEach(x => x.setAttribute('aria-pressed', x.dataset.cur === cur ? 'true':'false'));
+    recalc();
+  }));
+  ids.forEach(id => $(id).addEventListener('input', recalc));
+
+  function row(label, desc, status, statusText, value, cls){
+    const tr = document.createElement('tr'); if (cls) tr.className = cls;
+    tr.innerHTML = '<td>' + label + (desc ? '<span class="d">' + desc + '</span>' : '') + '</td>' +
+      '<td>' + (status ? '<span class="st ' + status + '">' + statusText + '</span>' : '') + '</td>' +
+      '<td class="num">' + value + '</td>';
+    return tr;
+  }
+
+  function capex(){
+    const uplift = num('c-uplift')/100, months = Math.max(1, num('c-months'));
+    const out = {};
+    ['h100','h200','b200'].forEach(k => {
+      const landed = num('c-' + k) * (1 + uplift);
+      const colo = num('c-' + k + '-colo');
+      out[k] = { landed, monthly: landed/months + colo, colo };
+    });
+    return out;
+  }
+
+  function compute(gpuCost, cap){
+    const gpu2 = $('i-gpu2on').checked ? num('i-gpu2') : 0;
+    const app = num('i-app'), storage = num('i-storage'), net = num('i-net');
+    const buffer = num('i-buffer')/100;
+    const cartesia = num('i-cartesia');
+    const labor = num('i-opsh') * num('i-opsr');
+    const margin = Math.min(0.95, num('i-margin')/100);
+    const annualDisc = num('i-annual')/100;
+    const infra = gpuCost + gpu2 + app + storage + net;
+    const bufferAmt = infra * buffer;
+    const internal = infra + bufferAmt + cartesia + labor;
+    const client = internal / (1 - margin);
+    const profit = client - internal;
+    const clientYearList = client * 12;
+    const clientYearPrepaid = clientYearList * (1 - annualDisc);
+    const internalYear = internal * 12;
+    return { gpuCost, gpu2, app, storage, net, buffer, bufferAmt, cartesia, labor, margin, annualDisc, infra, internal, client, profit, clientYearList, clientYearPrepaid, internalYear,
+             profitYearPrepaid: clientYearPrepaid - internalYear, perCall: cap > 0 ? client / cap : 0, cap };
+  }
+
+  function recalc(){
+    const cx = capex();
+    $('t-b200-gpu').value = Math.round(cx.b200.monthly);
+    const gpuCost = { h100: num('t-h100-gpu'), h200: num('t-h200-gpu'), b200: cx.b200.monthly };
+    const caps = { h100: num('t-h100-cap'), h200: num('t-h200-cap'), b200: num('t-b200-cap') };
+    const R = {}; ['h100','h200','b200'].forEach(k => R[k] = compute(gpuCost[k], caps[k]));
+    const r = R[tier], T = TIERS[tier];
+    const setupInternal = num('i-setuph') * num('i-setupr') + num('i-setupfee');
+    const setupClient = setupInternal / (1 - r.margin);
+
+    $('tier-name').textContent = T.name; $('lines-tier').textContent = T.name; $('annual-tier').textContent = T.name; $('p-tier').textContent = T.name;
+    const tn = $('tier-note'); tn.textContent = T.note; tn.className = 'tiernote' + (T.warn ? ' warn' : '');
+
+    const segs = [
+      {k:'GPU (' + T.name + ')', v:r.gpuCost, c:'var(--seg1)'},
+      {k:'İkinci GPU sunucusu', v:r.gpu2, c:'var(--seg2)'},
+      {k:'Sunucular, depolama, ağ', v:r.app + r.storage + r.net, c:'var(--seg3)'},
+      {k:'Fiyat tamponu', v:r.bufferAmt, c:'var(--seg4)'},
+      {k:'Cartesia lisansı (yer tutucu)', v:r.cartesia, c:'var(--seg5)'},
+      {k:'Operasyon iş gücü', v:r.labor, c:'var(--seg6)'},
+      {k:'Kâr marjınız', v:r.profit, c:'var(--margin)'}
+    ];
+    const ledger = $('ledger'); ledger.innerHTML = '';
+    const legend = $('legend'); legend.innerHTML = '';
+    segs.forEach(s => {
+      if (s.v <= 0) return;
+      const share = Math.round(100 * s.v / r.client);
+      const d = document.createElement('div'); d.className = 'seg';
+      d.style.width = (100 * s.v / r.client) + '%'; d.style.background = s.c;
+      d.title = s.k + ': ' + money(s.v) + ' (' + pct(share) + ')';
+      ledger.appendChild(d);
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="sw" style="background:' + s.c + '"></span>' + s.k + ' ' + money(s.v) + ' (' + pct(share) + ')';
+      legend.appendChild(li);
+    });
+    ledger.setAttribute('aria-label', T.name + ' — aylık müşteri fiyatı ' + money(r.client) + '; kâr marjı ' + money(r.profit));
+
+    $('f-internal').textContent = money(r.internal);
+    $('f-internal-s').textContent = money(r.internal, other()) + ' · yıllık ' + money(r.internalYear);
+    $('f-client').textContent = money(r.client);
+    $('f-client-s').textContent = money(r.client, other()) + ' · ' + pct(r.margin*100) + ' marjda kâr ' + money(r.profit);
+    $('f-annual').textContent = money(r.clientYearPrepaid);
+    $('f-annual-s').textContent = money(r.clientYearPrepaid, other()) + ' · aylık faturalandırılırsa ' + money(r.clientYearList);
+    $('f-percall').textContent = money(r.perCall);
+    $('f-percall-s').textContent = 'Kapasite tahmini: ' + fmt(r.cap) + ' eşzamanlı çağrı (' + T.capTxt + ')';
+
+    const tb = $('lines').querySelector('tbody'); tb.innerHTML = '';
+    tb.appendChild(row(T.gpuLabel, T.gpuDesc, T.st, T.stTxt, money(r.gpuCost)));
+    const g2on = $('i-gpu2on').checked;
+    tb.appendChild(row('İkinci GPU sunucusu (TTS + STT)', g2on ? 'L40S / L4 sınıfı, aynı tesis' : 'Kapalı', g2on ? 'est' : '', g2on ? 'Tahmin — taban 60.000 TL' : '', money(r.gpu2)));
+    tb.appendChild(row('Orkestrasyon + veritabanı sunucusu', '16 vCPU / 64 GB tahsisli sunucu veya VDS', 'est', 'Tahmin — 8.000–18.000 TL', money(r.app)));
+    tb.appendChild(row('Nesne depolama + yedekleme (1 TB)', 'Yurt içi S3 uyumlu', 'est', 'Tahmin — 800–2.500 TL', money(r.storage)));
+    tb.appendChild(row('Ağ, DDoS, ek IP', 'Gelişmiş DDoS 1.500–8.000 TL; /29 blok 100–300 TL', 'est', 'Tahmin', money(r.net)));
+    tb.appendChild(row('Sağlayıcı fiyat tamponu', "Yukarıdaki kalemlerin " + pct(r.buffer*100) + "'u", '', '', money(r.bufferAmt)));
+    tb.appendChild(row('Altyapı ara toplamı', '', '', '', money(r.infra + r.bufferAmt), 'sub'));
+    tb.appendChild(row('Cartesia Sonic on-prem lisansı', "Enterprise katmanı, özel fiyat — Cartesia'nın rakamı değildir", 'quote', 'Teklif gerekli', money(r.cartesia)));
+    tb.appendChild(row('Gemma 4 31B, vLLM, Whisper, Postgres, Grafana', 'Apache 2.0 / MIT / açık kaynak', 'ok', 'Doğrulandı — 0 $', money(0)));
+    tb.appendChild(row('Operasyon iş gücü', num('i-opsh') + ' sa × ' + money(num('i-opsr'), 'USD'), 'est', 'Sizin oranınız', money(r.labor)));
+    tb.appendChild(row('Aylık dahili maliyet', '', '', '', money(r.internal), 'total'));
+    tb.appendChild(row('Aylık müşteri fiyatı', pct(r.margin*100) + ' brüt marj (maliyet üzerine ' + pct(100*r.margin/(1-r.margin)) + ' ekleme)', '', '', money(r.client), 'client'));
+
+    const sbs = $('sidebyside').querySelector('tbody'); sbs.innerHTML = '';
+    ['h100','h200','b200'].forEach(k => {
+      const x = R[k]; const tr = document.createElement('tr'); if (k === tier) tr.className = 'active';
+      tr.innerHTML = '<td>' + TIERS[k].name + '</td><td class="num">' + money(x.gpuCost) + '</td><td class="num">' + money(x.internal) + '</td><td class="num">' + money(x.client) + '</td><td class="num">' + money(x.clientYearPrepaid) + '</td><td class="num">' + fmt(x.cap) + '</td><td class="num">' + money(x.perCall) + '</td>';
+      sbs.appendChild(tr);
+    });
+
+    const sb = $('setup').querySelector('tbody'); sb.innerHTML = '';
+    sb.appendChild(row('Mühendislik: kurulum, vLLM, Cartesia konteyneri, ses hattı, sıkılaştırma, yük testi', num('i-setuph') + ' sa × ' + money(num('i-setupr'),'USD'), 'est', 'Sizin oranınız', money(num('i-setuph')*num('i-setupr'))));
+    sb.appendChild(row('Sağlayıcı kurulum ücretleri', 'Genelde bir aylık ücret veya sabit provizyon bedeli', 'est', 'Tahmin', money(num('i-setupfee'))));
+    sb.appendChild(row('Tek seferlik dahili maliyet', '', '', '', money(setupInternal), 'total'));
+    sb.appendChild(row('Müşteri tek seferlik kurulum fiyatı', 'Aynı marj uygulandı', '', '', money(setupClient), 'client'));
+
+    const effMargin = r.clientYearPrepaid > 0 ? r.profitYearPrepaid / r.clientYearPrepaid : 0;
+    $('annual').innerHTML =
+      '<div>Dahili maliyet, 12 ay</div><div>' + money(r.internalYear) + '</div>' +
+      '<div>Müşteri fiyatı, aylık faturalı × 12</div><div>' + money(r.clientYearList) + '</div>' +
+      '<div>Müşteri fiyatı, peşin (' + pct(r.annualDisc*100) + ' indirim)</div><div>' + money(r.clientYearPrepaid) + '</div>' +
+      '<div class="h">Peşin fiyatta kâr</div><div class="h">' + money(r.profitYearPrepaid) + '</div>' +
+      '<div>İndirim sonrası efektif marj</div><div>' + pct(effMargin*100) + '</div>' +
+      '<div>Aylık faturalandırmada kâr</div><div>' + money(r.profit*12) + '</div>';
+
+    ['h100','h200','b200'].forEach(k => {
+      $('x-' + k + '-landed').textContent = money(cx[k].landed);
+      $('x-' + k + '-month').textContent = money(cx[k].monthly);
+      if (k !== 'b200'){
+        const rent = gpuCost[k];
+        $('x-' + k + '-rent').textContent = money(rent);
+        const saving = rent - cx[k].monthly;
+        $('x-' + k + '-be').textContent = saving > 0 ? Math.ceil(cx[k].landed / saving) + ' ay' : 'bu kira fiyatında hiçbir zaman';
+      }
+    });
+
+    $('p-month').textContent = money(r.client);
+    $('p-year').textContent = money(r.clientYearPrepaid);
+    $('p-setup').textContent = money(setupClient);
+    $('p-disc').textContent = Math.round(r.annualDisc*100);
+    $('p-cur').textContent = curLabel();
+    const pt = $('p-tiers').querySelector('tbody'); pt.innerHTML = '';
+    const gpuNames = { h100:'1× H100, İstanbul', h200:'1× H200, İstanbul', b200:'8× B200 (satın alınan HGX sunucu), İstanbul' };
+    ['h100','h200','b200'].forEach(k => {
+      const x = R[k]; const tr = document.createElement('tr'); if (k === tier) tr.className = 'active';
+      tr.innerHTML = '<td>' + TIERS[k].name + '</td><td>' + gpuNames[k] + '</td><td class="num">' + fmt(x.cap) + '</td><td class="num">' + money(x.client) + '</td><td class="num">' + money(x.clientYearPrepaid) + '</td>';
+      pt.appendChild(tr);
+    });
+  }
+  recalc();
+})();
+</script>
+</body>
+</html>
