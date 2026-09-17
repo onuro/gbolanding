@@ -21,7 +21,6 @@ const total = String(enterprise.phases.length).padStart(2, "0");
 const copy =
   locale === "tr"
     ? {
-        solution: "Çözüm",
         cadence: "Çalışma ritmi",
         phasesUnit: "faz",
         phase: "Faz",
@@ -30,7 +29,6 @@ const copy =
         navHint: "Fazlar arasında gezinmek için ↑ ↓",
       }
     : {
-        solution: "Solution",
         cadence: "Cadence",
         phasesUnit: "phases",
         phase: "Phase",
@@ -46,17 +44,12 @@ const copy =
 >
   <div class="grid border-b border-border lg:grid-cols-12">
     <div class="px-5 py-8 sm:px-8 sm:py-10 lg:col-span-7 lg:px-12 lg:py-12">
-      <div class="mb-6 flex items-center justify-between gap-4">
+      <div class="mb-6">
         <p
           class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
         >
           {enterprise.eyebrow}
         </p>
-        <span
-          class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/30"
-        >
-          {copy.solution} / 03
-        </span>
       </div>
       <h3 class="max-w-2xl text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
         {enterprise.title}
@@ -113,7 +106,7 @@ const copy =
               tabindex={index === 0 ? 0 : -1}
               data-e-phase-tab
               class:list={[
-                "e-phase-tab relative flex w-full scroll-mt-24 items-start gap-4 border-b border-border px-5 py-5 text-left transition-colors hover:bg-foreground/[0.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sm:px-8 sm:py-6 lg:px-10",
+                "e-phase-tab relative flex w-full cursor-pointer scroll-mt-24 items-start gap-4 border-b border-border px-5 py-5 text-left transition-colors hover:bg-foreground/[0.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sm:px-8 sm:py-6 lg:px-10",
                 index === enterprise.phases.length - 1 && "lg:border-b-0",
                 index === 0 && "is-on",
               ]}

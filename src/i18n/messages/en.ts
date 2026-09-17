@@ -162,8 +162,60 @@ const enMessages: Messages = {
           ],
         },
       ],
-      cta: "Explore the platform",
+      cta: "Explore",
     },
+  },
+  industries: {
+    eyebrow: "Industries",
+    title: "Real results across every industry we serve",
+    description:
+      "We've deployed AI across industries that can't afford slow responses, missed collections, or manual bottlenecks.",
+    items: [
+      {
+        title: "Banking",
+        badge: "Voice collection live",
+        description:
+          "Voice agents that call customers, agree a payment plan, and take the money that comes in.",
+        imageAlt: "A person on a phone call with a live voice waveform",
+        stats: [
+          { value: "10K+", lead: "calls", rest: "a day" },
+          { value: "$500K", lead: "recovered", rest: "so far" },
+        ],
+      },
+      {
+        title: "Valuation",
+        badge: "Intelval live",
+        description:
+          "Agents that read comparables and write expert-level valuation files for the desk.",
+        imageAlt: "Sunlit office buildings used for property valuation",
+        stats: [
+          { value: "2", lead: "asset", rest: "classes" },
+          { value: "Live", lead: "Intelval", rest: "reports for the desk" },
+        ],
+      },
+      {
+        title: "Legal",
+        badge: "Law firm desks",
+        description:
+          "Collection work built around the files your lawyers already run, with a live handoff.",
+        imageAlt: "A headset on a collection desk",
+        stats: [
+          { value: "97%", lead: "natural-language", rest: "talk with customers" },
+          { value: "20", lead: "concurrent", rest: "calls" },
+        ],
+      },
+      {
+        title: "Enterprise",
+        badge: "Custom systems",
+        description:
+          "Software designed around your workflow, your data, and the volume you expect next year.",
+        imageAlt: "Hands arranging a workflow on a table",
+        stats: [
+          { value: "4", lead: "phases", rest: "from analysis to build" },
+          { value: "Custom", lead: "software", rest: "around your work" },
+        ],
+      },
+    ],
   },
   kollektorDeep: {
     eyebrow: "Product · Kollektor",

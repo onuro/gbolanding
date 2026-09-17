@@ -376,7 +376,7 @@ export function VoiceButton({
           onClick={start}
           disabled={state !== "idle"}
           aria-hidden={state !== "idle"}
-          className={`flex size-14 items-center justify-center rounded-full bg-foreground text-background outline-none transition duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+          className={`flex size-14 cursor-pointer items-center justify-center rounded-full bg-foreground text-background outline-none transition duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
             state === "idle"
               ? "pointer-events-auto opacity-100"
               : "pointer-events-none scale-90 opacity-0"

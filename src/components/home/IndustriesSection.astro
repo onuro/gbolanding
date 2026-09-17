@@ -1,0 +1,586 @@
+---
+import { Image } from "astro:assets";
+import {
+  Building2,
+  ChevronDown,
+  Landmark,
+  Layers,
+  Scale,
+} from "lucide-react";
+
+import enterpriseImage from "@/assets/editorial/collaborative-worktable.png";
+import bankingImage from "@/assets/editorial/kollektor-human-conversation.png";
+import legalImage from "@/assets/editorial/kollektor-voice-workspace.png";
+import valuationImage from "@/assets/editorial/intelval-architecture.png";
+import BlinkText from "@/components/BlinkText";
+import type { Locale } from "@/i18n/config";
+import type { Messages } from "@/i18n/types";
+
+interface Props {
+  locale: Locale;
+  messages: Messages;
+}
+
+const { messages } = Astro.props;
+const copy = messages.industries;
+const icons = [Landmark, Building2, Scale, Layers] as const;
+const images = [bankingImage, valuationImage, legalImage, enterpriseImage];
+const objectPositions = [
+  "object-[18%_center]",
+  "object-center",
+  "object-center",
+  "object-center",
+] as const;
+const graphics = [
+  ["rings", "bars"],
+  ["columns", "gauge"],
+  ["gauge", "rings"],
+  ["columns", "bars"],
+] as const;
+const barRows = [
+  [false, false, false, false, true, true],
+  [false, false, false, true, true, true],
+  [false, false, true, true, true, true],
+] as const;
+const columnHeights = [0.28, 0.38, 0.5, 0.64, 0.8, 1] as const;
+
+type GraphicKind = (typeof graphics)[number][number];
+---
+
+<section
+  id="industries"
+  class="mx-auto w-full max-w-[83.75rem] scroll-mt-16 border-x border-b border-border"
+  aria-labelledby="industries-title"
+  data-industries
+>
+  <div class="relative overflow-visible px-5 pt-20 sm:px-8 lg:px-10 lg:pt-[7.5rem]">
+    <header
+      class="flex flex-col gap-8 pb-16 lg:flex-row lg:items-start lg:justify-between lg:gap-10 lg:pb-[6.25rem]"
+    >
+      <div class="max-w-xl">
+        <p
+          class="inline-flex h-6 items-center gap-1.5 rounded border border-border bg-card py-0.5 pl-2 pr-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.01em] text-foreground"
+        >
+          <span
+            aria-hidden="true"
+            class="size-2 bg-brand shadow-[0_0_3px_rgb(46_255_157_/_0.3),0_2px_7px_rgb(255_255_255_/_0.2)]"
+          ></span>
+          {copy.eyebrow}
+        </p>
+        <h2
+          id="industries-title"
+          class="mt-6 max-w-[32rem] text-[2rem] font-medium leading-[1.05] tracking-[-0.05em] text-foreground sm:text-[2.8rem] sm:leading-[1.05]"
+        >
+          <BlinkText client:visible text={copy.title} />
+        </h2>
+      </div>
+      <p
+        class="max-w-[25rem] text-[1.25rem] font-medium leading-[1.3] tracking-[-0.03em] text-muted-foreground lg:pt-12"
+      >
+        {copy.description}
+      </p>
+    </header>
+  </div>
+
+  <div
+    class="relative grid border-t border-border lg:grid-cols-[minmax(0,28fr)_minmax(0,31fr)_minmax(0,41fr)]"
+  >
+    <div
+      class="relative min-h-[22rem] overflow-hidden border-b border-border lg:min-h-0 lg:border-b-0 lg:border-r"
+    >
+      {
+        copy.items.map((item, index) => (
+          <div
+            class="absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none data-[active]:pointer-events-auto data-[active]:opacity-100"
+            data-industries-visual
+            data-active={index === 0 ? "" : undefined}
+            aria-hidden={index === 0 ? undefined : "true"}
+          >
+            <Image
+              src={images[index]!}
+              alt={item.imageAlt}
+              widths={[390, 780, 1170]}
+              sizes="(min-width: 1024px) 28vw, 100vw"
+              format="webp"
+              quality={78}
+              loading={index === 0 ? "eager" : "lazy"}
+              decoding="async"
+              class:list={[
+                "h-full min-h-[22rem] w-full object-cover lg:absolute lg:inset-0 lg:min-h-0",
+                objectPositions[index],
+              ]}
+            />
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="relative border-b border-border lg:border-b-0 lg:border-r">
+      {
+        copy.items.map((item, index) => (
+          <div
+            class="grid sm:grid-cols-2 lg:grid-cols-1"
+            data-industries-stats
+            data-active={index === 0 ? "" : undefined}
+            data-play={index === 0 ? "" : undefined}
+            hidden={index !== 0}
+          >
+            {
+              item.stats.map((stat, statIndex) => {
+                const kind = graphics[index]![statIndex]! as GraphicKind;
+
+                return (
+                  <div
+                    class:list={[
+                      "relative flex min-h-[16.875rem] items-start justify-between gap-6 p-8 sm:p-10",
+                      statIndex === 0 && "border-b border-border",
+                    ]}
+                  >
+                    <div class="min-w-0">
+                      <p class="text-[2.3rem] font-medium leading-none tracking-[-0.045em] text-foreground">
+                        {stat.value}
+                      </p>
+                      <p class="mt-3 max-w-[12rem] text-[15px] font-medium leading-5 tracking-[-0.02em]">
+                        <span class="text-foreground">{stat.lead}</span>{" "}
+                        <span class="text-tertiary-foreground">{stat.rest}</span>
+                      </p>
+                    </div>
+
+                    {kind === "rings" && (
+                      <div
+                        class="relative mt-8 size-[84px] shrink-0 self-center"
+                        aria-hidden="true"
+                      >
+                        <span
+                          class="industries-ring industries-ring--outer absolute inset-0 rounded-full bg-brand/[0.05]"
+                          style="--i: 0"
+                        ></span>
+                        <span
+                          class="industries-ring industries-ring--mid absolute left-1/2 top-1/2 size-[46px] rounded-full bg-brand/10"
+                          style="--i: 1"
+                        ></span>
+                        <span
+                          class="industries-ring industries-ring--dot absolute left-1/2 top-1/2 size-3 rounded-full bg-brand"
+                          style="--i: 2"
+                        ></span>
+                      </div>
+                    )}
+
+                    {kind === "bars" && (
+                      <div
+                        class="mt-8 flex shrink-0 gap-1 self-center"
+                        aria-hidden="true"
+                      >
+                        {barRows.map((row, colIndex) => (
+                          <div class="flex flex-col gap-1">
+                            {row.map((on, rowIndex) => (
+                              <span
+                                class:list={[
+                                  "industries-bar h-1.5 w-8 rounded-[5px]",
+                                  on ? "bg-brand" : "bg-brand/10",
+                                ]}
+                                style={`--i: ${colIndex * 6 + rowIndex}`}
+                              />
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {kind === "columns" && (
+                      <div
+                        class="mt-8 flex h-[84px] shrink-0 items-end gap-1 self-center"
+                        aria-hidden="true"
+                      >
+                        {columnHeights.map((height, barIndex) => (
+                          <span
+                            class:list={[
+                              "industries-col w-1.5 origin-bottom rounded-[2px]",
+                              barIndex === columnHeights.length - 1
+                                ? "bg-brand"
+                                : "bg-brand/20",
+                            ]}
+                            style={`--i: ${barIndex}; height: ${height * 100}%`}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {kind === "gauge" && (
+                      <svg
+                        viewBox="0 0 84 84"
+                        class="mt-8 size-[84px] shrink-0 self-center"
+                        aria-hidden="true"
+                      >
+                        <circle
+                          cx="42"
+                          cy="42"
+                          r="34"
+                          fill="none"
+                          class="stroke-brand/15"
+                          stroke-width="2.5"
+                        />
+                        <circle
+                          cx="42"
+                          cy="42"
+                          r="34"
+                          fill="none"
+                          class="industries-gauge-arc stroke-brand"
+                          stroke-width="2.5"
+                          stroke-linecap="round"
+                          stroke-dasharray="166.6 214"
+                          transform="rotate(130 42 42)"
+                        />
+                        <circle
+                          cx="63.8"
+                          cy="68"
+                          r="4"
+                          class="industries-gauge-dot fill-brand"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                );
+              })
+            }
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="flex flex-col lg:h-full lg:min-h-0" data-industries-acc>
+      {
+        copy.items.map((item, index) => {
+          const Icon = icons[index] ?? Landmark;
+          const open = index === 0;
+
+          return (
+            <div
+              class="group/acc flex flex-col border-b border-border last:border-b-0 lg:h-full lg:min-h-0 lg:overflow-hidden"
+              data-industries-item
+              data-open={open ? "" : undefined}
+            >
+              <h3 class="lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
+                <button
+                  type="button"
+                  class="flex w-full cursor-pointer items-center justify-between gap-4 px-8 py-9 text-left sm:px-10 lg:flex-1"
+                  aria-expanded={open ? "true" : "false"}
+                  data-industries-trigger
+                >
+                  <span class="flex min-w-0 items-center gap-3">
+                    <Icon
+                      aria-hidden="true"
+                      className="industries-icon size-5 shrink-0 text-tertiary-foreground group-data-[open]/acc:text-brand"
+                      strokeWidth={1.75}
+                    />
+                    <span class="industries-title truncate text-[15px] font-medium tracking-[-0.02em] text-tertiary-foreground">
+                      {item.title}
+                    </span>
+                  </span>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="industries-chevron size-4 shrink-0 text-tertiary-foreground transition-transform duration-300 group-data-[open]/acc:rotate-180"
+                    strokeWidth={1.5}
+                  />
+                </button>
+              </h3>
+              <div class="industries-panel">
+                <div class="min-h-0 overflow-hidden">
+                  <div class="px-8 pb-9 sm:px-10">
+                    <p class="industries-badge font-mono text-[11px] font-medium uppercase tracking-[0.01em]">
+                      {item.badge}
+                    </p>
+                    <p class="industries-copy mt-4 max-w-[26rem] text-[1.25rem] font-medium leading-[1.3] tracking-[-0.03em]">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })
+      }
+    </div>
+  </div>
+
+  <div class="diagonal-hatch h-10 border-t border-border" aria-hidden="true"></div>
+</section>
+
+<script is:inline>
+  (() => {
+    const replayGraphics = (panel) => {
+      panel.removeAttribute("data-play");
+      void panel.offsetWidth;
+      panel.setAttribute("data-play", "");
+    };
+
+    const openIndustry = (item) => {
+      const root = item.closest("[data-industries]");
+      if (!root) return;
+
+      const items = [...root.querySelectorAll("[data-industries-item]")];
+      const visuals = [...root.querySelectorAll("[data-industries-visual]")];
+      const stats = [...root.querySelectorAll("[data-industries-stats]")];
+      const index = items.indexOf(item);
+      if (index < 0) return;
+
+      items.forEach((current, i) => {
+        const open = i === index;
+        const trigger = current.querySelector("[data-industries-trigger]");
+        if (!trigger) return;
+        trigger.setAttribute("aria-expanded", open ? "true" : "false");
+        if (open) current.setAttribute("data-open", "");
+        else current.removeAttribute("data-open");
+      });
+
+      const accordion = root.querySelector("[data-industries-acc]");
+      if (accordion) {
+        accordion.style.gridTemplateRows = items
+          .map((_, i) => (i === index ? "2fr" : "1fr"))
+          .join(" ");
+      }
+
+      visuals.forEach((visual, i) => {
+        const active = i === index;
+        if (active) {
+          visual.setAttribute("data-active", "");
+          visual.removeAttribute("aria-hidden");
+        } else {
+          visual.removeAttribute("data-active");
+          visual.setAttribute("aria-hidden", "true");
+        }
+      });
+
+      stats.forEach((panel, i) => {
+        const active = i === index;
+        panel.hidden = !active;
+        if (active) {
+          panel.setAttribute("data-active", "");
+          replayGraphics(panel);
+        } else {
+          panel.removeAttribute("data-active");
+          panel.removeAttribute("data-play");
+        }
+      });
+    };
+
+    const triggerFromEvent = (event) => {
+      const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+      for (const node of path) {
+        if (node instanceof Element && node.matches("[data-industries-trigger]")) {
+          return node;
+        }
+      }
+      const target = event.target;
+      const el =
+        target instanceof Element
+          ? target
+          : target && target.parentElement;
+      return el?.closest("[data-industries-trigger]") ?? null;
+    };
+
+    document.querySelectorAll("[data-industries]").forEach((root) => {
+      if (root.dataset.industriesBound) return;
+      root.dataset.industriesBound = "true";
+      root.addEventListener("click", (event) => {
+        const trigger = triggerFromEvent(event);
+        if (!trigger || !root.contains(trigger)) return;
+        const item = trigger.closest("[data-industries-item]");
+        if (item) openIndustry(item);
+      });
+    });
+  })();
+</script>
+
+<style>
+  .industries-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  [data-industries-item][data-open] .industries-panel {
+    grid-template-rows: 1fr;
+  }
+
+  @media (min-width: 1024px) {
+    [data-industries-acc] {
+      display: grid;
+      min-height: 0;
+      height: 100%;
+      grid-template-rows: 2fr 1fr 1fr 1fr;
+      transition: grid-template-rows 400ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  }
+
+  [data-industries-item]:not([data-open]) .industries-title,
+  [data-industries-item]:not([data-open]) .industries-chevron,
+  [data-industries-item]:not([data-open]) .industries-icon {
+    transition: color 150ms ease;
+  }
+
+  [data-industries-item]:not([data-open]):hover .industries-title,
+  [data-industries-item]:not([data-open]):hover .industries-chevron,
+  [data-industries-item]:not([data-open]):hover .industries-icon,
+  [data-industries-item]:not([data-open]):has([data-industries-trigger]:focus-visible)
+    .industries-title,
+  [data-industries-item]:not([data-open]):has([data-industries-trigger]:focus-visible)
+    .industries-chevron,
+  [data-industries-item]:not([data-open]):has([data-industries-trigger]:focus-visible)
+    .industries-icon {
+    color: #09090b;
+  }
+
+  :global(html[data-theme="dark"]) [data-industries-item]:not([data-open]):hover .industries-title,
+  :global(html[data-theme="dark"]) [data-industries-item]:not([data-open]):hover .industries-chevron,
+  :global(html[data-theme="dark"]) [data-industries-item]:not([data-open]):hover .industries-icon,
+  :global(html[data-theme="dark"])
+    [data-industries-item]:not([data-open]):has([data-industries-trigger]:focus-visible)
+    .industries-title,
+  :global(html[data-theme="dark"])
+    [data-industries-item]:not([data-open]):has([data-industries-trigger]:focus-visible)
+    .industries-chevron,
+  :global(html[data-theme="dark"])
+    [data-industries-item]:not([data-open]):has([data-industries-trigger]:focus-visible)
+    .industries-icon {
+    color: #fafafa;
+  }
+
+  [data-industries-item][data-open] .industries-title,
+  [data-industries-item][data-open] .industries-chevron,
+  [data-industries-item][data-open] .industries-badge,
+  [data-industries-item][data-open] .industries-copy {
+    color: inherit;
+  }
+
+  [data-industries-item][data-open] .industries-chevron,
+  [data-industries-item][data-open] .industries-badge {
+    color: color-mix(in srgb, currentColor 50%, transparent);
+  }
+
+  [data-industries-item][data-open] .industries-copy {
+    color: color-mix(in srgb, currentColor 82%, transparent);
+  }
+
+  :global(html[data-theme="dark"]) [data-industries-item][data-open] {
+    background: #fafafa;
+    color: #09090b;
+  }
+
+  [data-industries-stats][data-play] .industries-ring {
+    animation: industries-ring-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 90ms);
+  }
+
+  [data-industries-stats][data-play] .industries-bar {
+    transform-origin: left center;
+    animation: industries-bar-in 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 28ms);
+  }
+
+  [data-industries-stats][data-play] .industries-col {
+    animation: industries-col-in 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+
+  [data-industries-stats][data-play] .industries-gauge-arc {
+    animation: industries-gauge-in 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  [data-industries-stats][data-play] .industries-gauge-dot {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: industries-dot-in 420ms cubic-bezier(0.16, 1, 0.3, 1) 560ms both;
+  }
+
+  .industries-ring--mid,
+  .industries-ring--dot {
+    translate: -50% -50%;
+    transform-origin: center;
+  }
+
+  @keyframes industries-ring-in {
+    from {
+      opacity: 0;
+      scale: 0.45;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  .industries-ring--outer {
+    transform-origin: center;
+  }
+
+  @keyframes industries-ring-outer-in {
+    from {
+      opacity: 0;
+      transform: scale(0.55);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  [data-industries-stats][data-play] .industries-ring--outer {
+    animation-name: industries-ring-outer-in;
+  }
+
+  @keyframes industries-bar-in {
+    from {
+      opacity: 0.2;
+      transform: scaleX(0.15);
+    }
+    to {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+  }
+
+  @keyframes industries-col-in {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes industries-gauge-in {
+    from {
+      stroke-dasharray: 0 214;
+    }
+    to {
+      stroke-dasharray: 166.6 214;
+    }
+  }
+
+  @keyframes industries-dot-in {
+    from {
+      opacity: 0;
+      transform: scale(0);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .industries-panel,
+    [data-industries-acc] {
+      transition: none;
+    }
+
+    [data-industries-stats][data-play] .industries-ring,
+    [data-industries-stats][data-play] .industries-bar,
+    [data-industries-stats][data-play] .industries-col,
+    [data-industries-stats][data-play] .industries-gauge-arc,
+    [data-industries-stats][data-play] .industries-gauge-dot {
+      animation: none;
+    }
+  }
+</style>

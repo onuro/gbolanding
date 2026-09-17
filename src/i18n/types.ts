@@ -28,6 +28,20 @@ export interface EnterpriseSolutionMessage {
   cta: string;
 }
 
+export interface IndustryStatMessage {
+  value: string;
+  lead: string;
+  rest: string;
+}
+
+export interface IndustryItemMessage {
+  title: string;
+  badge: string;
+  description: string;
+  imageAlt: string;
+  stats: [IndustryStatMessage, IndustryStatMessage];
+}
+
 export interface CapabilityMessage {
   title: string;
   description: string;
@@ -112,6 +126,17 @@ export interface Messages {
     kollektor: SolutionMessage;
     intelval: SolutionMessage;
     enterprise: EnterpriseSolutionMessage;
+  };
+  industries: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    items: [
+      IndustryItemMessage,
+      IndustryItemMessage,
+      IndustryItemMessage,
+      IndustryItemMessage,
+    ];
   };
   kollektorDeep: {
     eyebrow: string;

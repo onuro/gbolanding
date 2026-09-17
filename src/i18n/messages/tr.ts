@@ -162,8 +162,60 @@ const trMessages: Messages = {
           ],
         },
       ],
-      cta: "Platformu inceleyin",
+      cta: "İnceleyin",
     },
+  },
+  industries: {
+    eyebrow: "Sektörler",
+    title: "Hizmet verdiğimiz her sektörde gerçek sonuç",
+    description:
+      "Yavaş yanıt, kaçan tahsilat veya elle yürüyen darboğaz lüksü olmayan sektörlerde yapay zeka kuruyoruz.",
+    items: [
+      {
+        title: "Bankacılık",
+        badge: "Sesli tahsilat canlı",
+        description:
+          "Müşteriyi arayan, ödeme planı kuran ve gelen ödemeyi alan ses ajanları.",
+        imageAlt: "Telefonla konuşan bir kişi ve canlı ses dalgası",
+        stats: [
+          { value: "10.000+", lead: "günlük", rest: "arama" },
+          { value: "₺23,9M", lead: "bugüne kadarki", rest: "tahsilat" },
+        ],
+      },
+      {
+        title: "Değerleme",
+        badge: "Intelval canlı",
+        description:
+          "Emsalleri okuyan ve masa için uzman düzeyinde değerleme dosyası yazan ajanlar.",
+        imageAlt: "Gün ışığında ofis binaları",
+        stats: [
+          { value: "2", lead: "varlık", rest: "sınıfı" },
+          { value: "Canlı", lead: "Intelval", rest: "masa için rapor" },
+        ],
+      },
+      {
+        title: "Hukuk",
+        badge: "Büro masaları",
+        description:
+          "Avukatlarınızın zaten işlettiği dosyaların üzerine kurulu tahsilat, canlı devirle.",
+        imageAlt: "Masada duran bir kulaklık",
+        stats: [
+          { value: "%97", lead: "müşteri ile", rest: "doğal dilde konuşma" },
+          { value: "20", lead: "eşzamanlı", rest: "görüşme" },
+        ],
+      },
+      {
+        title: "Kurumsal",
+        badge: "Özel sistemler",
+        description:
+          "İş akışınıza, verinize ve gelecek yılın hacmine göre tasarlanan yazılım.",
+        imageAlt: "Bir masada iş akışı kartları düzenleyen eller",
+        stats: [
+          { value: "4", lead: "faz", rest: "analizden inşa" },
+          { value: "Özel", lead: "yazılım", rest: "işinize göre" },
+        ],
+      },
+    ],
   },
   kollektorDeep: {
     eyebrow: "Ürün · Kollektor",
