@@ -12,8 +12,16 @@ Use case: photorealistic-natural. Asset type: portrait editorial photograph for 
 
 ## Healthcare
 
-Asset: `src/assets/editorial/industries-healthcare-clinic.png`
+Asset: `src/assets/editorial/industries-healthcare-clinic-open.png`
 
 Final prompt:
 
 Use case: photorealistic-natural. Asset type: portrait editorial photograph for a healthcare industry panel on a refined Turkish enterprise AI website. Create a candid image of a female physician in her late thirties standing in a bright contemporary outpatient clinic corridor, wearing a white coat over muted sage scrubs and holding a slim tablet naturally at waist level. She glances thoughtfully toward an open consultation-room doorway, as if preparing to welcome her next patient. Show her in a medium three-quarter view, with hands and tablet visible, no visible screen contents or patient information. Softly receding consultation-room doors and pale wood wall details establish a calm clinical setting. Portrait 2:3 composition, one physician comfortably centered, generous headroom, suitable for a narrow 360px by 540px website panel and a wider mobile crop. Soft window daylight, warm off-white and restrained sage-green palette, subtle fine grain, realistic textures and anatomy, premium but natural documentary editorial photography. No one looking at the camera, no posed smile, no medical procedure, no logos, no readable signage or text, no floating UI, no watermark. High resolution.
+
+### Right-edge cleanup — 2026-09-19
+
+Edited with the built-in imagegen tool using the existing healthcare image as the edit target. Replaced the asset and updated its filename to refresh the browser's image cache, preserving its portrait ratio and the site's existing crop and layout.
+
+Final edit prompt:
+
+Use case: precise-object-edit. Asset type: portrait editorial photograph for an existing healthcare website panel. Input image 1 is the edit target. Recreate this same photograph with one correction to the right-side background: remove the distracting tall foreground vertical door jamb/post to the doctor's right, and remove the narrow pale vertical strip flush with the far right edge. Replace these strips with a seamless, softly out-of-focus continuation of the consultation room behind them, so the right side feels open and uninterrupted. Preserve the physician's exact identity, face, hair, expression, gaze to the right, body proportions, standing pose, white coat, sage scrubs, hands and gray tablet. Keep her placement and scale exactly as in the original. Preserve the sunlit clinic corridor on the left, the muted sage examination couch and warm neutral clinic setting on the right, the natural soft daylight, warm ivory and sage palette, photographic realism and fine texture. Keep the original portrait 2:3 aspect ratio and full-bleed photograph edge to edge. Change only the distracting right-side architectural strips and the immediately adjacent background needed to remove them naturally. No border, white margin, vertical band, frame, artificial edge bar, text, logos, watermark, extra people or added graphic elements.

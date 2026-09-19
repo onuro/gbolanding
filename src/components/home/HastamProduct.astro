@@ -23,15 +23,27 @@ const solutionLabel = locale === "tr" ? "Çözüm" : "Solution";
     <div class="relative h-72 overflow-hidden bg-muted sm:h-96 lg:order-2 lg:h-auto lg:min-h-[34rem] xl:col-span-5">
       <Image
         src={hastamImage}
-        alt={product.imageAlt}
-        widths={[480, 640, 960, 1280]}
+        alt=""
+        widths={[480, 640, 960]}
         sizes="(min-width: 1340px) 560px, (min-width: 1280px) 41.67vw, (min-width: 1024px) 50vw, 100vw"
         format="webp"
-        quality={82}
+        quality={70}
         loading="lazy"
         decoding="async"
-        class="absolute inset-0 h-full w-full object-cover object-[58%_center]"
+        class="absolute inset-0 h-full w-full object-cover object-[58%_center] motion-safe:hidden"
       />
+      <video
+        class="absolute inset-0 hidden h-full w-full object-cover object-[58%_center] motion-safe:block"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        poster={hastamImage.src}
+        aria-label={product.imageAlt}
+      >
+        <source src="/media/hastam-doctor-consultation.mp4" type="video/mp4" />
+      </video>
     </div>
 
     <div class="flex flex-col bg-background px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12 xl:col-span-7">
