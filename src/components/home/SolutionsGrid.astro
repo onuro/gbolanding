@@ -26,7 +26,6 @@ const highlightParts = (text: string) => text.split(/(\d[\d.,]*)/).filter(Boolea
 const visualCopy =
   locale === "tr"
     ? {
-        solution: "Çözüm",
         caseCommand: "Çağrı paneli",
         case: "Dosya",
         live: "Canlı",
@@ -55,7 +54,6 @@ const visualCopy =
         methodsLabel: "yöntem",
       }
     : {
-        solution: "Solution",
         caseCommand: "Call floor",
         case: "Case",
         live: "Live",
@@ -171,9 +169,12 @@ const concludedAt = Math.round(
     </div>
   </div>
 
-  <div class="grid grid-cols-1 gap-px bg-border md:grid-cols-2 xl:grid-cols-12">
+  <div class="grid grid-cols-1 gap-px bg-border">
+    <div
+      class="grid grid-cols-1 gap-px bg-border md:grid-cols-2 md:gap-y-0 xl:grid-cols-12"
+    >
     <article
-      class="group relative flex min-h-[41rem] flex-col overflow-hidden bg-background md:col-span-1 xl:col-span-7"
+      class="group relative flex min-h-[41rem] flex-col overflow-hidden bg-background md:col-span-1 md:grid md:grid-rows-subgrid md:row-span-4 xl:col-span-7"
     >
       <div class="h-64 shrink-0 overflow-hidden border-b border-border bg-muted sm:h-80 md:h-72 xl:h-80" aria-hidden="true">
         <Image
@@ -189,16 +190,11 @@ const concludedAt = Math.round(
         />
       </div>
       <div class="relative z-10 px-5 pt-8 sm:px-8 sm:pt-10">
-        <div class="mb-8 flex items-start justify-between gap-5">
+        <div class="mb-8">
           <span
             class="flex size-10 items-center justify-center rounded-full border border-border bg-card text-foreground/70"
           >
             <Scale aria-hidden="true" className="size-4" strokeWidth={1.5} />
-          </span>
-          <span
-            class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/30"
-          >
-            {visualCopy.solution} / 01
           </span>
         </div>
 
@@ -240,8 +236,8 @@ const concludedAt = Math.round(
         </ul>
       </div>
 
-      <div class="mt-10 flex flex-1 items-end" aria-hidden="true">
-        <div class="w-full border-t border-border bg-card/40">
+      <div class="mt-10 flex flex-1 items-end md:mt-0 md:h-full md:min-h-0 md:flex-col md:items-stretch md:pt-10" aria-hidden="true">
+        <div class="w-full border-t border-border bg-card/40 md:flex md:min-h-0 md:flex-1 md:flex-col">
           <div
             class="flex h-9 items-center justify-between border-b border-border px-5 sm:px-8"
           >
@@ -369,7 +365,7 @@ const concludedAt = Math.round(
     </article>
 
     <article
-      class="group relative flex min-h-[41rem] flex-col overflow-hidden bg-background md:col-span-1 xl:col-span-5"
+      class="group relative flex min-h-[41rem] flex-col overflow-hidden bg-background md:col-span-1 md:grid md:grid-rows-subgrid md:row-span-4 xl:col-span-5"
     >
       <div class="h-64 shrink-0 overflow-hidden border-b border-border bg-muted sm:h-80 md:h-72 xl:h-80" aria-hidden="true">
         <Image
@@ -385,7 +381,7 @@ const concludedAt = Math.round(
         />
       </div>
       <div class="relative z-10 px-5 pt-8 sm:px-8 sm:pt-10">
-        <div class="mb-8 flex items-start justify-between gap-5">
+        <div class="mb-8">
           <span
             class="flex size-10 items-center justify-center rounded-full border border-border bg-card text-foreground/70"
           >
@@ -394,11 +390,6 @@ const concludedAt = Math.round(
               className="size-4"
               strokeWidth={1.5}
             />
-          </span>
-          <span
-            class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/30"
-          >
-            {visualCopy.solution} / 02
           </span>
         </div>
 
@@ -440,10 +431,10 @@ const concludedAt = Math.round(
         </ul>
       </div>
 
-      <div class="mt-10 flex flex-1 items-end" aria-hidden="true">
-        <div class="w-full border-t border-border bg-card/40">
+      <div class="mt-10 flex flex-1 items-end md:mt-0 md:h-full md:min-h-0 md:flex-col md:items-stretch md:pt-10" aria-hidden="true">
+        <div class="flex w-full flex-col border-t border-border bg-card/40 md:min-h-0 md:flex-1">
           <div
-            class="flex h-9 items-center justify-between border-b border-border px-5 sm:px-8"
+            class="flex h-9 shrink-0 items-center justify-between border-b border-border px-5 sm:px-8"
           >
             <span
               class="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/45"
@@ -457,7 +448,7 @@ const concludedAt = Math.round(
             </span>
           </div>
 
-          <div class="border-b border-border px-5 py-5 sm:px-8">
+          <div class="flex flex-1 flex-col justify-center border-b border-border px-5 py-5 sm:px-8">
             <p
               class="font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/55 dark:text-foreground/30"
             >
@@ -545,8 +536,9 @@ const concludedAt = Math.round(
         />
       </a>
     </article>
+    </div>
 
-    <HastamProduct locale={locale} product={messages.solutions.hastam} />
+    <HastamProduct product={messages.solutions.hastam} />
     <EnterprisePhases locale={locale} messages={messages} />
   </div>
 </section>
