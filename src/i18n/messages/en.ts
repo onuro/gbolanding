@@ -218,7 +218,7 @@ const enMessages: Messages = {
           "Agents that read comparables and write expert-level valuation files for the desk.",
         imageAlt: "Sunlit office buildings used for property valuation",
         stats: [
-          { value: "2", lead: "asset", rest: "classes" },
+          { value: "800+", lead: "daily", rest: "analyses run" },
           { value: "Live", lead: "Intelval", rest: "reports for the desk" },
         ],
       },

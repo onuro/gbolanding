@@ -218,7 +218,7 @@ const trMessages: Messages = {
           "Emsalleri okuyan ve masa için uzman düzeyinde değerleme dosyası yazan ajanlar.",
         imageAlt: "Gün ışığında ofis binaları",
         stats: [
-          { value: "2", lead: "varlık", rest: "sınıfı" },
+          { value: "800+", lead: "günlük", rest: "yapılan analiz" },
           { value: "Canlı", lead: "Intelval", rest: "masa için rapor" },
         ],
       },
