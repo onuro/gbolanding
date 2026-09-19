@@ -2,8 +2,15 @@ export interface SolutionMessage {
   eyebrow: string;
   title: string;
   description: string;
-  highlights: [string, string, string];
+  highlights: string[];
   cta: string;
+}
+
+export interface HastamSolutionMessage extends SolutionMessage {
+  headline: string;
+  support: string;
+  imageAlt: string;
+  steps: { title: string; description: string }[];
 }
 
 export interface EnterprisePhaseMessage {
@@ -125,6 +132,7 @@ export interface Messages {
   solutions: {
     kollektor: SolutionMessage;
     intelval: SolutionMessage;
+    hastam: HastamSolutionMessage;
     enterprise: EnterpriseSolutionMessage;
   };
   industries: {

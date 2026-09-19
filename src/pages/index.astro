@@ -10,7 +10,7 @@ export const prerender = true;
 const locale = "tr" as const;
 const messages = await getMessages(locale);
 const metadata = buildMetadata(locale, messages);
-// Kollektor and Intelval only, and only here -- they are named on this page.
+// Describe the products presented on the homepage.
 const productSchema = buildProductNodes(
   new URL(Astro.site ?? Astro.url.origin),
   messages,

@@ -20,7 +20,7 @@ const enMessages: Messages = {
     ],
     productsTitle: "What we have built",
     productsIntro:
-      "Two products carry our name. Each one started as client work and became something we run ourselves.",
+      "Kollektor, Intelval, and Hastam. We build our own products for debt collection, valuation, and the day-to-day work of a clinic.",
     factsTitle: "Company details",
     factLabels: {
       legalName: "Legal name",
@@ -33,7 +33,7 @@ const enMessages: Messages = {
     factValues: {
       based: "Türkiye",
       languages: "English, German, Turkish",
-      products: "Kollektor, Intelval",
+      products: "Kollektor, Intelval, Hastam",
     },
   },
   nav: {
@@ -91,7 +91,6 @@ const enMessages: Messages = {
       highlights: [
         "10,000 calls a day",
         "$500K recovered",
-        "Escalates to your team",
       ],
       cta: "See how Kollektor works",
     },
@@ -106,6 +105,36 @@ const enMessages: Messages = {
         "Clear reports",
       ],
       cta: "Schedule an Intelval demo",
+    },
+    hastam: {
+      eyebrow: "Voice AI for clinics",
+      title: "Hastam",
+      headline: "From patient concern to the right doctor.",
+      description:
+        "Hastam assesses a patient’s concerns and guides them to a doctor in the right specialty. It checks doctors’ current schedules and offers times that work for the patient. Their chosen appointment goes to the clinic for approval.",
+      support:
+        "Patients just call. Your team follows calls, patient records, and dictated clinical notes in one dashboard.",
+      imageAlt: "A doctor listening attentively to a patient in a sunlit clinic",
+      highlights: [
+        "Understand the concern",
+        "Find the right doctor",
+        "Match their schedules",
+      ],
+      steps: [
+        {
+          title: "Understand the concern",
+          description: "Listens to the patient and assesses their concerns and needs.",
+        },
+        {
+          title: "Find the right doctor",
+          description: "Matches the concern to the clinic’s specialties and guides the patient to a suitable doctor.",
+        },
+        {
+          title: "Match their schedules",
+          description: "Offers available times, then sends the patient’s choice to the clinic for approval.",
+        },
+      ],
+      cta: "Schedule a Hastam demo",
     },
     enterprise: {
       eyebrow: "Custom AI and software",
@@ -176,7 +205,7 @@ const enMessages: Messages = {
         badge: "Voice collection live",
         description:
           "Voice agents that call customers, agree a payment plan, and take the money that comes in.",
-        imageAlt: "A person on a phone call with a live voice waveform",
+        imageAlt: "A bank adviser reviewing a financial document at a branch desk",
         stats: [
           { value: "10K+", lead: "calls", rest: "a day" },
           { value: "$500K", lead: "recovered", rest: "so far" },
@@ -205,14 +234,14 @@ const enMessages: Messages = {
         ],
       },
       {
-        title: "Enterprise",
-        badge: "Custom systems",
+        title: "Healthcare",
+        badge: "Patient guidance with Hastam",
         description:
-          "Software designed around your workflow, your data, and the volume you expect next year.",
-        imageAlt: "Hands arranging a workflow on a table",
+          "Hastam assesses the patient’s concern, guides them to a suitable doctor, and offers appointments from current schedules.",
+        imageAlt: "A doctor holding a tablet in an outpatient clinic corridor",
         stats: [
-          { value: "4", lead: "phases", rest: "from analysis to build" },
-          { value: "Custom", lead: "software", rest: "around your work" },
+          { value: "Right", lead: "specialty", rest: "and doctor" },
+          { value: "Open", lead: "appointment", rest: "times" },
         ],
       },
     ],

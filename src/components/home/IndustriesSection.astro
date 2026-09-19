@@ -4,14 +4,18 @@ import {
   Building2,
   ChevronDown,
   Landmark,
-  Layers,
   Scale,
+  Stethoscope,
 } from "lucide-react";
 
-import enterpriseImage from "@/assets/editorial/collaborative-worktable.png";
-import bankingImage from "@/assets/editorial/kollektor-human-conversation.png";
+import healthcareImage from "@/assets/editorial/industries-healthcare-clinic.png";
+import bankingImage from "@/assets/editorial/industries-banking-adviser.png";
 import legalImage from "@/assets/editorial/kollektor-voice-workspace.png";
 import valuationImage from "@/assets/editorial/intelval-architecture.png";
+import VoiceConversation from "@/assets/industry-graphics/voice-conversation.svg";
+import ParallelCalls from "@/assets/industry-graphics/parallel-calls.svg";
+import DoctorRouting from "@/assets/industry-graphics/doctor-routing.svg";
+import AppointmentCalendar from "@/assets/industry-graphics/appointment-calendar.svg";
 import BlinkText from "@/components/BlinkText";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
@@ -23,19 +27,19 @@ interface Props {
 
 const { messages } = Astro.props;
 const copy = messages.industries;
-const icons = [Landmark, Building2, Scale, Layers] as const;
-const images = [bankingImage, valuationImage, legalImage, enterpriseImage];
+const icons = [Landmark, Building2, Scale, Stethoscope] as const;
+const images = [bankingImage, valuationImage, legalImage, healthcareImage];
 const objectPositions = [
-  "object-[18%_center]",
+  "object-[center_35%]",
   "object-center",
   "object-center",
-  "object-center",
+  "object-[center_30%]",
 ] as const;
 const graphics = [
   ["rings", "bars"],
   ["columns", "gauge"],
-  ["gauge", "rings"],
-  ["columns", "bars"],
+  [VoiceConversation, ParallelCalls],
+  [DoctorRouting, AppointmentCalendar],
 ] as const;
 const barRows = [
   [false, false, false, false, true, true],
@@ -83,7 +87,7 @@ type GraphicKind = (typeof graphics)[number][number];
   </div>
 
   <div
-    class="relative grid border-t border-border lg:grid-cols-[minmax(0,28fr)_minmax(0,31fr)_minmax(0,41fr)]"
+    class="relative grid border-t border-border lg:h-[30rem] lg:grid-cols-[minmax(0,28fr)_minmax(0,31fr)_minmax(0,41fr)]"
   >
     <div
       class="relative min-h-[22rem] overflow-hidden border-b border-border lg:min-h-0 lg:border-b-0 lg:border-r"
@@ -119,7 +123,7 @@ type GraphicKind = (typeof graphics)[number][number];
       {
         copy.items.map((item, index) => (
           <div
-            class="grid sm:grid-cols-2 lg:grid-cols-1"
+            class="grid sm:grid-cols-2 lg:h-full lg:grid-cols-1 lg:grid-rows-2"
             data-industries-stats
             data-active={index === 0 ? "" : undefined}
             data-play={index === 0 ? "" : undefined}
@@ -128,11 +132,12 @@ type GraphicKind = (typeof graphics)[number][number];
             {
               item.stats.map((stat, statIndex) => {
                 const kind = graphics[index]![statIndex]! as GraphicKind;
+                const Vector = typeof kind === "string" ? undefined : kind;
 
                 return (
                   <div
                     class:list={[
-                      "relative flex min-h-[16.875rem] items-start justify-between gap-6 p-8 sm:p-10",
+                      "relative flex min-h-[16.875rem] items-start justify-between gap-6 p-8 sm:p-10 lg:min-h-0 lg:py-8",
                       statIndex === 0 && "border-b border-border",
                     ]}
                   >
@@ -145,6 +150,12 @@ type GraphicKind = (typeof graphics)[number][number];
                         <span class="text-tertiary-foreground">{stat.rest}</span>
                       </p>
                     </div>
+
+                    {Vector && (
+                      <span class="industries-vector mt-8 size-[84px] shrink-0 self-center text-brand" aria-hidden="true">
+                        <Vector focusable="false" />
+                      </span>
+                    )}
 
                     {kind === "rings" && (
                       <div
@@ -256,14 +267,14 @@ type GraphicKind = (typeof graphics)[number][number];
 
           return (
             <div
-              class="group/acc flex flex-col border-b border-border last:border-b-0 lg:h-full lg:min-h-0 lg:overflow-hidden"
+              class="group/acc flex flex-col border-b border-border last:border-b-0 lg:min-h-0 lg:overflow-hidden"
               data-industries-item
               data-open={open ? "" : undefined}
             >
-              <h3 class="lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
+              <h3 class="shrink-0">
                 <button
                   type="button"
-                  class="flex w-full cursor-pointer items-center justify-between gap-4 px-8 py-9 text-left sm:px-10 lg:flex-1"
+                  class="flex w-full cursor-pointer items-center justify-between gap-4 px-8 py-6 text-left sm:px-10 lg:h-18 lg:py-0"
                   aria-expanded={open ? "true" : "false"}
                   data-industries-trigger
                 >
@@ -333,13 +344,6 @@ type GraphicKind = (typeof graphics)[number][number];
         else current.removeAttribute("data-open");
       });
 
-      const accordion = root.querySelector("[data-industries-acc]");
-      if (accordion) {
-        accordion.style.gridTemplateRows = items
-          .map((_, i) => (i === index ? "2fr" : "1fr"))
-          .join(" ");
-      }
-
       visuals.forEach((visual, i) => {
         const active = i === index;
         if (active) {
@@ -404,12 +408,12 @@ type GraphicKind = (typeof graphics)[number][number];
   }
 
   @media (min-width: 1024px) {
-    [data-industries-acc] {
-      display: grid;
-      min-height: 0;
-      height: 100%;
-      grid-template-rows: 2fr 1fr 1fr 1fr;
-      transition: grid-template-rows 400ms cubic-bezier(0.22, 1, 0.36, 1);
+    [data-industries-item] {
+      flex: 0 0 4.5rem;
+    }
+
+    [data-industries-item][data-open] {
+      flex: 1 1 0%;
     }
   }
 
@@ -491,6 +495,21 @@ type GraphicKind = (typeof graphics)[number][number];
     transform-box: fill-box;
     transform-origin: center;
     animation: industries-dot-in 420ms cubic-bezier(0.16, 1, 0.3, 1) 560ms both;
+  }
+
+  [data-industries-stats][data-play] .industries-vector {
+    animation: industries-vector-in 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes industries-vector-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .industries-ring--mid,
@@ -579,7 +598,8 @@ type GraphicKind = (typeof graphics)[number][number];
     [data-industries-stats][data-play] .industries-bar,
     [data-industries-stats][data-play] .industries-col,
     [data-industries-stats][data-play] .industries-gauge-arc,
-    [data-industries-stats][data-play] .industries-gauge-dot {
+    [data-industries-stats][data-play] .industries-gauge-dot,
+    [data-industries-stats][data-play] .industries-vector {
       animation: none;
     }
   }

@@ -1,0 +1,19 @@
+{
+  "name": "GBO industry illustrations",
+  "preset": "clean",
+  "grid": 84,
+  "strokeWidth": 2,
+  "strokeLinecap": "round",
+  "strokeLinejoin": "round",
+  "padding": 6,
+  "opticalBalance": true,
+  "iconCount": 4,
+  "icons": [
+    "voice-conversation",
+    "parallel-calls",
+    "doctor-routing",
+    "appointment-calendar"
+  ],
+  "generated": "2026-09-19",
+  "notes": "Adapted to the existing 84px statistic graphics. currentColor with opacity for secondary detail; green inherited from the site."
+}

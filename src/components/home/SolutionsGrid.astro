@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import BlinkText from "@/components/BlinkText";
 import EnterprisePhases from "@/components/home/EnterprisePhases.astro";
+import HastamProduct from "@/components/home/HastamProduct.astro";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
 
@@ -545,6 +546,7 @@ const concludedAt = Math.round(
       </a>
     </article>
 
+    <HastamProduct locale={locale} product={messages.solutions.hastam} />
     <EnterprisePhases locale={locale} messages={messages} />
   </div>
 </section>

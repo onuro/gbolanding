@@ -129,7 +129,7 @@ export function buildGraph({
 }
 
 /**
- * Kollektor and Intelval only. `solutions.enterprise` describes how the company
+ * The products shown on the homepage. `solutions.enterprise` describes how the company
  * delivers work, not a piece of software, so it gets no node here.
  *
  * No offers/aggregateRating/review: there are no public prices and no collected
@@ -138,7 +138,7 @@ export function buildGraph({
  * brand name, nothing more.
  */
 export function buildProductNodes(origin: URL, messages: Messages): Node[] {
-  const { kollektor, intelval } = messages.solutions;
+  const { kollektor, intelval, hastam } = messages.solutions;
 
   return [
     // The @id is keyed on the product, not on the anchor it happens to link to:
@@ -147,6 +147,7 @@ export function buildProductNodes(origin: URL, messages: Messages): Node[] {
     // identifier the moment the section were renamed.
     { solution: kollektor, slug: "kollektor", anchor: "/#kollektor" },
     { solution: intelval, slug: "intelval", anchor: "/#solutions" },
+    { solution: hastam, slug: "hastam", anchor: "/#hastam" },
   ].map(({ solution, slug, anchor }) =>
     prune({
       "@type": "SoftwareApplication",

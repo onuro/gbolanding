@@ -20,7 +20,7 @@ const trMessages: Messages = {
     ],
     productsTitle: "Neler ürettik",
     productsIntro:
-      "İki ürün bizim adımızı taşır. İkisi de müşteri işi olarak başladı, sonra kendi ürünümüz oldu.",
+      "Kollektor, Intelval ve Hastam. Tahsilat, değerleme ve klinik işleri için kendi ürünlerimizi geliştiriyoruz.",
     factsTitle: "Şirket bilgileri",
     factLabels: {
       legalName: "Ticari unvan",
@@ -33,7 +33,7 @@ const trMessages: Messages = {
     factValues: {
       based: "Türkiye",
       languages: "İngilizce, Almanca, Türkçe",
-      products: "Kollektor, Intelval",
+      products: "Kollektor, Intelval, Hastam",
     },
   },
   nav: {
@@ -91,7 +91,6 @@ const trMessages: Messages = {
       highlights: [
         "Günde 10.000 arama",
         "23,9 milyon TL tahsilat",
-        "Ekibinize devreder",
       ],
       cta: "Kollektor nasıl çalışır",
     },
@@ -106,6 +105,36 @@ const trMessages: Messages = {
         "Açık raporlar",
       ],
       cta: "Intelval demosu planlayın",
+    },
+    hastam: {
+      eyebrow: "Klinikler için sesli yapay zeka",
+      title: "Hastam",
+      headline: "Şikâyetten doğru hekime.",
+      description:
+        "Hastam, hastanın şikâyetini değerlendirir ve uygun branştaki hekime yönlendirir. Hekimlerin güncel takvimlerine bakar, hastaya uyan gün ve saatleri sunar. Hasta seçimini yapar; randevu talebi kliniğin onayına gider.",
+      support:
+        "Hasta yalnızca telefon eder. Ekibiniz aramaları, hasta kayıtlarını ve sesli klinik notları tek panelden takip eder.",
+      imageAlt: "Aydınlık bir klinikte hastasını dikkatle dinleyen bir hekim",
+      highlights: [
+        "Şikâyeti anlar",
+        "Uygun hekimi bulur",
+        "Takvime göre planlar",
+      ],
+      steps: [
+        {
+          title: "Şikâyeti anlar",
+          description: "Hastayı dinler, anlattığı şikâyeti ve neye ihtiyaç duyduğunu değerlendirir.",
+        },
+        {
+          title: "Uygun hekimi bulur",
+          description: "Şikâyeti kliniğin branşlarıyla eşleştirir. İlgili hekimlere yönlendirir.",
+        },
+        {
+          title: "Takvime göre planlar",
+          description: "Hekimlerin boş saatlerini sunar. Hastanın seçtiği randevuyu klinik onayına iletir.",
+        },
+      ],
+      cta: "Hastam demosu planlayın",
     },
     enterprise: {
       eyebrow: "Özel yapay zeka ve yazılım",
@@ -176,7 +205,7 @@ const trMessages: Messages = {
         badge: "Sesli tahsilat canlı",
         description:
           "Müşteriyi arayan, ödeme planı kuran ve gelen ödemeyi alan ses ajanları.",
-        imageAlt: "Telefonla konuşan bir kişi ve canlı ses dalgası",
+        imageAlt: "Banka şubesinde masasında bir finans belgesini inceleyen danışman",
         stats: [
           { value: "10.000+", lead: "günlük", rest: "arama" },
           { value: "₺23,9M", lead: "bugüne kadarki", rest: "tahsilat" },
@@ -205,14 +234,14 @@ const trMessages: Messages = {
         ],
       },
       {
-        title: "Kurumsal",
-        badge: "Özel sistemler",
+        title: "Sağlık",
+        badge: "Hastam ile hasta yönlendirme",
         description:
-          "İş akışınıza, verinize ve gelecek yılın hacmine göre tasarlanan yazılım.",
-        imageAlt: "Bir masada iş akışı kartları düzenleyen eller",
+          "Hastam, hastanın şikâyetini değerlendirir. Uygun hekime yönlendirir ve güncel takvimden randevu saatleri sunar.",
+        imageAlt: "Klinik koridorunda elinde tablet tutan bir hekim",
         stats: [
-          { value: "4", lead: "faz", rest: "analizden inşa" },
-          { value: "Özel", lead: "yazılım", rest: "işinize göre" },
+          { value: "Doğru", lead: "branş", rest: "ve hekim" },
+          { value: "Uygun", lead: "gün", rest: "ve saat" },
         ],
       },
     ],

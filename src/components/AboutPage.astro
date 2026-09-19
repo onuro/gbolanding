@@ -42,7 +42,7 @@ const facts: Fact[] = [
     : null,
 ].filter((fact): fact is Fact => fact !== null);
 
-const products = [solutions.kollektor, solutions.intelval];
+const products = [solutions.kollektor, solutions.intelval, solutions.hastam];
 ---
 
 <a class="skip-link" href="#main-content">{skipLink}</a>
@@ -154,7 +154,7 @@ const products = [solutions.kollektor, solutions.intelval];
         </div>
       </div>
 
-      <div class="grid grid-cols-1 gap-px bg-border md:grid-cols-2">
+      <div class="grid grid-cols-1 gap-px bg-border lg:grid-cols-3">
         {
           products.map((product) => (
             <article class="flex flex-col bg-background px-5 py-10 sm:px-8 sm:py-12">
