@@ -1,6 +1,6 @@
 ---
 import { Image } from "astro:assets";
-import kollektorImage from "@/assets/editorial/kollektor-human-conversation.png";
+import kollektorImage from "@/assets/editorial/kollektor-human-conversation-final-2x.png";
 import intelvalImage from "@/assets/editorial/intelval-architecture.png";
 import {
   ArrowUpRight,
@@ -177,7 +177,7 @@ const concludedAt = Math.round(
       class="group relative flex min-h-[41rem] w-full min-w-0 flex-col overflow-hidden border-b border-border bg-background md:grid md:grid-rows-subgrid md:row-span-4 md:border-b-0 md:border-r"
     >
       <div class="p-3" aria-hidden="true">
-        <div class="h-64 overflow-hidden rounded-[24px] bg-muted sm:h-80 md:h-72 xl:h-80">
+        <div class="relative h-64 overflow-hidden rounded-[24px] bg-muted sm:h-80 md:h-72 xl:h-80">
           <Image
             src={kollektorImage}
             alt=""
@@ -187,27 +187,40 @@ const concludedAt = Math.round(
             quality={82}
             loading="lazy"
             decoding="async"
-            class="h-full w-full object-cover object-[45%_15%]"
+            class="absolute inset-0 h-full w-full object-cover object-[45%_15%] motion-safe:hidden"
           />
+          <video
+            class="absolute inset-0 hidden h-full w-full object-cover object-[45%_15%] motion-safe:block"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            poster={kollektorImage.src}
+          >
+            <source src="/media/kollektor-human-conversation.webm" type="video/webm" />
+            <source src="/media/kollektor-human-conversation.mp4" type="video/mp4" />
+          </video>
         </div>
       </div>
       <div class="relative z-10 px-5 pt-8 sm:px-8 sm:pt-10">
-        <div class="mb-8">
+        <div class="flex items-start justify-between gap-6">
+          <div class="min-w-0">
+            <p
+              class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
+            >
+              {kollektor.eyebrow}
+            </p>
+            <h3 class="text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
+              {kollektor.title}
+            </h3>
+          </div>
           <span
-            class="flex size-10 items-center justify-center rounded-full border border-border bg-card text-foreground/70"
+            class="flex size-14 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground/70"
           >
-            <Scale aria-hidden="true" className="size-4" strokeWidth={1.5} />
+            <Scale aria-hidden="true" className="size-6" strokeWidth={1.5} />
           </span>
         </div>
-
-        <p
-          class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
-        >
-          {kollektor.eyebrow}
-        </p>
-        <h3 class="text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
-          {kollektor.title}
-        </h3>
         <p class="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
           {kollektor.description}
         </p>
@@ -239,9 +252,9 @@ const concludedAt = Math.round(
       </div>
 
       <div class="mt-10 flex flex-1 items-end md:mt-0 md:h-full md:min-h-0 md:flex-col md:items-stretch md:pt-10" aria-hidden="true">
-        <div class="w-full border-t border-border bg-card/40 md:flex md:min-h-0 md:flex-1 md:flex-col">
+        <div class="w-full bg-card/40 md:flex md:min-h-0 md:flex-1 md:flex-col">
           <div
-            class="flex h-9 items-center justify-between border-b border-border px-5 sm:px-8"
+            class="flex items-center justify-between px-5 sm:px-8"
           >
             <span
               class="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/45"
@@ -258,13 +271,8 @@ const concludedAt = Math.round(
 
           <div class="grid grid-cols-3 border-b border-border">
             {
-              caseStats.map((stat, index) => (
-                <div
-                  class:list={[
-                    "px-5 py-4 sm:px-8",
-                    index !== 2 ? "border-r border-border" : "",
-                  ]}
-                >
+              caseStats.map((stat) => (
+                <div class="px-5 py-4 sm:px-8">
                   <p class="text-xl font-medium tabular-nums text-foreground/85">
                     {stat.value}
                   </p>
@@ -385,26 +393,27 @@ const concludedAt = Math.round(
         </div>
       </div>
       <div class="relative z-10 px-5 pt-8 sm:px-8 sm:pt-10">
-        <div class="mb-8">
+        <div class="flex items-start justify-between gap-6">
+          <div class="min-w-0">
+            <p
+              class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
+            >
+              {intelval.eyebrow}
+            </p>
+            <h3 class="text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
+              {intelval.title}
+            </h3>
+          </div>
           <span
-            class="flex size-10 items-center justify-center rounded-full border border-border bg-card text-foreground/70"
+            class="flex size-14 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground/70"
           >
             <ChartNoAxesCombined
               aria-hidden="true"
-              className="size-4"
+              className="size-6"
               strokeWidth={1.5}
             />
           </span>
         </div>
-
-        <p
-          class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
-        >
-          {intelval.eyebrow}
-        </p>
-        <h3 class="text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
-          {intelval.title}
-        </h3>
         <p class="mt-4 text-base leading-relaxed text-muted-foreground">
           {intelval.description}
         </p>
@@ -436,9 +445,9 @@ const concludedAt = Math.round(
       </div>
 
       <div class="mt-10 flex flex-1 items-end md:mt-0 md:h-full md:min-h-0 md:flex-col md:items-stretch md:pt-10" aria-hidden="true">
-        <div class="flex w-full flex-col border-t border-border bg-card/40 md:min-h-0 md:flex-1">
+        <div class="flex w-full flex-col bg-card/40 md:min-h-0 md:flex-1">
           <div
-            class="flex h-9 shrink-0 items-center justify-between border-b border-border px-5 sm:px-8"
+            class="flex items-center justify-between px-5 sm:px-8"
           >
             <span
               class="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/45"

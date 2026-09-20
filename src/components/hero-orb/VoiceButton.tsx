@@ -407,17 +407,18 @@ export function VoiceButton({
           </button>
         )}
         {state === "live" ? (
-          <div className="pointer-events-auto flex items-center gap-2">
-            <span className="text-xs text-foreground/70">{labels.live}</span>
-            <button
-              type="button"
-              onClick={() => roomRef.current?.disconnect()}
-              aria-label={labels.live}
-              className="flex size-8 items-center justify-center rounded-full border border-border bg-card text-foreground outline-none transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
+          <button
+            type="button"
+            onClick={() => roomRef.current?.disconnect()}
+            className="pointer-events-auto group flex cursor-pointer items-center gap-2 outline-none focus-visible:rounded-full focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <span className="text-xs text-foreground/70 transition group-hover:text-foreground">
+              {labels.live}
+            </span>
+            <span className="flex size-8 items-center justify-center rounded-full border border-border bg-card text-foreground transition group-hover:border-foreground/55 group-hover:bg-foreground/20">
               <Square aria-hidden="true" className="size-3 fill-current" />
-            </button>
-          </div>
+            </span>
+          </button>
         ) : (
           // Below sm the hollow is too small to carry the label legibly.
           <p className="text-center text-sm font-medium text-foreground/80 sm:hidden">
@@ -580,10 +581,9 @@ function HollowLabel({ text, hidden }: { text: string; hidden: boolean }) {
   );
 }
 
-// Same 1000² space as the orb canvas: the disc edge is at ~385 and the first HUD
-// ring at ~503, so the line rides the empty band between them and hugs the orb.
+// Same 1000² space as the orb canvas.
 const CAPTION_C = 500;
-const CAPTION_R = 420;
+const CAPTION_R = 430;
 // Counter-clockwise from 12 o'clock, so a line laid from the start of the path
 // and turned half a circle reads left to right along the bottom of the orb.
 const CAPTION_PATH = ring(CAPTION_R, 0);

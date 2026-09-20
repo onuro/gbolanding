@@ -87,7 +87,7 @@ const enMessages: Messages = {
       eyebrow: "Voice AI for debt collection",
       title: "Kollektor",
       description:
-        "Kollektor is a voice assistant that phones debtors on behalf of law firms and asset-receivable portfolios. It runs up to 10,000 calls a day, works out a payment plan, and has recovered $500K so far.",
+        "Kollektor is a voice assistant that phones debt customers on behalf of law firms and asset-receivable portfolios. It runs up to 10,000 calls a day, works out a payment plan, and has recovered $500K so far.",
       highlights: [
         "10,000 calls a day",
         "$500K recovered",
@@ -108,7 +108,7 @@ const enMessages: Messages = {
     },
     hastam: {
       eyebrow: "Voice AI for clinics",
-      title: "Hastam",
+      title: "Hastam AI",
       headline: "From patient concern to the right doctor.",
       description:
         "Hastam assesses a patient’s concerns and guides them to a doctor in the right specialty. It checks doctors’ current schedules and offers times that work for the patient. Their chosen appointment goes to the clinic for approval.",

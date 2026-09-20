@@ -111,8 +111,10 @@ const axes = [0, 90, 180, 270].map((deg, i) => ({
 }));
 
 // Level gauge, in the manner of a cockpit dot matrix: the whole track is always
-// drawn so you can read capacity, and it fills with the voice. It grows from 6
-// o'clock out to both sides, so `t` is how far round a dot sits from the bottom.
+// drawn so you can read capacity, and it fills with the voice. It grows from 3
+// and 9 o'clock toward the poles, so `t` is how far a dot sits from the nearest
+// side (0 at left/right, 1 at top/bottom). Raised so ordinary speech covers
+// most of each side and only the poles still need a shout.
 const METER_COUNT = 96;
 const METER_R = 359;
 const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
@@ -121,7 +123,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
   return {
     x: n(x),
     y: n(y),
-    t: n(Math.abs(180 - deg) / 180),
+    t: n(Math.abs(Math.cos((deg * Math.PI) / 180)) ** 5),
     boot: boot(80, i + 700, 480),
   };
 });
@@ -321,8 +323,9 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
     let eased = 0;
     let raf = 0;
 
-    // The dots of the level gauge, ordered the way they light: from 6 o'clock
-    // outwards. Their thresholds never change, so they are read once.
+    // The dots of the level gauge, ordered the way they light: from 3 and 9
+    // o'clock toward the poles. Their thresholds never change, so they are
+    // read once.
     //
     // This used to be one custom property on the container and an
     // `opacity: clamp(0, calc((var(--hud-level) - var(--t)) * 24), 1)` on each

@@ -87,7 +87,7 @@ const trMessages: Messages = {
       eyebrow: "Sesli yapay zeka ile tahsilat",
       title: "Kollektor",
       description:
-        "Kollektor, hukuk büroları ve varlık alacakları adına borçluları telefonla arar. Bir yapay zeka asistanıdır. Günde 10.000'e kadar görüşme yapar. Ödeme planını konuşur. Bugüne kadar 23,9 milyon TL tahsilat sağladı.",
+        "Kollektor, hukuk büroları ve varlık alacakları adına borç müşterilerini telefonla arar. Bir yapay zeka asistanıdır. Günde 10.000'e kadar görüşme yapar. Ödeme planını konuşur. Bugüne kadar 23,9 milyon TL tahsilat sağladı.",
       highlights: [
         "Günde 10.000 arama",
         "23,9 milyon TL tahsilat",
@@ -108,7 +108,7 @@ const trMessages: Messages = {
     },
     hastam: {
       eyebrow: "Klinikler için sesli yapay zeka",
-      title: "Hastam",
+      title: "Hastam AI",
       headline: "Şikâyetten doğru hekime.",
       description:
         "Hastam, hastanın şikâyetini değerlendirir ve uygun branştaki hekime yönlendirir. Hekimlerin güncel takvimlerine bakar, hastaya uyan gün ve saatleri sunar. Hasta seçimini yapar; randevu talebi kliniğin onayına gider.",
