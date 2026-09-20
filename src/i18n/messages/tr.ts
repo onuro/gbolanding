@@ -51,7 +51,7 @@ const trMessages: Messages = {
     description:
       "GBO Vision, yapay zeka ürünleri ve özel yazılımlar geliştirir. Karmaşık işleri ve tekrar eden görevleri, iş yükünü azaltan ve büyümeyi destekleyen çözümlere dönüştürür. AI çağına hoş geldiniz.",
     primaryCta: "Demo talep edin",
-    secondaryCta: "Çözümleri keşfet",
+    secondaryCta: "Çözümler",
     status: "Hemen başlayın",
     voiceIdle: "Yapay zeka asistanımızla konuşun",
     voiceConnecting: "Bağlanıyor…",

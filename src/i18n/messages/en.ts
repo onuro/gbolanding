@@ -51,7 +51,7 @@ const enMessages: Messages = {
     description:
       "GBO Vision builds AI products and custom software. We turn complex work and scattered data into tools that cut manual work and help your business grow.",
     primaryCta: "Schedule a demo",
-    secondaryCta: "Explore solutions",
+    secondaryCta: "Solutions",
     status: "Work with us",
     voiceIdle: "Talk to our AI assistant",
     voiceConnecting: "Connecting…",
