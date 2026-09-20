@@ -73,7 +73,7 @@ const { locale, messages } = Astro.props;
           glow={false}
           aria-hidden="true"
           focusable="false"
-          className="mb-8 h-16 w-auto text-foreground sm:h-20"
+          className="mb-8 h-24 w-auto text-foreground sm:h-28"
         />
         <h1
           id="hero-title"
@@ -146,34 +146,62 @@ const { locale, messages } = Astro.props;
     </div>
 
     <div
-      class="@container relative flex min-h-[34rem] items-center justify-center overflow-hidden bg-background sm:min-h-[38rem] xl:col-span-5 xl:min-h-[43rem] xl:border-l xl:border-border"
+      class="p-3 xl:col-span-5 xl:flex xl:min-h-[43rem] xl:border-l xl:border-border"
     >
       <div
-        class="pointer-events-none absolute inset-0 opacity-40"
-        style="background-image: radial-gradient(circle, var(--dot-grid-color) 1px, transparent 1px); background-size: 20px 20px;"
+        class="orb-well @container relative flex min-h-[34rem] w-full flex-1 items-center justify-center overflow-hidden rounded-[24px] sm:min-h-[38rem]"
       >
+        <div
+          class="pointer-events-none absolute inset-0 opacity-40"
+          style="background-image: radial-gradient(circle, var(--dot-grid-color) 1px, transparent 1px); background-size: 20px 20px;"
+        >
+        </div>
+        <div
+          class="relative z-10 aspect-square w-[min(100%,min(101cqmin,46rem))] shrink-0 overflow-visible"
+        >
+          <StudyOrbGradient
+            client:idle
+            theme="dark"
+            className="absolute inset-0 w-full"
+          />
+          <OrbHud />
+        </div>
+        <VoiceButton
+          client:idle
+          lang={locale}
+          labels={{
+            idle: messages.hero.voiceIdle,
+            connecting: messages.hero.voiceConnecting,
+            live: messages.hero.voiceLive,
+            error: messages.hero.voiceError,
+            micDenied: messages.hero.voiceMicDenied,
+            micMissing: messages.hero.voiceMicMissing,
+            micError: messages.hero.voiceMicError,
+            micInsecure: messages.hero.voiceMicInsecure,
+            soundBlocked: messages.hero.voiceSoundBlocked,
+          }}
+        />
       </div>
-      <div
-        class="relative z-10 aspect-square w-[min(100%,min(101cqmin,46rem))] shrink-0 overflow-visible"
-      >
-        <StudyOrbGradient client:idle className="absolute inset-0 w-full" />
-        <OrbHud />
-      </div>
-      <VoiceButton
-        client:idle
-        lang={locale}
-        labels={{
-          idle: messages.hero.voiceIdle,
-          connecting: messages.hero.voiceConnecting,
-          live: messages.hero.voiceLive,
-          error: messages.hero.voiceError,
-          micDenied: messages.hero.voiceMicDenied,
-          micMissing: messages.hero.voiceMicMissing,
-          micError: messages.hero.voiceMicError,
-          micInsecure: messages.hero.voiceMicInsecure,
-          soundBlocked: messages.hero.voiceSoundBlocked,
-        }}
-      />
     </div>
   </div>
 </section>
+
+<style is:global>
+  /* The orb sits in a dark well in both themes. Local tokens keep the HUD,
+     hollow label, and play button on the dark palette so they don't invert
+     to ink-on-ink when the page is light. */
+  .orb-well {
+    background: oklch(0.125 0.008 160);
+    --background: oklch(0.125 0.008 160);
+    --color-background: oklch(0.125 0.008 160);
+    --foreground: oklch(0.965 0.005 160);
+    --color-foreground: oklch(0.965 0.005 160);
+    --card: oklch(0.16 0.009 160);
+    --color-card: oklch(0.16 0.009 160);
+    --muted: oklch(0.205 0.01 160);
+    --color-muted: oklch(0.205 0.01 160);
+    --border: oklch(0.92 0.008 160 / 12%);
+    --color-border: oklch(0.92 0.008 160 / 12%);
+    --dot-grid-color: rgb(255 255 255 / 9%);
+  }
+</style>

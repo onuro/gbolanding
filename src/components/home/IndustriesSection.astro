@@ -90,33 +90,37 @@ type GraphicKind = (typeof graphics)[number][number];
     class="relative grid border-t border-border lg:h-[30rem] lg:grid-cols-[minmax(0,28fr)_minmax(0,31fr)_minmax(0,41fr)]"
   >
     <div
-      class="relative min-h-[22rem] overflow-hidden border-b border-border lg:min-h-0 lg:border-b-0 lg:border-r"
+      class="border-b border-border bg-background p-3 lg:h-full lg:border-b-0 lg:border-r"
     >
-      {
-        copy.items.map((item, index) => (
-          <div
-            class="absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none data-[active]:pointer-events-auto data-[active]:opacity-100"
-            data-industries-visual
-            data-active={index === 0 ? "" : undefined}
-            aria-hidden={index === 0 ? undefined : "true"}
-          >
-            <Image
-              src={images[index]!}
-              alt={item.imageAlt}
-              widths={[390, 780, 1170]}
-              sizes="(min-width: 1024px) 28vw, 100vw"
-              format="webp"
-              quality={78}
-              loading={index === 0 ? "eager" : "lazy"}
-              decoding="async"
-              class:list={[
-                "h-full min-h-[22rem] w-full object-cover lg:absolute lg:inset-0 lg:min-h-0",
-                objectPositions[index],
-              ]}
-            />
-          </div>
-        ))
-      }
+      <div
+        class="relative min-h-[22rem] overflow-hidden rounded-[24px] bg-muted lg:h-full lg:min-h-0"
+      >
+        {
+          copy.items.map((item, index) => (
+            <div
+              class="absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none data-[active]:pointer-events-auto data-[active]:opacity-100"
+              data-industries-visual
+              data-active={index === 0 ? "" : undefined}
+              aria-hidden={index === 0 ? undefined : "true"}
+            >
+              <Image
+                src={images[index]!}
+                alt={item.imageAlt}
+                widths={[390, 780, 1170]}
+                sizes="(min-width: 1024px) 28vw, 100vw"
+                format="webp"
+                quality={78}
+                loading={index === 0 ? "eager" : "lazy"}
+                decoding="async"
+                class:list={[
+                  "h-full w-full object-cover",
+                  objectPositions[index],
+                ]}
+              />
+            </div>
+          ))
+        }
+      </div>
     </div>
 
     <div class="relative border-b border-border lg:border-b-0 lg:border-r">
@@ -409,11 +413,14 @@ type GraphicKind = (typeof graphics)[number][number];
 
   @media (min-width: 1024px) {
     [data-industries-item] {
-      flex: 0 0 4.5rem;
+      flex-grow: 0;
+      flex-shrink: 1;
+      flex-basis: 4.5rem;
+      transition: flex-grow 400ms cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     [data-industries-item][data-open] {
-      flex: 1 1 0%;
+      flex-grow: 1;
     }
   }
 
@@ -590,7 +597,8 @@ type GraphicKind = (typeof graphics)[number][number];
 
   @media (prefers-reduced-motion: reduce) {
     .industries-panel,
-    [data-industries-acc] {
+    [data-industries-acc],
+    [data-industries-item] {
       transition: none;
     }
 

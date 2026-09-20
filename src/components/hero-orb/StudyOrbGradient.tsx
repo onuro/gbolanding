@@ -17,20 +17,28 @@ function readTheme(): "light" | "dark" {
 
 type StudyOrbGradientProps = {
   className?: string;
+  /** Pin the shader to one poster. The hero well is always dark. */
+  theme?: "light" | "dark";
 };
 
 /**
- * WebGL study orb via createStudyOrbGradient. Theme follows html[data-theme].
+ * WebGL study orb via createStudyOrbGradient. Theme follows html[data-theme]
+ * unless `theme` pins it.
  */
-export function StudyOrbGradient({ className }: StudyOrbGradientProps) {
+export function StudyOrbGradient({ className, theme }: StudyOrbGradientProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const handleRef = useRef<StudyOrbGradientHandle | null>(null);
   const [ready, setReady] = useState(false);
-  const [mode, setMode] = useState<"light" | "dark">("dark");
+  const [mode, setMode] = useState<"light" | "dark">(theme ?? "dark");
   const modeRef = useRef(mode);
   modeRef.current = mode;
 
   useEffect(() => {
+    if (theme) {
+      setMode(theme);
+      return;
+    }
+
     setMode(readTheme());
 
     const observer = new MutationObserver(() => {
@@ -41,7 +49,7 @@ export function StudyOrbGradient({ className }: StudyOrbGradientProps) {
       attributeFilter: ["data-theme", "class"],
     });
     return () => observer.disconnect();
-  }, []);
+  }, [theme]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -154,6 +162,11 @@ export function StudyOrbGradient({ className }: StudyOrbGradientProps) {
           className={`absolute inset-0 block size-full transition-opacity duration-500 ${
             ready ? "opacity-100" : "opacity-0"
           }`}
+        />
+        {/* 2.6 in the shader → disc diameter is 1/1.3 of the quad. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-10 size-[calc(100%/1.3)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/44"
         />
       </div>
     </div>

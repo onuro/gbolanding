@@ -204,7 +204,7 @@ const enMessages: Messages = {
         title: "Banking",
         badge: "Voice collection live",
         description:
-          "Voice agents that call customers, agree a payment plan, and take the money that comes in.",
+          "AI voice agents that call customers, agree a payment plan, and take the money that comes in.",
         imageAlt: "A bank adviser reviewing a financial document at a branch desk",
         stats: [
           { value: "10K+", lead: "calls", rest: "a day" },
@@ -213,7 +213,7 @@ const enMessages: Messages = {
       },
       {
         title: "Valuation",
-        badge: "Intelval live",
+        badge: "Intelval AI valuation",
         description:
           "Agents that read comparables and write expert-level valuation files for the desk.",
         imageAlt: "Sunlit office buildings used for property valuation",

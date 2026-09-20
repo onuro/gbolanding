@@ -14,33 +14,37 @@ const { product } = Astro.props;
 <article
   id="hastam"
   aria-labelledby="hastam-title"
-  class="group relative scroll-mt-16 overflow-hidden bg-background md:col-span-2 xl:col-span-12"
+  class="group relative scroll-mt-16 overflow-hidden bg-background"
 >
   <div class="grid gap-px bg-border lg:grid-cols-2 xl:grid-cols-12">
-    <div class="relative h-72 overflow-hidden bg-muted sm:h-96 lg:order-2 lg:h-auto lg:min-h-[34rem] xl:col-span-5">
-      <Image
-        src={hastamImage}
-        alt=""
-        widths={[480, 640, 960]}
-        sizes="(min-width: 1340px) 560px, (min-width: 1280px) 41.67vw, (min-width: 1024px) 50vw, 100vw"
-        format="webp"
-        quality={70}
-        loading="lazy"
-        decoding="async"
-        class="absolute inset-0 h-full w-full object-cover object-[58%_center] motion-safe:hidden"
-      />
-      <video
-        class="absolute inset-0 hidden h-full w-full object-cover object-[58%_center] motion-safe:block"
-        autoplay
-        muted
-        loop
-        playsinline
-        preload="metadata"
-        poster={hastamImage.src}
-        aria-label={product.imageAlt}
+    <div class="bg-background p-3 lg:order-2 lg:flex xl:col-span-5">
+      <div
+        class="relative h-72 w-full overflow-hidden rounded-[24px] bg-muted sm:h-96 lg:h-auto lg:min-h-[34rem] lg:flex-1"
       >
-        <source src="/media/hastam-doctor-consultation.mp4" type="video/mp4" />
-      </video>
+        <Image
+          src={hastamImage}
+          alt=""
+          widths={[480, 640, 960]}
+          sizes="(min-width: 1340px) 560px, (min-width: 1280px) 41.67vw, (min-width: 1024px) 50vw, 100vw"
+          format="webp"
+          quality={70}
+          loading="lazy"
+          decoding="async"
+          class="absolute inset-0 h-full w-full object-cover object-[58%_center] motion-safe:hidden"
+        />
+        <video
+          class="absolute inset-0 hidden h-full w-full object-cover object-[58%_center] motion-safe:block"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          poster={hastamImage.src}
+          aria-label={product.imageAlt}
+        >
+          <source src="/media/hastam-doctor-consultation.mp4" type="video/mp4" />
+        </video>
+      </div>
     </div>
 
     <div class="flex flex-col bg-background px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12 xl:col-span-7">

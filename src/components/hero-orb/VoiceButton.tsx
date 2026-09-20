@@ -376,7 +376,7 @@ export function VoiceButton({
           onClick={start}
           disabled={state !== "idle"}
           aria-hidden={state !== "idle"}
-          className={`flex size-14 cursor-pointer items-center justify-center rounded-full bg-foreground text-background outline-none transition duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+          className={`flex size-20 cursor-pointer items-center justify-center rounded-full bg-foreground text-background outline-none transition duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
             state === "idle"
               ? "pointer-events-auto opacity-100"
               : "pointer-events-none scale-90 opacity-0"
@@ -385,7 +385,7 @@ export function VoiceButton({
         >
           <Play
             aria-hidden="true"
-            className="size-5 translate-x-0.5 fill-current"
+            className="size-7 translate-x-0.5 fill-current"
           />
         </button>
       </div>
@@ -500,7 +500,7 @@ const BADGE_PATH = ring(BADGE_R, 1);
 // Letter spacing also lands after the last glyph, and anything past the end of
 // the path is dropped, so the line aims a shade under the circumference.
 const BADGE_FILL = 0.985;
-const BADGE_SIZE = 23;
+const BADGE_SIZE = 24;
 const BADGE_TRACK = 3.2;
 
 /**

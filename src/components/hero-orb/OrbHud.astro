@@ -132,7 +132,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
   aria-hidden="true"
   data-orb-hud
 >
-  <svg viewBox="0 0 1000 1000" fill="none" class="size-full text-foreground">
+  <svg viewBox="0 0 1000 1000" fill="none" class="size-full text-white">
     <g class="hud-static">
       <circle
         class="hud-cell"
@@ -142,7 +142,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
         r={DISC + 48}
         stroke="currentColor"
         stroke-width="1"
-        stroke-opacity="0.16"
+        stroke-opacity="0.26"
       />
 
       {axes.map((line) => (
@@ -155,21 +155,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
           y2={line.y2}
           stroke="currentColor"
           stroke-width="1"
-          stroke-opacity="0.1"
-        />
-      ))}
-
-      {graduations.map((tick) => (
-        <line
-          class="hud-cell"
-          style={tick.boot}
-          x1={tick.x1}
-          y1={tick.y1}
-          x2={tick.x2}
-          y2={tick.y2}
-          stroke="currentColor"
-          stroke-width={tick.major ? 1.4 : 1}
-          stroke-opacity={tick.major ? 0.4 : 0.18}
+          stroke-opacity="0.16"
         />
       ))}
 
@@ -181,7 +167,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
             d={part.d}
             stroke="currentColor"
             stroke-width="1.4"
-            stroke-opacity="0.12"
+            stroke-opacity="0.22"
           />
         ) : (
           <line
@@ -193,10 +179,26 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
             y2={part.y2}
             stroke="currentColor"
             stroke-width="1.4"
-            stroke-opacity="0.12"
+            stroke-opacity="0.22"
           />
         ),
       )}
+    </g>
+
+    <g class="hud-spin-ticks">
+      {graduations.map((tick) => (
+        <line
+          class="hud-cell"
+          style={tick.boot}
+          x1={tick.x1}
+          y1={tick.y1}
+          x2={tick.x2}
+          y2={tick.y2}
+          stroke="currentColor"
+          stroke-width={tick.major ? 1.4 : 1}
+          stroke-opacity={tick.major ? 0.52 : 0.26}
+        />
+      ))}
     </g>
 
     <g class="hud-meter">
@@ -208,7 +210,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
           cy={dot.y}
           r="3.4"
           fill="currentColor"
-          fill-opacity="0.1"
+          fill-opacity="0.16"
         />
       ))}
       {meterDots.map((dot) => (
@@ -231,7 +233,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
           d={segment.d}
           stroke="currentColor"
           stroke-width="1.6"
-          stroke-opacity="0.12"
+          stroke-opacity="0.22"
           stroke-linecap="round"
         />
       ))}
@@ -246,7 +248,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
         r="458"
         stroke="currentColor"
         stroke-width="1"
-        stroke-opacity="0.22"
+        stroke-opacity="0.34"
         stroke-dasharray="3 10"
       />
     </g>
@@ -260,7 +262,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
             d={item.d}
             stroke="currentColor"
             stroke-width="1.2"
-            stroke-opacity="0.26"
+            stroke-opacity="0.38"
           />
           {item.caps.map((cap) => (
             <circle
@@ -270,7 +272,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
               cy={cap.y}
               r="2.4"
               fill="currentColor"
-              fill-opacity="0.35"
+              fill-opacity="0.5"
             />
           ))}
         </>
@@ -285,7 +287,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
           y2={cell.y2}
           stroke="currentColor"
           stroke-width="1.6"
-          stroke-opacity="0.28"
+          stroke-opacity="0.4"
         />
       ))}
     </g>
@@ -401,7 +403,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
      inherited custom property — nothing in this subtree reads a per-frame
      value any more, which is the whole point. */
   .orb-hud {
-    opacity: 0.62;
+    opacity: 0.76;
     transition: opacity 240ms linear;
   }
 
@@ -472,6 +474,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
   .hud-spin-slow,
   .hud-spin-reverse,
   .hud-spin-outer,
+  .hud-spin-ticks,
   .hud-sweep {
     animation-name: hud-rotate;
     animation-timing-function: linear;
@@ -489,6 +492,11 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
 
   .hud-spin-outer {
     animation-duration: 104s;
+    animation-direction: reverse;
+  }
+
+  .hud-spin-ticks {
+    animation-duration: 64s;
     animation-direction: reverse;
   }
 
@@ -527,6 +535,7 @@ const meterDots = Array.from({ length: METER_COUNT }, (_, i) => {
     .hud-spin-slow,
     .hud-spin-reverse,
     .hud-spin-outer,
+    .hud-spin-ticks,
     .hud-sweep {
       animation: none;
     }

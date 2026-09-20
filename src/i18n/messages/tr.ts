@@ -204,7 +204,7 @@ const trMessages: Messages = {
         title: "Bankacılık",
         badge: "Sesli tahsilat canlı",
         description:
-          "Müşteriyi arayan, ödeme planı kuran ve gelen ödemeyi alan ses ajanları.",
+          "Müşteriyi arayan, ödeme planı kuran ve gelen ödemeyi alan yapay zeka ses ajanları.",
         imageAlt: "Banka şubesinde masasında bir finans belgesini inceleyen danışman",
         stats: [
           { value: "10.000+", lead: "günlük", rest: "arama" },
@@ -213,7 +213,7 @@ const trMessages: Messages = {
       },
       {
         title: "Değerleme",
-        badge: "Intelval canlı",
+        badge: "Intelval AI değerleme",
         description:
           "Emsalleri okuyan ve masa için uzman düzeyinde değerleme dosyası yazan ajanlar.",
         imageAlt: "Gün ışığında ofis binaları",
