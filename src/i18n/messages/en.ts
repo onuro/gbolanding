@@ -87,10 +87,10 @@ const enMessages: Messages = {
       eyebrow: "Voice AI for debt collection",
       title: "Kollektor",
       description:
-        "Kollektor is a voice assistant that phones debt customers on behalf of law firms and asset-receivable portfolios. It runs up to 10,000 calls a day, works out a payment plan, and has recovered $500K so far.",
+        "Kollektor is a voice assistant that phones debt customers on behalf of law firms and asset-receivable portfolios. It runs up to 10,000 calls a day, works out a payment plan, and has recovered $25K so far.",
       highlights: [
         "10,000 calls a day",
-        "$500K recovered",
+        "$25K recovered",
       ],
       cta: "See how Kollektor works",
     },
@@ -208,7 +208,7 @@ const enMessages: Messages = {
         imageAlt: "A bank adviser reviewing a financial document at a branch desk",
         stats: [
           { value: "10K+", lead: "calls", rest: "a day" },
-          { value: "$500K", lead: "recovered", rest: "so far" },
+          { value: "$25K", lead: "recovered", rest: "so far" },
         ],
       },
       {

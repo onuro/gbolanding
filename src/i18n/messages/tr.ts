@@ -87,10 +87,10 @@ const trMessages: Messages = {
       eyebrow: "Sesli yapay zeka ile tahsilat",
       title: "Kollektor",
       description:
-        "Kollektor, hukuk büroları ve varlık alacakları adına borç müşterilerini telefonla arar. Bir yapay zeka asistanıdır. Günde 10.000'e kadar görüşme yapar. Ödeme planını konuşur. Bugüne kadar 23,9 milyon TL tahsilat sağladı.",
+        "Kollektor, hukuk büroları ve varlık alacakları adına borç müşterilerini telefonla arar. Bir yapay zeka asistanıdır. Günde 10.000'e kadar görüşme yapar. Ödeme planını konuşur. Bugüne kadar 1,2 milyon TL tahsilat sağladı.",
       highlights: [
         "Günde 10.000 arama",
-        "23,9 milyon TL tahsilat",
+        "1,2 milyon TL tahsilat",
       ],
       cta: "Kollektor nasıl çalışır",
     },
@@ -208,7 +208,7 @@ const trMessages: Messages = {
         imageAlt: "Banka şubesinde masasında bir finans belgesini inceleyen danışman",
         stats: [
           { value: "10.000+", lead: "günlük", rest: "arama" },
-          { value: "₺23,9M", lead: "bugüne kadarki", rest: "tahsilat" },
+          { value: "₺1,2M", lead: "bugüne kadarki", rest: "tahsilat" },
         ],
       },
       {
