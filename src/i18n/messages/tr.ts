@@ -226,7 +226,7 @@ const trMessages: Messages = {
         title: "Hukuk",
         badge: "Büro masaları",
         description:
-          "Avukatlarınızın zaten işlettiği dosyaların üzerine kurulu tahsilat, canlı devirle.",
+          "Mevcut dosyalarınız üzerinden tahsilat yapar. Gerektiğinde görüşmeyi ekibinize devreder.",
         imageAlt: "Masada duran bir kulaklık",
         stats: [
           { value: "%97", lead: "müşteri ile", rest: "doğal dilde konuşma" },
@@ -318,7 +318,7 @@ const trMessages: Messages = {
         {
           question: "Kollektor ne kadar hızlı?",
           answer:
-            "Kollektor, FCT çağrı / arama santralinin kapasitesiyle doğru orantılı olarak aynı anda 20'ye kadar görüşme yürütür.",
+            "Kollektor aynı anda 20'ye kadar görüşme yapar. Bu sayı, FCT çağrı santralinin kapasitesine bağlıdır.",
         },
       ],
     },
