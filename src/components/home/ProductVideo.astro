@@ -1,0 +1,164 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+interface Props {
+  image: ImageMetadata;
+  sources: { src: string; type: string }[];
+  widths: number[];
+  sizes: string;
+  position: string;
+  label?: string;
+}
+
+const { image, sources, widths, sizes, position, label } = Astro.props;
+---
+
+<product-video class="absolute inset-0 block" style={`--media-position: ${position}`}>
+  {/* One responsive still serves as the poster, no-script and motion fallback. */}
+  <Image
+    src={image}
+    alt={label ?? ""}
+    width={widths[widths.length - 1]}
+    widths={widths}
+    sizes={sizes}
+    format="webp"
+    quality={72}
+    loading="lazy"
+    decoding="async"
+    class="absolute inset-0 h-full w-full object-cover"
+  />
+  <video
+    class="absolute inset-0 h-full w-full object-cover"
+    muted
+    loop
+    playsinline
+    preload="none"
+    aria-hidden="true"
+  >
+    {sources.map(({ src, type }) => <source data-src={src} type={type} />)}
+  </video>
+</product-video>
+
+<style>
+  product-video :global(img),
+  video {
+    object-position: var(--media-position);
+  }
+
+  video {
+    opacity: 0;
+  }
+
+  product-video[data-playing] video {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    product-video[data-playing] video {
+      opacity: 0;
+    }
+  }
+</style>
+
+<script>
+  type Connection = EventTarget & { saveData?: boolean; effectiveType?: string };
+
+  class ProductVideo extends HTMLElement {
+    private cleanup?: () => void;
+
+    connectedCallback() {
+      const video = this.querySelector("video")!;
+      const image = this.querySelector("img")!;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const connection = (navigator as Navigator & { connection?: Connection }).connection;
+      let visible = false;
+      let starting = false;
+      let retry = false;
+      let connected = true;
+      let loaded = false;
+
+      const motionAllowed = () => !reducedMotion.matches && !connection?.saveData &&
+        !["slow-2g", "2g"].includes(connection?.effectiveType ?? "");
+      const shouldPlay = () => connected && visible && !document.hidden && motionAllowed();
+
+      const update = async () => {
+        if (!shouldPlay()) {
+          video.pause();
+          if (!motionAllowed()) {
+            this.removeAttribute("data-playing");
+            // Cancel an in-flight download when motion/data preferences change.
+            if (loaded) {
+              video.querySelectorAll("source").forEach((source) => source.removeAttribute("src"));
+              video.load();
+              loaded = false;
+            }
+          }
+          return;
+        }
+        if (starting) {
+          retry = true;
+          return;
+        }
+        if (!video.paused) return;
+        starting = true;
+        try {
+          // Let the lightweight still finish before competing for bandwidth.
+          await image.decode().catch(() => {});
+          if (!shouldPlay()) return;
+          if (!loaded) {
+            video.querySelectorAll("source").forEach((source) => {
+              source.src = source.dataset.src!;
+            });
+            video.muted = true;
+            video.load();
+            loaded = true;
+          }
+          await video.play();
+        } catch {
+          // Autoplay restrictions or a failed video leave the still visible.
+          this.removeAttribute("data-playing");
+        } finally {
+          starting = false;
+          if (retry) {
+            retry = false;
+            void update();
+          }
+        }
+      };
+
+      const reveal = () => {
+        if (shouldPlay()) this.setAttribute("data-playing", "");
+        else video.pause();
+      };
+      const fallback = () => this.removeAttribute("data-playing");
+      const observer = new IntersectionObserver(([entry]) => {
+        visible = entry.isIntersecting;
+        void update();
+      });
+      observer.observe(this);
+      video.addEventListener("playing", reveal);
+      video.addEventListener("error", fallback);
+      document.addEventListener("visibilitychange", update);
+      reducedMotion.addEventListener("change", update);
+      connection?.addEventListener("change", update);
+
+      this.cleanup = () => {
+        connected = false;
+        observer.disconnect();
+        video.pause();
+        video.removeEventListener("playing", reveal);
+        video.removeEventListener("error", fallback);
+        document.removeEventListener("visibilitychange", update);
+        reducedMotion.removeEventListener("change", update);
+        connection?.removeEventListener("change", update);
+      };
+    }
+
+    disconnectedCallback() {
+      this.cleanup?.();
+    }
+  }
+
+  if (!customElements.get("product-video")) customElements.define("product-video", ProductVideo);
+</script>

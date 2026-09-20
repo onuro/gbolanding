@@ -10,6 +10,7 @@ import {
 import BlinkText from "@/components/BlinkText";
 import EnterprisePhases from "@/components/home/EnterprisePhases.astro";
 import HastamProduct from "@/components/home/HastamProduct.astro";
+import ProductVideo from "@/components/home/ProductVideo.astro";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
 
@@ -178,29 +179,16 @@ const concludedAt = Math.round(
     >
       <div class="p-3" aria-hidden="true">
         <div class="relative h-64 overflow-hidden rounded-[24px] bg-muted sm:h-80 md:h-72 xl:h-80">
-          <Image
-            src={kollektorImage}
-            alt=""
-            widths={[480, 780, 1120, 1536]}
-            sizes="(min-width: 1340px) 780px, (min-width: 1280px) 58.33vw, (min-width: 768px) 50vw, 100vw"
-            format="webp"
-            quality={82}
-            loading="lazy"
-            decoding="async"
-            class="absolute inset-0 h-full w-full object-cover object-[45%_15%] motion-safe:hidden"
+          <ProductVideo
+            image={kollektorImage}
+            widths={[480, 768, 1120, 1536]}
+            sizes="(min-width: 1340px) 756px, (min-width: 768px) calc(58.33vw - 24px), calc(100vw - 24px)"
+            position="45% 15%"
+            sources={[
+              { src: "/media/kollektor-human-conversation-1280.webm", type: "video/webm" },
+              { src: "/media/kollektor-human-conversation-1280.mp4", type: "video/mp4" },
+            ]}
           />
-          <video
-            class="absolute inset-0 hidden h-full w-full object-cover object-[45%_15%] motion-safe:block"
-            autoplay
-            muted
-            loop
-            playsinline
-            preload="metadata"
-            poster={kollektorImage.src}
-          >
-            <source src="/media/kollektor-human-conversation.webm" type="video/webm" />
-            <source src="/media/kollektor-human-conversation.mp4" type="video/mp4" />
-          </video>
         </div>
       </div>
       <div class="relative z-10 px-5 pt-8 sm:px-8 sm:pt-10">
@@ -382,10 +370,11 @@ const concludedAt = Math.round(
           <Image
             src={intelvalImage}
             alt=""
-            widths={[480, 640, 1120, 1536]}
-            sizes="(min-width: 1340px) 560px, (min-width: 1280px) 41.67vw, (min-width: 768px) 50vw, 100vw"
+            width={1120}
+            widths={[480, 640, 960, 1120, 1536]}
+            sizes="(min-width: 1340px) 534px, (min-width: 768px) calc(41.67vw - 24px), calc(100vw - 24px)"
             format="webp"
-            quality={82}
+            quality={72}
             loading="lazy"
             decoding="async"
             class="h-full w-full object-cover"

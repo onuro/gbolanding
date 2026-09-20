@@ -4,11 +4,32 @@ Generated for the landing page with the built-in image generation tool on 2026-0
 
 Astro's Image component produces responsive WebP variants. The source assets stay local, below-fold images are lazy-loaded, and fixed-height frames reserve layout space. Empty alt text is intentional: these decorative images accompany product and process descriptions and add no additional factual content.
 
+## Product media delivery
+
+`ProductVideo.astro` renders one responsive WebP still beneath each video. It remains visible until the first playing event and is also the fallback for disabled JavaScript, blocked autoplay, reduced motion, and data-saving connections. Do not pass an imported PNG's `.src` to a native video `poster`: doing so bypasses image optimization (the Kollektor source alone is 8.1 MB).
+
+Video sources use `data-src`, with no autoplay attribute, so they cannot start downloading before the card enters the viewport. The still finishes decoding before video loading begins. Playback pauses offscreen and in background tabs. Reduced motion, Save-Data, and 2G connections retain the still.
+
+The original video files are preserved. The site uses these delivery copies:
+
+- Kollektor: `public/media/kollektor-human-conversation-1280.webm` (about 891 KB) and `kollektor-human-conversation-1280.mp4` (about 897 KB), at 1280 × 734 and 24 fps. The MP4 uses H.264 and fast-start metadata.
+- Hastam: `public/media/hastam-doctor-consultation-960.mp4` (about 488 KB), at 960 × 960 and 24 fps, H.264 with fast-start metadata.
+
+To regenerate delivery copies with FFmpeg:
+
+```sh
+ffmpeg -i public/media/kollektor-human-conversation.mp4 -an -vf 'scale=1280:-2:flags=lanczos,fps=24' -c:v libx264 -preset slow -crf 25 -pix_fmt yuv420p -movflags +faststart -map_metadata -1 public/media/kollektor-human-conversation-1280.mp4
+ffmpeg -i public/media/kollektor-human-conversation.mp4 -an -vf 'scale=1280:-2:flags=lanczos,fps=24' -c:v libvpx-vp9 -crf 34 -b:v 0 -row-mt 1 -cpu-used 2 -pix_fmt yuv420p -map_metadata -1 public/media/kollektor-human-conversation-1280.webm
+ffmpeg -i public/media/hastam-doctor-consultation.mp4 -an -c:v libx264 -preset slow -crf 26 -pix_fmt yuv420p -movflags +faststart -map_metadata -1 public/media/hastam-doctor-consultation-960.mp4
+```
+
+`npm run check:ssr` checks that both homepages defer their video sources, keep each delivered clip below 1 MB, and use responsive stills below 150 KB per candidate.
+
 ## Source files and prompts
 
 ### kollektor — current
 
-Source: `src/assets/editorial/kollektor-human-conversation-particles-refined-2x.png`
+Source: `src/assets/editorial/kollektor-human-conversation-particles-original-2x.png`
 
 Replaces the headset still life with a human phone conversation and an abstract AI voice waveform. The portrait is generated and does not depict an actual customer. The image uses `object-position: 45% 15%` to retain headroom on wide banners and the face/waveform pair on mobile.
 

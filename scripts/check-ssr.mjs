@@ -2,7 +2,7 @@
 // for them can return 404, which the old status < 500 smoke check falsely passed.
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
 
 const root = new URL("../", import.meta.url);
 const output = new URL(".vercel/output/", root);
@@ -83,8 +83,36 @@ function assertPage(html, page, label = page.path) {
 
 for (const page of pages) {
   const relative = page.path === "/" ? "index.html" : `${page.path.slice(1)}/index.html`;
-  assertPage(await readFile(new URL(relative, staticRoot), "utf8"), page);
+  const html = await readFile(new URL(relative, staticRoot), "utf8");
+  assertPage(html, page);
   console.log(`ok static ${page.path}: ${page.locale}, canonical, alternates, language switches`);
+
+  if (page.page === "home") {
+    const media = [...html.matchAll(/<product-video\b[\s\S]*?<\/product-video>/g)];
+    assert.equal(media.length, 2, `${page.path}: both product videos have a still fallback`);
+    const assets = new Set();
+    for (const [markup] of media) {
+      const video = tags(markup, "video")[0];
+      assert.equal(video.preload, "none", "video must not compete with initial images");
+      assert.ok(!video.poster && !video.src, "no original PNG poster or eager video URL");
+      assert.ok(!/<video\b[^>]*\sautoplay(?:\s|=|>)/.test(markup), "playback starts only when visible");
+      const still = tags(markup, "img")[0];
+      assert.equal(still.loading, "lazy", "responsive still is lazy-loaded");
+      assert.ok(still.srcset && still.sizes, "still has viewport-specific image candidates");
+      assets.add(still.src);
+      still.srcset.split(",").forEach((candidate) => assets.add(candidate.trim().split(/\s+/)[0]));
+      for (const source of tags(markup, "source")) {
+        assert.ok(!source.src && source["data-src"], "video URL stays deferred in rendered HTML");
+        const file = new URL(source["data-src"].slice(1), staticRoot);
+        assert.ok((await stat(file)).size < 1_000_000, `${file.pathname}: product clip stays below 1 MB`);
+      }
+    }
+    for (const asset of assets) {
+      assert.ok(asset.endsWith(".webp"), "stills must use optimized images");
+      assert.ok((await stat(new URL(asset.slice(1), staticRoot))).size < 150_000, `${asset}: still stays below 150 KB`);
+    }
+    console.log(`ok static ${page.path}: deferred product videos and media size budgets`);
+  }
 }
 
 const sitemap = await readFile(new URL("sitemap.xml", staticRoot), "utf8");

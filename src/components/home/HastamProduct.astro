@@ -1,5 +1,5 @@
 ---
-import { Image } from "astro:assets";
+import ProductVideo from "@/components/home/ProductVideo.astro";
 import { ArrowUpRight, Stethoscope } from "lucide-react";
 import hastamImage from "@/assets/editorial/hastam-doctor-consultation.png";
 import type { HastamSolutionMessage } from "@/i18n/types";
@@ -21,29 +21,14 @@ const { product } = Astro.props;
       <div
         class="relative h-72 w-full overflow-hidden rounded-[24px] bg-muted sm:h-96 lg:h-auto lg:min-h-[34rem] lg:flex-1"
       >
-        <Image
-          src={hastamImage}
-          alt=""
-          widths={[480, 640, 960]}
-          sizes="(min-width: 1340px) 560px, (min-width: 1280px) 41.67vw, (min-width: 1024px) 50vw, 100vw"
-          format="webp"
-          quality={70}
-          loading="lazy"
-          decoding="async"
-          class="absolute inset-0 h-full w-full object-cover object-[58%_center] motion-safe:hidden"
+        <ProductVideo
+          image={hastamImage}
+          label={product.imageAlt}
+          widths={[480, 768, 1120, 1536]}
+          sizes="(min-width: 1340px) 534px, (min-width: 1280px) calc(41.67vw - 24px), (min-width: 1024px) calc(50vw - 24px), calc(100vw - 24px)"
+          position="58% center"
+          sources={[{ src: "/media/hastam-doctor-consultation-960.mp4", type: "video/mp4" }]}
         />
-        <video
-          class="absolute inset-0 hidden h-full w-full object-cover object-[58%_center] motion-safe:block"
-          autoplay
-          muted
-          loop
-          playsinline
-          preload="metadata"
-          poster={hastamImage.src}
-          aria-label={product.imageAlt}
-        >
-          <source src="/media/hastam-doctor-consultation.mp4" type="video/mp4" />
-        </video>
       </div>
     </div>
 
