@@ -463,7 +463,7 @@ const rays = Array.from({ length: RAY_COUNT }, (_, i) => ({
     background: rgb(255 255 255 / 80%);
   }
 
-  /* Live caption: the tail of the current line, two lines at most. */
+  /* Live caption: the tail of the current line, three lines at most. */
   .hd-cap {
     width: calc(100% - 2.6em);
     flex: none;
@@ -477,10 +477,10 @@ const rays = Array.from({ length: RAY_COUNT }, (_, i) => ({
     transition: opacity 240ms ease;
   }
 
-  /* Exactly two lines. The sequence keeps it scrolled to the end, so the
-     newest words stay in view and older ones scroll out of the top. */
+  /* Three lines. The sequence keeps it scrolled to the end, so the newest
+     words stay in view and older ones scroll out of the top. */
   .hd-cap-window {
-    height: 2.8em;
+    height: 4.2em;
     overflow: hidden;
   }
 

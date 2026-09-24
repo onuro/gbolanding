@@ -929,24 +929,6 @@ const proof = [
     border-color: color-mix(in oklch, var(--foreground) 55%, transparent);
   }
 
-  /* Caret on the agent's newest word while its caption is still growing.
-     Absolutely placed, so it never reflows the line. */
-  [data-hd-root] [data-hd-word] {
-    position: relative;
-  }
-
-  [data-hd-root] [data-hd-tip]::after {
-    position: absolute;
-    top: 0.2em;
-    bottom: 0.15em;
-    left: calc(100% + 2px);
-    width: 2px;
-    border-radius: 1px;
-    background: var(--brand);
-    content: "";
-    animation: hd-caret 900ms linear infinite;
-  }
-
   /* The patient's line lands whole once they finish; until then, dots. */
   [data-hd-root] .hd-partial {
     height: 1.5em;
@@ -1010,17 +992,6 @@ const proof = [
   @keyframes hd-failsafe-out {
     to {
       opacity: 0;
-    }
-  }
-
-  @keyframes hd-caret {
-    0%,
-    55% {
-      opacity: 1;
-    }
-    56%,
-    100% {
-      opacity: 0.15;
     }
   }
 
