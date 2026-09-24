@@ -401,7 +401,7 @@ export function VoiceButton({
           <button
             type="button"
             onClick={() => void roomRef.current?.startAudio()}
-            className="pointer-events-auto rounded-full border border-attention-line bg-attention-soft px-3 py-1 text-xs text-attention outline-none transition hover:bg-attention-soft/60 focus-visible:ring-2 focus-visible:ring-attention"
+            className="pointer-events-auto rounded-full border border-attention-line bg-attention-soft px-3 py-1 text-xs text-attention-ink outline-none transition hover:bg-attention-soft/60 focus-visible:ring-2 focus-visible:ring-attention"
           >
             {labels.soundBlocked}
           </button>

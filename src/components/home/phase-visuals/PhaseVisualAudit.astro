@@ -11,28 +11,51 @@ const { locale } = Astro.props;
 const copy =
   locale === "tr"
     ? {
-        title: "Analiz / Sürtünme haritası",
-        lanes: ["Kullanıcılar", "Araçlar", "Devirler", "Veri"],
-        laneUnit: "akış",
-        flagged: "sürtünme noktası",
-        clear: "sorunsuz",
+        title: "Nerede bekliyor",
+        meta: "Dosya kabul · 5 iş günü",
+        status: "Tamamlandı",
+        description:
+          "Örnek bir hafta. İşin nerede beklediğini, haftada kaç saat gittiğini ve önce neyin çözüleceğini gösterir.",
+        laneHeader: "Nerede",
+        countHeader: "Kez",
+        days: ["Pzt", "Sal", "Çar", "Per", "Cum"],
+        lanes: ["Bekleme", "Devir", "Elle giriş", "Onay"],
+        costLabel: "Haftada kayıp",
+        hours: "sa",
+        rankLabel: "Önce çözülecek",
+        ranked: ["Ekipler arası bekleme", "Elle veri girişi", "Onay bekliyor"],
+        friction: "Bekliyor",
+        flow: "İlerliyor",
+        idle: "Boş",
       }
     : {
-        title: "Analyze / Friction map",
-        lanes: ["Users", "Tools", "Handoffs", "Data"],
-        laneUnit: "lanes",
-        flagged: "friction points",
-        clear: "clear",
+        title: "Where work waits",
+        meta: "Case intake · 5 working days",
+        status: "Complete",
+        description:
+          "A sample week. It shows where a job waits, how many hours that costs, and what to fix first.",
+        laneHeader: "Where",
+        countHeader: "Times",
+        days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+        lanes: ["Waiting", "Handoff", "Retyping", "Approval"],
+        costLabel: "Hours lost a week",
+        hours: "h",
+        rankLabel: "Fix first",
+        ranked: ["Waiting between teams", "Data typed by hand", "Waiting on approval"],
+        friction: "Waiting",
+        flow: "Moving",
+        idle: "Idle",
       };
 
-// Four lanes of the same working week. `hot` marks where the work stalls; the
-// rest is filled deterministically so the map reads as traffic, not noise.
-const CELLS = 22;
+// One working week, four slots a day. `hot` marks where the work waits on a
+// person (attention); the rest is filled deterministically so the map reads as
+// traffic rather than noise.
+const SLOTS_PER_DAY = 4;
 const lanes = [
-  { label: copy.lanes[0], seed: 2, density: 0.45, hot: [7, 8] },
-  { label: copy.lanes[1], seed: 5, density: 0.6, hot: [3, 4, 12] },
-  { label: copy.lanes[2], seed: 9, density: 0.35, hot: [15] },
-  { label: copy.lanes[3], seed: 4, density: 0.5, hot: [9, 10] },
+  { label: copy.lanes[0], seed: 2, density: 0.45, hot: [9] },
+  { label: copy.lanes[1], seed: 5, density: 0.6, hot: [3, 16] },
+  { label: copy.lanes[2], seed: 9, density: 0.4, hot: [6, 7, 14] },
+  { label: copy.lanes[3], seed: 4, density: 0.5, hot: [11, 12] },
 ];
 
 const cellLevel = (lane: (typeof lanes)[number], cell: number) => {
@@ -41,38 +64,67 @@ const cellLevel = (lane: (typeof lanes)[number], cell: number) => {
 };
 
 const flagged = lanes.reduce((total, lane) => total + lane.hot.length, 0);
+
+// The three fixes add up to the weekly figure, largest first.
+const ranked = [
+  { label: copy.ranked[0], hours: 18 },
+  { label: copy.ranked[1], hours: 16 },
+  { label: copy.ranked[2], hours: 12 },
+];
+const totalHours = ranked.reduce((total, item) => total + item.hours, 0);
+const maxHours = Math.max(...ranked.map((item) => item.hours));
 ---
 
 <PhaseVisualFrame
   title={copy.title}
-  meta={`0${lanes.length} ${copy.laneUnit}`}
+  meta={copy.meta}
+  status={{ tone: "done", label: copy.status }}
+  description={copy.description}
 >
-  <div class="space-y-3.5">
+  <div class="space-y-2.5">
+    <div class="grid gap-x-4 sm:grid-cols-[6rem_1fr_3rem]">
+      <span class="hidden data-label sm:block">{copy.laneHeader}</span>
+      <span class="grid grid-cols-5 gap-1.5 text-center data-label">
+        {copy.days.map((day) => <span>{day}</span>)}
+      </span>
+      <span class="hidden text-right data-label sm:block">
+        {copy.countHeader}
+      </span>
+    </div>
+
     {
       lanes.map((lane) => (
-        <div class="grid grid-cols-[4.25rem_1fr_1.75rem] items-center gap-3 sm:grid-cols-[6rem_1fr_2rem] sm:gap-4">
-          <span class="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/45">
+        <div class="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1.5 sm:grid-cols-[6rem_1fr_3rem] sm:gap-x-4">
+          <span class="truncate text-label-xs text-muted-foreground">
             {lane.label}
           </span>
-          <span class="flex h-4 items-stretch gap-[2px]">
-            {Array.from({ length: CELLS }, (_, cell) => {
-              const level = cellLevel(lane, cell);
-              return (
-                <span
-                  class:list={[
-                    "flex-1 rounded-[1px]",
-                    level === 2
-                      ? "bg-attention"
-                      : level === 1
-                        ? "bg-foreground/25"
-                        : "bg-foreground/[0.07]",
-                  ]}
-                />
-              );
-            })}
+          <span class="flex items-center justify-end gap-1.5 sm:order-last">
+            <span class="size-1.5 rounded-full bg-attention" />
+            <span class="data-value">{lane.hot.length}</span>
           </span>
-          <span class="text-right font-mono text-[10px] tabular-nums text-foreground/40">
-            ×{lane.hot.length}
+          <span class="col-span-2 grid grid-cols-5 gap-1.5 sm:col-span-1">
+            {copy.days.map((_, day) => (
+              <span class="grid h-4 grid-cols-4 gap-[2px] sm:h-5">
+                {Array.from({ length: SLOTS_PER_DAY }, (_, slot) => {
+                  const cell = day * SLOTS_PER_DAY + slot;
+                  const level = cellLevel(lane, cell);
+                  return (
+                    <span
+                      data-seq={level === 2 ? "pop" : "fade"}
+                      data-seq-order={level === 2 ? undefined : cell}
+                      class:list={[
+                        "rounded-[2px]",
+                        level === 2
+                          ? "bg-attention"
+                          : level === 1
+                            ? "bg-foreground/20"
+                            : "bg-foreground/[0.06]",
+                      ]}
+                    />
+                  );
+                })}
+              </span>
+            ))}
           </span>
         </div>
       ))
@@ -80,15 +132,64 @@ const flagged = lanes.reduce((total, lane) => total + lane.hot.length, 0);
   </div>
 
   <div
-    class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-border pt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/40"
+    class="mt-5 grid gap-5 border-t border-border pt-4 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-6"
   >
-    <span class="flex items-center gap-2">
-      <span class="size-1.5 rounded-[1px] bg-attention"></span>
-      {flagged} {copy.flagged}
+    <div data-seq>
+      <p class="data-label">{copy.costLabel}</p>
+      <p class="mt-2.5 flex items-baseline gap-1.5">
+        <span class="data-figure" data-seq-count>{totalHours}</span>
+        <span class="data-label">{copy.hours}</span>
+      </p>
+    </div>
+
+    <div class="min-w-0">
+      <p class="data-label">{copy.rankLabel}</p>
+      <ol class="mt-2.5 space-y-2.5">
+        {
+          ranked.map((item, index) => (
+            <li
+              data-seq
+              class="grid grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5"
+            >
+              <span class="text-label-xs tabular-nums text-tertiary-foreground">
+                {index + 1}
+              </span>
+              <span class="truncate text-label-xs text-foreground">
+                {item.label}
+              </span>
+              <span class="data-value">
+                {item.hours} {copy.hours}
+              </span>
+              <span class="col-span-2 col-start-2 block h-1 overflow-hidden rounded-full bg-foreground/[0.06]">
+                <span
+                  data-seq="grow"
+                  class="block h-full origin-left rounded-full bg-foreground/30"
+                  style={`width: ${Math.round((item.hours / maxHours) * 100)}%;`}
+                />
+              </span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+
+  <div
+    slot="footer"
+    class="flex w-full flex-wrap items-center gap-x-4 gap-y-1.5"
+  >
+    <span class="flex items-center gap-1.5 data-label">
+      <span class="size-2 rounded-[2px] bg-attention"></span>
+      {copy.friction} · {flagged}
     </span>
-    <span class="flex items-center gap-2 text-foreground/25">
-      <span class="size-1.5 rounded-[1px] bg-foreground/25"></span>
-      {copy.clear}
+    <span class="flex items-center gap-1.5 data-label">
+      <span class="size-2 rounded-[2px] bg-foreground/20"></span>
+      {copy.flow}
+    </span>
+    <span class="flex items-center gap-1.5 data-label">
+      <span class="size-2 rounded-[2px] bg-foreground/[0.06] ring-1 ring-inset ring-border"
+      ></span>
+      {copy.idle}
     </span>
   </div>
 </PhaseVisualFrame>

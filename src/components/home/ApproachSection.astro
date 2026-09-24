@@ -1,102 +1,584 @@
 ---
 import { Image } from "astro:assets";
-import { Blocks, Plug, RefreshCw, Search } from "lucide-react";
+import { Blocks, Pause, Play, Plug, RefreshCw, Search } from "lucide-react";
 
 import worktableImage from "@/assets/editorial/collaborative-worktable.png";
 import BlinkText from "@/components/BlinkText";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
+import DeliveryPlanCard from "./approach-parts/DeliveryPlanCard.astro";
+import FrictionMapCard from "./approach-parts/FrictionMapCard.astro";
+import IntegrationsCard from "./approach-parts/IntegrationsCard.astro";
+import UsageSummaryCard from "./approach-parts/UsageSummaryCard.astro";
 
 interface Props {
   locale: Locale;
   messages: Messages;
 }
 
-const { messages } = Astro.props;
+const { locale, messages } = Astro.props;
+const { steps } = messages.approach;
+const total = String(steps.length).padStart(2, "0");
+const nextTitle = (index: number) => steps[(index + 1) % steps.length].title;
+// The step glyphs from the old card row now mark the stage caption.
 const stepIcons = [Search, Blocks, Plug, RefreshCw] as const;
+
+const ui =
+  locale === "tr"
+    ? {
+        process: "Süreç",
+        sample: "Örnek çıktı",
+        pause: "Otomatik geçişi duraklat",
+        play: "Otomatik geçişi sürdür",
+        navHint: "Adımlar arasında gezinmek için ↑ ↓",
+        stageSr:
+          "Her adımın yanında o adımın örnek bir çıktısı yer alır: sürtünme haritası, teslim planı, entegrasyon listesi ve kullanım özeti.",
+      }
+    : {
+        process: "Process",
+        sample: "Sample output",
+        pause: "Pause auto-advance",
+        play: "Resume auto-advance",
+        navHint: "↑ ↓ to move between steps",
+        stageSr:
+          "Each step is paired with a sample of what it produces: a friction map, a delivery plan, an integrations list and a usage summary.",
+      };
 ---
 
 <section
   id="method"
   aria-labelledby="method-heading"
   class="scroll-mt-20 border-b border-border bg-background"
+  data-reveal-root
 >
   <div class="mx-auto w-full max-w-[83.75rem] border-x border-border">
     <header class="grid border-b border-border lg:grid-cols-12">
-      <div class="px-6 py-9 sm:px-8 sm:py-11 lg:col-span-8 lg:px-12 lg:py-14">
-        <p
-          class="inline-flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground"
-        >
-          <span aria-hidden="true" class="size-1.5 rounded-full bg-foreground/30"></span>
-          {messages.approach.eyebrow}
-        </p>
-        <h2
-          id="method-heading"
-          class="mt-5 max-w-3xl text-balance text-3xl font-medium leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl"
-        >
-          <BlinkText client:visible text={messages.approach.title} />
-        </h2>
+      <div class="px-6 py-10 sm:px-8 sm:py-14 lg:col-span-8 lg:px-12 lg:py-16">
+        <div data-reveal>
+          <p class="eyebrow">
+            <span class="eyebrow-mark" aria-hidden="true"></span>
+            {messages.approach.eyebrow}
+          </p>
+          <h2
+            id="method-heading"
+            class="mt-5 max-w-3xl text-balance text-title-h2 text-foreground"
+          >
+            <BlinkText client:visible text={messages.approach.title} />
+          </h2>
+        </div>
       </div>
 
       <div
-        class="flex items-end border-t border-border px-6 py-9 sm:px-8 lg:col-span-4 lg:border-t-0 lg:border-l lg:px-10 lg:py-14"
+        class="flex items-end border-t border-border px-6 py-10 sm:px-8 lg:col-span-4 lg:border-t-0 lg:border-l lg:px-10 lg:py-16"
       >
-        <p class="max-w-md text-pretty text-base leading-7 text-muted-foreground">
+        <p
+          class="max-w-md text-pretty text-paragraph-md text-muted-foreground"
+          data-reveal
+        >
           {messages.approach.description}
         </p>
       </div>
     </header>
 
-    <div class="h-64 overflow-hidden border-b border-border bg-muted sm:h-80 lg:h-96" aria-hidden="true">
-      <Image
-        src={worktableImage}
-        alt=""
-        widths={[480, 800, 1340, 1536]}
-        sizes="(min-width: 1340px) 1340px, 100vw"
-        format="webp"
-        quality={82}
-        loading="lazy"
-        decoding="async"
-        class="h-full w-full object-cover object-[50%_54%]"
-      />
-    </div>
-
-    <ol class="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
-      {
-        messages.approach.steps.map((step, index) => {
-          const Icon = stepIcons[index] ?? Search;
-
-          return (
-            <li class="relative flex min-h-72 flex-col bg-background p-6 sm:p-8">
-              <div class="flex items-center justify-between">
-                <span class="font-mono text-xs font-medium tracking-[0.2em] text-foreground/45">
-                  {step.number}
+    <div class="grid grid-cols-1 lg:grid-cols-12" data-ap-root style="--ap-hold: 4500ms">
+      <div class="lg:col-span-5 lg:border-r lg:border-border">
+        <div class="flex h-full flex-col" data-reveal>
+          <div
+            class="flex h-11 items-center justify-between gap-4 border-b border-border px-6 sm:px-8 lg:px-10"
+          >
+            <span class="data-label">{ui.process}</span>
+            <div class="flex items-center gap-3">
+              <span class="data-label tabular-nums" aria-hidden="true">
+                <span data-ap-count>{steps[0].number}</span> / {total}
+              </span>
+              <button
+                type="button"
+                class="grid size-7 cursor-pointer place-items-center rounded-full border border-border text-tertiary-foreground transition-colors duration-200 hover:border-border-strong hover:text-foreground"
+                aria-label={ui.pause}
+                title={ui.pause}
+                data-label-pause={ui.pause}
+                data-label-play={ui.play}
+                data-ap-toggle
+                hidden
+              >
+                <span class="grid place-items-center" data-ap-icon="pause">
+                  <Pause className="size-3" strokeWidth={2} aria-hidden="true" />
                 </span>
-                <Icon
-                  aria-hidden="true"
-                  focusable="false"
-                  className="size-4 text-muted-foreground"
-                  strokeWidth={1.5}
-                />
-              </div>
+                <span class="grid place-items-center" data-ap-icon="play" hidden>
+                  <Play className="size-3" strokeWidth={2} aria-hidden="true" />
+                </span>
+              </button>
+            </div>
+          </div>
 
-              <div class="mt-auto pt-14">
-                <h3 class="text-xl font-medium tracking-tight text-foreground">
-                  {step.title}
-                </h3>
-                <p class="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
-                  {step.description}
-                </p>
-              </div>
+          <ol
+            class="flex flex-col gap-1 p-3 sm:p-4 lg:p-5"
+            role="list"
+            data-ap-list
+            data-ap-hover
+          >
+            {
+              steps.map((step, index) => (
+                <li
+                  class="ap-step group relative grid grid-cols-[2rem_minmax(0,1fr)] gap-x-4 rounded-tile border border-transparent px-4 py-4 transition-[background-color,border-color,box-shadow] duration-300 ease-out-quint data-[active]:border-border data-[active]:bg-card data-[active]:shadow-card sm:px-5 sm:py-5"
+                  data-ap-step
+                  data-active={index === 0 ? "" : undefined}
+                >
+                  <span class="flex size-8 items-center justify-center rounded-full border border-border bg-background data-label tabular-nums transition-colors duration-300 group-data-[active]:border-foreground group-data-[active]:bg-foreground group-data-[active]:text-background">
+                    {step.number}
+                  </span>
+                  <h3 class="flex min-h-8 items-center text-title-h5 text-muted-foreground transition-colors duration-300 group-hover:text-foreground group-data-[active]:text-foreground">
+                    <button
+                      type="button"
+                      class="ap-trigger cursor-pointer text-left"
+                      aria-controls="method-stage"
+                      aria-current={index === 0 ? "step" : undefined}
+                      data-ap-trigger
+                    >
+                      {step.title}
+                    </button>
+                  </h3>
+                  <p class="col-start-2 mt-1.5 text-pretty text-paragraph-sm text-tertiary-foreground transition-colors duration-300 group-data-[active]:text-muted-foreground">
+                    {step.description}
+                  </p>
+                  <span
+                    aria-hidden="true"
+                    class="ap-bar pointer-events-none absolute right-4 bottom-2 left-16 h-0.5 overflow-hidden rounded-full bg-border sm:right-5 sm:bottom-2.5 sm:left-[4.25rem]"
+                  >
+                    <span class="ap-fill block h-full w-full rounded-full bg-brand" data-ap-fill />
+                  </span>
+                </li>
+              ))
+            }
+          </ol>
 
-              <span
-                aria-hidden="true"
-                class="absolute bottom-0 left-0 h-px w-8 bg-foreground/25"
-              ></span>
-            </li>
-          );
-        })
-      }
-    </ol>
+          <p
+            class="mt-auto hidden h-11 items-center border-t border-border px-10 text-paragraph-xs text-tertiary-foreground lg:flex"
+          >
+            {ui.navHint}
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="order-first border-b border-border lg:order-none lg:col-span-7 lg:border-b-0"
+      >
+        <div class="h-full p-3 sm:p-5 lg:p-6" data-reveal>
+          <figure
+            id="method-stage"
+            class="stage flex h-[20rem] flex-col p-3 sm:h-[26rem] sm:p-6 lg:h-full lg:min-h-[32rem] lg:p-8"
+            data-ap-hover
+          >
+            {/* The blend sits on the wrapper: it is the layer that stacks inside
+                the stage, so the photo takes its hue from the emerald well. */}
+            <div
+              aria-hidden="true"
+              class="pointer-events-none absolute inset-0 -z-20 opacity-60 mix-blend-luminosity"
+            >
+              <Image
+                src={worktableImage}
+                alt=""
+                widths={[480, 800, 1100, 1536]}
+                sizes="(min-width: 1340px) 760px, (min-width: 1024px) 58vw, 100vw"
+                format="webp"
+                quality={80}
+                loading="lazy"
+                decoding="async"
+                class="size-full object-cover object-[50%_54%]"
+              />
+            </div>
+            <div aria-hidden="true" class="ap-scrim pointer-events-none absolute inset-0 -z-10"></div>
+
+            <div aria-hidden="true" class="hidden items-center justify-between gap-4 sm:flex">
+              <span class="inline-flex items-center gap-2 font-mono text-micro tracking-[0.06em] text-white/70 uppercase">
+                <span class="size-1.5 rounded-full bg-brand"></span>
+                {ui.sample}
+              </span>
+              <span class="inline-flex min-w-0 items-center gap-2.5 text-micro text-white/70">
+                {
+                  stepIcons.map((Icon, index) => (
+                    <span class="grid place-items-center" data-ap-stage-icon hidden={index !== 0}>
+                      <Icon className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
+                    </span>
+                  ))
+                }
+                <span class="font-mono tabular-nums" data-ap-stage-num>{steps[0].number}</span>
+                <span class="h-3 w-px bg-white/25"></span>
+                <span class="truncate" data-ap-stage-title>{steps[0].title}</span>
+              </span>
+            </div>
+
+            <div
+              aria-hidden="true"
+              class="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] place-items-center sm:mt-4"
+            >
+              <div
+                class="ap-slide col-start-1 row-start-1 w-full min-w-0 max-w-[25rem]"
+                data-ap-slide
+                data-active
+                data-number={steps[0].number}
+                data-title={steps[0].title}
+              >
+                <FrictionMapCard locale={locale} next={nextTitle(0)} />
+              </div>
+              <div
+                class="ap-slide col-start-1 row-start-1 w-full min-w-0 max-w-[25rem]"
+                data-ap-slide
+                data-number={steps[1].number}
+                data-title={steps[1].title}
+              >
+                <DeliveryPlanCard locale={locale} next={nextTitle(1)} />
+              </div>
+              <div
+                class="ap-slide col-start-1 row-start-1 w-full min-w-0 max-w-[25rem]"
+                data-ap-slide
+                data-number={steps[2].number}
+                data-title={steps[2].title}
+              >
+                <IntegrationsCard locale={locale} next={nextTitle(2)} />
+              </div>
+              <div
+                class="ap-slide col-start-1 row-start-1 w-full min-w-0 max-w-[25rem]"
+                data-ap-slide
+                data-number={steps[3].number}
+                data-title={steps[3].title}
+              >
+                <UsageSummaryCard locale={locale} next={nextTitle(3)} />
+              </div>
+            </div>
+
+            <figcaption class="sr-only">{ui.stageSr}</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
+
+<script>
+  import { animate, createDrawable, stagger, utils } from "animejs";
+
+  type Drawable = ReturnType<typeof createDrawable>;
+
+  // The active row's progress bar is a CSS animation lasting --ap-hold; its
+  // animationend is what advances the list, so pausing the bar in CSS pauses
+  // the cadence too and the two can never drift apart.
+  function initApproach(root: HTMLElement) {
+    const steps = [...root.querySelectorAll<HTMLElement>("[data-ap-step]")];
+    const slides = [...root.querySelectorAll<HTMLElement>("[data-ap-slide]")];
+    const triggers = steps
+      .map((step) => step.querySelector<HTMLButtonElement>("[data-ap-trigger]"))
+      .filter((trigger): trigger is HTMLButtonElement => Boolean(trigger));
+    if (!steps.length || slides.length !== steps.length || triggers.length !== steps.length) {
+      return;
+    }
+
+    const list = root.querySelector<HTMLElement>("[data-ap-list]");
+    const toggle = root.querySelector<HTMLButtonElement>("[data-ap-toggle]");
+    const pauseIcon = toggle?.querySelector<HTMLElement>('[data-ap-icon="pause"]');
+    const playIcon = toggle?.querySelector<HTMLElement>('[data-ap-icon="play"]');
+    const count = root.querySelector<HTMLElement>("[data-ap-count]");
+    const stageNum = root.querySelector<HTMLElement>("[data-ap-stage-num]");
+    const stageTitle = root.querySelector<HTMLElement>("[data-ap-stage-title]");
+    const stageIcons = [...root.querySelectorAll<HTMLElement>("[data-ap-stage-icon]")];
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    let index = 0;
+    let playing = !reduce.matches;
+    let visible = false;
+    let hovered = false;
+    let focused = false;
+    const drawables = new Map<HTMLElement, Drawable>();
+
+    const itemsOf = (slide: HTMLElement) =>
+      slide.querySelectorAll<HTMLElement>("[data-ap-item], [data-ap-dot]");
+
+    // Rows settle in one after another; a sparkline draws itself left to right.
+    const playCard = (slide: HTMLElement) => {
+      if (reduce.matches) return;
+      const items = slide.querySelectorAll<HTMLElement>("[data-ap-item]");
+      if (items.length) {
+        utils.set(items, { opacity: 0, translateY: 6 });
+        animate(items, {
+          opacity: 1,
+          translateY: 0,
+          duration: 560,
+          delay: stagger(60, { start: 120 }),
+          ease: "outQuint",
+        });
+      }
+
+      const line = slide.querySelector<SVGPathElement>("[data-ap-draw]");
+      if (line) {
+        const drawable = drawables.get(slide) ?? createDrawable(line, 0, 1);
+        drawables.set(slide, drawable);
+        // Start empty now, so the finished line never shows during the delay.
+        utils.set(drawable, { draw: "0 0" });
+        animate(drawable, {
+          draw: ["0 0", "0 1"],
+          duration: 1000,
+          delay: 180,
+          ease: "inOutCubic",
+        });
+      }
+
+      const dots = slide.querySelectorAll<HTMLElement>("[data-ap-dot]");
+      if (dots.length) {
+        utils.set(dots, { opacity: 0, scale: 0.4 });
+        animate(dots, { opacity: 1, scale: 1, duration: 420, delay: 1050, ease: "outQuint" });
+      }
+    };
+
+    // Final state for every card, for when reduced motion switches on mid-visit.
+    const settle = () => {
+      slides.forEach((slide) => {
+        utils.set(itemsOf(slide), { opacity: 1, translateY: 0, scale: 1 });
+      });
+      drawables.forEach((drawable) => utils.set(drawable, { draw: "0 1" }));
+    };
+
+    const render = () => {
+      const running = playing && visible && !hovered && !focused && !document.hidden;
+      root.toggleAttribute("data-ap-auto", playing);
+      root.toggleAttribute("data-ap-paused", !running);
+
+      if (toggle) {
+        toggle.hidden = reduce.matches;
+        const label = (playing ? toggle.dataset.labelPause : toggle.dataset.labelPlay) ?? "";
+        toggle.setAttribute("aria-label", label);
+        toggle.title = label;
+        if (pauseIcon) pauseIcon.hidden = !playing;
+        if (playIcon) playIcon.hidden = playing;
+      }
+    };
+
+    const setStep = (next: number, withCard = true) => {
+      index = (next + steps.length) % steps.length;
+      steps.forEach((step, i) => step.toggleAttribute("data-active", i === index));
+      triggers.forEach((trigger, i) => {
+        if (i === index) trigger.setAttribute("aria-current", "step");
+        else trigger.removeAttribute("aria-current");
+      });
+      slides.forEach((slide, i) => slide.toggleAttribute("data-active", i === index));
+
+      const slide = slides[index];
+      if (count) count.textContent = slide.dataset.number ?? "";
+      if (stageNum) stageNum.textContent = slide.dataset.number ?? "";
+      if (stageTitle) stageTitle.textContent = slide.dataset.title ?? "";
+      stageIcons.forEach((icon, i) => {
+        icon.hidden = i !== index;
+      });
+      if (withCard) playCard(slide);
+    };
+
+    // Picking a step hands control to the reader: the cadence stops until
+    // they press play again.
+    const select = (next: number, moveFocus = false) => {
+      const target = (next + steps.length) % steps.length;
+      playing = false;
+      setStep(target, target !== index);
+      render();
+      if (moveFocus) triggers[index]?.focus();
+    };
+
+    triggers.forEach((trigger, i) => {
+      trigger.addEventListener("click", () => select(i));
+    });
+
+    list?.addEventListener("keydown", (event) => {
+      const current = triggers.indexOf(document.activeElement as HTMLButtonElement);
+      if (current === -1) return;
+      const moves: Record<string, number> = {
+        ArrowDown: current + 1,
+        ArrowRight: current + 1,
+        ArrowUp: current - 1,
+        ArrowLeft: current - 1,
+        Home: 0,
+        End: steps.length - 1,
+      };
+      const next = moves[event.key];
+      if (next === undefined) return;
+      event.preventDefault();
+      select(next, true);
+    });
+
+    steps.forEach((step, i) => {
+      step.querySelector("[data-ap-fill]")?.addEventListener("animationend", () => {
+        if (!playing || i !== index) return;
+        setStep(index + 1);
+      });
+    });
+
+    toggle?.addEventListener("click", () => {
+      playing = !playing;
+      render();
+    });
+
+    root.querySelectorAll<HTMLElement>("[data-ap-hover]").forEach((zone) => {
+      zone.addEventListener("pointerenter", (event) => {
+        if (event.pointerType === "touch") return;
+        hovered = true;
+        render();
+      });
+      zone.addEventListener("pointerleave", (event) => {
+        if (event.pointerType === "touch") return;
+        hovered = false;
+        render();
+      });
+    });
+
+    list?.addEventListener("focusin", () => {
+      focused = true;
+      render();
+    });
+    list?.addEventListener("focusout", (event) => {
+      focused = list.contains(event.relatedTarget as Node | null);
+      render();
+    });
+
+    document.addEventListener("visibilitychange", render);
+    reduce.addEventListener("change", () => {
+      if (reduce.matches) {
+        playing = false;
+        settle();
+      }
+      render();
+    });
+
+    setStep(0, false);
+    render();
+
+    // Anything already on screen at load stays as painted; the first card only
+    // plays its entrance when the section scrolls in from below, after the
+    // column itself has started to fade up.
+    const entrance = !reduce.matches && root.getBoundingClientRect().top > window.innerHeight;
+    if (entrance) utils.set(itemsOf(slides[0]), { opacity: 0 });
+    let entered = !entrance;
+
+    // "In view" means a third of whatever can fit on screen, so a block taller
+    // than a short phone viewport still counts once it fills most of it.
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry) return;
+        const fits = Math.min(entry.boundingClientRect.height, window.innerHeight);
+        visible = entry.isIntersecting && entry.intersectionRect.height >= fits * 0.3;
+        if (visible && !entered) {
+          entered = true;
+          playCard(slides[index]);
+        }
+        render();
+      },
+      { threshold: Array.from({ length: 11 }, (_, i) => i / 10) },
+    );
+    io.observe(root);
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-ap-root]").forEach(initApproach);
+</script>
+
+<style>
+  /* The title button stretches over the whole row, so the number and the
+     description are part of the hit area and the focus ring wraps the tile. */
+  .ap-trigger::after {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-tile);
+    content: "";
+  }
+
+  .ap-trigger:focus-visible {
+    outline: none;
+  }
+
+  .ap-trigger:focus-visible::after {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .ap-step:not([data-active]):hover {
+    background: var(--control-surface);
+  }
+
+  /* Progress only exists while the cadence plays; a picked step shows none. */
+  .ap-bar {
+    opacity: 0;
+    transition: opacity 240ms var(--ease-out-quint);
+  }
+
+  .ap-fill {
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+
+  [data-ap-auto] .ap-step[data-active] .ap-bar {
+    opacity: 1;
+  }
+
+  [data-ap-auto] .ap-step[data-active] .ap-fill {
+    animation: approach-step-fill var(--ap-hold, 4.5s) linear forwards;
+  }
+
+  [data-ap-auto][data-ap-paused] .ap-step[data-active] .ap-fill {
+    animation-play-state: paused;
+  }
+
+  @keyframes approach-step-fill {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  /* Outgoing card fades quickly, the incoming one rises in just behind it. */
+  .ap-slide {
+    opacity: 0;
+    translate: 0 0.625rem;
+    scale: 0.985;
+    pointer-events: none;
+    transition:
+      opacity 260ms var(--ease-out-quint),
+      translate 260ms var(--ease-out-quint),
+      scale 260ms var(--ease-out-quint);
+  }
+
+  .ap-slide[data-active] {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    transition-duration: 520ms, 760ms, 760ms;
+    transition-delay: 90ms;
+  }
+
+  /* Built from the stage's own base (see @utility stage in global.css) so the
+     toned photo sinks into the emerald well: darker along the caption band
+     and the edges, open in the middle where the card floats. */
+  .ap-scrim {
+    background:
+      linear-gradient(
+        180deg,
+        oklch(0.17 0.025 165 / 0.6),
+        oklch(0.17 0.025 165 / 0.12) 36%,
+        oklch(0.17 0.025 165 / 0.12) 64%,
+        oklch(0.17 0.025 165 / 0.62)
+      ),
+      radial-gradient(
+        120% 90% at 50% 50%,
+        transparent 45%,
+        oklch(0.17 0.025 165 / 0.45)
+      );
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ap-fill {
+      animation: none !important;
+    }
+
+    .ap-slide {
+      translate: none;
+      scale: none;
+      transition: none;
+    }
+  }
+</style>

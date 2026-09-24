@@ -1,0 +1,99 @@
+---
+import { Stethoscope } from "lucide-react";
+import MockShell from "@/components/ui/MockShell.astro";
+import StatusPill from "@/components/ui/StatusPill.astro";
+import type { Locale } from "@/i18n/config";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+// The whole Hastam loop in one exchange: the patient describes the complaint,
+// Hastam picks the specialty and offers open times, the clinic has the last word.
+const ui =
+  locale === "tr"
+    ? {
+        patient: "Dizimde üç haftadır ağrı var. Bu hafta bakılabilir mi?",
+        title: "Randevu önerisi",
+        meta: "Şikâyet: diz ağrısı",
+        specialty: "Ortopedi",
+        day: "Perşembe",
+        waiting: "Klinik onayı bekleniyor",
+        summary:
+          "Örnek ekran: Dizindeki ağrı için arayan bir hastaya Hastam, ortopedi bölümünden perşembe günü için üç saat öneriyor. Hastanın seçtiği saat kliniğin onayını bekliyor.",
+      }
+    : {
+        patient: "My knee has hurt for three weeks. Can someone see me this week?",
+        title: "Suggested appointment",
+        meta: "Concern: knee pain",
+        specialty: "Orthopaedics",
+        day: "Thursday",
+        waiting: "Awaiting clinic approval",
+        summary:
+          "Sample screen: a patient with knee pain asks for an appointment, Hastam offers three Thursday times in orthopaedics, and the time they choose waits for the clinic to approve it.",
+      };
+
+const slots = ["09:30", "10:15", "14:00"];
+const chosen = "10:15";
+---
+
+<div data-mock-seq="hastam">
+  <p class="sr-only">{ui.summary}</p>
+  <div aria-hidden="true">
+    <div class="flex justify-end" data-sm-part="bubble">
+      <p
+        class="max-w-[88%] rounded-card rounded-br-chip bg-foreground px-3.5 py-2.5 text-paragraph-sm text-background shadow-float ring-1 ring-white/10"
+      >
+        {ui.patient}
+      </p>
+    </div>
+
+    {/* Hastam's typing beat. Only the scripted sequence ever shows it. */}
+    <div class="relative h-0">
+      <span class="absolute left-3 top-5 flex items-center gap-1">
+        {[0, 1, 2].map(() => (
+          <span class="size-1.5 rounded-full bg-white/80 opacity-0" data-sm-part="dot" />
+        ))}
+      </span>
+    </div>
+
+    <div class="mt-3" data-sm-part="shell">
+      <MockShell title={ui.title} meta={ui.meta} bodyClass="px-4 py-3.5">
+        <div class="flex items-center justify-between gap-3">
+          <span
+            class="inline-flex h-6 min-w-0 items-center gap-1.5 rounded-chip border border-border bg-muted px-2 text-label-xs text-foreground"
+          >
+            <Stethoscope className="size-3.5 shrink-0 text-muted-foreground" strokeWidth={1.5} aria-hidden="true" />
+            <span class="truncate">{ui.specialty}</span>
+          </span>
+          <span class="shrink-0 text-caption text-tertiary-foreground">{ui.day}</span>
+        </div>
+
+        <div class="mt-3 grid grid-cols-3 gap-2">
+          {
+            slots.map((time) => (
+              <span
+                class="flex h-9 items-center justify-center rounded-full border border-border bg-background text-label-xs tabular-nums text-foreground transition-colors duration-300 data-selected:border-foreground data-selected:bg-foreground data-selected:text-background"
+                data-sm-part="slot"
+                data-selected={time === chosen ? "" : undefined}
+              >
+                {time}
+              </span>
+            ))
+          }
+        </div>
+
+        <Fragment slot="footer">
+          <span class="inline-flex min-w-0" data-sm-part="status">
+            <StatusPill tone="waiting" label={ui.waiting} />
+          </span>
+          <span class="hidden shrink-0 font-mono text-micro text-tertiary-foreground @xs:inline">
+            R-2207
+          </span>
+        </Fragment>
+      </MockShell>
+    </div>
+  </div>
+</div>

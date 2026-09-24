@@ -1,0 +1,82 @@
+---
+import { Database, FileText, Headset, Users } from "lucide-react";
+
+import MockShell from "@/components/ui/MockShell.astro";
+import StatusPill from "@/components/ui/StatusPill.astro";
+import type { Locale } from "@/i18n/config";
+import StepHandoff from "./StepHandoff.astro";
+
+interface Props {
+  locale: Locale;
+  next: string;
+}
+
+const { locale, next } = Astro.props;
+
+const ui =
+  locale === "tr"
+    ? {
+        title: "Entegrasyonlar",
+        meta: "Test ortamı · 4 sistem",
+        lastSync: "Son eşitleme",
+        systems: [
+          { name: "CRM", detail: "Müşteri kayıtları", tone: "live", label: "Bağlı" },
+          { name: "Çağrı merkezi", detail: "Arama kayıtları", tone: "live", label: "Bağlı" },
+          { name: "ERP", detail: "Okuma yetkisi bekleniyor", tone: "waiting", label: "Bekliyor" },
+          { name: "Belge arşivi", detail: "Sözleşmeler", tone: "done", label: "Aktarıldı" },
+        ],
+      }
+    : {
+        title: "Integrations",
+        meta: "Staging · 4 systems",
+        lastSync: "Last sync",
+        systems: [
+          { name: "CRM", detail: "Customer records", tone: "live", label: "Connected" },
+          { name: "Call center", detail: "Call logs", tone: "live", label: "Connected" },
+          { name: "ERP", detail: "Awaiting read access", tone: "waiting", label: "Waiting" },
+          { name: "Documents", detail: "Contracts", tone: "done", label: "Imported" },
+        ],
+      };
+
+const icons = [Users, Headset, Database, FileText] as const;
+const systems = ui.systems as {
+  name: string;
+  detail: string;
+  tone: "live" | "waiting" | "done";
+  label: string;
+}[];
+---
+
+<MockShell title={ui.title} meta={ui.meta}>
+  <ul>
+    {
+      systems.map((system, index) => {
+        const Icon = icons[index] ?? Database;
+
+        return (
+          <li
+            class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-4 py-1.5 last:border-b-0 sm:py-2"
+            data-ap-item
+          >
+            <span class="grid size-6 place-items-center rounded-chip border border-border bg-card text-muted-foreground sm:size-7">
+              <Icon className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
+            </span>
+            <span class="min-w-0">
+              <span class="block truncate data-value">{system.name}</span>
+              <span class="mt-0.5 hidden truncate text-caption text-tertiary-foreground sm:block">
+                {system.detail}
+              </span>
+            </span>
+            <StatusPill tone={system.tone} label={system.label} />
+          </li>
+        );
+      })
+    }
+  </ul>
+  <Fragment slot="footer">
+    <span class="hidden min-w-0 truncate text-caption text-tertiary-foreground sm:block">
+      {ui.lastSync} <span class="font-mono">14:02</span>
+    </span>
+    <StepHandoff locale={locale} next={next} />
+  </Fragment>
+</MockShell>

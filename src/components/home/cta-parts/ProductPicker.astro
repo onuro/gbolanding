@@ -1,0 +1,194 @@
+---
+import {
+  Blocks,
+  FileSearch,
+  MousePointerClick,
+  PhoneCall,
+  Stethoscope,
+} from "lucide-react";
+import type { Locale } from "@/i18n/config";
+
+/*
+ * "What are you interested in?" pills for the demo card. Renders inside the
+ * waitlist <form> (WaitlistForm's "before" slot) so it hides with the form on
+ * success. The choice never travels as its own field: the script below writes
+ * it onto the form's hidden "source" input as "<base>:<product>". A document
+ * click listener also lets any a[href="#demo"][data-demo-product] link on the
+ * page preselect a pill before the page scrolls to the form.
+ */
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const ui =
+  locale === "tr"
+    ? {
+        legend: "Ne ile ilgileniyorsunuz?",
+        optional: "İsteğe bağlı",
+        hint: "Bir ürün seçin, ne yaptığını kısaca görün.",
+        kollektor:
+          "Borçluları arar, ödeme planında anlaşır ve ödeme sözünü kaydeder.",
+        intelval:
+          "Emsal ve ekspertiz raporlarını okur. Uzmanınızın onaylayacağı raporu hazırlar.",
+        hastam:
+          "Hastanın şikâyetini dinler, doğru branşa yönlendirir ve boş saatleri sunar. Randevuyu klinik onaylar.",
+        customLabel: "Özel yazılım",
+        custom:
+          "İşinizin nasıl yürüdüğünü anlarız. Doğru yapay zeka aracını tasarlar, bağlar ve geliştiririz.",
+      }
+    : {
+        legend: "What are you interested in?",
+        optional: "Optional",
+        hint: "Pick a product to see what it does.",
+        kollektor:
+          "Calls debtors, agrees payment plans and records payment promises.",
+        intelval:
+          "Reads comparables and appraisal reports, then drafts a report your expert signs off.",
+        hastam:
+          "Listens to the complaint, routes it to the right specialty and offers open slots. The clinic approves the booking.",
+        customLabel: "Custom software",
+        custom:
+          "We learn how your work runs, then design, connect and build the right AI tool.",
+      };
+
+const options = [
+  { value: "kollektor", label: "Kollektor", note: ui.kollektor, Icon: PhoneCall },
+  { value: "intelval", label: "Intelval", note: ui.intelval, Icon: FileSearch },
+  { value: "hastam", label: "Hastam", note: ui.hastam, Icon: Stethoscope },
+  { value: "custom", label: ui.customLabel, note: ui.custom, Icon: Blocks },
+];
+
+const pillClass = [
+  "inline-flex select-none items-center rounded-full border border-border bg-background px-3 py-1.5 text-label-xs text-muted-foreground",
+  "transition-colors duration-200",
+  "peer-[:not(:checked)]:hover:border-border-strong peer-[:not(:checked)]:hover:text-foreground",
+  "peer-checked:border-foreground peer-checked:bg-foreground peer-checked:text-background",
+  "peer-focus-visible:ring-2 peer-focus-visible:ring-brand peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background",
+].join(" ");
+
+const noteClass =
+  "flex min-h-[3.875rem] items-start gap-2.5 rounded-tile border px-3 py-2.5 text-paragraph-xs";
+---
+
+<fieldset class="min-w-0" data-cta-picker>
+  <legend
+    class="float-left mb-3 flex w-full flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5"
+  >
+    <span class="text-label-sm text-foreground">{ui.legend}</span>
+    <span class="text-caption text-tertiary-foreground">{ui.optional}</span>
+  </legend>
+
+  <div class="clear-both flex flex-wrap gap-2">
+    {
+      options.map(({ value, label }) => (
+        <label class="relative cursor-pointer">
+          <input
+            type="radio"
+            name="interest"
+            value={value}
+            class="peer sr-only"
+            data-cta-product
+          />
+          <span class={pillClass}>{label}</span>
+        </label>
+      ))
+    }
+  </div>
+
+  <div class="mt-3" aria-live="polite">
+    <div data-cta-note="none">
+      <p class:list={[noteClass, "border-dashed border-border-strong text-tertiary-foreground"]}>
+        <MousePointerClick
+          className="mt-px size-4 shrink-0"
+          strokeWidth={1.5}
+          aria-hidden="true"
+        />
+        <span>{ui.hint}</span>
+      </p>
+    </div>
+    {
+      options.map(({ value, label, note, Icon }) => (
+        <div data-cta-note={value} hidden>
+          <p
+            class:list={[
+              noteClass,
+              "animate-reveal border-border bg-muted/40 text-muted-foreground",
+            ]}
+          >
+            <Icon
+              className="mt-px size-4 shrink-0 text-foreground"
+              strokeWidth={1.5}
+              aria-hidden="true"
+            />
+            <span>
+              <span class="font-medium text-foreground">{label}.</span> {note}
+            </span>
+          </p>
+        </div>
+      ))
+    }
+  </div>
+</fieldset>
+
+<script>
+  // Values a demo link may ask for via data-demo-product.
+  const PRODUCTS = ["kollektor", "intelval", "hastam", "custom"];
+
+  const pickers = [
+    ...document.querySelectorAll<HTMLElement>("[data-cta-picker]"),
+  ];
+
+  // Mirror the checked pill onto the form's hidden source input and show the
+  // matching one-line product note.
+  function sync(picker: HTMLElement) {
+    const checked = picker.querySelector<HTMLInputElement>(
+      "input[data-cta-product]:checked",
+    );
+    const product = checked?.value ?? "";
+
+    const source = picker
+      .closest("form")
+      ?.querySelector<HTMLInputElement>('input[name="source"]');
+    if (source) {
+      // A hidden input's value and value attribute are the same thing, so the
+      // untouched base lives in data-source-base.
+      const base = source.dataset.sourceBase || "homepage";
+      source.value = product ? `${base}:${product}` : base;
+    }
+
+    for (const note of picker.querySelectorAll<HTMLElement>("[data-cta-note]")) {
+      note.hidden = note.dataset.ctaNote !== (product || "none");
+    }
+  }
+
+  for (const picker of pickers) {
+    picker.addEventListener("change", () => sync(picker));
+    // Covers a checked state the browser restored on back navigation.
+    sync(picker);
+  }
+
+  function preselect(product: string) {
+    for (const picker of pickers) {
+      const radio = picker.querySelector<HTMLInputElement>(
+        `input[data-cta-product][value="${product}"]`,
+      );
+      if (!radio || radio.disabled) continue;
+      radio.checked = true;
+      sync(picker);
+    }
+  }
+
+  // Product CTAs elsewhere on the page ("Plan a Kollektor demo") arrive with
+  // their product already picked. The link still scrolls as normal.
+  document.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+    const link = event.target.closest<HTMLAnchorElement>(
+      'a[href$="#demo"][data-demo-product]',
+    );
+    const product = link?.dataset.demoProduct;
+    if (product && PRODUCTS.includes(product)) preselect(product);
+  });
+</script>

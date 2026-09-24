@@ -145,13 +145,13 @@ const trMessages: Messages = {
         {
           number: "01",
           title: "Analiz",
-          summary: "İşin nerede tıkandığı.",
+          summary: "İşin nerede beklediği, size neye mal olduğu.",
           description:
-            "İşi yapan ekiple oturur, süreci baştan sona izleriz. Kullanıcılar, araçlar, devir noktaları ve veri. Sonra sürtünmenin size neye mal olduğunu ortaya koyarız: saat, gelir, doğruluk. Çözmeye değecek olana göre sıralarız.",
+            "İşi yapan ekiple oturur, bir işi başından sonuna kadar izleriz. Nerede bekliyor, kim kime devrediyor, veri nerede elle giriliyor. Sonra her tıkanmanın size ne kaybettirdiğini yazarız: kaç saat, ne kadar ciro, kaç hata. En çok kaybettirenden başlarız.",
           deliverables: [
-            "Sürtünme haritası",
-            "Manuel işin maliyeti",
-            "Önceliklendirilmiş fırsatlar",
+            "Nerede beklediği",
+            "Kaybedilen saat",
+            "Önce çözülecekler",
           ],
         },
         {

@@ -1,0 +1,33 @@
+---
+interface Props {
+  tone?: "live" | "waiting" | "done";
+  label: string;
+  class?: string;
+}
+
+const { tone = "live", label, class: className } = Astro.props;
+
+const toneClass = {
+  live: "border-brand-line bg-brand-soft text-brand",
+  waiting: "border-attention-line bg-attention-soft text-attention-ink",
+  done: "border-border bg-transparent text-muted-foreground",
+}[tone];
+---
+
+<span
+  class:list={[
+    "inline-flex h-5 shrink-0 items-center gap-1.5 rounded-full border px-2 text-micro font-medium whitespace-nowrap",
+    toneClass,
+    className,
+  ]}
+>
+  <span class="relative flex size-1.5" aria-hidden="true">
+    {
+      tone === "live" && (
+        <span class="absolute inline-flex size-full rounded-full bg-current opacity-60 motion-safe:animate-ping" />
+      )
+    }
+    <span class="relative inline-flex size-1.5 rounded-full bg-current" />
+  </span>
+  {label}
+</span>

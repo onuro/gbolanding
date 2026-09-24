@@ -145,13 +145,13 @@ const enMessages: Messages = {
         {
           number: "01",
           title: "Analyze",
-          summary: "Where the work actually breaks.",
+          summary: "Where the work waits, and what it costs.",
           description:
-            "We sit with the people doing the work and follow it end to end — users, tools, handoffs, and the data underneath. Then we name where friction is costing you hours, revenue, or accuracy, and rank it by what it is worth to fix.",
+            "We sit with the people who do the work and follow one job from start to finish: where it waits, who it gets handed to, and where someone retypes the data. Then we write down what each delay costs you — hours lost, revenue missed, mistakes made — and start with the one that costs the most.",
           deliverables: [
-            "Friction map",
-            "Cost of manual work",
-            "Ranked opportunities",
+            "Where work waits",
+            "Hours lost",
+            "What to fix first",
           ],
         },
         {

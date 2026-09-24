@@ -1,0 +1,1043 @@
+---
+// Product stage for Hastam: one inbound call to a clinic, played as a short
+// scripted sequence. The patient's own phone stands on the stage and shows
+// their side (calling the clinic, connected, ended); the Hastam window beside
+// it shows the clinic's side: the call state, the two recorded channels, a
+// live caption transcript, the call steps (triage, routing, open times, the
+// appointment request) and the request the call ends with, still waiting for
+// the clinic's approval. Choreography lives in hastam-demo/sequence.ts;
+// timings are written into data attributes here, so copy, timestamps and
+// motion share one schedule.
+//
+// Built as the twin of KollektorDemo.astro (same stage, same handset, same
+// window and heights, so switching tabs never moves the page) but frame-less:
+// the tab wrapper that renders it draws the section frame, the h2 and the
+// tabs. Every class, keyframe and data attribute is prefixed hd-, so both
+// demos can share a page. Nothing here imports from kollektor-demo/.
+//
+// The script follows the real product (../hastam-app): the clinic's line is
+// answered straight away with the fixed turn-one greeting and the KVKK
+// recording notice (persona name left out on purpose); the caller is matched
+// by phone number; triage runs silently on what the patient says; the
+// department is named in the same sentence that offers times with the
+// doctor's name; the time, doctor and reason are read back before booking;
+// the booking is a REQUEST awaiting the clinic's approval, and the clinic
+// calls the patient back once it is approved. No SMS, no "booked".
+import { Check, Pause, Play, ShieldCheck } from "lucide-react";
+import BookingReceipt from "@/components/home/hastam-demo/BookingReceipt.astro";
+import HastamPhone from "@/components/home/hastam-demo/HastamPhone.astro";
+import MockShell from "@/components/ui/MockShell.astro";
+import StatusPill from "@/components/ui/StatusPill.astro";
+import type { Locale } from "@/i18n/config";
+import { getMessages } from "@/i18n/getMessages";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const messages = await getMessages(locale);
+const isTr = locale === "tr";
+
+const pad = (value: number) => String(value).padStart(2, "0");
+// Keep in step with clock() in hastam-demo/sequence.ts.
+const clock = (time: number) => {
+  const seconds = Math.max(0, Math.floor(time / 1000));
+  return `${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}`;
+};
+
+// One schedule, in ms from the moment the patient dials. The clinic's line
+// rings from `ring` and Hastam answers at `connect`; the call timer, the
+// transcript and step timestamps and the final duration all count from
+// `connect`, so the ring is never billed as talk time. `triage` is when the
+// complaint has been screened (the gate card flips); `pick` is when the
+// patient's chosen time lights up.
+//
+// Rules the numbers obey (see sequence.ts): lines sorted by start; the same
+// party's next line starts >= 320ms after their last one ends; patient lines
+// last >= 360ms; agent word gaps (end - start - 320) / (words - 1) stay
+// >= 120ms in both locales; each step's done is >= 380ms after its at; total
+// is >= 600ms past end.
+const timing = {
+  ring: 600,
+  connect: 1500,
+  triage: 6850,
+  pick: 11800,
+  lines: [
+    { who: "agent", start: 1650, end: 4550 },
+    { who: "patient", start: 4850, end: 6750 },
+    { who: "agent", start: 7900, end: 10900 },
+    { who: "patient", start: 11200, end: 11750 },
+    { who: "agent", start: 12100, end: 14200 },
+    { who: "patient", start: 14500, end: 14950 },
+    { who: "agent", start: 15500, end: 17800 },
+    { who: "patient", start: 18100, end: 18650 },
+    { who: "agent", start: 18950, end: 20050 },
+  ],
+  steps: [
+    { at: 6950, done: 7350 },
+    { at: 7350, done: 7800 },
+    { at: 9400, done: 15350 },
+  ],
+  receipt: 15550,
+  end: 20350,
+  total: 20950,
+} as const;
+
+const endClock = clock(timing.end - timing.connect);
+
+// The site's other Hastam mock (solutions-mocks/HastamBookingCard.astro) tells
+// the same story: knee pain for three weeks, orthopaedics, Thursday 09:30 /
+// 10:15 / 14:00, the patient picks 10:15, request R-2207.
+const SLOTS = ["09:30", "10:15", "14:00"];
+const CHOSEN = "10:15";
+
+const ui = isTr
+  ? {
+      heading: "Hastam bir hasta aramasını nasıl karşılar",
+      description:
+        "Örnek bir aramada hasta kliniği arar. Hastam aramayı yanıtlar, görüşmenin kaydedildiğini söyler ve hastayı dinler. Anlatılan üç haftalık diz ağrısında acil bir belirti olmadığından hastayı ortopediye yönlendirir ve perşembe için üç boş saat sunar. Hasta 10:15'i seçip teyit edince talep kliniğin onayına gönderilir; onaylandığında hasta aranarak bilgilendirilir.",
+      stageLabel: "Hastam · Örnek arama",
+      sample: "Örnek veri",
+      translated: "",
+      pause: "Animasyonu duraklat",
+      play: "Animasyonu oynat",
+      callTitle: "Görüşme",
+      callMeta: "Kayıtlı hasta",
+      callMetaPhoneLabel: "Tel.",
+      callMetaPhone: "0216 418 63 52",
+      live: "Canlı",
+      ended: "Tamamlandı",
+      // "Çalıyor", "Devam ediyor" and "Tamamlandı" are the product's
+      // CallStatus labels (hastam-app web/src/lib/call-labels.ts), "Gelen" its
+      // direction badge. Kept short: at lg the row has ~304px.
+      pill: { dial: "Gelen arama", ring: "Çalıyor" },
+      callStates: ["Gelen", "Çalıyor", "Devam ediyor", "Tamamlandı"],
+      lanes: { patient: "Hasta", agent: "Hastam AI" },
+      patientState: { off: "—", quiet: "sessiz", talk: "konuşuyor", rec: "kaydedildi" },
+      agentState: {
+        off: "—",
+        listen: "dinliyor",
+        think: "düşünüyor",
+        talk: "konuşuyor",
+        rec: "kaydedildi",
+      },
+      speakers: { agent: "Hastam AI", patient: "Hasta" },
+      lines: [
+        "Medical Hospital, merhaba. Kalite standartları gereği görüşmemiz kaydedilmektedir. Size nasıl yardımcı olabilirim?",
+        "Merhaba, dizimde üç haftadır ağrı var. Bu hafta bakılabilir mi?",
+        "Geçmiş olsun. Ortopedide perşembe günü Dr. •••• müsait: sabah 09:30 ya da 10:15, öğleden sonra 14:00.",
+        "10:15 olsun.",
+        "Perşembe 10:15, Dr. •••• ile, diz ağrınız için. Böyle oluşturayım mı?",
+        "Evet, lütfen.",
+        "Perşembe 10:15 için randevunuzu oluşturdum. Onaylanınca sizi arayıp haber vereceğiz.",
+        "Tamam, teşekkürler.",
+        "Rica ederim, iyi günler.",
+      ],
+      closed: "Görüşme kapandı",
+      logTitle: "Çağrı adımları",
+      triage: {
+        title: "Triyaj",
+        screening: "Dinleniyor",
+        clear: "Acil belirti yok",
+        gate: "Acil belirtide hasta önce 112'ye yönlendirilir.",
+        open: "Şikâyet: diz ağrısı, 3 haftadır.",
+      },
+      steps: [
+        { title: "Yönlendirme", detail: "Diz ağrısı → Ortopedi", pending: "" },
+        { title: "Uygun saatler", detail: "", pending: "" },
+        {
+          title: "Randevu talebi",
+          detail: "Perş. 10:15 · Dr. ••••",
+          pending: "Hastanın yanıtı bekleniyor",
+        },
+      ],
+      // The label stays one short word: at lg the receipt header has ~190px
+      // for the mono label plus the pill.
+      receipt: {
+        label: "Randevu",
+        when: "Perş. 10:15",
+        status: "Onay bekliyor",
+        rows: [
+          { label: "Poliklinik", value: "Ortopedi" },
+          { label: "Hekim", value: "Dr. ••••" },
+        ],
+        note: "Onaylanınca hasta aranır",
+      },
+      phone: {
+        clinic: "Medical Hospital",
+        number: "0216 418 63 52",
+        statusTime: "11:08",
+        dialing: "aranıyor…",
+        ringing: "çalıyor…",
+        ended: "Arama sona erdi",
+        capAgent: "Klinik:",
+        capPatient: "Siz:",
+      },
+      approvalValue: "Klinik onayı",
+      approvalCaption: "seçilen saat önce kliniğinizin onayına düşer",
+    }
+  : {
+      heading: "How Hastam answers a patient's call",
+      description:
+        "In a sample call, a patient phones the clinic. Hastam answers, says the call is recorded and listens. It finds no emergency signs in three weeks of knee pain, routes the patient to orthopaedics and offers three open times on Thursday. Once the patient picks 10:15 and confirms, the request goes to the clinic for approval, and the patient is called back once it is approved. The call is in Turkish; the captions are translated.",
+      stageLabel: "Hastam · Sample call",
+      sample: "Sample data",
+      translated: "translated from Turkish",
+      pause: "Pause animation",
+      play: "Play animation",
+      callTitle: "Call",
+      callMeta: "Registered patient",
+      callMetaPhoneLabel: "Tel.",
+      callMetaPhone: "0216 418 63 52",
+      live: "Live",
+      ended: "Completed",
+      pill: { dial: "Incoming call", ring: "Ringing" },
+      callStates: ["Incoming", "Ringing", "In progress", "Completed"],
+      lanes: { patient: "Patient", agent: "Hastam AI" },
+      patientState: { off: "—", quiet: "silent", talk: "speaking", rec: "recorded" },
+      agentState: {
+        off: "—",
+        listen: "listening",
+        think: "thinking",
+        talk: "speaking",
+        rec: "recorded",
+      },
+      speakers: { agent: "Hastam AI", patient: "Patient" },
+      lines: [
+        "Hello, Medical Hospital. Please note that this call is being recorded for quality purposes. How can I help you?",
+        "Hello, my knee has hurt for three weeks. Can someone see me this week?",
+        "Sorry to hear that. Orthopaedics has Dr. •••• on Thursday: 09:30 or 10:15 in the morning, 14:00 in the afternoon.",
+        "10:15, please.",
+        "Thursday 10:15 with Dr. ••••, for your knee pain. Shall I create it?",
+        "Yes, please.",
+        "I've created your appointment for Thursday 10:15. Once it's approved, we'll call to let you know.",
+        "Okay, thank you.",
+        "You're welcome, have a good day.",
+      ],
+      closed: "Call ended",
+      logTitle: "Call steps",
+      triage: {
+        title: "Triage",
+        screening: "Listening",
+        clear: "No red flags",
+        gate: "Emergency signs: the caller is sent to 112 first.",
+        open: "Concern: knee pain, 3 weeks.",
+      },
+      steps: [
+        { title: "Routing", detail: "Knee pain → Orthopaedics", pending: "" },
+        { title: "Open times", detail: "", pending: "" },
+        {
+          title: "Appointment request",
+          detail: "Thu 10:15 · Dr. ••••",
+          pending: "Awaiting the patient's answer",
+        },
+      ],
+      receipt: {
+        label: "Request",
+        when: "Thu 10:15",
+        status: "Needs approval",
+        rows: [
+          { label: "Department", value: "Orthopaedics" },
+          { label: "Doctor", value: "Dr. ••••" },
+        ],
+        note: "Callback once approved",
+      },
+      phone: {
+        clinic: "Medical Hospital",
+        number: "0216 418 63 52",
+        statusTime: "11:08",
+        dialing: "calling…",
+        ringing: "ringing…",
+        ended: "Call ended",
+        capAgent: "Clinic:",
+        capPatient: "You:",
+      },
+      approvalValue: "Approval",
+      approvalCaption: "each chosen appointment waits for the clinic's approval",
+    };
+
+// Phases, in order. The call-state row and every data-hd-when list use them.
+const PHASES = ["dial", "ring", "call", "ended"] as const;
+
+const script = timing.lines.map((line, index) => {
+  const text = ui.lines[index];
+  return {
+    ...line,
+    text,
+    words: text.split(" "),
+    stamp: clock(line.start - timing.connect),
+  };
+});
+
+// The second step's result is the open times themselves, shown as chips.
+const steps = timing.steps.map((step, index) => ({
+  ...step,
+  ...ui.steps[index],
+  slots: index === 1 ? SLOTS : null,
+  wait: Boolean(ui.steps[index].pending),
+  stamp: clock(step.done - timing.connect),
+}));
+
+// Two recorded channels (patient left, assistant right). While the call
+// runs, each lane moves only while its party speaks; once it ends the bars
+// settle into the recording: tall where that party spoke along the call,
+// flat where they were silent.
+const LANE_BARS = 40;
+const laneBars = (who: "agent" | "patient", seed: number) => {
+  const span = (timing.end - timing.connect) / LANE_BARS;
+  return Array.from({ length: LANE_BARS }, (_, i) => {
+    const from = timing.connect + i * span;
+    const to = from + span;
+    const spoke = timing.lines.some(
+      (line) => line.who === who && line.start < to && line.end > from,
+    );
+    const weight = 0.5 + 0.5 * Math.abs(Math.sin(i * 1.7 + seed) * Math.cos(i * 0.85 + seed));
+    return (spoke ? 0.3 + 0.6 * weight : 0.08).toFixed(3);
+  });
+};
+
+const lanes = [
+  { who: "patient" as const, channel: "L", label: ui.lanes.patient, bars: laneBars("patient", 0.4) },
+  { who: "agent" as const, channel: "R", label: ui.lanes.agent, bars: laneBars("agent", 2.3) },
+];
+
+const receipt = {
+  ...ui.receipt,
+  id: "R-2207",
+};
+
+// Proof cells: the healthcare industry card's two stats, plus the approval
+// gate from the Hastam product copy ("randevu talebi kliniğin onayına gider" /
+// "Their chosen appointment goes to the clinic for approval"). The third
+// caption is worded to wrap like KollektorDemo's third caption, so the strip
+// (and the page below it) keeps its height when the tabs switch.
+const [specialty, times] = messages.industries.items[3].stats;
+const proof = [
+  { value: specialty.value, caption: `${specialty.lead} ${specialty.rest}` },
+  { value: times.value, caption: `${times.lead} ${times.rest}` },
+  { value: ui.approvalValue, caption: ui.approvalCaption },
+];
+---
+
+<div
+  data-hd-root
+  data-hd-phase="ended"
+  data-hd-speaker="ended"
+  data-hd-patient="rec"
+  data-hd-agent="rec"
+  data-hd-ring={timing.ring}
+  data-hd-connect={timing.connect}
+  data-hd-end={timing.end}
+  data-hd-total={timing.total}
+>
+  <script is:inline>
+    (function () {
+      var root = document.currentScript && document.currentScript.parentElement;
+      if (!root || !window.matchMedia) return;
+      if (!window.matchMedia("(prefers-reduced-motion: no-preference)").matches) return;
+      var set = function (phase, speaker, patient, agent) {
+        root.setAttribute("data-hd-phase", phase);
+        root.setAttribute("data-hd-speaker", speaker);
+        root.setAttribute("data-hd-patient", patient);
+        root.setAttribute("data-hd-agent", agent);
+      };
+      root.setAttribute("data-hd-boot", "");
+      set("dial", "idle", "off", "off");
+      // If the module never takes over, show the finished call rather than a
+      // phone that dials forever.
+      window.setTimeout(function () {
+        if (root.hasAttribute("data-hd-init")) return;
+        root.removeAttribute("data-hd-boot");
+        set("ended", "ended", "rec", "rec");
+      }, 5000);
+    })();
+  </script>
+
+  <h3 id="hastam-demo-heading" class="sr-only">{ui.heading}</h3>
+
+  <div class="pt-2 sm:pt-3">
+    <div
+      class="stage stage-dots px-4 sm:px-6"
+      data-hd-stage
+    >
+      <div class="relative mb-4 flex items-center justify-between gap-3 sm:mb-5">
+        <p
+          class="inline-flex min-w-0 items-center gap-2 font-mono text-caption font-medium tracking-[0.08em] text-muted-foreground uppercase"
+        >
+          <span aria-hidden="true" class="size-1.5 shrink-0 rounded-full bg-brand"></span>
+          <span class="truncate">{ui.stageLabel}</span>
+        </p>
+        <div class="flex min-w-0 items-center gap-3">
+          <span
+            class="hidden truncate font-mono text-caption tracking-[0.08em] text-tertiary-foreground uppercase sm:inline"
+          >
+            {ui.sample}
+            {ui.translated && <span class="hidden md:inline"> · {ui.translated}</span>}
+          </span>
+          <button
+            type="button"
+            hidden
+            data-hd-toggle
+            data-state="playing"
+            data-label-pause={ui.pause}
+            data-label-play={ui.play}
+            aria-label={ui.pause}
+            class="grid size-7 shrink-0 cursor-pointer place-items-center rounded-full border border-border-strong bg-background/70 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+          >
+            <span data-hd-icon="pause" aria-hidden="true" class="grid place-items-center">
+              <Pause className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
+            </span>
+            <span data-hd-icon="play" aria-hidden="true" class="grid place-items-center">
+              <Play className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <p class="sr-only">{ui.description}</p>
+
+      <div aria-hidden="true" class="relative -mb-10">
+        <HastamPhone copy={ui.phone} duration={endClock} caption={ui.lines[ui.lines.length - 1]} />
+
+        {/* The left margin is the handset (19.5em of its slot) plus the link
+            between them; see .hd-phone-slot and .hd-link in HastamPhone.
+            lg: 19.5em at 0.75rem + 2.5rem link; xl: 19.5em at 1rem + 3rem link.
+            Same numbers as KollektorDemo, so both tabs line up. */}
+        <MockShell
+          class="lg:ml-[17.125rem] xl:ml-[22.5rem]"
+          bodyClass="grid md:grid-cols-[minmax(0,1fr)_17rem] lg:h-[39rem] lg:grid-cols-[minmax(0,1fr)_16rem] xl:grid-cols-[minmax(0,1fr)_16.5rem]"
+        >
+          {/* Live call */}
+          <div class="flex min-h-0 min-w-0 flex-col overflow-hidden">
+            <div
+              class="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border px-4 sm:px-5"
+            >
+              <div class="min-w-0">
+                {/* Below 360px the finished-call pill leaves room for the call ID only. */}
+                <p class="truncate text-label-xs text-foreground">
+                  <span class="max-[359px]:hidden">{ui.callTitle} · </span>H-0924
+                </p>
+                {/* The masked number always shows ("Tel." drops below 360px);
+                    the caller note only where the header has room for it. */}
+                <p class="mt-0.5 truncate font-mono text-micro text-tertiary-foreground">
+                  <span class="max-[359px]:hidden">{ui.callMetaPhoneLabel} </span>{ui.callMetaPhone}<span class="hidden sm:inline md:hidden xl:inline"> · {ui.callMeta}</span>
+                </p>
+              </div>
+              <div class="flex shrink-0 items-center gap-2">
+                <span data-hd-when="dial" class="inline-flex">
+                  <StatusPill tone="done" label={ui.pill.dial} />
+                </span>
+                <span data-hd-when="ring" class="inline-flex">
+                  <StatusPill tone="waiting" label={ui.pill.ring} />
+                </span>
+                <span
+                  data-hd-when="call"
+                  class="inline-flex h-5 shrink-0 items-center gap-1.5 rounded-full border border-brand-line bg-brand-soft px-2 text-micro font-medium whitespace-nowrap text-brand"
+                >
+                  <span class="relative flex size-1.5">
+                    <span class="absolute inline-flex size-full rounded-full bg-current opacity-60 motion-safe:animate-ping"></span>
+                    <span class="relative inline-flex size-1.5 rounded-full bg-current"></span>
+                  </span>
+                  {ui.live} · <span data-hd-time class="tabular-nums">00:00</span>
+                </span>
+                <span data-hd-when="ended" class="inline-flex">
+                  <StatusPill tone="done" label={`${ui.ended} · ${endClock}`} />
+                </span>
+              </div>
+            </div>
+
+            {/* Call state, in the product's own words. */}
+            <div
+              class="flex h-9 shrink-0 items-center gap-1.5 overflow-hidden border-b border-border px-4 sm:px-5"
+            >
+              {
+                ui.callStates.map((label, index) => (
+                  <>
+                    {index > 0 && <span class="h-px min-w-1 flex-1 bg-border" />}
+                    <span
+                      data-hd-cs={PHASES[index]}
+                      class="flex shrink-0 items-center gap-1.5 text-micro whitespace-nowrap"
+                    >
+                      <span class="hd-cs-dot size-1.5 rounded-full bg-current" />
+                      <span data-hd-cs-label>{label}</span>
+                    </span>
+                  </>
+                ))
+              }
+            </div>
+
+            {/* Two channels: patient left, assistant right. */}
+            <div class="flex shrink-0 flex-col gap-2 border-b border-border px-4 py-3 sm:px-5">
+              {
+                lanes.map((lane) => (
+                  <div class="flex items-center gap-3">
+                    <div class="w-28 shrink-0">
+                      <p class="flex items-center gap-1.5 text-caption text-foreground">
+                        <span class="grid size-4 shrink-0 place-items-center rounded-chip border border-border font-mono text-micro leading-none text-tertiary-foreground">
+                          {lane.channel}
+                        </span>
+                        <span class="truncate">{lane.label}</span>
+                      </p>
+                      <p class="mt-0.5 flex h-3.5 items-center pl-[1.375rem] text-micro">
+                        {lane.who === "patient" ? (
+                          <>
+                            <span data-hd-pstate="off" class="text-faint-foreground">{ui.patientState.off}</span>
+                            <span data-hd-pstate="quiet" class="text-tertiary-foreground">{ui.patientState.quiet}</span>
+                            <span data-hd-pstate="talk" class="items-center gap-1 text-foreground">
+                              <span class="size-1 rounded-full bg-current" />
+                              {ui.patientState.talk}
+                            </span>
+                            <span data-hd-pstate="rec" class="text-tertiary-foreground">{ui.patientState.rec}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span data-hd-astate="off" class="text-faint-foreground">{ui.agentState.off}</span>
+                            <span data-hd-astate="listen" class="text-tertiary-foreground">{ui.agentState.listen}</span>
+                            <span data-hd-astate="think" class="items-center gap-1 text-brand">
+                              <span class="size-1 rounded-full bg-current motion-safe:animate-pulse" />
+                              {ui.agentState.think}
+                            </span>
+                            <span data-hd-astate="talk" class="items-center gap-1 text-brand">
+                              <span class="size-1 rounded-full bg-current" />
+                              {ui.agentState.talk}
+                            </span>
+                            <span data-hd-astate="rec" class="text-tertiary-foreground">{ui.agentState.rec}</span>
+                          </>
+                        )}
+                      </p>
+                    </div>
+                    <div
+                      data-hd-lane={lane.who}
+                      class="flex h-7 min-w-0 flex-1 items-center justify-between"
+                    >
+                      {lane.bars.map((rec) => (
+                        <span
+                          data-hd-bar
+                          class="hd-bar block h-full w-[2px] shrink-0 rounded-full"
+                          style={`--hd-rec: ${rec}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))
+              }
+            </div>
+
+            {/* Live caption log in a fixed window (22rem below lg, the rest of
+                the fixed-height column from lg). The list slides up as lines
+                land, like the product's auto-scroll, and is bottom-anchored,
+                so without the script the end of the call shows. */}
+            <div
+              data-hd-scroll
+              class="hd-scroll relative flex h-[22rem] min-h-0 flex-none flex-col justify-end overflow-hidden lg:h-auto lg:flex-1"
+            >
+              <ol
+                data-hd-list
+                class="relative flex shrink-0 flex-col gap-3.5 px-4 py-5 sm:px-5 lg:px-6"
+              >
+                {
+                  script.map((line) => (
+                    <li
+                      data-hd-line
+                      data-hd-gate
+                      data-hd-who={line.who}
+                      data-hd-start={line.start}
+                      data-hd-end={line.end}
+                    >
+                      <p class="flex items-baseline gap-2 text-micro">
+                        <span
+                          class:list={[
+                            "font-medium tracking-[0.06em] uppercase",
+                            line.who === "agent" ? "text-brand" : "text-foreground",
+                          ]}
+                        >
+                          {line.who === "agent" ? ui.speakers.agent : ui.speakers.patient}
+                        </span>
+                        <span class="font-mono text-faint-foreground tabular-nums">
+                          {line.stamp}
+                        </span>
+                      </p>
+                      <div
+                        class:list={[
+                          "hd-rule relative mt-1 border-l-2 pl-3",
+                          line.who === "agent" ? "border-brand-line" : "border-border-strong",
+                        ]}
+                      >
+                        {line.who === "agent" ? (
+                          <p class="text-paragraph-sm text-foreground sm:max-md:text-paragraph-md">
+                            {line.words.map((word, index) => (
+                              <>
+                                {index > 0 && " "}
+                                <span data-hd-word>{word}</span>
+                              </>
+                            ))}
+                          </p>
+                        ) : (
+                          <>
+                            <p
+                              data-hd-text
+                              class="text-paragraph-sm text-foreground sm:max-md:text-paragraph-md"
+                            >
+                              {line.text}
+                            </p>
+                            <span
+                              data-hd-partial
+                              class="hd-partial absolute top-0 left-3 flex items-center gap-1 text-paragraph-sm text-tertiary-foreground sm:max-md:text-paragraph-md"
+                              style="opacity: 0"
+                            >
+                              <i />
+                              <i />
+                              <i />
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </li>
+                  ))
+                }
+                <li data-hd-closed data-hd-gate class="flex items-center gap-3 pt-1">
+                  <span class="h-px flex-1 bg-border"></span>
+                  <span class="text-caption text-tertiary-foreground">
+                    {ui.closed} · <span class="font-mono">{endClock}</span>
+                  </span>
+                  <span class="h-px flex-1 bg-border"></span>
+                </li>
+              </ol>
+            </div>
+
+            <div class="px-4 pb-2 md:hidden">
+              <div data-hd-receipt data-hd-gate data-hd-at={timing.receipt}>
+                <BookingReceipt {...receipt} />
+              </div>
+            </div>
+
+            <div class="h-14 shrink-0"></div>
+          </div>
+
+          {/* Call steps */}
+          <div
+            class="hidden min-h-0 flex-col overflow-hidden border-l border-border bg-foreground/[0.02] md:flex"
+          >
+            <div
+              class="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border px-4"
+            >
+              <p class="truncate text-label-xs text-foreground">{ui.logTitle}</p>
+              <span data-hd-count data-hd-gate class="data-label tabular-nums">
+                {steps.length} / {steps.length}
+              </span>
+            </div>
+
+            <div class="flex flex-col gap-1.5 p-3">
+              {/* Triage gate: every patient sentence is screened for red flags
+                  before anything is booked; the card flips once the complaint
+                  has been heard. */}
+              <div
+                data-hd-triage
+                data-hd-at={timing.triage}
+                class="rounded-tile border border-border bg-background px-3 py-2.5"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <span class="data-label">{ui.triage.title}</span>
+                  <span class="grid justify-items-end">
+                    <span data-hd-screening class="col-start-1 row-start-1 inline-flex">
+                      <StatusPill tone="waiting" label={ui.triage.screening} />
+                    </span>
+                    <span
+                      data-hd-clear
+                      data-hd-gate
+                      class="col-start-1 row-start-1 inline-flex h-5 items-center gap-1 rounded-full border border-brand-line bg-brand-soft px-2 text-micro font-medium whitespace-nowrap text-brand"
+                    >
+                      <ShieldCheck className="size-3" strokeWidth={2} aria-hidden="true" />
+                      {ui.triage.clear}
+                    </span>
+                  </span>
+                </div>
+                <div class="mt-1.5 grid text-caption">
+                  <p data-hd-screening class="col-start-1 row-start-1 text-attention-ink">
+                    {ui.triage.gate}
+                  </p>
+                  <p
+                    data-hd-clear
+                    data-hd-gate
+                    class="col-start-1 row-start-1 text-muted-foreground"
+                  >
+                    {ui.triage.open}
+                  </p>
+                </div>
+              </div>
+
+              <ol class="flex flex-col gap-1.5">
+                {
+                  steps.map((step) => (
+                    <li
+                      data-hd-step
+                      data-hd-gate
+                      data-hd-at={step.at}
+                      data-hd-done={step.done}
+                      class="flex gap-2.5 rounded-tile border border-border bg-background px-3 py-2.5"
+                    >
+                      <span class="relative mt-px flex size-4 shrink-0 items-center justify-center">
+                        <span
+                          data-hd-spin
+                          class:list={[
+                            "absolute inset-0.5 rounded-full border-[1.5px] motion-safe:animate-spin",
+                            step.wait
+                              ? "border-attention-line border-t-attention"
+                              : "border-brand-line border-t-brand",
+                          ]}
+                          style="opacity: 0"
+                        />
+                        <span
+                          data-hd-tick
+                          class="flex size-4 items-center justify-center rounded-full bg-brand-soft text-brand"
+                        >
+                          <Check className="size-2.5" strokeWidth={3} aria-hidden="true" />
+                        </span>
+                      </span>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-baseline justify-between gap-2">
+                          <span class="min-w-0 truncate data-value">{step.title}</span>
+                          <span
+                            data-hd-final={step.wait ? "" : undefined}
+                            class="shrink-0 font-mono text-micro text-faint-foreground tabular-nums"
+                          >
+                            {step.stamp}
+                          </span>
+                        </div>
+                        {step.slots ? (
+                          <div class="mt-1.5 grid grid-cols-3 gap-1">
+                            {step.slots.map((time) => (
+                              <span
+                                data-hd-slot
+                                class="relative flex h-5 min-w-0 items-center justify-center rounded-full border border-border bg-background text-micro font-medium text-foreground tabular-nums"
+                              >
+                                {time}
+                                {time === CHOSEN && (
+                                  <span
+                                    data-hd-pick
+                                    data-hd-gate
+                                    data-hd-at={timing.pick}
+                                    class="absolute -inset-px flex items-center justify-center rounded-full bg-foreground text-background"
+                                  >
+                                    {time}
+                                  </span>
+                                )}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <div class="mt-0.5 grid text-caption">
+                            <p
+                              data-hd-final={step.wait ? "" : undefined}
+                              class="col-start-1 row-start-1 truncate text-muted-foreground"
+                            >
+                              {step.detail}
+                            </p>
+                            {step.wait && (
+                              <p
+                                data-hd-pending
+                                class="col-start-1 row-start-1 truncate text-attention-ink"
+                                style="opacity: 0"
+                              >
+                                {step.pending}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  ))
+                }
+              </ol>
+
+              <div class="pt-1.5" data-hd-receipt data-hd-gate data-hd-at={timing.receipt}>
+                <BookingReceipt {...receipt} />
+              </div>
+            </div>
+          </div>
+        </MockShell>
+      </div>
+    </div>
+  </div>
+
+  <dl data-reveal-root class="grid border-t border-border sm:grid-cols-3">
+    {
+      proof.map((item, index) => (
+        <div
+          data-reveal
+          class:list={[
+            "flex flex-col gap-1.5 px-6 py-6 sm:px-8 sm:py-8",
+            index > 0 && "border-t border-border sm:border-t-0 sm:border-l",
+          ]}
+        >
+          <dt class="order-2 max-w-xs text-paragraph-sm text-muted-foreground">
+            {item.caption}
+          </dt>
+          <dd class="order-1 text-title-h4 text-foreground tabular-nums">{item.value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</div>
+
+<script>
+  import { initHastamDemo } from "@/components/home/hastam-demo/sequence";
+
+  document
+    .querySelectorAll<HTMLElement>("[data-hd-root]")
+    .forEach((root) => initHastamDemo(root));
+</script>
+
+<style is:global>
+  /* Phase switches. The markup ships the finished call ("ended"); the
+     sequence walks the root through dial, ring, call and ended. An element
+     with data-hd-when shows only in the phases it lists, and keeps its own
+     display value when it shows. */
+  [data-hd-root][data-hd-phase="dial"] [data-hd-when]:not([data-hd-when~="dial"]),
+  [data-hd-root][data-hd-phase="ring"] [data-hd-when]:not([data-hd-when~="ring"]),
+  [data-hd-root][data-hd-phase="call"] [data-hd-when]:not([data-hd-when~="call"]),
+  [data-hd-root][data-hd-phase="ended"] [data-hd-when]:not([data-hd-when~="ended"]) {
+    display: none;
+  }
+
+  /* Call-state row: done steps neutral, the current one brand, later ones
+     faint. Driven by the phase alone, so it is right before the script runs. */
+  [data-hd-root] [data-hd-cs] {
+    color: var(--faint-foreground);
+    transition: color 300ms ease;
+  }
+
+  [data-hd-root][data-hd-phase="ring"] [data-hd-cs="dial"],
+  [data-hd-root][data-hd-phase="call"] :is([data-hd-cs="dial"], [data-hd-cs="ring"]),
+  [data-hd-root][data-hd-phase="ended"]
+    :is([data-hd-cs="dial"], [data-hd-cs="ring"], [data-hd-cs="call"]) {
+    color: var(--muted-foreground);
+  }
+
+  [data-hd-root][data-hd-phase="dial"] [data-hd-cs="dial"],
+  [data-hd-root][data-hd-phase="ring"] [data-hd-cs="ring"],
+  [data-hd-root][data-hd-phase="call"] [data-hd-cs="call"],
+  [data-hd-root][data-hd-phase="ended"] [data-hd-cs="ended"] {
+    color: var(--brand);
+  }
+
+  [data-hd-root] [data-hd-cs] .hd-cs-dot {
+    transition: box-shadow 300ms ease;
+  }
+
+  [data-hd-root][data-hd-phase="dial"] [data-hd-cs="dial"] .hd-cs-dot,
+  [data-hd-root][data-hd-phase="ring"] [data-hd-cs="ring"] .hd-cs-dot,
+  [data-hd-root][data-hd-phase="call"] [data-hd-cs="call"] .hd-cs-dot,
+  [data-hd-root][data-hd-phase="ended"] [data-hd-cs="ended"] .hd-cs-dot {
+    box-shadow: 0 0 0 3px var(--brand-soft);
+  }
+
+  /* Phones: only the current step keeps its label. */
+  @media (max-width: 39.999rem) {
+    [data-hd-root] [data-hd-cs-label] {
+      display: none;
+    }
+
+    [data-hd-root][data-hd-phase="dial"] [data-hd-cs="dial"] [data-hd-cs-label],
+    [data-hd-root][data-hd-phase="ring"] [data-hd-cs="ring"] [data-hd-cs-label],
+    [data-hd-root][data-hd-phase="call"] [data-hd-cs="call"] [data-hd-cs-label],
+    [data-hd-root][data-hd-phase="ended"] [data-hd-cs="ended"] [data-hd-cs-label] {
+      display: inline;
+    }
+  }
+
+  /* Lane status words. */
+  [data-hd-root] [data-hd-pstate],
+  [data-hd-root] [data-hd-astate] {
+    display: none;
+  }
+
+  [data-hd-root][data-hd-patient="off"] [data-hd-pstate="off"],
+  [data-hd-root][data-hd-patient="quiet"] [data-hd-pstate="quiet"],
+  [data-hd-root][data-hd-patient="talk"] [data-hd-pstate="talk"],
+  [data-hd-root][data-hd-patient="rec"] [data-hd-pstate="rec"],
+  [data-hd-root][data-hd-agent="off"] [data-hd-astate="off"],
+  [data-hd-root][data-hd-agent="listen"] [data-hd-astate="listen"],
+  [data-hd-root][data-hd-agent="think"] [data-hd-astate="think"],
+  [data-hd-root][data-hd-agent="talk"] [data-hd-astate="talk"],
+  [data-hd-root][data-hd-agent="rec"] [data-hd-astate="rec"] {
+    display: inline-flex;
+  }
+
+  /* Lanes: the recorded shape by default (the finished call); live, a lane
+     lights up only while its party speaks. */
+  [data-hd-root] .hd-bar {
+    transform: scaleY(var(--hd-rec, 0.3));
+    transform-origin: center;
+    background-color: color-mix(in oklch, var(--foreground) 30%, transparent);
+  }
+
+  [data-hd-root] [data-hd-lane="agent"] .hd-bar {
+    background-color: color-mix(in oklch, var(--brand) 55%, transparent);
+  }
+
+  [data-hd-root]:not([data-hd-phase="ended"]) .hd-bar {
+    transition: background-color 240ms ease;
+  }
+
+  [data-hd-root][data-hd-phase="ended"] .hd-bar {
+    transition:
+      transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 400ms ease;
+  }
+
+  [data-hd-root]:not([data-hd-phase="ended"]) [data-hd-lane="patient"] .hd-bar {
+    background-color: color-mix(in oklch, var(--foreground) 22%, transparent);
+  }
+
+  [data-hd-root]:not([data-hd-phase="ended"]) [data-hd-lane="agent"] .hd-bar {
+    background-color: color-mix(in oklch, var(--brand) 35%, transparent);
+  }
+
+  [data-hd-root][data-hd-speaker="patient"] [data-hd-lane="patient"] .hd-bar {
+    background-color: color-mix(in oklch, var(--foreground) 62%, transparent);
+  }
+
+  [data-hd-root][data-hd-speaker="agent"] [data-hd-lane="agent"] .hd-bar {
+    background-color: var(--brand);
+  }
+
+  [data-hd-root][data-hd-boot] .hd-bar {
+    transform: scaleY(0.1);
+  }
+
+  /* Transcript. */
+  [data-hd-root] [data-hd-list] {
+    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  [data-hd-root] .hd-scroll {
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 1.25rem);
+    mask-image: linear-gradient(to bottom, transparent, #000 1.25rem);
+  }
+
+  [data-hd-root] .hd-rule {
+    transition: border-color 300ms ease;
+  }
+
+  [data-hd-root] [data-hd-line][data-hd-now][data-hd-who="agent"] .hd-rule {
+    border-color: var(--brand);
+  }
+
+  [data-hd-root] [data-hd-line][data-hd-now][data-hd-who="patient"] .hd-rule {
+    border-color: color-mix(in oklch, var(--foreground) 55%, transparent);
+  }
+
+  /* Caret on the agent's newest word while its caption is still growing.
+     Absolutely placed, so it never reflows the line. */
+  [data-hd-root] [data-hd-word] {
+    position: relative;
+  }
+
+  [data-hd-root] [data-hd-tip]::after {
+    position: absolute;
+    top: 0.2em;
+    bottom: 0.15em;
+    left: calc(100% + 2px);
+    width: 2px;
+    border-radius: 1px;
+    background: var(--brand);
+    content: "";
+    animation: hd-caret 900ms linear infinite;
+  }
+
+  /* The patient's line lands whole once they finish; until then, dots. */
+  [data-hd-root] .hd-partial {
+    height: 1.5em;
+  }
+
+  [data-hd-root] .hd-partial i {
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: currentColor;
+    animation: hd-dot 1s ease-in-out infinite;
+  }
+
+  [data-hd-root] .hd-partial i:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  [data-hd-root] .hd-partial i:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  /* Triage gate card: the markup shows it cleared (the finished call); the
+     opening state, before the script runs, shows it still listening. */
+  [data-hd-root] [data-hd-screening] {
+    opacity: 0;
+  }
+
+  [data-hd-root][data-hd-boot] [data-hd-screening] {
+    opacity: 1;
+  }
+
+  /* A paused or off-screen call is still: CSS loops stop with the timeline. */
+  [data-hd-root][data-hd-paused] *,
+  [data-hd-root][data-hd-paused] *::before,
+  [data-hd-root][data-hd-paused] *::after {
+    animation-play-state: paused !important;
+  }
+
+  /* Held back only between the inline boot script and sequence.ts taking
+     over. If the module never runs, the failsafe shows everything (and the
+     boot script's own timer flips the root to the finished call). CSS
+     animations do not run inside a display:none tab panel, so there the
+     boot script's timer is the only fallback. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-hd-root][data-hd-boot] [data-hd-gate] {
+      opacity: 0;
+      animation: hd-failsafe 1ms linear 5s forwards;
+    }
+
+    [data-hd-root][data-hd-boot] [data-hd-screening] {
+      animation: hd-failsafe-out 1ms linear 5s forwards;
+    }
+  }
+
+  @keyframes hd-failsafe {
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes hd-failsafe-out {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes hd-caret {
+    0%,
+    55% {
+      opacity: 1;
+    }
+    56%,
+    100% {
+      opacity: 0.15;
+    }
+  }
+
+  @keyframes hd-dot {
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: translateY(0);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+  }
+
+  [data-hd-toggle][data-state="playing"] [data-hd-icon="play"],
+  [data-hd-toggle][data-state="paused"] [data-hd-icon="pause"] {
+    display: none;
+  }
+</style>

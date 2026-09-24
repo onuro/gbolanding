@@ -1,0 +1,42 @@
+---
+// A media well where the editorial photo or video is only the atmosphere and a
+// product card floats in one of its lower corners. The well grows with the
+// card, so a taller mock or a longer Turkish string never clips; `class` sets
+// the minimum height and the headroom kept clear above the card.
+interface Props {
+  /** Lower corner the card is anchored to. */
+  align?: "start" | "end";
+  /** Fade the whole well up with its article's scroll reveal. */
+  reveal?: boolean;
+  class?: string;
+}
+
+const { align = "end", reveal = false, class: className } = Astro.props;
+---
+
+<div
+  class:list={[
+    "relative isolate flex flex-col justify-end overflow-hidden rounded-well bg-muted p-4 sm:p-5",
+    align === "end" ? "items-end" : "items-start",
+    className,
+  ]}
+  data-reveal={reveal ? "" : undefined}
+>
+  <div class="absolute inset-0 -z-10">
+    <slot name="media" />
+    {/* Quiets the image a touch, then darkens the lower half the card sits on. */}
+    <span aria-hidden="true" class="pointer-events-none absolute inset-0 bg-black/10"></span>
+    <span
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-x-0 bottom-0 h-3/4 bg-linear-to-t from-black/55 via-black/20 to-transparent"
+    ></span>
+  </div>
+
+  <div class="@container relative w-full max-w-[22rem]" data-reveal>
+    <slot />
+  </div>
+</div>
+
+<script>
+  import "@/components/home/solutions-mocks/sequences";
+</script>

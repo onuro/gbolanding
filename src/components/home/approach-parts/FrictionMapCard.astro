@@ -1,0 +1,120 @@
+---
+import MockShell from "@/components/ui/MockShell.astro";
+import type { Locale } from "@/i18n/config";
+import StepHandoff from "./StepHandoff.astro";
+
+interface Props {
+  locale: Locale;
+  next: string;
+}
+
+const { locale, next } = Astro.props;
+
+// Illustrative only: anonymised bottlenecks of the kind a discovery week turns up.
+const ui =
+  locale === "tr"
+    ? {
+        title: "Sürtünme haritası",
+        meta: "Operasyon ekibi · 3 darboğaz",
+        status: "Haritalanıyor",
+        colPoint: "Darboğaz",
+        colLoad: "Etki",
+        source: "Kaynak: ekip görüşmeleri",
+        rows: [
+          {
+            label: "Manuel veri girişi",
+            where: "Formlar ERP'ye elle aktarılıyor",
+            load: 3,
+          },
+          {
+            label: "Onay bekleme",
+            where: "İmza zinciri e-postada ilerliyor",
+            load: 3,
+          },
+          {
+            label: "Mükerrer aramalar",
+            where: "Aynı soru, farklı temsilci",
+            load: 2,
+          },
+        ],
+      }
+    : {
+        title: "Friction map",
+        meta: "Operations team · 3 bottlenecks",
+        status: "Mapping",
+        colPoint: "Bottleneck",
+        colLoad: "Impact",
+        source: "Source: team interviews",
+        rows: [
+          {
+            label: "Manual data entry",
+            where: "Forms re-keyed into the ERP",
+            load: 3,
+          },
+          {
+            label: "Waiting for approval",
+            where: "Sign-off chain runs over email",
+            load: 3,
+          },
+          {
+            label: "Duplicate calls",
+            where: "Same question, different agent",
+            load: 2,
+          },
+        ],
+      };
+
+const levels = [
+  { at: 1, height: "h-1.5" },
+  { at: 2, height: "h-2.5" },
+  { at: 3, height: "h-3.5" },
+] as const;
+---
+
+<MockShell
+  title={ui.title}
+  meta={ui.meta}
+  status={{ tone: "live", label: ui.status }}
+>
+  <div
+    class="hidden grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-border px-4 py-2 sm:grid"
+  >
+    <span class="data-label">{ui.colPoint}</span>
+    <span class="data-label">{ui.colLoad}</span>
+  </div>
+  <ul>
+    {
+      ui.rows.map((row) => (
+        <li
+          class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0"
+          data-ap-item
+        >
+          <span class="size-1.5 rounded-full bg-attention ring-[3px] ring-attention-soft" />
+          <span class="min-w-0">
+            <span class="block truncate data-value">{row.label}</span>
+            <span class="mt-0.5 hidden truncate text-caption text-tertiary-foreground sm:block">
+              {row.where}
+            </span>
+          </span>
+          <span class="flex h-3.5 items-end gap-[3px]">
+            {levels.map((level) => (
+              <span
+                class:list={[
+                  "w-1 rounded-full",
+                  level.height,
+                  level.at <= row.load ? "bg-attention" : "bg-foreground/15",
+                ]}
+              />
+            ))}
+          </span>
+        </li>
+      ))
+    }
+  </ul>
+  <Fragment slot="footer">
+    <span class="hidden min-w-0 truncate text-caption text-tertiary-foreground sm:block">
+      {ui.source}
+    </span>
+    <StepHandoff locale={locale} next={next} />
+  </Fragment>
+</MockShell>

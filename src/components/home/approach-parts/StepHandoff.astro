@@ -1,0 +1,27 @@
+---
+import { ArrowRight, RefreshCw } from "lucide-react";
+
+import type { Locale } from "@/i18n/config";
+
+interface Props {
+  locale: Locale;
+  /** Title of the step this output feeds into, straight from messages. */
+  next: string;
+  /** The last step hands back to the first, so it shows a loop, not an arrow. */
+  loop?: boolean;
+}
+
+const { locale, next, loop = false } = Astro.props;
+const label = locale === "tr" ? "Sonraki" : "Next";
+const Icon = loop ? RefreshCw : ArrowRight;
+---
+
+<span class="ml-auto flex shrink-0 items-center gap-1.5">
+  <span class="data-label">{label}</span>
+  <Icon
+    className="size-3 text-tertiary-foreground"
+    strokeWidth={1.75}
+    aria-hidden="true"
+  />
+  <span class="text-label-xs text-foreground">{next}</span>
+</span>

@@ -56,24 +56,22 @@ const products = [solutions.kollektor, solutions.intelval, solutions.hastam];
       aria-labelledby="about-title"
     >
       <div class="grid grid-cols-1 border-b border-border lg:grid-cols-12">
-        <div class="px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12 lg:py-18">
-          <p
-            class="mb-5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
-          >
-            <span class="h-px w-5 bg-foreground/25" aria-hidden="true"></span>
+        <div class="px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12 lg:py-16">
+          <p class="eyebrow mb-5">
+            <span class="eyebrow-mark" aria-hidden="true"></span>
             {about.eyebrow}
           </p>
           <h1
             id="about-title"
-            class="max-w-3xl text-3xl font-medium leading-[1.1] tracking-[-0.035em] sm:text-5xl"
+            class="max-w-3xl text-title-h2"
           >
             <BlinkText client:idle priority text={about.title} />
           </h1>
         </div>
         <div
-          class="flex items-end border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:border-t-0 lg:border-l lg:px-10 lg:py-14"
+          class="flex items-end border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:border-t-0 lg:border-l lg:px-10 lg:py-16"
         >
-          <p class="max-w-lg text-pretty text-base leading-relaxed text-muted-foreground">
+          <p class="max-w-lg text-pretty text-paragraph-md text-muted-foreground">
             {about.lead}
           </p>
         </div>
@@ -81,15 +79,13 @@ const products = [solutions.kollektor, solutions.intelval, solutions.hastam];
 
       <div class="grid grid-cols-1 gap-px bg-border lg:grid-cols-12">
         <div class="bg-background px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12">
-          <h2
-            class="max-w-2xl text-2xl font-medium leading-[1.15] tracking-[-0.03em] sm:text-3xl"
-          >
+          <h2 class="max-w-2xl text-title-h3">
             <BlinkText client:visible text={about.bodyTitle} />
           </h2>
           <div class="mt-6 space-y-5">
             {
               about.body.map((paragraph) => (
-                <p class="max-w-xl text-pretty text-base leading-relaxed text-muted-foreground">
+                <p class="max-w-xl text-pretty text-paragraph-md text-muted-foreground">
                   {paragraph}
                 </p>
               ))
@@ -98,19 +94,17 @@ const products = [solutions.kollektor, solutions.intelval, solutions.hastam];
         </div>
 
         <div class="bg-background px-5 py-10 sm:px-8 sm:py-14 lg:col-span-5 lg:px-10">
-          <h2
-            class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
-          >
+          <h2 class="text-label-sm text-tertiary-foreground">
             {about.factsTitle}
           </h2>
           <dl class="mt-6 divide-y divide-border border-y border-border">
             {
               facts.map((fact) => (
                 <div class="flex items-baseline justify-between gap-6 py-3.5">
-                  <dt class="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                  <dt class="text-label-sm text-muted-foreground">
                     {fact.label}
                   </dt>
-                  <dd class="text-right text-sm font-medium text-foreground">
+                  <dd class="text-right text-label-sm text-foreground">
                     {
                       fact.href ? (
                         <a
@@ -137,18 +131,18 @@ const products = [solutions.kollektor, solutions.intelval, solutions.hastam];
       aria-labelledby="about-products-title"
     >
       <div class="grid grid-cols-1 border-b border-border lg:grid-cols-12">
-        <div class="px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12">
+        <div class="px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12 lg:py-16">
           <h2
             id="about-products-title"
-            class="max-w-2xl text-2xl font-medium leading-[1.15] tracking-[-0.03em] sm:text-3xl"
+            class="max-w-2xl text-title-h2"
           >
             <BlinkText client:visible text={about.productsTitle} />
           </h2>
         </div>
         <div
-          class="flex items-end border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:border-t-0 lg:border-l lg:px-10 lg:py-14"
+          class="flex items-end border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:border-t-0 lg:border-l lg:px-10 lg:py-16"
         >
-          <p class="max-w-lg text-pretty text-base leading-relaxed text-muted-foreground">
+          <p class="max-w-lg text-pretty text-paragraph-md text-muted-foreground">
             {about.productsIntro}
           </p>
         </div>
@@ -158,18 +152,18 @@ const products = [solutions.kollektor, solutions.intelval, solutions.hastam];
         {
           products.map((product) => (
             <article class="flex flex-col bg-background px-5 py-10 sm:px-8 sm:py-12">
-              <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45">
+              <p class="text-label-sm text-tertiary-foreground">
                 {product.eyebrow}
               </p>
-              <h3 class="mt-4 text-xl font-medium tracking-tight text-foreground sm:text-2xl">
+              <h3 class="mt-4 text-title-h5 text-foreground sm:text-title-h4">
                 {product.title}
               </h3>
-              <p class="mt-4 max-w-md text-pretty text-base leading-relaxed text-muted-foreground">
+              <p class="mt-4 max-w-md text-pretty text-paragraph-md text-muted-foreground">
                 {product.description}
               </p>
               <ul class="mt-6 flex flex-wrap gap-2">
                 {product.highlights.map((highlight) => (
-                  <li class="rounded-full border border-border px-3 py-1 font-mono text-[11px] tracking-[0.06em] text-muted-foreground">
+                  <li class="rounded-full border border-border px-3 py-1 text-label-xs text-muted-foreground">
                     {highlight}
                   </li>
                 ))}

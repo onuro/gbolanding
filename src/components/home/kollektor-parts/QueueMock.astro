@@ -1,0 +1,269 @@
+---
+import MockShell from "@/components/ui/MockShell.astro";
+import StatusPill from "@/components/ui/StatusPill.astro";
+import type { Locale } from "@/i18n/config";
+import KollektorStage from "./KollektorStage.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const tr = locale === "tr";
+
+const ui = tr
+  ? {
+      title: "Mart tahsilat listesi",
+      meta: "Arama grubu · 142 kayıt",
+      live: "Canlı",
+      processed: "İşlenen",
+      record: "Kayıt",
+      amount: "Tutar",
+      state: "Durum",
+      queued: "Sırada",
+      calling: "Aranıyor",
+      promise: "Ödeme sözü",
+      handoff: "Devredildi",
+      callback: "Geri arama",
+      sr: "Mart tahsilat listesinden açılan bir arama grubu. Kayıtlar sırayla aranıyor, her görüşmenin sonucu listeye işleniyor.",
+    }
+  : {
+      title: "March recovery list",
+      meta: "Call group · 142 records",
+      live: "Live",
+      processed: "Processed",
+      record: "Record",
+      amount: "Amount",
+      state: "Status",
+      queued: "Queued",
+      calling: "Calling",
+      promise: "Promise",
+      handoff: "Handed off",
+      callback: "Callback",
+      sr: "A call group opened from the March recovery list. Records are called in turn and each outcome is written back to the list.",
+    };
+
+const numbers = new Intl.NumberFormat(tr ? "tr-TR" : "en-US");
+const money = (value: number) => `${tr ? "₺" : "$"}${numbers.format(value)}`;
+const recordId = (n: number) => `K-${String(n).padStart(4, "0")}`;
+
+type Tone = "live" | "waiting" | "done";
+
+// What each row settles on once its call ends. "Handed off" is the one that
+// waits on a person, so it carries the attention tone.
+const outcomes: Record<string, { tone: Tone; label: string }> = {
+  promise: { tone: "done", label: ui.promise },
+  handoff: { tone: "waiting", label: ui.handoff },
+  callback: { tone: "done", label: ui.callback },
+};
+
+const rows = [
+  { id: 840, amount: 8400, outcome: "promise" },
+  { id: 841, amount: 21750, outcome: "handoff" },
+  { id: 842, amount: 12500, outcome: "promise" },
+  { id: 843, amount: 6900, outcome: "callback" },
+  { id: 844, amount: 14200, outcome: "promise" },
+];
+
+const LIVE_INDEX = 2;
+const TOTAL = 142;
+const PROCESSED = 41;
+---
+
+<KollektorStage label={ui.sr} fixed fade>
+  <div
+    class="w-full max-w-[26rem]"
+    data-k-queue
+    data-total={TOTAL}
+    data-start={LIVE_INDEX}
+    data-id-base={rows[0]?.id}
+  >
+    <MockShell
+      title={ui.title}
+      meta={ui.meta}
+      status={{ tone: "live", label: ui.live }}
+    >
+      <div class="px-4 pb-3.5 pt-4">
+        <div class="flex items-baseline justify-between gap-3">
+          <span class="data-label">{ui.processed}</span>
+          <span class="data-value inline-flex gap-1">
+            <span data-kq-count>{PROCESSED}</span>
+            <span class="text-tertiary-foreground">/</span>
+            <span class="text-tertiary-foreground">{TOTAL}</span>
+          </span>
+        </div>
+        <div class="mt-2.5 h-1.5 overflow-hidden rounded-full bg-muted">
+          <span
+            class="block h-full rounded-full bg-brand transition-[width] duration-700 ease-out"
+            style={`width:${((PROCESSED / TOTAL) * 100).toFixed(2)}%`}
+            data-kq-bar
+          ></span>
+        </div>
+      </div>
+
+      <div
+        class="grid grid-cols-[minmax(0,1fr)_4.25rem_6rem] items-center gap-2 border-t border-border bg-foreground/[0.02] px-4 py-2"
+      >
+        <span class="data-label">{ui.record}</span>
+        <span class="data-label text-right">{ui.amount}</span>
+        <span class="data-label text-right">{ui.state}</span>
+      </div>
+
+      <ol class="k-q-list" data-kq-list>
+        {
+          rows.map((row, index) => {
+            const state =
+              index < LIVE_INDEX
+                ? "done"
+                : index === LIVE_INDEX
+                  ? "live"
+                  : "queued";
+            const outcome = outcomes[row.outcome] ?? outcomes.promise;
+            return (
+              <li
+                class="k-q-row grid grid-cols-[minmax(0,1fr)_4.25rem_6rem] items-center gap-2 border-t border-border px-4 py-2.5"
+                data-kq-row
+                data-state={state}
+              >
+                <span class="k-q-id truncate font-mono text-caption" data-kq-id>
+                  {recordId(row.id)}
+                </span>
+                <span class="data-value text-right">{money(row.amount)}</span>
+                <span class="flex justify-end">
+                  <span class="k-q-when" data-when="queued">
+                    <span class="text-caption text-tertiary-foreground">
+                      {ui.queued}
+                    </span>
+                  </span>
+                  <span class="k-q-when" data-when="live">
+                    <StatusPill tone="live" label={ui.calling} />
+                  </span>
+                  <span class="k-q-when" data-when="done">
+                    <StatusPill tone={outcome?.tone} label={outcome?.label ?? ""} />
+                  </span>
+                </span>
+              </li>
+            );
+          })
+        }
+      </ol>
+    </MockShell>
+  </div>
+</KollektorStage>
+
+<script>
+  import { reducedMotion, watchVisibility } from "./motion";
+
+  const STEP_MS = 2200;
+  const HOLD_MS = 2800;
+  const SWAP_MS = 320;
+
+  // Walks the "calling" row down the list one call at a time, bumps the
+  // processed counter, then swaps in the next batch of records. The server
+  // markup is already a valid frame of this loop.
+  function initQueue(root: HTMLElement) {
+    const rows = [...root.querySelectorAll<HTMLElement>("[data-kq-row]")];
+    const list = root.querySelector<HTMLElement>("[data-kq-list]");
+    const countEl = root.querySelector<HTMLElement>("[data-kq-count]");
+    const bar = root.querySelector<HTMLElement>("[data-kq-bar]");
+    if (!rows.length || !list || !countEl || !bar) return;
+
+    const total = Number(root.dataset.total) || 142;
+    const firstCount = Number(countEl.textContent) || 0;
+    let pointer = Number(root.dataset.start) || 0;
+    let count = firstCount;
+    let idBase = Number(root.dataset.idBase) || 0;
+    let timer = 0;
+
+    const later = (fn: () => void, ms: number) => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(fn, ms);
+    };
+
+    const paint = () => {
+      rows.forEach((row, i) => {
+        row.dataset.state =
+          i < pointer ? "done" : i === pointer ? "live" : "queued";
+      });
+      countEl.textContent = String(count);
+      bar.style.width = `${(count / total) * 100}%`;
+    };
+
+    const nextBatch = () => {
+      idBase += rows.length;
+      rows.forEach((row, i) => {
+        const id = row.querySelector("[data-kq-id]");
+        if (id) id.textContent = `K-${String(idBase + i).padStart(4, "0")}`;
+      });
+      pointer = 0;
+      paint();
+      list.removeAttribute("data-swapping");
+      later(tick, STEP_MS);
+    };
+
+    function tick() {
+      if (pointer >= rows.length) {
+        list?.setAttribute("data-swapping", "");
+        later(nextBatch, SWAP_MS);
+        return;
+      }
+      pointer += 1;
+      count = count >= total ? firstCount : count + 1;
+      paint();
+      later(tick, pointer >= rows.length ? HOLD_MS : STEP_MS);
+    }
+
+    watchVisibility(root, (active) => {
+      if (active) {
+        later(tick, STEP_MS);
+        return;
+      }
+      window.clearTimeout(timer);
+      list.removeAttribute("data-swapping");
+    });
+  }
+
+  if (!reducedMotion()) {
+    document.querySelectorAll<HTMLElement>("[data-k-queue]").forEach(initQueue);
+  }
+</script>
+
+<style>
+  .k-q-when {
+    display: none;
+  }
+
+  .k-q-row[data-state="queued"] [data-when="queued"],
+  .k-q-row[data-state="live"] [data-when="live"],
+  .k-q-row[data-state="done"] [data-when="done"] {
+    display: inline-flex;
+  }
+
+  .k-q-row {
+    transition:
+      background-color 400ms ease,
+      box-shadow 400ms ease;
+  }
+
+  .k-q-row[data-state="live"] {
+    background-color: var(--brand-soft);
+    box-shadow: inset 2px 0 0 var(--brand);
+  }
+
+  .k-q-id {
+    color: var(--tertiary-foreground);
+    transition: color 300ms ease;
+  }
+
+  .k-q-row[data-state="live"] .k-q-id {
+    color: var(--foreground);
+  }
+
+  .k-q-list {
+    transition: opacity 300ms ease;
+  }
+
+  .k-q-list[data-swapping] {
+    opacity: 0.2;
+  }
+</style>

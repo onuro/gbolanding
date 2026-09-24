@@ -1,5 +1,5 @@
 ---
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Check } from "lucide-react";
 
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
@@ -21,80 +21,73 @@ const total = String(enterprise.phases.length).padStart(2, "0");
 const copy =
   locale === "tr"
     ? {
-        cadence: "Çalışma ritmi",
-        phasesUnit: "faz",
         phase: "Faz",
         deliverables: "Ne teslim edilir",
         navLabel: "Çalışma fazları",
-        navHint: "Fazlar arasında gezinmek için ↑ ↓",
+        demo: "Projenizi konuşalım",
       }
     : {
-        cadence: "Cadence",
-        phasesUnit: "phases",
         phase: "Phase",
         deliverables: "What you get",
         navLabel: "Delivery phases",
-        navHint: "↑ ↓ to move between phases",
+        demo: "Let's talk about your project",
       };
 ---
 
 <article
-  class="group relative overflow-hidden bg-background"
+  id="enterprise"
+  aria-labelledby="enterprise-title"
+  class="relative scroll-mt-20 overflow-hidden bg-background"
   data-e-cadence
+  data-reveal-root
 >
-  <div class="grid border-b border-border lg:grid-cols-12">
-    <div class="px-5 py-8 sm:px-8 sm:py-10 lg:col-span-7 lg:px-12 lg:py-12">
-      <div class="mb-6">
-        <p
-          class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
-        >
+  <header class="grid border-b border-border lg:grid-cols-12">
+    <div class="px-5 py-10 sm:px-8 sm:py-12 lg:col-span-7 lg:px-12 lg:py-14">
+      <div data-reveal>
+        <p class="eyebrow">
+          <span class="eyebrow-mark" aria-hidden="true"></span>
           {enterprise.eyebrow}
         </p>
+        <h3
+          id="enterprise-title"
+          class="mt-5 max-w-2xl text-balance text-title-h3 text-foreground"
+        >
+          {enterprise.title}
+        </h3>
       </div>
-      <h3 class="max-w-2xl text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
-        {enterprise.title}
-      </h3>
     </div>
     <div
-      class="flex flex-col justify-end gap-6 border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:border-t-0 lg:px-10 lg:py-12"
+      class="flex border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:items-end lg:border-l lg:border-t-0 lg:px-10 lg:py-14"
     >
-      <p class="max-w-lg text-pretty text-base leading-relaxed text-muted-foreground">
-        {enterprise.description}
-      </p>
-      <a
-        href="#platform"
-        class="inline-flex h-11 w-fit items-center gap-2 rounded-full border border-border bg-card px-5 text-sm outline-none transition-colors hover:border-foreground/25 hover:bg-muted focus-visible:ring-2 focus-visible:ring-brand"
-      >
-        {enterprise.cta}
-        <ArrowUpRight
-          aria-hidden="true"
-          className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-          strokeWidth={1.5}
-        />
-      </a>
+      <div data-reveal class="flex flex-col items-start gap-6">
+        <p class="max-w-lg text-pretty text-paragraph-md text-muted-foreground">
+          {enterprise.description}
+        </p>
+        <a href="#platform" class="group/explore button button-secondary">
+          {enterprise.cta}
+          <ArrowUpRight
+            aria-hidden="true"
+            className="size-4 transition-transform group-hover/explore:translate-x-0.5 group-hover/explore:-translate-y-0.5"
+            strokeWidth={1.5}
+          />
+        </a>
+      </div>
     </div>
-  </div>
+  </header>
 
-  <div class="grid lg:grid-cols-12">
-    <div
-      class="flex flex-col border-b border-border lg:col-span-4 lg:border-b-0 lg:border-r"
-    >
+  <div class="p-3 sm:px-4 lg:px-5">
+    <div data-reveal>
       <div
-        class="flex h-9 items-center justify-between border-b border-border px-5 sm:px-8 lg:px-10"
+        role="tablist"
+        aria-orientation="horizontal"
+        aria-label={copy.navLabel}
+        class="relative grid grid-cols-2 gap-1 sm:grid-cols-4"
       >
         <span
-          class="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/45"
-        >
-          {copy.cadence}
-        </span>
-        <span
-          class="font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/25"
-        >
-          {total} {copy.phasesUnit}
-        </span>
-      </div>
-
-      <div role="tablist" aria-orientation="vertical" aria-label={copy.navLabel}>
+          aria-hidden="true"
+          data-e-indicator
+          class="e-indicator pointer-events-none absolute left-0 top-0 rounded-tile"
+        ></span>
         {
           enterprise.phases.map((phase, index) => (
             <button
@@ -106,113 +99,271 @@ const copy =
               tabindex={index === 0 ? 0 : -1}
               data-e-phase-tab
               class:list={[
-                "e-phase-tab relative flex w-full cursor-pointer scroll-mt-24 items-start gap-4 border-b border-border px-5 py-5 text-left transition-colors hover:bg-foreground/[0.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sm:px-8 sm:py-6 lg:px-10",
-                index === enterprise.phases.length - 1 && "lg:border-b-0",
+                "e-phase-tab relative z-10 flex min-h-12 w-full min-w-0 cursor-pointer scroll-mt-24 items-center justify-center gap-2.5 rounded-tile px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand lg:min-h-14 lg:gap-3",
                 index === 0 && "is-on",
               ]}
             >
               <span
-                class="relative z-10 mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-background font-mono text-[11px] text-foreground/50 transition-colors"
                 data-e-phase-mark
+                class="flex size-6 shrink-0 items-center justify-center rounded-full border border-border-strong bg-background text-micro font-medium tabular-nums text-tertiary-foreground lg:size-7 lg:text-label-xs"
               >
                 {phase.number}
               </span>
-              <span class="min-w-0 flex-1">
-                <span
-                  class="block text-base font-medium tracking-tight text-foreground/40 transition-colors"
-                  data-e-phase-label
-                >
-                  {phase.title}
-                </span>
-                <span
-                  class="mt-1 block text-pretty text-[13px] leading-snug text-muted-foreground/55 transition-colors"
-                  data-e-phase-summary
-                >
-                  {phase.summary}
-                </span>
-              </span>
               <span
-                aria-hidden="true"
-                class="e-phase-bar pointer-events-none absolute inset-y-0 left-0 w-0.5 origin-top bg-foreground/70"
-              />
+                data-e-phase-label
+                class="min-w-0 truncate text-label-sm text-tertiary-foreground lg:text-label-md"
+              >
+                {phase.title}
+              </span>
+              <span aria-hidden="true" class="e-phase-dots">
+                {
+                  Array.from({ length: 8 }, (_, dot) => (
+                    <span class="e-phase-dot" style={`--i: ${dot}`} />
+                  ))
+                }
+              </span>
             </button>
           ))
         }
       </div>
-
-      <div
-        class="mt-auto hidden items-center border-t border-border px-10 py-4 font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/25 lg:flex"
-      >
-        {copy.navHint}
-      </div>
     </div>
+  </div>
 
-    <div class="grid lg:col-span-8">
-      {
-        enterprise.phases.map((phase, index) => (
+  <div class="grid" data-e-stage data-reveal>
+    {
+      enterprise.phases.map((phase, index) => (
+        <div
+          id={`${phaseSlugs[index]}-panel`}
+          role="tabpanel"
+          aria-labelledby={phaseSlugs[index]}
+          tabindex="0"
+          data-e-phase-panel
+          class:list={[
+            "col-start-1 row-start-1 flex min-w-0 flex-col outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand lg:grid lg:grid-cols-12",
+            index !== 0 && "invisible",
+          ]}
+        >
           <div
-            id={`${phaseSlugs[index]}-panel`}
-            role="tabpanel"
-            aria-labelledby={phaseSlugs[index]}
-            tabindex="0"
-            data-e-phase-panel
-            class:list={[
-              "col-start-1 row-start-1 flex h-full scroll-mt-20 flex-col focus-visible:outline-none",
-              index !== 0 && "invisible",
-            ]}
+            data-seq-text
+            class="flex min-w-0 flex-col px-5 pb-10 pt-7 sm:px-8 sm:pb-12 sm:pt-9 lg:col-span-5 lg:px-12 lg:py-12"
           >
-            <div class="px-5 py-9 sm:px-8 sm:py-11 lg:px-12 lg:py-12">
-              <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/40">
+            <p class="flex items-center gap-2.5 text-label-xs text-tertiary-foreground">
+              <span class="tabular-nums">
                 {copy.phase} {phase.number} / {total}
-                <span class="text-foreground/20"> · </span>
-                {phase.title}
-              </p>
-              <h4 class="mt-5 max-w-3xl text-4xl font-medium tracking-[-0.04em] text-foreground sm:text-5xl">
-                {phase.title}.
-              </h4>
-              <p class="mt-5 max-w-2xl text-pretty text-base leading-7 text-muted-foreground sm:text-lg">
-                {phase.description}
-              </p>
+              </span>
+              <span aria-hidden="true" class="h-px w-5 bg-border-strong" />
+              <span class="text-muted-foreground">{phase.title}</span>
+            </p>
+            <h4 class="mt-4 max-w-md text-balance text-title-h4 text-foreground">
+              <span class="sr-only">{phase.title}: </span>
+              {phase.summary}
+            </h4>
+            <p class="mt-4 max-w-xl text-pretty text-paragraph-md text-muted-foreground">
+              {phase.description}
+            </p>
 
-              <div class="mt-8 border-t border-border pt-5">
-                <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/35">
-                  {copy.deliverables}
-                </p>
-                <ul class="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-3">
-                  {phase.deliverables.map((item, position) => (
-                    <li class="flex items-baseline gap-2.5">
-                      <span class="font-mono text-[10px] tabular-nums text-foreground/25">
-                        {String(position + 1).padStart(2, "0")}
-                      </span>
-                      <span class="text-pretty text-sm leading-6 text-foreground/75">
-                        {item}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <div class="mt-8 lg:mt-auto lg:pt-10">
+              <p class="text-label-xs text-tertiary-foreground">
+                {copy.deliverables}
+              </p>
+              <ul class="mt-3 grid border-b border-border sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-1 lg:gap-x-0">
+                {phase.deliverables.map((item) => (
+                  <li class="flex items-center gap-3 border-t border-border py-3">
+                    <span class="flex size-5 shrink-0 items-center justify-center rounded-full border border-border-strong text-foreground">
+                      <Check
+                        aria-hidden="true"
+                        className="size-3"
+                        strokeWidth={2}
+                      />
+                    </span>
+                    <span class="text-pretty text-label-sm text-foreground">
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
+          </div>
 
+          <div class="p-3 max-lg:order-first lg:col-span-7">
             {index === 0 && <PhaseVisualAudit locale={locale} />}
             {index === 1 && <PhaseVisualBlueprint locale={locale} />}
             {index === 2 && <PhaseVisualArchitect locale={locale} />}
             {index === 3 && <PhaseVisualBuild locale={locale} />}
           </div>
-        ))
-      }
-    </div>
+        </div>
+      ))
+    }
   </div>
+
+  <a
+    href="#demo"
+    data-demo-product="custom"
+    class="group/demo relative flex min-h-14 items-center justify-between gap-4 border-t border-border px-5 text-label-sm text-foreground outline-none transition-colors hover:bg-foreground/[0.025] focus-visible:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sm:px-8"
+  >
+    {copy.demo}
+    <ArrowUpRight
+      aria-hidden="true"
+      className="size-4 text-tertiary-foreground transition-transform group-hover/demo:translate-x-0.5 group-hover/demo:-translate-y-0.5"
+      strokeWidth={1.5}
+    />
+  </a>
 </article>
 
 <script>
   // Keep in step with --e-hold in the stylesheet below.
   const HOLD = 7000;
+  // --ease-out-quint, plus a small overshoot for the one thing that pops.
+  const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+  const EASE_POP = "cubic-bezier(0.34, 1.56, 0.64, 1)";
+
+  type SeqKind = "rise" | "fade" | "grow" | "grow-y" | "pop";
+
+  const rise = (distance: number): Keyframe[] => [
+    { opacity: 0, transform: `translateY(${distance}px)` },
+    { opacity: 1, transform: "none" },
+  ];
+
+  type Sequence = { started: boolean; start: () => void; cancel: () => void };
+
+  // A panel's short build-up: the window rises, its rows follow, heatmap cells
+  // fill column by column, bars and wires draw, and whatever is waiting on a
+  // person pops last. The markup already is the final frame and every step
+  // runs with fill "backwards", so it is built paused (holding the first
+  // frame) and cancelling snaps straight back to the final one.
+  function buildSequence(panel: HTMLElement): Sequence {
+    const running: Animation[] = [];
+    const add = (
+      el: Element,
+      keyframes: Keyframe[],
+      delay: number,
+      duration: number,
+      easing = EASE,
+    ) => {
+      const animation = el.animate(keyframes, {
+        delay,
+        duration,
+        easing,
+        fill: "backwards",
+      });
+      animation.pause();
+      running.push(animation);
+    };
+
+    panel
+      .querySelectorAll("[data-seq-text]")
+      .forEach((el) => add(el, rise(6), 0, 420));
+    panel
+      .querySelectorAll("[data-seq-mock]")
+      .forEach((el) => add(el, rise(14), 40, 640));
+
+    // data-seq="" (rise), "fade", "grow", "grow-y" or "pop"; data-seq-order
+    // overrides the stagger slot (heatmap cells fill by column, not by row).
+    const groups: Record<SeqKind, HTMLElement[]> = {
+      rise: [],
+      fade: [],
+      grow: [],
+      "grow-y": [],
+      pop: [],
+    };
+    panel.querySelectorAll<HTMLElement>("[data-seq]").forEach((el) => {
+      const kind = (el.dataset.seq || "rise") as SeqKind;
+      (groups[kind] ?? groups.rise).push(el);
+    });
+    const step = (el: HTMLElement, index: number) =>
+      Math.min(Number(el.dataset.seqOrder ?? index), 24);
+
+    groups.rise.forEach((el, i) =>
+      add(el, rise(8), 140 + Math.min(i, 10) * 55, 480),
+    );
+    groups.fade.forEach((el, i) =>
+      add(el, [{ opacity: 0 }, { opacity: 1 }], 200 + step(el, i) * 28, 240, "ease-out"),
+    );
+    groups.grow.forEach((el, i) =>
+      add(
+        el,
+        [{ transform: "scaleX(0)" }, { transform: "none" }],
+        300 + Math.min(i, 8) * 90,
+        760,
+      ),
+    );
+    groups["grow-y"].forEach((el, i) =>
+      add(
+        el,
+        [{ transform: "scaleY(0)" }, { transform: "none" }],
+        180 + Math.min(i, 8) * 110,
+        520,
+      ),
+    );
+    groups.pop.forEach((el, i) =>
+      add(
+        el,
+        [
+          { opacity: 0, transform: "scale(0.4)" },
+          { opacity: 1, transform: "none" },
+        ],
+        860 + Math.min(i, 8) * 80,
+        460,
+        EASE_POP,
+      ),
+    );
+
+    // The hero figure counts up from zero; its text holds the final value.
+    const counters = [
+      ...panel.querySelectorAll<HTMLElement>("[data-seq-count]"),
+    ].map((el) => {
+      const final = el.textContent ?? "";
+      el.textContent = "0";
+      return { el, final, to: Number(final.replace(/\D/g, "")) || 0 };
+    });
+    let frame = 0;
+
+    const sequence: Sequence = {
+      started: false,
+      start() {
+        if (sequence.started) return;
+        sequence.started = true;
+        running.forEach((animation) => animation.play());
+        if (!counters.length) return;
+        const startAt = performance.now() + 260;
+        const duration = 900;
+        const tick = (now: number) => {
+          const t = Math.min(1, Math.max(0, (now - startAt) / duration));
+          const eased = 1 - (1 - t) ** 3;
+          counters.forEach(({ el, final, to }) => {
+            el.textContent = t >= 1 ? final : String(Math.round(to * eased));
+          });
+          if (t < 1) frame = requestAnimationFrame(tick);
+        };
+        frame = requestAnimationFrame(tick);
+      },
+      cancel() {
+        running.forEach((animation) => animation.cancel());
+        cancelAnimationFrame(frame);
+        counters.forEach(({ el, final }) => {
+          el.textContent = final;
+        });
+      },
+    };
+    return sequence;
+  }
 
   function initCadence(root: HTMLElement) {
     const tabs = [...root.querySelectorAll<HTMLButtonElement>("[data-e-phase-tab]")];
     const panels = [...root.querySelectorAll<HTMLElement>("[data-e-phase-panel]")];
     const rail = root.querySelector<HTMLElement>('[role="tablist"]');
-    if (!tabs.length || tabs.length !== panels.length) return;
+    const indicator = root.querySelector<HTMLElement>("[data-e-indicator]");
+    const stage = root.querySelector<HTMLElement>("[data-e-stage]");
+    if (!rail || !tabs.length || tabs.length !== panels.length) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // A queued sequence holds its first (hidden) frame until the stage is seen,
+    // so it needs an observer to ever start. Without one, nothing is queued.
+    const canSequence =
+      !reduceMotion &&
+      Boolean(stage) &&
+      "IntersectionObserver" in window &&
+      typeof Element.prototype.animate === "function";
 
     let index = 0;
     let timer = 0;
@@ -220,9 +371,42 @@ const copy =
     let left = HOLD;
     let stopped = false;
     let hovered = false;
-    let visible = false;
+    let railVisible = false;
+    let stageVisible = false;
+    let sequence: Sequence | null = null;
+
+    // One raised card travels to the selected tab. It is measured rather than
+    // styled per tab so it can also move between rows in the 2×2 phone layout.
+    const placeIndicator = (instant = false) => {
+      const tab = tabs[index];
+      if (!indicator || !tab) return;
+      if (instant) indicator.classList.remove("is-ready");
+      indicator.style.width = `${tab.offsetWidth}px`;
+      indicator.style.height = `${tab.offsetHeight}px`;
+      indicator.style.translate = `${tab.offsetLeft}px ${tab.offsetTop}px`;
+      if (instant) {
+        void indicator.offsetWidth;
+        requestAnimationFrame(() => indicator.classList.add("is-ready"));
+      }
+    };
+
+    const settleSequence = () => {
+      sequence?.cancel();
+      sequence = null;
+    };
+
+    // Build the selected panel's sequence. It plays now if the stage is in
+    // view, otherwise it waits on its first frame for the stage observer.
+    const queueSequence = () => {
+      settleSequence();
+      const panel = panels[index];
+      if (!canSequence || !panel) return;
+      sequence = buildSequence(panel);
+      if (stageVisible) sequence.start();
+    };
 
     const setPhase = (next: number, moveFocus = false) => {
+      const previous = index;
       index = (next + tabs.length) % tabs.length;
       tabs.forEach((tab, i) => {
         const on = i === index;
@@ -235,7 +419,9 @@ const copy =
       panels.forEach((panel, i) => {
         panel.classList.toggle("invisible", i !== index);
       });
+      placeIndicator();
       if (moveFocus) tabs[index]?.focus();
+      if (index !== previous) queueSequence();
     };
 
     // A timeout cannot pause, so bank the time already served and restart with
@@ -248,7 +434,7 @@ const copy =
     };
 
     const run = () => {
-      if (stopped || hovered || !visible || timer) return;
+      if (stopped || hovered || !railVisible || timer) return;
       startedAt = Date.now();
       timer = window.setTimeout(() => {
         timer = 0;
@@ -263,19 +449,15 @@ const copy =
       halt();
       root.classList.remove("is-running", "is-paused");
       root.classList.add("is-stopped");
+      // The panel sits right under the rail at every width, so no scroll jump.
       setPhase(next, moveFocus);
-      // Below lg the panel sits under the whole rail, so a tap would otherwise
-      // change something the reader cannot see.
-      if (!window.matchMedia("(min-width: 64rem)").matches) {
-        panels[index]?.scrollIntoView({ block: "start" });
-      }
     };
 
     tabs.forEach((tab, i) => {
       tab.addEventListener("click", () => select(i));
     });
 
-    rail?.addEventListener("keydown", (event) => {
+    rail.addEventListener("keydown", (event) => {
       const steps: Record<string, number> = {
         ArrowDown: index + 1,
         ArrowRight: index + 1,
@@ -291,8 +473,15 @@ const copy =
     });
 
     setPhase(0);
+    if (indicator) {
+      placeIndicator(true);
+      root.classList.add("has-indicator");
+      if ("ResizeObserver" in window) {
+        new ResizeObserver(() => placeIndicator(true)).observe(rail);
+      }
+    }
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (reduceMotion || !("IntersectionObserver" in window)) return;
 
     if (window.matchMedia("(hover: hover)").matches) {
       root.addEventListener("pointerenter", () => {
@@ -308,23 +497,54 @@ const copy =
       });
     }
 
-    const io = new IntersectionObserver(
+    // The cadence only advances while the rail itself is on screen (below the
+    // fixed header), so a reader deep in a long panel never has it change
+    // under them.
+    const railObserver = new IntersectionObserver(
       ([entry]) => {
-        if (entry?.isIntersecting) {
-          visible = true;
+        const on = Boolean(entry?.isIntersecting && entry.intersectionRatio >= 0.9);
+        if (on === railVisible) return;
+        railVisible = on;
+        if (on) {
+          if (stopped) return;
           root.classList.add("is-running");
+          root.classList.toggle("is-paused", hovered);
           run();
         } else {
-          visible = false;
           halt();
           left = HOLD;
           root.classList.remove("is-running", "is-paused");
         }
       },
-      { threshold: 0.2 },
+      { rootMargin: "-64px 0px 0px 0px", threshold: [0, 0.9, 1] },
     );
-    io.observe(root);
-    window.addEventListener("pagehide", halt);
+    railObserver.observe(rail);
+
+    // Each selected phase builds up once, when its panel is in view, and snaps
+    // to the final frame if the panel leaves part-way through. The first
+    // phase is only queued when the stage starts below the fold: anything
+    // already on screen at load is left exactly as painted.
+    if (stage && canSequence) {
+      if (stage.getBoundingClientRect().top > window.innerHeight) {
+        queueSequence();
+      }
+      // A band rather than a ratio: a tall panel on a short screen can never
+      // be a third visible, and a queued panel must always get to start.
+      const stageObserver = new IntersectionObserver(
+        ([entry]) => {
+          stageVisible = Boolean(entry?.isIntersecting);
+          if (stageVisible) sequence?.start();
+          else if (sequence?.started) settleSequence();
+        },
+        { rootMargin: "0px 0px -12% 0px", threshold: 0 },
+      );
+      stageObserver.observe(stage);
+    }
+
+    window.addEventListener("pagehide", () => {
+      halt();
+      settleSequence();
+    });
   }
 
   document.querySelectorAll<HTMLElement>("[data-e-cadence]").forEach(initCadence);
@@ -335,56 +555,98 @@ const copy =
     --e-hold: 7s;
   }
 
-  .e-phase-tab.is-on {
-    background: var(--control-surface);
+  /* Solid zinc chip. Light mode is zinc-950; dark mode flips to zinc-100
+     so the active tab still contrasts with the page. */
+  .e-indicator {
+    opacity: 0;
+    background: oklch(0.967 0.001 286);
   }
 
-  .e-phase-tab.is-on [data-e-phase-mark] {
-    border-color: color-mix(in srgb, var(--foreground) 45%, transparent);
-    background: var(--foreground);
-    color: var(--background);
+  :global(html[data-theme="light"]) .e-indicator {
+    background: oklch(0.141 0.005 286);
   }
 
-  .e-phase-tab.is-on [data-e-phase-label] {
-    color: var(--foreground);
+  [data-e-cadence].has-indicator .e-indicator {
+    opacity: 1;
   }
 
-  .e-phase-tab.is-on [data-e-phase-summary] {
+  .e-indicator.is-ready {
+    transition:
+      translate 460ms var(--ease-out-quint),
+      width 460ms var(--ease-out-quint),
+      height 460ms var(--ease-out-quint);
+  }
+
+  [data-e-cadence]:not(.has-indicator) .e-phase-tab.is-on {
+    background: oklch(0.967 0.001 286);
+  }
+
+  :global(html[data-theme="light"])
+    [data-e-cadence]:not(.has-indicator)
+    .e-phase-tab.is-on {
+    background: oklch(0.141 0.005 286);
+  }
+
+  .e-phase-tab [data-e-phase-mark],
+  .e-phase-tab [data-e-phase-label] {
+    transition:
+      color 200ms ease,
+      background-color 200ms ease,
+      border-color 200ms ease;
+  }
+
+  .e-phase-tab:hover [data-e-phase-label] {
     color: var(--muted-foreground);
   }
 
-  /* The bar only exists while the cadence is playing; a picked phase keeps a
-     static marker instead. */
-  .e-phase-bar {
-    transform: scaleY(0);
+  .e-phase-tab.is-on [data-e-phase-label] {
+    color: oklch(0.141 0.005 286);
   }
 
-  [data-e-cadence].is-running .e-phase-tab.is-on .e-phase-bar {
-    animation: e-phase-bar var(--e-hold) linear forwards;
+  :global(html[data-theme="light"]) .e-phase-tab.is-on [data-e-phase-label] {
+    color: oklch(0.985 0.002 286);
   }
 
-  [data-e-cadence].is-paused .e-phase-tab.is-on .e-phase-bar {
+  .e-phase-tab.is-on [data-e-phase-mark] {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: var(--brand-foreground);
+  }
+
+  /* Dots fill left to right across the hold, then the next phase takes over. */
+  .e-phase-dots {
+    position: absolute;
+    bottom: 0.3rem;
+    left: 50%;
+    display: flex;
+    gap: 0.28rem;
+    translate: -50% 0;
+    opacity: 0;
+  }
+
+  .e-phase-dot {
+    width: 0.25rem;
+    height: 0.25rem;
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--brand) 28%, transparent);
+  }
+
+  [data-e-cadence].is-running:not(.is-stopped) .e-phase-tab.is-on .e-phase-dots {
+    opacity: 1;
+  }
+
+  [data-e-cadence].is-running:not(.is-stopped) .e-phase-tab.is-on .e-phase-dot {
+    animation: e-dot-fill 280ms var(--ease-out-quint) forwards;
+    animation-delay: calc(var(--i) * var(--e-hold) / 8);
+  }
+
+  [data-e-cadence].is-paused .e-phase-tab.is-on .e-phase-dot {
     animation-play-state: paused;
   }
 
-  [data-e-cadence].is-stopped .e-phase-tab.is-on .e-phase-bar {
-    animation: none;
-    transform: scaleY(1);
-  }
-
-  @keyframes e-phase-bar {
-    from {
-      transform: scaleY(0);
-    }
+  @keyframes e-dot-fill {
     to {
-      transform: scaleY(1);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .e-phase-tab.is-on .e-phase-bar {
-      animation: none;
-      transform: scaleY(1);
+      background: var(--brand);
     }
   }
 </style>

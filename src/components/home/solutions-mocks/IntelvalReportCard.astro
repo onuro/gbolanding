@@ -1,0 +1,129 @@
+---
+import MockShell from "@/components/ui/MockShell.astro";
+import StatusPill from "@/components/ui/StatusPill.astro";
+import type { Locale } from "@/i18n/config";
+import {
+  formatPercent,
+  formatValue,
+  home,
+  methodsFor,
+  numberLocale,
+  positionOnRange,
+  valuation,
+} from "@/components/home/solutions-mocks/intelval-data";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const ui =
+  locale === "tr"
+    ? {
+        title: "Emlak değerlemesi",
+        concluded: "Tahmini değer",
+        unit: "milyon ₺",
+        waiting: "Uzman onayı bekleniyor",
+        summary:
+          "Örnek ekran: Moda, Kadıköy'de 128 m²'lik bir 3+1 dairenin taslak değerlemesi. Emsal satışlar, yeniden inşa maliyeti ve kira geliri 12,45 milyon TL'de birleşiyor. Rapor, uzmanın onayını bekliyor.",
+      }
+    : {
+        title: "Home appraisal",
+        concluded: "Estimated value",
+        unit: "million ₺",
+        waiting: "Awaiting expert sign-off",
+        summary:
+          "Sample screen: a draft appraisal of a 128 m², 3+1 flat in Moda, Kadıköy. Comparable sales, rebuild cost and rental income come out at 12.45 million lira, waiting for an expert to sign it off.",
+      };
+
+const methods = methodsFor(locale);
+const property = home[locale];
+const concludedAt = positionOnRange(valuation.concluded);
+---
+
+<div data-mock-seq="intelval">
+  <p class="sr-only">{ui.summary}</p>
+  <div aria-hidden="true">
+    <MockShell bare title={ui.title} meta={property.place} bodyClass="px-4 pb-1 pt-3.5">
+      <div class="mb-3.5 flex gap-2">
+        {
+          [property.rooms, property.area, property.floor].map((fact) => (
+            <span class="inline-flex h-6 items-center rounded-full border border-border px-2.5 text-caption text-muted-foreground">
+              {fact}
+            </span>
+          ))
+        }
+      </div>
+      <p class="data-label">{ui.concluded}</p>
+      <p class="mt-2 flex items-baseline gap-1.5">
+        <span
+          class="data-figure"
+          data-sm-part="figure"
+          data-from={valuation.low}
+          data-to={valuation.concluded}
+          data-locale={numberLocale(locale)}
+        >{formatValue(locale, valuation.concluded)}</span>
+        <span class="data-label">{ui.unit}</span>
+      </p>
+
+      {/* Each method is a tick on the range; the marker is the concluded value. */}
+      <div class="mt-3 flex items-center gap-2.5">
+        <span class="text-caption tabular-nums text-tertiary-foreground">
+          {formatValue(locale, valuation.low)}
+        </span>
+        <span class="relative h-4 min-w-0 flex-1">
+          <span class="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-muted"></span>
+          {
+            methods.map((method) => (
+              <span
+                class="absolute top-1/2 h-2.5 w-px -translate-y-1/2 bg-foreground/30"
+                style={`left: ${positionOnRange(method.value)}%;`}
+              />
+            ))
+          }
+          <span
+            class="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand ring-2 ring-background"
+            style={`left: ${concludedAt}%;`}
+            data-sm-part="marker"
+            data-at={concludedAt}
+          ></span>
+        </span>
+        <span class="text-caption tabular-nums text-tertiary-foreground">
+          {formatValue(locale, valuation.high)}
+        </span>
+      </div>
+
+      <ul class="mt-3 border-t border-border">
+        {
+          methods.map((method) => (
+            <li
+              class="flex h-8 items-center gap-3 border-b border-border last:border-b-0"
+              data-sm-part="row"
+            >
+              <span class="data-label w-8 shrink-0">{method.key}</span>
+              <span class="min-w-0 flex-1 truncate text-paragraph-xs text-muted-foreground">
+                {method.label}
+              </span>
+              <span class="shrink-0 text-caption tabular-nums text-tertiary-foreground">
+                {formatPercent(locale, method.weight)}
+              </span>
+              <span class="data-value w-9 shrink-0 text-right">
+                {formatValue(locale, method.value)}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+
+      <Fragment slot="footer">
+        <span class="inline-flex min-w-0" data-sm-part="status">
+          <StatusPill tone="waiting" label={ui.waiting} />
+        </span>
+        <span class="hidden shrink-0 font-mono text-micro text-tertiary-foreground @xs:inline">
+          IV-0412
+        </span>
+      </Fragment>
+    </MockShell>
+  </div>
+</div>

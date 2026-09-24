@@ -1,0 +1,88 @@
+---
+// Dot-matrix drawings for the platform cards, in the manner of an LED panel.
+// The dots are worked out at build time (dot-illos.ts), so the page ships a
+// few plain paths and no script.
+import type { DotIlloName } from "./dot-illos";
+import { dotIllos } from "./dot-illos";
+import { render } from "./dot-matrix";
+
+interface Props {
+  name: DotIlloName;
+  /** Dots power on when the nearest data-reveal parent reveals. */
+  boot?: boolean;
+  class?: string;
+}
+
+const { name, boot = false, class: className } = Astro.props;
+
+const marks = render(dotIllos[name]());
+---
+
+<svg
+  viewBox="0 0 480 360"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="4.2"
+  stroke-linecap="round"
+  class:list={["dot-illo", boot && "dot-illo-boot", className]}
+  aria-hidden="true"
+  focusable="false"
+>
+  {marks.map((mark) => <path class={`dot-${mark.tone}`} style={`--step:${mark.step}`} d={mark.d} />)}
+</svg>
+
+<style is:global>
+  svg.dot-illo {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  svg.dot-illo .dot-dim {
+    stroke-opacity: 0.24;
+  }
+
+  svg.dot-illo .dot-accent {
+    stroke: var(--attention);
+  }
+
+  /* Only a reveal that plays boots the panel; a card already on screen at
+     load never changes state, so nothing here ever runs on it. */
+  @media (prefers-reduced-motion: no-preference) {
+    html.reveal-ready [data-reveal]:not([data-revealed]) svg.dot-illo-boot path {
+      opacity: 0;
+    }
+
+    html.reveal-ready [data-revealed] svg.dot-illo-boot path {
+      transition: opacity 120ms linear;
+      transition-delay: calc(var(--reveal-delay, 0ms) + 280ms + var(--step) * 80ms);
+    }
+
+    /* The accent comes on with a double blink. As a transition easing it can
+       only play on the reveal itself; browsers without linear() just fade. */
+    html.reveal-ready [data-revealed] svg.dot-illo-boot .dot-accent {
+      transition-duration: 520ms;
+      transition-timing-function: linear(0, 0 25%, 1 25%, 1 50%, 0 50%, 0 75%, 1 75%, 1);
+    }
+  }
+
+  /* Pointing at the card blinks it again, like a panel acknowledging you. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .group:hover svg.dot-illo .dot-accent {
+      animation: dot-illo-blink 520ms steps(1, end);
+    }
+  }
+
+  @keyframes dot-illo-blink {
+    0%,
+    50% {
+      opacity: 0;
+    }
+
+    25%,
+    75% {
+      opacity: 1;
+    }
+  }
+</style>

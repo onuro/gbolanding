@@ -1,0 +1,185 @@
+---
+import MockShell from "@/components/ui/MockShell.astro";
+import type { Locale } from "@/i18n/config";
+import StepHandoff from "./StepHandoff.astro";
+
+interface Props {
+  locale: Locale;
+  next: string;
+}
+
+const { locale, next } = Astro.props;
+
+const ui =
+  locale === "tr"
+    ? {
+        title: "Kullanım özeti",
+        meta: "Pilot ekip",
+        status: "İzleniyor",
+        series: "Haftalık oturum",
+        range: "8 hafta",
+        first: "H1",
+        last: "H8",
+        upNext: "Sırada: onay adımı",
+        stats: [
+          { label: "Geri bildirim", value: "38", unit: "bu hafta", mono: false },
+          { label: "Açık öneri", value: "6", unit: "sırada", mono: false },
+          { label: "Son sürüm", value: "v1.4", unit: "Perşembe", mono: true },
+        ],
+      }
+    : {
+        title: "Usage summary",
+        meta: "Pilot team",
+        status: "Monitoring",
+        series: "Weekly sessions",
+        range: "8 weeks",
+        first: "W1",
+        last: "W8",
+        upNext: "Up next: the approval step",
+        stats: [
+          { label: "Feedback", value: "38", unit: "this week", mono: false },
+          { label: "Open ideas", value: "6", unit: "queued", mono: false },
+          { label: "Last release", value: "v1.4", unit: "Thursday", mono: true },
+        ],
+      };
+
+// A shape, not a claim: no axis values are printed, only the trend.
+const series = [14, 19, 17, 24, 23, 29, 33, 38];
+const W = 240;
+const H = 56;
+const PAD_X = 4;
+const PAD_Y = 7;
+const min = Math.min(...series);
+const max = Math.max(...series);
+const points = series.map((value, i) => ({
+  x: PAD_X + (i * (W - PAD_X * 2)) / (series.length - 1),
+  y: PAD_Y + (1 - (value - min) / (max - min)) * (H - PAD_Y * 2),
+}));
+
+// Catmull-Rom through every point, written out as cubic Béziers.
+const round = (n: number) => Math.round(n * 100) / 100;
+let line = `M ${round(points[0].x)} ${round(points[0].y)}`;
+for (let i = 0; i < points.length - 1; i++) {
+  const p0 = points[i - 1] ?? points[i];
+  const p1 = points[i];
+  const p2 = points[i + 1];
+  const p3 = points[i + 2] ?? p2;
+  const c1x = p1.x + (p2.x - p0.x) / 6;
+  const c1y = p1.y + (p2.y - p0.y) / 6;
+  const c2x = p2.x - (p3.x - p1.x) / 6;
+  const c2y = p2.y - (p3.y - p1.y) / 6;
+  line += ` C ${round(c1x)} ${round(c1y)}, ${round(c2x)} ${round(c2y)}, ${round(p2.x)} ${round(p2.y)}`;
+}
+const end = points[points.length - 1];
+const area = `${line} L ${round(end.x)} ${H} L ${round(points[0].x)} ${H} Z`;
+const endLeft = round((end.x / W) * 100);
+const endTop = round((end.y / H) * 100);
+const gridY = [PAD_Y, H / 2, H - PAD_Y];
+---
+
+<MockShell
+  title={ui.title}
+  meta={ui.meta}
+  status={{ tone: "live", label: ui.status }}
+>
+  <div class="px-4 pt-3 pb-2.5 sm:pt-4">
+    <div class="flex items-center justify-between gap-3">
+      <span class="data-label">{ui.series}</span>
+      <span class="text-caption text-tertiary-foreground">{ui.range}</span>
+    </div>
+
+    <div class="relative mt-2 h-10 sm:h-14">
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="none"
+        class="absolute inset-0 size-full overflow-visible text-brand"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <defs>
+          <linearGradient id="approach-usage-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="currentColor" stop-opacity="0.22"></stop>
+            <stop offset="100%" stop-color="currentColor" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+        <g class="text-foreground/10" stroke="currentColor">
+          {
+            gridY.map((y) => (
+              <line
+                x1="0"
+                x2={W}
+                y1={y}
+                y2={y}
+                stroke-dasharray="2 4"
+                vector-effect="non-scaling-stroke"
+              />
+            ))
+          }
+        </g>
+        <path d={area} fill="url(#approach-usage-fill)"></path>
+        <path
+          d={line}
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          vector-effect="non-scaling-stroke"
+          data-ap-draw
+        ></path>
+      </svg>
+      <span
+        class="absolute size-2 rounded-full bg-brand ring-[3px] ring-brand-soft"
+        style={`left: calc(${endLeft}% - 0.25rem); top: calc(${endTop}% - 0.25rem);`}
+        data-ap-dot
+      ></span>
+    </div>
+
+    <div class="mt-1.5 hidden justify-between sm:flex">
+      <span class="font-mono text-micro text-tertiary-foreground">{ui.first}</span>
+      <span class="font-mono text-micro text-tertiary-foreground">{ui.last}</span>
+    </div>
+  </div>
+
+  {/* Columns size to their content and share what is left, so the longer
+      Turkish labels ("Geri bildirim") never truncate in a 25rem card. */}
+  <dl
+    class="grid grid-cols-[repeat(2,auto)] border-t border-border sm:grid-cols-[repeat(3,auto)]"
+  >
+    {
+      ui.stats.map((stat, index) => (
+        <div
+          class:list={[
+            "min-w-0 px-3 py-2.5",
+            index > 0 && "border-l border-border",
+            index === 2 && "hidden sm:block",
+          ]}
+          data-ap-item
+        >
+          <dt class="truncate data-label">{stat.label}</dt>
+          <dd class="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+            <span
+              class:list={[
+                stat.mono
+                  ? "font-mono text-label-xs tabular-nums text-foreground"
+                  : "data-value",
+              ]}
+            >
+              {stat.value}
+            </span>
+            <span class="truncate text-caption text-tertiary-foreground">
+              {stat.unit}
+            </span>
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  <Fragment slot="footer">
+    <span class="hidden min-w-0 truncate text-caption text-tertiary-foreground sm:block">
+      {ui.upNext}
+    </span>
+    <StepHandoff locale={locale} next={next} loop />
+  </Fragment>
+</MockShell>

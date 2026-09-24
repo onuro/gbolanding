@@ -1,0 +1,201 @@
+---
+// Valuation: an Intelval summary built from comparables, waiting for the
+// expert who signs the report. Decorative; see KollektorCallCard for the
+// data-seq contract.
+import { Files, FileText } from "lucide-react";
+import MockShell from "@/components/ui/MockShell.astro";
+import type { Locale } from "@/i18n/config";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const ui =
+  locale === "tr"
+    ? {
+        title: "Intelval · Değerleme özeti",
+        meta: "Dosya D-2417 · Konut, 142 m²",
+        status: "Uzman onayında",
+        valueLabel: "Piyasa değeri tahmini",
+        value: "₺18,6M",
+        perSqm: "₺131.000 / m²",
+        rangeLabel: "Değer aralığı",
+        low: "₺17,9M",
+        high: "₺19,2M",
+        compsTitle: "En yakın emsaller",
+        compsCount: "3 / 12",
+        cols: ["Emsal", "m²", "₺ / m²"],
+        rows: [
+          { id: "E-04", desc: "3+1 · 2019", area: "138", price: "₺128.400" },
+          { id: "E-07", desc: "3+1 · 2016", area: "150", price: "₺124.900" },
+          { id: "E-11", desc: "3+1 · 2021", area: "136", price: "₺137.200" },
+        ],
+        steps: ["Emsaller okundu", "Değer hesaplandı", "Uzman imzası"],
+        footer: "Rapor taslağı hazır · 18 sayfa",
+        chip: "12 emsal okundu",
+      }
+    : {
+        title: "Intelval · Valuation summary",
+        meta: "File D-2417 · Residential, 142 m²",
+        status: "Expert review",
+        valueLabel: "Estimated market value",
+        value: "$452K",
+        perSqm: "$3,180 / m²",
+        rangeLabel: "Value range",
+        low: "$436K",
+        high: "$468K",
+        compsTitle: "Closest comparables",
+        compsCount: "3 / 12",
+        cols: ["Comp", "m²", "$ / m²"],
+        rows: [
+          { id: "E-04", desc: "3 bed · 2019", area: "138", price: "$3,120" },
+          { id: "E-07", desc: "3 bed · 2016", area: "150", price: "$3,040" },
+          { id: "E-11", desc: "3 bed · 2021", area: "136", price: "$3,330" },
+        ],
+        steps: ["Comparables read", "Value calculated", "Expert sign-off"],
+        footer: "Draft report ready · 18 pages",
+        chip: "12 comparables read",
+      };
+
+// Where the twelve comparables land on the value scale, in percent.
+const compDots = [5, 13, 21, 30, 37, 43, 48, 56, 62, 71, 83, 94];
+const band = { from: 34, to: 67 };
+const estimate = 51;
+---
+
+<div class="relative">
+  <MockShell
+    title={ui.title}
+    meta={ui.meta}
+    status={{ tone: "waiting", label: ui.status }}
+    bodyClass="flex flex-col gap-4 p-4"
+  >
+    <div data-seq style="--i: 0" class="flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <p class="data-label">{ui.valueLabel}</p>
+        <p class="data-figure mt-2">{ui.value}</p>
+      </div>
+      <p class="shrink-0 pb-0.5 text-label-xs tabular-nums text-muted-foreground">
+        {ui.perSqm}
+      </p>
+    </div>
+
+    <div data-seq style="--i: 1">
+      <div class="relative h-3">
+        <span
+          class="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border-strong"
+        />
+        <span
+          class="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-brand-soft ring-1 ring-brand-line"
+          style={`left: ${band.from}%; right: ${100 - band.to}%`}
+        />
+        {
+          compDots.map((left) => (
+            <span
+              class="absolute top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/30"
+              style={`left: ${left}%`}
+            />
+          ))
+        }
+        <span
+          class="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand ring-2 ring-background"
+          style={`left: ${estimate}%`}
+        />
+      </div>
+      <div class="mt-2 flex items-center justify-between gap-3 text-caption tabular-nums">
+        <span class="text-tertiary-foreground">{ui.low}</span>
+        <span class="text-muted-foreground">{ui.rangeLabel}</span>
+        <span class="text-tertiary-foreground">{ui.high}</span>
+      </div>
+    </div>
+
+    <div data-seq style="--i: 2" class="overflow-hidden rounded-tile border border-border">
+      <div
+        class="flex items-center justify-between gap-3 border-b border-border bg-muted/40 px-3 py-2"
+      >
+        <p class="text-label-xs text-foreground">{ui.compsTitle}</p>
+        <p class="text-micro tabular-nums text-tertiary-foreground">{ui.compsCount}</p>
+      </div>
+      <div
+        class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 px-3 pt-2 pb-1 min-[400px]:grid-cols-[minmax(0,1fr)_auto_auto]"
+      >
+        <span class="data-label">{ui.cols[0]}</span>
+        {/* Units keep their case: data-label would turn m² into M². */}
+        <span
+          class="data-label hidden text-right min-[400px]:block"
+          style="text-transform: none"
+        >
+          {ui.cols[1]}
+        </span>
+        <span class="data-label text-right" style="text-transform: none">
+          {ui.cols[2]}
+        </span>
+      </div>
+      {
+        ui.rows.map((row) => (
+          <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 border-t border-border px-3 py-1.5 min-[400px]:grid-cols-[minmax(0,1fr)_auto_auto]">
+            <span class="flex min-w-0 items-baseline gap-2">
+              <span class="font-mono text-micro text-tertiary-foreground">
+                {row.id}
+              </span>
+              <span class="truncate text-label-xs text-muted-foreground">
+                {row.desc}
+              </span>
+            </span>
+            <span class="hidden text-right text-label-xs tabular-nums text-muted-foreground min-[400px]:block">
+              {row.area}
+            </span>
+            <span class="data-value text-right">{row.price}</span>
+          </div>
+        ))
+      }
+    </div>
+
+    <div data-seq style="--i: 3" class="grid grid-cols-3 gap-2">
+      {
+        ui.steps.map((step, index) => {
+          const waiting = index === ui.steps.length - 1;
+          return (
+            <div class="min-w-0">
+              <span
+                class:list={[
+                  "block h-1 rounded-full",
+                  waiting ? "bg-attention" : "bg-brand",
+                ]}
+              />
+              <p
+                class:list={[
+                  "mt-1.5 text-micro",
+                  waiting ? "text-attention-ink" : "text-muted-foreground",
+                ]}
+              >
+                {step}
+              </p>
+            </div>
+          );
+        })
+      }
+    </div>
+
+    <div slot="footer" class="flex min-w-0 items-center gap-2">
+      <FileText
+        className="size-3.5 shrink-0 text-muted-foreground"
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
+      <span class="truncate text-caption text-muted-foreground">{ui.footer}</span>
+    </div>
+  </MockShell>
+
+  <div
+    data-seq
+    data-seq-pop
+    style="--i: 4"
+    class="absolute -bottom-5 right-5 hidden h-8 items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card px-3 text-caption text-foreground shadow-float sm:flex"
+  >
+    <Files className="size-3.5 text-brand" strokeWidth={1.75} aria-hidden="true" />
+    {ui.chip}
+  </div>
+</div>

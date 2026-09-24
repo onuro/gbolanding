@@ -1,0 +1,157 @@
+---
+// Healthcare: Hastam turns a patient's complaint into a routed appointment
+// request that waits for the clinic to approve. Decorative; see
+// KollektorCallCard for the data-seq contract.
+import { ArrowRight, CalendarCheck, Check, ClipboardCheck, PhoneIncoming } from "lucide-react";
+import MockShell from "@/components/ui/MockShell.astro";
+import type { Locale } from "@/i18n/config";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const ui =
+  locale === "tr"
+    ? {
+        title: "Hastam · Randevu talebi",
+        meta: "Talep R-0719 · Gelen arama",
+        status: "Klinik onayında",
+        saidLabel: "Hastanın anlattığı",
+        said: "Üç gündür dizimde ağrı ve şişlik var. Merdiven inerken artıyor.",
+        complaint: "Diz ağrısı, şişlik",
+        specialty: "Ortopedi",
+        slotsLabel: "Uygun saatler · Perşembe",
+        slots: ["10:30", "14:00", "16:45"],
+        choiceLabel: "Hastanın seçimi",
+        choice: "14:00",
+        choiceSub: "Perşembe · Ortopedi",
+        approve: "Onayla",
+        footer: "Hasta kaydına eklendi",
+        time: "09:42",
+        chip: "Hekim takvimleri tarandı",
+      }
+    : {
+        title: "Hastam · Appointment request",
+        meta: "Request R-0719 · Inbound call",
+        status: "Clinic approval",
+        saidLabel: "What the patient said",
+        said: "My knee has been painful and swollen for three days. It gets worse on the stairs.",
+        complaint: "Knee pain, swelling",
+        specialty: "Orthopedics",
+        slotsLabel: "Open slots · Thursday",
+        slots: ["10:30", "14:00", "16:45"],
+        choiceLabel: "Patient’s choice",
+        choice: "14:00",
+        choiceSub: "Thursday · Orthopedics",
+        approve: "Approve",
+        footer: "Added to the patient record",
+        time: "09:42",
+        chip: "Doctors’ calendars checked",
+      };
+
+const chosen = 1;
+---
+
+<div class="relative">
+  <MockShell
+    title={ui.title}
+    meta={ui.meta}
+    status={{ tone: "waiting", label: ui.status }}
+    bodyClass="flex flex-col gap-4 p-4"
+  >
+    <div data-seq style="--i: 0" class="flex flex-col gap-1.5">
+      <p class="flex items-center gap-1.5 text-micro text-tertiary-foreground">
+        <PhoneIncoming className="size-3" strokeWidth={1.75} aria-hidden="true" />
+        {ui.saidLabel}
+      </p>
+      <p
+        class="max-w-[92%] rounded-tile rounded-tl-chip bg-muted px-3 py-2 text-paragraph-xs text-foreground"
+      >
+        {ui.said}
+      </p>
+    </div>
+
+    <div data-seq style="--i: 1" class="flex flex-wrap items-center gap-2">
+      <span
+        class="inline-flex h-6 items-center rounded-chip border border-border px-2 text-caption text-muted-foreground"
+      >
+        {ui.complaint}
+      </span>
+      <ArrowRight
+        className="size-3.5 text-tertiary-foreground"
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
+      <span
+        class="inline-flex h-6 items-center rounded-chip border border-brand-line bg-brand-soft px-2 text-caption font-medium text-brand"
+      >
+        {ui.specialty}
+      </span>
+    </div>
+
+    <div data-seq style="--i: 2">
+      <p class="text-micro text-tertiary-foreground">{ui.slotsLabel}</p>
+      <div class="mt-2 grid grid-cols-3 gap-1.5">
+        {
+          ui.slots.map((slot, index) => (
+            <span
+              class:list={[
+                "flex h-8 items-center justify-center gap-1 rounded-chip border text-label-xs tabular-nums",
+                index === chosen
+                  ? "border-brand bg-brand-soft text-foreground"
+                  : "border-border text-muted-foreground",
+              ]}
+            >
+              {index === chosen && (
+                <Check className="size-3 text-brand" strokeWidth={2.25} aria-hidden="true" />
+              )}
+              {slot}
+            </span>
+          ))
+        }
+      </div>
+    </div>
+
+    <div
+      data-seq
+      style="--i: 3"
+      class="flex items-center justify-between gap-3 rounded-tile border border-attention-line bg-attention-soft p-3"
+    >
+      <div class="min-w-0">
+        <p class="text-micro text-attention-ink">{ui.choiceLabel}</p>
+        <div class="mt-1.5 flex min-w-0 flex-wrap items-baseline gap-x-2.5 gap-y-1">
+          <p class="data-figure">{ui.choice}</p>
+          <p class="truncate text-caption text-muted-foreground">{ui.choiceSub}</p>
+        </div>
+      </div>
+      <span
+        class="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-foreground px-3 text-label-xs text-background"
+      >
+        <Check className="size-3.5" strokeWidth={2} aria-hidden="true" />
+        {ui.approve}
+      </span>
+    </div>
+
+    <div slot="footer" class="flex min-w-0 items-center gap-2">
+      <ClipboardCheck
+        className="size-3.5 shrink-0 text-muted-foreground"
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
+      <span class="truncate text-caption text-muted-foreground">{ui.footer}</span>
+      <span class="font-mono text-micro text-tertiary-foreground">{ui.time}</span>
+    </div>
+  </MockShell>
+
+  <div
+    data-seq
+    data-seq-pop
+    style="--i: 4"
+    class="absolute -bottom-5 right-5 hidden h-8 items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card px-3 text-caption text-foreground shadow-float sm:flex"
+  >
+    <CalendarCheck className="size-3.5 text-brand" strokeWidth={1.75} aria-hidden="true" />
+    {ui.chip}
+  </div>
+</div>

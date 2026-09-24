@@ -1,0 +1,96 @@
+---
+// Line illustrations from the Shift5 set (used with permission), keyed by the
+// GBO idea they stand for so one idea always gets the same drawing.
+import analysis from "@/assets/illos/shift5/shoot.svg?raw";
+import build from "@/assets/illos/shift5/triacube.svg?raw";
+import custom from "@/assets/illos/shift5/cube.svg?raw";
+import design from "@/assets/illos/shift5/triangle.svg?raw";
+import discover from "@/assets/illos/shift5/sonar.svg?raw";
+import improvement from "@/assets/illos/shift5/spring.svg?raw";
+import integration from "@/assets/illos/shift5/bouncing.svg?raw";
+import automation from "@/assets/illos/shift5/cosmos.svg?raw";
+import legal from "@/assets/illos/shift5/pluses.svg?raw";
+import oversight from "@/assets/illos/shift5/visibility.svg?raw";
+import privacy from "@/assets/illos/shift5/half.svg?raw";
+
+const illos = {
+  analysis,
+  automation,
+  build,
+  custom,
+  design,
+  discover,
+  improvement,
+  integration,
+  legal,
+  oversight,
+  privacy,
+};
+
+export type IlloName = keyof typeof illos;
+
+interface Props {
+  name: IlloName;
+  /** Strokes draw themselves in when the nearest data-reveal parent reveals. */
+  draw?: boolean;
+  class?: string;
+}
+
+const { name, draw = false, class: className } = Astro.props;
+
+// pathLength="1" lets one dash rule draw every stroke regardless of its length;
+// fill-only shapes are left alone and fade in instead.
+const inner = illos[name]
+  .replace(/^\s*<svg[^>]*>/, "")
+  .replace(/<\/svg>\s*$/, "")
+  .replace(
+    /<(path|circle|ellipse|line|polyline|polygon|rect)\b(?![^>]*stroke="none")/g,
+    '<$1 pathLength="1"',
+  );
+---
+
+<svg
+  viewBox="0 0 480 360"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1"
+  class:list={["illo", draw && "illo-draw", className]}
+  aria-hidden="true"
+  focusable="false"
+  set:html={inner}
+/>
+
+<style is:global>
+  svg.illo {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  svg.illo * {
+    vector-effect: non-scaling-stroke;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html.reveal-ready svg.illo-draw [pathLength] {
+      stroke-dasharray: 1 1;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1800ms var(--ease-out-quint);
+      transition-delay: calc(var(--reveal-delay, 0ms) + 200ms);
+    }
+
+    html.reveal-ready svg.illo-draw [fill="currentColor"]:not([pathLength]) {
+      transition: opacity 900ms var(--ease-out-quint);
+      transition-delay: calc(var(--reveal-delay, 0ms) + 900ms);
+    }
+
+    html.reveal-ready [data-reveal]:not([data-revealed]) svg.illo-draw [pathLength] {
+      stroke-dashoffset: 1;
+    }
+
+    html.reveal-ready [data-reveal]:not([data-revealed]) svg.illo-draw [fill="currentColor"]:not([pathLength]) {
+      opacity: 0;
+    }
+  }
+</style>

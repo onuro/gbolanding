@@ -1,4 +1,6 @@
 ---
+import { Check } from "lucide-react";
+
 import type { Locale } from "@/i18n/config";
 import PhaseVisualFrame from "./PhaseVisualFrame.astro";
 
@@ -11,110 +13,179 @@ const { locale } = Astro.props;
 const copy =
   locale === "tr"
     ? {
-        title: "Plan / Kullanıcı yolculuğu",
-        stepUnit: "adım",
-        steps: ["Talep", "Ayrıştırma", "İş", "Kontrol", "Teslim"],
-        automated: "Yapay zeka devralır",
-        scope: ["Ekranlar", "Roller", "Entegrasyonlar"],
+        title: "Ürün planı",
+        meta: "Kapsam v3 · 5 adım",
+        status: "Onay bekliyor",
+        description:
+          "Örnek bir ürün planı. Beş adımlı kullanıcı yolculuğunu, yapay zekanın devraldığı iki adımı, kapsamı ve ekiplerin onay durumunu gösterir.",
+        journey: "Kullanıcı yolculuğu",
+        steps: [
+          { label: "Talep", owner: "Müşteri" },
+          { label: "Ayrıştırma", owner: "Yapay zeka", ai: true },
+          { label: "İş", owner: "Yapay zeka", ai: true },
+          { label: "Kontrol", owner: "Uzman" },
+          { label: "Teslim", owner: "Ekip" },
+        ],
+        scope: "Kapsam",
+        scopeRows: ["Ekranlar", "Roller", "Entegrasyonlar"],
+        signoff: "Onaylar",
+        teams: ["Operasyon", "BT", "Hukuk"],
+        pending: "bekliyor",
       }
     : {
-        title: "Blueprint / User journey",
-        stepUnit: "steps",
-        steps: ["Request", "Triage", "Work", "Review", "Deliver"],
-        automated: "AI takes over",
-        scope: ["Screens", "Roles", "Integrations"],
+        title: "Product blueprint",
+        meta: "Scope v3 · 5 steps",
+        status: "Awaiting sign-off",
+        description:
+          "A sample product blueprint. It shows a five-step user journey, the two steps AI takes over, the scope, and where each team stands on sign-off.",
+        journey: "User journey",
+        steps: [
+          { label: "Request", owner: "Customer" },
+          { label: "Triage", owner: "AI", ai: true },
+          { label: "Work", owner: "AI", ai: true },
+          { label: "Review", owner: "Expert" },
+          { label: "Deliver", owner: "Team" },
+        ],
+        scope: "Scope",
+        scopeRows: ["Screens", "Roles", "Integrations"],
+        signoff: "Sign-off",
+        teams: ["Operations", "IT", "Legal"],
+        pending: "pending",
       };
 
-// Five steps across the rail; the two the product absorbs carry the brand.
-const AUTOMATED = [1, 2];
-const steps = copy.steps;
-// Node centres sit at 10%, 30%, 50%, 70%, 90% of a five-column grid.
-const bracket = {
-  left: `${AUTOMATED[0] * 20 + 10}%`,
-  width: `${(AUTOMATED.length - 1) * 20}%`,
-  mid: `${((AUTOMATED[0] + AUTOMATED[AUTOMATED.length - 1]) / 2) * 20 + 10}%`,
-};
+// Node centres sit at 10/30/50/70/90% of the five-column rail, so the brand
+// segment runs from the first AI step to the last one.
+const aiSteps = copy.steps
+  .map((step, index) => ("ai" in step && step.ai ? index : -1))
+  .filter((index) => index >= 0);
+const aiFrom = aiSteps[0] ?? 0;
+const aiTo = aiSteps[aiSteps.length - 1] ?? 0;
+const aiSegment = `left: ${aiFrom * 20 + 10}%; width: ${(aiTo - aiFrom) * 20}%;`;
 
 const scope = [
-  { label: copy.scope[0], count: 12 },
-  { label: copy.scope[1], count: 4 },
-  { label: copy.scope[2], count: 6 },
+  { label: copy.scopeRows[0], count: 12 },
+  { label: copy.scopeRows[1], count: 4 },
+  { label: copy.scopeRows[2], count: 6 },
 ];
+
+// Two teams have signed; the last one is waiting on a person.
+const signoffs = copy.teams.map((team, index) => ({
+  team,
+  done: index < copy.teams.length - 1,
+}));
 ---
 
-<PhaseVisualFrame title={copy.title} meta={`0${steps.length} ${copy.stepUnit}`}>
-  <div class="relative">
+<PhaseVisualFrame
+  title={copy.title}
+  meta={copy.meta}
+  status={{ tone: "waiting", label: copy.status }}
+  description={copy.description}
+>
+  <p class="data-label">{copy.journey}</p>
+
+  <div class="relative mt-3.5">
     <span
-      class="absolute left-[10%] right-[10%] top-[0.6875rem] h-px bg-foreground/15"
+      data-seq="grow"
+      class="absolute left-[10%] right-[10%] top-3 hidden h-px origin-left bg-border-strong sm:block"
     ></span>
-    <ol class="relative grid grid-cols-5">
+    {
+      aiSteps.length > 1 && (
+        <span
+          data-seq="grow"
+          class="absolute top-3 hidden h-px origin-left bg-brand sm:block"
+          style={aiSegment}
+        />
+      )
+    }
+    <span
+      data-seq="grow-y"
+      class="absolute bottom-3 left-3 top-3 w-px origin-top bg-border-strong sm:hidden"
+    ></span>
+
+    <ol class="relative grid gap-2.5 sm:grid-cols-5 sm:gap-0">
       {
-        steps.map((step, index) => {
-          const on = AUTOMATED.includes(index);
+        copy.steps.map((step, index) => {
+          const ai = "ai" in step && step.ai;
           return (
-            <li class="flex flex-col items-center gap-3 px-1 text-center">
+            <li
+              data-seq
+              class="flex items-center gap-3 sm:flex-col sm:gap-2 sm:px-1 sm:text-center"
+            >
               <span
                 class:list={[
-                  "relative z-10 flex size-[1.375rem] items-center justify-center rounded-full border font-mono text-[10px] tabular-nums",
-                  on
+                  "relative z-10 flex size-6 shrink-0 items-center justify-center rounded-full border text-micro font-medium tabular-nums",
+                  ai
                     ? "border-brand bg-brand text-brand-foreground"
-                    : "border-border bg-background text-foreground/45",
+                    : "border-border-strong bg-background text-tertiary-foreground",
                 ]}
               >
                 {index + 1}
               </span>
+              <span class="min-w-0 flex-1 truncate text-label-xs text-foreground sm:max-w-full sm:flex-none">
+                {step.label}
+              </span>
               <span
                 class:list={[
-                  "font-mono text-[10px] uppercase leading-tight tracking-[0.1em]",
-                  on ? "text-foreground/75" : "text-foreground/40",
+                  "inline-flex h-5 shrink-0 items-center rounded-full border px-2 text-micro whitespace-nowrap",
+                  ai
+                    ? "border-brand-line bg-brand-soft text-brand"
+                    : "border-border text-tertiary-foreground",
                 ]}
               >
-                {step}
+                {step.owner}
               </span>
             </li>
           );
         })
       }
     </ol>
+  </div>
 
-    <div class="relative mt-3 h-8">
-      <span
-        class="absolute top-0 h-2 w-px bg-brand-line"
-        style={`left: ${bracket.left};`}></span>
-      <span
-        class="absolute top-2 h-px bg-brand-line"
-        style={`left: ${bracket.left}; width: ${bracket.width};`}></span>
-      <span
-        class="absolute top-0 h-2 w-px bg-brand-line"
-        style={`left: calc(${bracket.left} + ${bracket.width});`}></span>
-      <span
-        class="absolute top-3.5 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.14em] text-brand"
-        style={`left: ${bracket.mid};`}
-      >
-        {copy.automated}
-      </span>
+  <div class="mt-5 border-t border-border pt-4">
+    <p class="data-label">{copy.scope}</p>
+    <div class="mt-2.5 grid gap-1.5 sm:grid-cols-3 sm:gap-2">
+      {
+        scope.map((row) => (
+          <div
+            data-seq
+            class="flex items-center justify-between gap-3 rounded-tile border border-border bg-foreground/[0.02] px-3 py-2 sm:block sm:py-2.5"
+          >
+            <p class="truncate data-label">{row.label}</p>
+            <p class="data-value sm:mt-1.5">{row.count}</p>
+          </div>
+        ))
+      }
     </div>
   </div>
 
-  <div class="mt-5 grid gap-3 border-t border-border pt-4 sm:grid-cols-3 sm:gap-6">
-    {
-      scope.map((row) => (
-        <div class="flex items-center justify-between gap-3">
-          <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-foreground/45">
-            {row.label}
-          </span>
-          <span class="flex items-center gap-2">
-            <span class="flex gap-[2px]">
-              {Array.from({ length: row.count }, () => (
-                <span class="h-2.5 w-[3px] rounded-[1px] bg-foreground/25" />
-              ))}
+  <div
+    slot="footer"
+    class="flex w-full flex-wrap items-center gap-x-3 gap-y-2"
+  >
+    <span class="data-label">{copy.signoff}</span>
+    <span class="flex flex-wrap items-center gap-1.5">
+      {
+        signoffs.map((signoff) =>
+          signoff.done ? (
+            <span class="inline-flex h-6 items-center gap-1.5 rounded-full border border-border bg-background px-2.5 text-caption text-muted-foreground">
+              <Check
+                aria-hidden="true"
+                className="size-3 text-foreground"
+                strokeWidth={2}
+              />
+              {signoff.team}
             </span>
-            <span class="font-mono text-[10px] tabular-nums text-foreground/50">
-              {row.count}
+          ) : (
+            <span
+              data-seq="pop"
+              class="inline-flex h-6 items-center gap-1.5 rounded-full border border-attention-line bg-attention-soft px-2.5 text-caption text-attention-ink"
+            >
+              <span class="size-1.5 rounded-full bg-current" />
+              {signoff.team} · {copy.pending}
             </span>
-          </span>
-        </div>
-      ))
-    }
+          ),
+        )
+      }
+    </span>
   </div>
 </PhaseVisualFrame>

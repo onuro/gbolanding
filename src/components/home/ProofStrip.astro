@@ -1,4 +1,13 @@
 ---
+import {
+  BrainCircuit,
+  ChevronRight,
+  Pause,
+  Play,
+  Plug,
+  RefreshCw,
+  ScanSearch,
+} from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
 
@@ -7,51 +16,393 @@ interface Props {
   messages: Messages;
 }
 
-const { messages } = Astro.props;
+const { locale, messages } = Astro.props;
+const items = messages.proofStrip.items;
+const total = String(items.length).padStart(2, "0");
+
+// One glyph per service, in reading order: diagnose, build, connect, improve.
+const icons = [ScanSearch, BrainCircuit, Plug, RefreshCw];
+
+const ui =
+  locale === "tr"
+    ? {
+        flow: "Bu dört hizmet, 01'den 04'e uzanan tek bir akış olarak birbirini izler.",
+        pause: "Akış animasyonunu duraklat",
+      }
+    : {
+        flow: "These four services follow one another as a single flow, from 01 to 04.",
+        pause: "Pause the flow animation",
+      };
 ---
 
 <section
   aria-labelledby="proof-strip-label"
-  class="mx-auto w-full max-w-[83.75rem] border-x border-b border-border"
+  class="frame-cross mx-auto w-full max-w-[83.75rem] border-x border-b border-border"
+  data-reveal-root
+  data-proof-rail
 >
-  <div
-    class="grid grid-cols-2 lg:grid-cols-[repeat(24,minmax(0,1fr))]"
-  >
+  <div class="grid lg:grid-cols-[repeat(24,minmax(0,1fr))]">
     <div
-      class="diagonal-hatch col-span-2 border-b border-border p-2 lg:col-span-4 lg:border-b-0"
+      class="diagonal-hatch flex border-b border-border p-2 lg:col-span-4 lg:border-b-0"
+      data-reveal
     >
       <div
-        class="flex min-h-12 w-full items-center bg-background px-3 sm:px-6 lg:min-h-16"
+        class="flex min-h-12 flex-1 items-center justify-between gap-4 bg-background px-3 py-2 sm:px-6 lg:flex-col lg:items-stretch lg:justify-between lg:gap-2 lg:px-4 lg:py-2.5"
       >
         <p
           id="proof-strip-label"
-          class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+          class="flex items-start gap-2 text-label-xs text-muted-foreground"
         >
+          <span class="eyebrow-mark mt-1.5" aria-hidden="true"></span>
           {messages.proofStrip.label}
         </p>
+        <p class="sr-only">{ui.flow}</p>
+
+        <div class="flex shrink-0 items-center justify-between gap-3">
+          <span class="data-label tabular-nums" aria-hidden="true">
+            <span data-ps-count>01</span> / {total}
+          </span>
+          <button
+            type="button"
+            class="ps-toggle inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-card text-tertiary-foreground shadow-card transition-colors duration-200 hover:border-border-strong hover:text-foreground"
+            aria-label={ui.pause}
+            aria-pressed="false"
+            title={ui.pause}
+            data-ps-toggle
+            hidden
+          >
+            <span class="ps-icon-pause inline-flex">
+              <Pause className="size-3" strokeWidth={1.75} aria-hidden="true" />
+            </span>
+            <span class="ps-icon-play inline-flex">
+              <Play className="size-3" strokeWidth={1.75} aria-hidden="true" />
+            </span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <ul class="contents" role="list">
+    <ol
+      class="grid grid-cols-2 lg:col-span-20 lg:grid-cols-4 lg:border-l lg:border-border"
+      role="list"
+      data-ps-rail
+    >
       {
-        messages.proofStrip.items.map((item, index) => (
-          <li
-            class:list={[
-              "flex min-h-20 items-center gap-3 bg-background px-4 py-4 sm:px-6 lg:col-span-5 lg:border-l lg:border-t-0",
-              index % 2 === 1 && "border-l",
-              index > 1 && "border-t",
-            ]}
-          >
-            <span
-              aria-hidden="true"
-                  class="font-mono text-[10px] text-tertiary-foreground"
+        items.map((item, index) => {
+          const Icon = icons[index % icons.length];
+          const isFirst = index === 0;
+          const isLast = index === items.length - 1;
+          return (
+            <li
+              class:list={[
+                "ps-cell flex flex-col px-4 py-4 sm:px-6 sm:py-5 lg:py-3.5 lg:pr-0 lg:pl-6",
+                index % 2 === 1 && "border-l border-border",
+                index > 1 && "border-t border-border lg:border-t-0",
+                index > 0 && "lg:border-l",
+              ]}
+              data-reveal
+              data-ps-cell
+              data-active={isFirst ? "" : undefined}
             >
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <span class="text-sm leading-5 text-foreground/70">{item}</span>
-          </li>
-        ))
+              <div class="relative flex h-10 items-center" aria-hidden="true">
+                {isFirst ? (
+                  <span class="absolute top-1/2 -left-6 hidden h-px w-6 -translate-y-1/2 bg-border lg:block">
+                    <span class="absolute top-1/2 left-0 size-[7px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-border-strong bg-background" />
+                  </span>
+                ) : (
+                  <span class="absolute top-1/2 -left-6 hidden h-px w-6 -translate-y-1/2 bg-border lg:block">
+                    <span class="ps-chev absolute top-1/2 left-0 flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background text-faint-foreground">
+                      <ChevronRight
+                        className="size-3"
+                        strokeWidth={1.75}
+                        aria-hidden="true"
+                      />
+                    </span>
+                  </span>
+                )}
+
+                <span
+                  class="ps-tile relative flex size-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-card"
+                  data-ps-tile
+                >
+                  <Icon
+                    className="size-[1.125rem]"
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                  />
+                </span>
+
+                <span class="ps-num data-label ml-3">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+
+                <span
+                  class:list={[
+                    "relative ml-3 hidden h-px min-w-4 flex-1 lg:block",
+                    isLast
+                      ? "bg-linear-to-r from-border to-transparent"
+                      : "bg-border",
+                  ]}
+                  data-ps-track
+                >
+                  <span
+                    class="ps-dot absolute top-1/2 left-0 -mt-[3px] size-1.5 rounded-full bg-brand opacity-0"
+                    data-ps-dot
+                  />
+                </span>
+              </div>
+
+              <p class="mt-2 text-balance text-label-sm text-foreground lg:pr-5">
+                {item}
+              </p>
+            </li>
+          );
+        })
       }
-    </ul>
+    </ol>
   </div>
 </section>
+
+<script>
+  // 2.4s per service: the cell holds, then the dot runs the rail to the next one.
+  const DWELL = 1600;
+  const TRAVEL = 800;
+
+  function initRail(root: HTMLElement) {
+    const cells = [...root.querySelectorAll<HTMLElement>("[data-ps-cell]")];
+    if (cells.length < 2) return;
+    // Reduced motion keeps the server-rendered state: 01 lit, nothing moves.
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (reduce.matches) return;
+
+    const rail = root.querySelector<HTMLElement>("[data-ps-rail]");
+    const count = root.querySelector<HTMLElement>("[data-ps-count]");
+    const toggle = root.querySelector<HTMLButtonElement>("[data-ps-toggle]");
+
+    let index = 0;
+    let phase: "dwell" | "travel" = "dwell";
+    let left = DWELL;
+    let timer = 0;
+    let startedAt = 0;
+    let flight: Animation | null = null;
+    let visible = false;
+    let hovered = false;
+    let stopped = false;
+
+    const setActive = (next: number) => {
+      index = (next + cells.length) % cells.length;
+      cells.forEach((cell, i) => cell.toggleAttribute("data-active", i === index));
+      if (count) count.textContent = String(index + 1).padStart(2, "0");
+    };
+
+    const wait = (ms: number, then: () => void) => {
+      startedAt = performance.now();
+      timer = window.setTimeout(() => {
+        timer = 0;
+        then();
+      }, ms);
+    };
+
+    const arrive = () => {
+      flight = null;
+      phase = "dwell";
+      left = DWELL;
+      setActive(index + 1);
+      run();
+    };
+
+    const fly = () => {
+      const cell = cells[index];
+      const track = cell?.querySelector<HTMLElement>("[data-ps-track]");
+      const dot = cell?.querySelector<HTMLElement>("[data-ps-dot]");
+      // Below lg there is no rail to run, so the cell simply holds a beat longer.
+      if (!track || !dot || track.offsetWidth === 0) {
+        wait(left, arrive);
+        return;
+      }
+
+      const start = track.getBoundingClientRect().left;
+      const nextTile = cells[index + 1]?.querySelector<HTMLElement>("[data-ps-tile]");
+      const frames: Keyframe[] = nextTile
+        ? (() => {
+            const end = nextTile.getBoundingClientRect().left - start - dot.offsetWidth;
+            return [
+              { transform: "translateX(0)", opacity: 0 },
+              { transform: `translateX(${end * 0.12}px)`, opacity: 1, offset: 0.12 },
+              { transform: `translateX(${end * 0.9}px)`, opacity: 1, offset: 0.9 },
+              { transform: `translateX(${end}px)`, opacity: 0 },
+            ];
+          })()
+        : (() => {
+            // The last cell's rail fades out; the dot fades with it and the
+            // flow starts again at 01.
+            const end = track.offsetWidth * 0.8;
+            return [
+              { transform: "translateX(0)", opacity: 0 },
+              { transform: `translateX(${end * 0.12}px)`, opacity: 1, offset: 0.12 },
+              { transform: `translateX(${end}px)`, opacity: 0 },
+            ];
+          })();
+
+      flight = dot.animate(frames, {
+        duration: TRAVEL,
+        easing: "cubic-bezier(0.65, 0, 0.35, 1)",
+      });
+      flight.onfinish = arrive;
+    };
+
+    const halt = () => {
+      if (timer) {
+        window.clearTimeout(timer);
+        timer = 0;
+        left = Math.max(120, left - (performance.now() - startedAt));
+      }
+      flight?.pause();
+    };
+
+    function run() {
+      if (stopped || hovered || !visible || document.hidden || reduce.matches) return;
+      if (timer) return;
+      if (flight) {
+        if (flight.playState !== "running") flight.play();
+        return;
+      }
+      if (phase === "dwell") {
+        wait(left, () => {
+          phase = "travel";
+          left = TRAVEL;
+          fly();
+        });
+      } else {
+        fly();
+      }
+    }
+
+    setActive(0);
+
+    if (toggle) {
+      toggle.hidden = false;
+      toggle.addEventListener("click", () => {
+        stopped = !stopped;
+        toggle.setAttribute("aria-pressed", stopped ? "true" : "false");
+        if (stopped) halt();
+        else run();
+      });
+    }
+
+    if (rail && window.matchMedia("(hover: hover)").matches) {
+      rail.addEventListener("pointerenter", () => {
+        hovered = true;
+        halt();
+      });
+      rail.addEventListener("pointerleave", () => {
+        hovered = false;
+        run();
+      });
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) halt();
+      else run();
+    });
+
+    // Reduced motion switched on mid-visit: drop the dot, go back to the
+    // static state (01 lit) and hide the control that no longer does anything.
+    reduce.addEventListener("change", () => {
+      if (reduce.matches) {
+        halt();
+        flight?.cancel();
+        flight = null;
+        phase = "dwell";
+        left = DWELL;
+        setActive(0);
+        if (toggle) toggle.hidden = true;
+      } else {
+        if (toggle) toggle.hidden = false;
+        run();
+      }
+    });
+
+    if (!("IntersectionObserver" in window)) {
+      visible = true;
+      run();
+      return;
+    }
+
+    new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          visible = entry.isIntersecting;
+          if (visible) run();
+          else halt();
+        }
+      },
+      { threshold: 0.5 },
+    ).observe(root);
+  }
+
+  document
+    .querySelectorAll<HTMLElement>("[data-proof-rail]")
+    .forEach((root) => initRail(root));
+</script>
+
+<style>
+  .ps-tile,
+  .ps-num,
+  .ps-chev {
+    transition:
+      color 450ms var(--ease-out-quint),
+      border-color 450ms var(--ease-out-quint),
+      background-color 300ms var(--ease-out-quint),
+      box-shadow 450ms var(--ease-out-quint);
+  }
+
+  .ps-tile {
+    box-shadow: var(--shadow-card-value);
+  }
+
+  @media (hover: hover) {
+    .ps-cell:hover .ps-tile {
+      border-color: var(--border-strong);
+      background-image: linear-gradient(var(--brand-soft), var(--brand-soft));
+      color: var(--foreground);
+    }
+  }
+
+  /* Lit icon box is a solid zinc chip. The number and chevron stay brand. */
+  .ps-cell[data-active] .ps-tile {
+    border-color: oklch(0.32 0.006 286);
+    background-color: oklch(0.21 0.006 286);
+    background-image: none;
+    color: oklch(0.985 0.002 286);
+    box-shadow: var(--shadow-card-value);
+  }
+
+  .ps-cell[data-active] .ps-num {
+    color: var(--brand);
+  }
+
+  .ps-cell[data-active] .ps-chev {
+    border-color: var(--brand-line);
+    color: var(--brand);
+  }
+
+  .ps-dot {
+    box-shadow:
+      0 0 0 3px var(--brand-soft),
+      0 0 10px var(--brand-line);
+  }
+
+  .ps-toggle[aria-pressed="true"] .ps-icon-pause,
+  .ps-toggle:not([aria-pressed="true"]) .ps-icon-play {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ps-tile,
+    .ps-num,
+    .ps-chev {
+      transition: none;
+    }
+  }
+</style>

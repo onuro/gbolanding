@@ -1,0 +1,144 @@
+---
+// The product stage under the hero: one live-call demo per product, switched
+// by tabs. Hastam leads; each demo only plays while its panel is visible,
+// because both pause themselves when they leave the viewport.
+import { PhoneCall, Stethoscope } from "lucide-react";
+import HastamDemo from "@/components/home/HastamDemo.astro";
+import KollektorDemo from "@/components/home/KollektorDemo.astro";
+import type { Locale } from "@/i18n/config";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const ui =
+  locale === "tr"
+    ? {
+        heading: "Ürünlerimiz canlı bir aramada",
+        label: "Ürün demoları",
+        blurb:
+          "Çağrı merkezlerini ve telefon görüşmelerini yapay zeka ile güçlendiriyoruz.",
+        tabs: [
+          {
+            id: "hastam",
+            name: "Hastam",
+            hint: "Klinik randevu hattı",
+            Icon: Stethoscope,
+          },
+          {
+            id: "kollektor",
+            name: "Kollektor",
+            hint: "Tahsilat araması",
+            Icon: PhoneCall,
+          },
+        ],
+      }
+    : {
+        heading: "Our products on a live call",
+        label: "Product demos",
+        blurb: "We use AI to strengthen call centers and the calls they handle.",
+        tabs: [
+          {
+            id: "hastam",
+            name: "Hastam",
+            hint: "Clinic booking line",
+            Icon: Stethoscope,
+          },
+          {
+            id: "kollektor",
+            name: "Kollektor",
+            hint: "Collection call",
+            Icon: PhoneCall,
+          },
+        ],
+      };
+---
+
+<section
+  aria-labelledby="product-demos-heading"
+  class="mx-auto w-full max-w-[83.75rem] border-x border-b border-border"
+  data-pd-root
+>
+  <h2 id="product-demos-heading" class="sr-only">{ui.heading}</h2>
+
+  <div class="grid items-center gap-3 px-4 pt-4 sm:px-6 sm:pt-6 lg:grid-cols-2 lg:gap-10 lg:px-6">
+    <div
+      role="tablist"
+      aria-label={ui.label}
+      class="grid w-full max-w-md grid-cols-2 gap-1"
+    >
+      {
+        ui.tabs.map((tab, index) => {
+          const Icon = tab.Icon;
+          return (
+          <button
+            type="button"
+            role="tab"
+            id={`pd-tab-${tab.id}`}
+            aria-controls={`pd-panel-${tab.id}`}
+            aria-selected={index === 0 ? "true" : "false"}
+            tabindex={index === 0 ? 0 : -1}
+            data-pd-tab
+            class="group flex min-w-0 cursor-pointer items-center gap-2.5 rounded-full px-3 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand aria-selected:bg-[oklch(0.21_0.006_286)] dark:aria-selected:bg-[oklch(0.967_0.001_286)]"
+          >
+            <span class="hidden size-8 shrink-0 place-items-center rounded-full sm:grid border border-border bg-background text-tertiary-foreground transition-colors group-aria-selected:border-transparent group-aria-selected:bg-[oklch(0.32_0.006_286)] group-aria-selected:text-[oklch(0.985_0.002_286)] dark:group-aria-selected:bg-[oklch(0.9_0.004_286)] dark:group-aria-selected:text-[oklch(0.21_0.006_286)]">
+              <Icon className="size-4" strokeWidth={1.5} aria-hidden="true" />
+            </span>
+            <span class="min-w-0">
+              <span class="block truncate text-label-sm text-muted-foreground group-aria-selected:text-[oklch(0.985_0.002_286)] dark:group-aria-selected:text-[oklch(0.21_0.006_286)]">
+                {tab.name}
+              </span>
+              <span class="block truncate text-paragraph-xs text-tertiary-foreground group-aria-selected:text-[oklch(0.75_0.006_286)] dark:group-aria-selected:text-[oklch(0.42_0.006_286)]">
+                {tab.hint}
+              </span>
+            </span>
+          </button>
+          );
+        })
+      }
+      </div>
+    <p class="max-w-sm text-pretty text-paragraph-sm text-muted-foreground lg:justify-self-end">
+      {ui.blurb}
+    </p>
+  </div>
+
+  <div role="tabpanel" id="pd-panel-hastam" aria-labelledby="pd-tab-hastam" data-pd-panel>
+    <HastamDemo locale={locale} />
+  </div>
+  <div role="tabpanel" id="pd-panel-kollektor" aria-labelledby="pd-tab-kollektor" data-pd-panel hidden>
+    <KollektorDemo locale={locale} embedded />
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-pd-root]").forEach((root) => {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>("[data-pd-tab]")];
+    const panels = [...root.querySelectorAll<HTMLElement>("[data-pd-panel]")];
+    const select = (index: number, focus = false) => {
+      tabs.forEach((tab, i) => {
+        const on = i === index;
+        tab.setAttribute("aria-selected", on ? "true" : "false");
+        tab.tabIndex = on ? 0 : -1;
+        panels[i]?.toggleAttribute("hidden", !on);
+      });
+      if (focus) tabs[index]?.focus();
+    };
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => select(index));
+      tab.addEventListener("keydown", (event) => {
+        const next = {
+          ArrowRight: (index + 1) % tabs.length,
+          ArrowLeft: (index - 1 + tabs.length) % tabs.length,
+          Home: 0,
+          End: tabs.length - 1,
+        }[event.key];
+        if (next === undefined) return;
+        event.preventDefault();
+        select(next, true);
+      });
+    });
+  });
+</script>

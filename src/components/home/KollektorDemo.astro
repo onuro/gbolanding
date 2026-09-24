@@ -1,0 +1,1000 @@
+---
+// Product stage under the hero: one Kollektor collection call, played as a
+// short scripted sequence. The debtor's phone stands on the emerald stage and
+// shows their side of the call (locked, ringing, answered, ended); the
+// Kollektor window beside it shows the operator's side:
+// the call state, the two recorded channels, a live caption transcript, the
+// tool results and the promise the call ends with. Choreography lives in
+// kollektor-demo/sequence.ts; timings are written into data attributes here,
+// so copy, timestamps and motion share one schedule.
+//
+// The script follows the real product (../kollektor): the agent waits for the
+// pick-up, calls on behalf of a law office, gives the recording notice, checks
+// the last four digits of the T.C. kimlik number before any debt detail,
+// states one legal consequence, proposes a concrete split, locks the promise
+// only after an explicit "kesin", and never thanks or comforts.
+import {
+  Check,
+  Pause,
+  Play,
+  ShieldCheck,
+} from "lucide-react";
+import PhoneDevice from "@/components/home/kollektor-demo/PhoneDevice.astro";
+import PromiseReceipt from "@/components/home/kollektor-demo/PromiseReceipt.astro";
+import MockShell from "@/components/ui/MockShell.astro";
+import StatusPill from "@/components/ui/StatusPill.astro";
+import type { Locale } from "@/i18n/config";
+import { getMessages } from "@/i18n/getMessages";
+
+interface Props {
+  locale: Locale;
+  /** Inside the ProductDemos tabs: no frame of its own, and an h3 under its h2. */
+  embedded?: boolean;
+}
+
+const { locale, embedded = false } = Astro.props;
+const Root = embedded ? "div" : "section";
+const Heading = embedded ? "h3" : "h2";
+const messages = await getMessages(locale);
+const isTr = locale === "tr";
+
+// Kollektor is Turkish-market only, so amounts stay in lira in both locales.
+const money = (value: number) => {
+  const digits = String(value).replace(/\B(?=(\d{3})+(?!\d))/g, isTr ? "." : ",");
+  return `₺${digits}`;
+};
+
+const pad = (value: number) => String(value).padStart(2, "0");
+// Keep in step with clock() in sequence.ts.
+const clock = (time: number) => {
+  const seconds = Math.max(0, Math.floor(time / 1000));
+  return `${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}`;
+};
+
+// One schedule, in ms from the moment Kollektor dials. The phone rings from
+// `ring` and is answered at `connect`; the call timer, the transcript and log
+// timestamps and the final duration all count from `connect`, so the ring is
+// never billed as talk time.
+const timing = {
+  ring: 700,
+  connect: 2500,
+  lines: [
+    { who: "debtor", start: 2750, end: 3150 },
+    { who: "agent", start: 3600, end: 6600 },
+    { who: "debtor", start: 6900, end: 7400 },
+    { who: "agent", start: 8300, end: 10300 },
+    { who: "debtor", start: 10600, end: 12100 },
+    { who: "agent", start: 12550, end: 14350 },
+    { who: "debtor", start: 14650, end: 15050 },
+    { who: "agent", start: 15500, end: 16750 },
+    { who: "debtor", start: 17050, end: 17550 },
+    { who: "agent", start: 18000, end: 20000 },
+  ],
+  steps: [
+    { at: 7450, done: 7850 },
+    { at: 7850, done: 8250 },
+    { at: 15900, done: 17900 },
+  ],
+  receipt: 18150,
+  end: 20300,
+  total: 20900,
+} as const;
+
+const endClock = clock(timing.end - timing.connect);
+
+const ui = isTr
+  ? {
+      heading: "Kollektor bir tahsilat aramasını nasıl yürütür",
+      description:
+        "Örnek bir aramada Kollektor borçlunun telefonunu arar. Borçlu açınca görüşmenin kayda alındığını söyler ve kimliği T.C. kimlik numarasının son dört hanesiyle doğrular; kimlik doğrulanmadan borç bilgisi paylaşılmaz. Ardından 14 gün geciken 12.500 liralık borcu bildirir, yarısı bugün, kalanı en geç cuma olmak üzere bir plan koyar ve borçlu teyit edince ödeme sözünü kaydeder.",
+      stageLabel: "Kollektor · Örnek arama",
+      sample: "Örnek veri",
+      translated: "",
+      pause: "Animasyonu duraklat",
+      play: "Animasyonu oynat",
+      callTitle: "Görüşme",
+      callMetaId: "T.C. ***4821",
+      callMetaPhone: "Tel. ***3412",
+      live: "Canlı",
+      ended: "Tamamlandı",
+      pill: { dial: "Aranıyor", ring: "Çalıyor" },
+      callStates: ["Aranıyor", "Çalıyor", "Görüşmede", "Tamamlandı"],
+      lanes: { debtor: "Borçlu", agent: "Kollektor AI" },
+      debtorState: { off: "—", quiet: "sessiz", talk: "konuşuyor", rec: "kaydedildi" },
+      agentState: {
+        off: "—",
+        listen: "dinliyor",
+        think: "düşünüyor",
+        talk: "konuşuyor",
+        rec: "kaydedildi",
+      },
+      speakers: { agent: "Kollektor AI", debtor: "Borçlu" },
+      lines: [
+        "Alo?",
+        "İyi günler, •••• Hukuk Bürosu adına arıyorum. Görüşme kayıt altına alınıyor. TC kimliğinizin son dört hanesi?",
+        "4821.",
+        "12.500 lira borcunuzun vadesi 14 gün önce geçti. Bugün kapatacak mısınız?",
+        "Bugün hepsi olmaz, maaş cuma. Nasıl yapalım?",
+        "Ödenmezse avukatlık ücreti eklenir. Yarısı bugün, kalanı en geç cuma.",
+        "Tamam.",
+        "Bugün 6.250 lira, kalanı cuma. Kesin mi?",
+        "Evet, kesin.",
+        "Sözünüzü kaydettim. Ödemeyi yaptıktan sonra bu numaradan bizi arayın. İyi günler.",
+      ],
+      closed: "Görüşme kapandı",
+      logTitle: "Araç sonuçları",
+      identity: {
+        title: "Kimlik",
+        unverified: "Doğrulanmadı",
+        verified: "Doğrulandı",
+        gate: "Borç bilgisi paylaşılmaz. Önce kimliği doğrula.",
+        open: "Borç bilgisi paylaşılabilir.",
+      },
+      steps: [
+        { title: "Kimlik doğrulama", detail: "TC son 4 hane eşleşti", pending: "" },
+        { title: "Borç bilgisi", detail: `${money(12500)} · 14 gün gecikme`, pending: "" },
+        {
+          title: "Ödeme sözü",
+          detail: `${money(6250)} bugün · ${money(6250)} cuma`,
+          pending: "Teyit bekleniyor",
+        },
+      ],
+      receipt: {
+        label: "Ödeme sözü",
+        status: "Söz verildi",
+        schedule: [
+          { when: "Bugün", amount: money(6250) },
+          { when: "Cuma · kalan", amount: money(6250) },
+        ],
+        note: "Stereo kayıt + transkript",
+      },
+      phone: {
+        caller: "•••• Hukuk Bürosu",
+        number: "0850 ••• •• 34",
+        lockTime: "10:24",
+        incoming: "gelen arama…",
+        decline: "Reddet",
+        accept: "Kabul Et",
+        ended: "Arama bitti",
+        capAgent: "AI:",
+        capDebtor: "Siz:",
+      },
+      capacityValue: "10.000",
+      capacityCaption: "günlük görüşme kapasitesi",
+      kvkkCaption: "uyumlu kayıt, transkriptler 90 günde silinir",
+    }
+  : {
+      heading: "How Kollektor runs a collection call",
+      description:
+        "In a sample call, Kollektor phones the debtor. Once they answer, it says the call is recorded and verifies their identity with the last four digits of their Turkish ID number; no debt details are shared before that. It then states the ₺12,500 debt that is 14 days overdue, sets a plan of half today and the rest by Friday, and records the promise once the debtor confirms it. The call is in Turkish; the captions are translated.",
+      stageLabel: "Kollektor · Sample call",
+      sample: "Sample data",
+      translated: "translated from Turkish",
+      pause: "Pause animation",
+      play: "Play animation",
+      callTitle: "Call",
+      callMetaId: "T.C. ***4821",
+      callMetaPhone: "Tel. ***3412",
+      live: "Live",
+      ended: "Completed",
+      pill: { dial: "Dialing", ring: "Ringing" },
+      callStates: ["Dialing", "Ringing", "On call", "Completed"],
+      lanes: { debtor: "Debtor", agent: "Kollektor AI" },
+      debtorState: { off: "—", quiet: "silent", talk: "speaking", rec: "recorded" },
+      agentState: {
+        off: "—",
+        listen: "listening",
+        think: "thinking",
+        talk: "speaking",
+        rec: "recorded",
+      },
+      speakers: { agent: "Kollektor AI", debtor: "Debtor" },
+      lines: [
+        "Hello?",
+        "Good day, calling on behalf of •••• Law Office. This call is being recorded. The last four digits of your ID number?",
+        "4821.",
+        "Your 12,500 lira debt went past due 14 days ago. Will you settle it today?",
+        "Not all of it today, I get paid Friday. How do we do this?",
+        "If it stays unpaid, attorney's fees are added. Half today, the rest by Friday at the latest.",
+        "Okay.",
+        "6,250 lira today, the rest Friday. Is that firm?",
+        "Yes, it's firm.",
+        "I've recorded your promise. Once you've paid, call us back on this number. Good day.",
+      ],
+      closed: "Call ended",
+      logTitle: "Tool results",
+      identity: {
+        title: "Identity",
+        unverified: "Not verified",
+        verified: "Verified",
+        gate: "No debt details until identity is verified.",
+        open: "Debt details can be shared.",
+      },
+      steps: [
+        { title: "Identity check", detail: "ID last 4 digits matched", pending: "" },
+        { title: "Debt details", detail: `${money(12500)} · 14 days overdue`, pending: "" },
+        {
+          title: "Payment promise",
+          detail: `${money(6250)} today · ${money(6250)} Friday`,
+          pending: "Awaiting confirmation",
+        },
+      ],
+      receipt: {
+        label: "Promise",
+        status: "Recorded",
+        schedule: [
+          { when: "Today", amount: money(6250) },
+          { when: "Friday · balance", amount: money(6250) },
+        ],
+        note: "Stereo recording + transcript",
+      },
+      phone: {
+        caller: "•••• Law Office",
+        number: "0850 ••• •• 34",
+        lockTime: "10:24",
+        incoming: "incoming call…",
+        decline: "Decline",
+        accept: "Accept",
+        ended: "Call ended",
+        capAgent: "AI:",
+        capDebtor: "You:",
+      },
+      capacityValue: "10,000",
+      capacityCaption: "daily call capacity",
+      kvkkCaption: "compliant records, transcripts purged after 90 days",
+    };
+
+// Phases, in order. The call-state row and every data-kd-when list use them.
+const PHASES = ["dial", "ring", "call", "ended"] as const;
+
+const script = timing.lines.map((line, index) => {
+  const text = ui.lines[index];
+  return {
+    ...line,
+    text,
+    words: text.split(" "),
+    stamp: clock(line.start - timing.connect),
+  };
+});
+
+const steps = timing.steps.map((step, index) => ({
+  ...step,
+  ...ui.steps[index],
+  wait: Boolean(ui.steps[index].pending),
+  stamp: clock(step.done - timing.connect),
+}));
+
+// Two recorded channels, as Kollektor stores them (debtor left, agent right).
+// While the call runs, each lane moves only while its party speaks; once it
+// ends the bars settle into the recording: tall where that party spoke along
+// the call, flat where they were silent.
+const LANE_BARS = 40;
+const laneBars = (who: "agent" | "debtor", seed: number) => {
+  const span = (timing.end - timing.connect) / LANE_BARS;
+  return Array.from({ length: LANE_BARS }, (_, i) => {
+    const from = timing.connect + i * span;
+    const to = from + span;
+    const spoke = timing.lines.some(
+      (line) => line.who === who && line.start < to && line.end > from,
+    );
+    const weight = 0.5 + 0.5 * Math.abs(Math.sin(i * 1.7 + seed) * Math.cos(i * 0.85 + seed));
+    return (spoke ? 0.3 + 0.6 * weight : 0.08).toFixed(3);
+  });
+};
+
+const lanes = [
+  { who: "debtor" as const, channel: "L", label: ui.lanes.debtor, bars: laneBars("debtor", 0.4) },
+  { who: "agent" as const, channel: "R", label: ui.lanes.agent, bars: laneBars("agent", 2.3) },
+];
+
+const receipt = {
+  label: ui.receipt.label,
+  amount: money(12500),
+  status: ui.receipt.status,
+  schedule: ui.receipt.schedule,
+  id: "call_1911_7f3a",
+  note: ui.receipt.note,
+};
+
+const recovered = messages.industries.items[0].stats[1];
+const kvkk = messages.kollektorDeep.guardrails.items[0];
+const proof = [
+  { value: ui.capacityValue, caption: ui.capacityCaption },
+  { value: recovered.value, caption: `${recovered.lead} ${recovered.rest}` },
+  { value: kvkk.title, caption: ui.kvkkCaption },
+];
+---
+
+<Root
+  aria-labelledby={embedded ? undefined : "kollektor-demo-heading"}
+  class={embedded ? undefined : "mx-auto w-full max-w-[83.75rem] border-x border-b border-border"}
+  data-kd-root
+  data-phase="ended"
+  data-speaker="ended"
+  data-debtor="rec"
+  data-agent="rec"
+  data-kd-ring={timing.ring}
+  data-kd-connect={timing.connect}
+  data-kd-end={timing.end}
+  data-kd-total={timing.total}
+>
+  <script is:inline>
+    (function () {
+      var root = document.currentScript && document.currentScript.parentElement;
+      if (!root || !window.matchMedia) return;
+      if (!window.matchMedia("(prefers-reduced-motion: no-preference)").matches) return;
+      var set = function (phase, speaker, debtor, agent) {
+        root.setAttribute("data-phase", phase);
+        root.setAttribute("data-speaker", speaker);
+        root.setAttribute("data-debtor", debtor);
+        root.setAttribute("data-agent", agent);
+      };
+      root.setAttribute("data-kd-boot", "");
+      set("dial", "idle", "off", "off");
+      // If the module never takes over, show the finished call rather than a
+      // phone that dials forever.
+      window.setTimeout(function () {
+        if (root.hasAttribute("data-kd-init")) return;
+        root.removeAttribute("data-kd-boot");
+        set("ended", "ended", "rec", "rec");
+      }, 5000);
+    })();
+  </script>
+
+  <Heading id="kollektor-demo-heading" class="sr-only">{ui.heading}</Heading>
+
+  <div class="pt-2 sm:pt-3">
+    <div
+      class="stage stage-dots px-4 pt-8 sm:px-6 sm:pt-12"
+      data-kd-stage
+    >
+      <div class="relative mb-4 flex items-center justify-between gap-3 sm:mb-5">
+        <p
+          class="inline-flex min-w-0 items-center gap-2 font-mono text-caption font-medium tracking-[0.08em] text-muted-foreground uppercase"
+        >
+          <span aria-hidden="true" class="size-1.5 shrink-0 rounded-full bg-brand"></span>
+          <span class="truncate">{ui.stageLabel}</span>
+        </p>
+        <div class="flex min-w-0 items-center gap-3">
+          <span
+            class="hidden truncate font-mono text-caption tracking-[0.08em] text-tertiary-foreground uppercase sm:inline"
+          >
+            {ui.sample}
+            {ui.translated && <span class="hidden md:inline"> · {ui.translated}</span>}
+          </span>
+          <button
+            type="button"
+            hidden
+            data-kd-toggle
+            data-state="playing"
+            data-label-pause={ui.pause}
+            data-label-play={ui.play}
+            aria-label={ui.pause}
+            class="grid size-7 shrink-0 cursor-pointer place-items-center rounded-full border border-border-strong bg-background/70 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+          >
+            <span data-kd-icon="pause" aria-hidden="true" class="grid place-items-center">
+              <Pause className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
+            </span>
+            <span data-kd-icon="play" aria-hidden="true" class="grid place-items-center">
+              <Play className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <p class="sr-only">{ui.description}</p>
+
+      <div aria-hidden="true" class="relative -mb-10">
+        <PhoneDevice copy={ui.phone} duration={endClock} caption={ui.lines[ui.lines.length - 1]} />
+
+        {/* The left margin is the handset (19.5em of its slot) plus the link
+            between them; see .kd-phone-slot and .kd-link in PhoneDevice.
+            lg: 19.5em at 0.75rem + 2.5rem link; xl: 19.5em at 1rem + 3rem link. */}
+        <MockShell
+          class="lg:ml-[17.125rem] xl:ml-[22.5rem]"
+          bodyClass="grid md:grid-cols-[minmax(0,1fr)_17rem] lg:h-[39rem] lg:grid-cols-[minmax(0,1fr)_16rem] xl:grid-cols-[minmax(0,1fr)_16.5rem]"
+        >
+          {/* Live call */}
+          <div class="flex min-h-0 min-w-0 flex-col overflow-hidden">
+            <div
+              class="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border px-4 sm:px-5"
+            >
+              <div class="min-w-0">
+                {/* Below 360px the finished-call pill leaves room for the case ID only. */}
+                <p class="truncate text-label-xs text-foreground">
+                  <span class="max-[359px]:hidden">{ui.callTitle} · </span>K-1911
+                </p>
+                <p class="mt-0.5 truncate font-mono text-micro text-tertiary-foreground">
+                  {ui.callMetaId}<span class="hidden sm:inline xl:hidden 2xl:inline"> · {ui.callMetaPhone}</span>
+                </p>
+              </div>
+              <div class="flex shrink-0 items-center gap-2">
+                <span data-kd-when="dial" class="inline-flex">
+                  <StatusPill tone="done" label={ui.pill.dial} />
+                </span>
+                <span data-kd-when="ring" class="inline-flex">
+                  <StatusPill tone="waiting" label={ui.pill.ring} />
+                </span>
+                <span
+                  data-kd-when="call"
+                  class="inline-flex h-5 shrink-0 items-center gap-1.5 rounded-full border border-brand-line bg-brand-soft px-2 text-micro font-medium whitespace-nowrap text-brand"
+                >
+                  <span class="relative flex size-1.5">
+                    <span class="absolute inline-flex size-full rounded-full bg-current opacity-60 motion-safe:animate-ping"></span>
+                    <span class="relative inline-flex size-1.5 rounded-full bg-current"></span>
+                  </span>
+                  {ui.live} · <span data-kd-time class="tabular-nums">00:00</span>
+                </span>
+                <span data-kd-when="ended" class="inline-flex">
+                  <StatusPill tone="done" label={`${ui.ended} · ${endClock}`} />
+                </span>
+              </div>
+            </div>
+
+            {/* Call state, in the product's own words. */}
+            <div
+              class="flex h-9 shrink-0 items-center gap-1.5 overflow-hidden border-b border-border px-4 sm:px-5"
+            >
+              {
+                ui.callStates.map((label, index) => (
+                  <>
+                    {index > 0 && <span class="h-px min-w-1 flex-1 bg-border" />}
+                    <span
+                      data-kd-cs={PHASES[index]}
+                      class="flex shrink-0 items-center gap-1.5 text-micro whitespace-nowrap"
+                    >
+                      <span class="kd-cs-dot size-1.5 rounded-full bg-current" />
+                      <span data-kd-cs-label>{label}</span>
+                    </span>
+                  </>
+                ))
+              }
+            </div>
+
+            {/* Two channels: debtor left, agent right. */}
+            <div class="flex shrink-0 flex-col gap-2 border-b border-border px-4 py-3 sm:px-5">
+              {
+                lanes.map((lane) => (
+                  <div class="flex items-center gap-3">
+                    <div class="w-28 shrink-0">
+                      <p class="flex items-center gap-1.5 text-caption text-foreground">
+                        <span class="grid size-4 shrink-0 place-items-center rounded-chip border border-border font-mono text-micro leading-none text-tertiary-foreground">
+                          {lane.channel}
+                        </span>
+                        <span class="truncate">{lane.label}</span>
+                      </p>
+                      <p class="mt-0.5 flex h-3.5 items-center pl-[1.375rem] text-micro">
+                        {lane.who === "debtor" ? (
+                          <>
+                            <span data-kd-dstate="off" class="text-faint-foreground">{ui.debtorState.off}</span>
+                            <span data-kd-dstate="quiet" class="text-tertiary-foreground">{ui.debtorState.quiet}</span>
+                            <span data-kd-dstate="talk" class="items-center gap-1 text-foreground">
+                              <span class="size-1 rounded-full bg-current" />
+                              {ui.debtorState.talk}
+                            </span>
+                            <span data-kd-dstate="rec" class="text-tertiary-foreground">{ui.debtorState.rec}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span data-kd-astate="off" class="text-faint-foreground">{ui.agentState.off}</span>
+                            <span data-kd-astate="listen" class="text-tertiary-foreground">{ui.agentState.listen}</span>
+                            <span data-kd-astate="think" class="items-center gap-1 text-brand">
+                              <span class="size-1 rounded-full bg-current motion-safe:animate-pulse" />
+                              {ui.agentState.think}
+                            </span>
+                            <span data-kd-astate="talk" class="items-center gap-1 text-brand">
+                              <span class="size-1 rounded-full bg-current" />
+                              {ui.agentState.talk}
+                            </span>
+                            <span data-kd-astate="rec" class="text-tertiary-foreground">{ui.agentState.rec}</span>
+                          </>
+                        )}
+                      </p>
+                    </div>
+                    <div
+                      data-kd-lane={lane.who}
+                      class="flex h-7 min-w-0 flex-1 items-center justify-between"
+                    >
+                      {lane.bars.map((rec) => (
+                        <span
+                          data-kd-bar
+                          class="kd-bar block h-full w-[2px] shrink-0 rounded-full"
+                          style={`--kd-rec: ${rec}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))
+              }
+            </div>
+
+            {/* Live caption log in a fixed window (22rem below lg, the rest of
+                the fixed-height column from lg). The list slides up as lines
+                land, like the product's auto-scroll, and is bottom-anchored,
+                so without the script the end of the call shows. */}
+            <div
+              data-kd-scroll
+              class="kd-scroll relative flex h-[22rem] min-h-0 flex-none flex-col justify-end overflow-hidden lg:h-auto lg:flex-1"
+            >
+              <ol
+                data-kd-list
+                class="relative flex shrink-0 flex-col gap-3.5 px-4 py-5 sm:px-5 lg:px-6"
+              >
+                {
+                  script.map((line) => (
+                    <li
+                      data-kd-line
+                      data-kd-gate
+                      data-kd-who={line.who}
+                      data-kd-start={line.start}
+                      data-kd-end={line.end}
+                    >
+                      <p class="flex items-baseline gap-2 text-micro">
+                        <span
+                          class:list={[
+                            "font-medium tracking-[0.06em] uppercase",
+                            line.who === "agent" ? "text-brand" : "text-foreground",
+                          ]}
+                        >
+                          {line.who === "agent" ? ui.speakers.agent : ui.speakers.debtor}
+                        </span>
+                        <span class="font-mono text-faint-foreground tabular-nums">
+                          {line.stamp}
+                        </span>
+                      </p>
+                      <div
+                        class:list={[
+                          "kd-rule relative mt-1 border-l-2 pl-3",
+                          line.who === "agent" ? "border-brand-line" : "border-border-strong",
+                        ]}
+                      >
+                        {line.who === "agent" ? (
+                          <p class="text-paragraph-xs text-foreground sm:max-md:text-paragraph-sm">
+                            {line.words.map((word, index) => (
+                              <>
+                                {index > 0 && " "}
+                                <span data-kd-word>{word}</span>
+                              </>
+                            ))}
+                          </p>
+                        ) : (
+                          <>
+                            <p
+                              data-kd-text
+                              class="text-paragraph-xs text-foreground sm:max-md:text-paragraph-sm"
+                            >
+                              {line.text}
+                            </p>
+                            <span
+                              data-kd-partial
+                              class="kd-partial absolute top-0 left-3 flex items-center gap-1 text-paragraph-xs text-tertiary-foreground sm:max-md:text-paragraph-sm"
+                              style="opacity: 0"
+                            >
+                              <i />
+                              <i />
+                              <i />
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </li>
+                  ))
+                }
+                <li data-kd-closed data-kd-gate class="flex items-center gap-3 pt-1">
+                  <span class="h-px flex-1 bg-border"></span>
+                  <span class="text-caption text-tertiary-foreground">
+                    {ui.closed} · <span class="font-mono">{endClock}</span>
+                  </span>
+                  <span class="h-px flex-1 bg-border"></span>
+                </li>
+              </ol>
+            </div>
+
+            <div class="px-4 pb-2 md:hidden">
+              <div data-kd-receipt data-kd-gate data-kd-at={timing.receipt}>
+                <PromiseReceipt {...receipt} />
+              </div>
+            </div>
+
+            <div class="h-14 shrink-0"></div>
+          </div>
+
+          {/* Tool results */}
+          <div
+            class="hidden min-h-0 flex-col overflow-hidden border-l border-border bg-foreground/[0.02] md:flex"
+          >
+            <div
+              class="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border px-4"
+            >
+              <p class="truncate text-label-xs text-foreground">{ui.logTitle}</p>
+              <span data-kd-count data-kd-gate class="data-label tabular-nums">
+                {steps.length} / {steps.length}
+              </span>
+            </div>
+
+            <div class="flex flex-col gap-1.5 p-3">
+              {/* KVKK gate: debt details stay closed until identity is checked. */}
+              <div
+                data-kd-identity
+                data-kd-at={timing.steps[0].done}
+                class="rounded-tile border border-border bg-background px-3 py-2.5"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <span class="data-label">{ui.identity.title}</span>
+                  <span class="grid justify-items-end">
+                    <span data-kd-unverified class="col-start-1 row-start-1 inline-flex">
+                      <StatusPill tone="waiting" label={ui.identity.unverified} />
+                    </span>
+                    <span
+                      data-kd-verified
+                      data-kd-gate
+                      class="col-start-1 row-start-1 inline-flex h-5 items-center gap-1 rounded-full border border-brand-line bg-brand-soft px-2 text-micro font-medium whitespace-nowrap text-brand"
+                    >
+                      <ShieldCheck className="size-3" strokeWidth={2} aria-hidden="true" />
+                      {ui.identity.verified}
+                    </span>
+                  </span>
+                </div>
+                <div class="mt-1.5 grid text-caption">
+                  <p data-kd-unverified class="col-start-1 row-start-1 text-attention-ink">
+                    {ui.identity.gate}
+                  </p>
+                  <p
+                    data-kd-verified
+                    data-kd-gate
+                    class="col-start-1 row-start-1 text-muted-foreground"
+                  >
+                    {ui.identity.open}
+                  </p>
+                </div>
+              </div>
+
+              <ol class="flex flex-col gap-1.5">
+                {
+                  steps.map((step) => (
+                    <li
+                      data-kd-step
+                      data-kd-gate
+                      data-kd-at={step.at}
+                      data-kd-done={step.done}
+                      class="flex gap-2.5 rounded-tile border border-border bg-background px-3 py-2.5"
+                    >
+                      <span class="relative mt-px flex size-4 shrink-0 items-center justify-center">
+                        <span
+                          data-kd-spin
+                          class:list={[
+                            "absolute inset-0.5 rounded-full border-[1.5px] motion-safe:animate-spin",
+                            step.wait
+                              ? "border-attention-line border-t-attention"
+                              : "border-brand-line border-t-brand",
+                          ]}
+                          style="opacity: 0"
+                        />
+                        <span
+                          data-kd-tick
+                          class="flex size-4 items-center justify-center rounded-full bg-brand-soft text-brand"
+                        >
+                          <Check className="size-2.5" strokeWidth={3} aria-hidden="true" />
+                        </span>
+                      </span>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-baseline justify-between gap-2">
+                          <span class="min-w-0 truncate data-value">{step.title}</span>
+                          <span
+                            data-kd-final={step.wait ? "" : undefined}
+                            class="shrink-0 font-mono text-micro text-faint-foreground tabular-nums"
+                          >
+                            {step.stamp}
+                          </span>
+                        </div>
+                        <div class="mt-0.5 grid text-caption">
+                          <p
+                            data-kd-final={step.wait ? "" : undefined}
+                            class="col-start-1 row-start-1 truncate text-muted-foreground"
+                          >
+                            {step.detail}
+                          </p>
+                          {step.wait && (
+                            <p
+                              data-kd-pending
+                              class="col-start-1 row-start-1 truncate text-attention-ink"
+                              style="opacity: 0"
+                            >
+                              {step.pending}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  ))
+                }
+              </ol>
+
+              <div class="pt-1.5" data-kd-receipt data-kd-gate data-kd-at={timing.receipt}>
+                <PromiseReceipt {...receipt} />
+              </div>
+            </div>
+          </div>
+        </MockShell>
+      </div>
+    </div>
+  </div>
+
+  <dl data-reveal-root class="grid border-t border-border sm:grid-cols-3">
+    {
+      proof.map((item, index) => (
+        <div
+          data-reveal
+          class:list={[
+            "flex flex-col gap-1.5 px-6 py-6 sm:px-8 sm:py-8",
+            index > 0 && "border-t border-border sm:border-t-0 sm:border-l",
+          ]}
+        >
+          <dt class="order-2 max-w-xs text-paragraph-sm text-muted-foreground">
+            {item.caption}
+          </dt>
+          <dd class="order-1 text-title-h4 text-foreground tabular-nums">{item.value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</Root>
+
+<script>
+  import { initKollektorDemo } from "@/components/home/kollektor-demo/sequence";
+
+  document
+    .querySelectorAll<HTMLElement>("[data-kd-root]")
+    .forEach((root) => initKollektorDemo(root));
+</script>
+
+<style is:global>
+  /* Phase switches. The markup ships the finished call ("ended"); the
+     sequence walks the root through dial, ring, call and ended. An element
+     with data-kd-when shows only in the phases it lists, and keeps its own
+     display value when it shows. */
+  [data-kd-root][data-phase="dial"] [data-kd-when]:not([data-kd-when~="dial"]),
+  [data-kd-root][data-phase="ring"] [data-kd-when]:not([data-kd-when~="ring"]),
+  [data-kd-root][data-phase="call"] [data-kd-when]:not([data-kd-when~="call"]),
+  [data-kd-root][data-phase="ended"] [data-kd-when]:not([data-kd-when~="ended"]) {
+    display: none;
+  }
+
+  /* Call-state row: done steps neutral, the current one brand, later ones
+     faint. Driven by the phase alone, so it is right before the script runs. */
+  [data-kd-root] [data-kd-cs] {
+    color: var(--faint-foreground);
+    transition: color 300ms ease;
+  }
+
+  [data-kd-root][data-phase="ring"] [data-kd-cs="dial"],
+  [data-kd-root][data-phase="call"] :is([data-kd-cs="dial"], [data-kd-cs="ring"]),
+  [data-kd-root][data-phase="ended"]
+    :is([data-kd-cs="dial"], [data-kd-cs="ring"], [data-kd-cs="call"]) {
+    color: var(--muted-foreground);
+  }
+
+  [data-kd-root][data-phase="dial"] [data-kd-cs="dial"],
+  [data-kd-root][data-phase="ring"] [data-kd-cs="ring"],
+  [data-kd-root][data-phase="call"] [data-kd-cs="call"],
+  [data-kd-root][data-phase="ended"] [data-kd-cs="ended"] {
+    color: var(--brand);
+  }
+
+  [data-kd-root] [data-kd-cs] .kd-cs-dot {
+    transition: box-shadow 300ms ease;
+  }
+
+  [data-kd-root][data-phase="dial"] [data-kd-cs="dial"] .kd-cs-dot,
+  [data-kd-root][data-phase="ring"] [data-kd-cs="ring"] .kd-cs-dot,
+  [data-kd-root][data-phase="call"] [data-kd-cs="call"] .kd-cs-dot,
+  [data-kd-root][data-phase="ended"] [data-kd-cs="ended"] .kd-cs-dot {
+    box-shadow: 0 0 0 3px var(--brand-soft);
+  }
+
+  /* Phones: only the current step keeps its label. */
+  @media (max-width: 39.999rem) {
+    [data-kd-root] [data-kd-cs-label] {
+      display: none;
+    }
+
+    [data-kd-root][data-phase="dial"] [data-kd-cs="dial"] [data-kd-cs-label],
+    [data-kd-root][data-phase="ring"] [data-kd-cs="ring"] [data-kd-cs-label],
+    [data-kd-root][data-phase="call"] [data-kd-cs="call"] [data-kd-cs-label],
+    [data-kd-root][data-phase="ended"] [data-kd-cs="ended"] [data-kd-cs-label] {
+      display: inline;
+    }
+  }
+
+  /* Lane status words. */
+  [data-kd-root] [data-kd-dstate],
+  [data-kd-root] [data-kd-astate] {
+    display: none;
+  }
+
+  [data-kd-root][data-debtor="off"] [data-kd-dstate="off"],
+  [data-kd-root][data-debtor="quiet"] [data-kd-dstate="quiet"],
+  [data-kd-root][data-debtor="talk"] [data-kd-dstate="talk"],
+  [data-kd-root][data-debtor="rec"] [data-kd-dstate="rec"],
+  [data-kd-root][data-agent="off"] [data-kd-astate="off"],
+  [data-kd-root][data-agent="listen"] [data-kd-astate="listen"],
+  [data-kd-root][data-agent="think"] [data-kd-astate="think"],
+  [data-kd-root][data-agent="talk"] [data-kd-astate="talk"],
+  [data-kd-root][data-agent="rec"] [data-kd-astate="rec"] {
+    display: inline-flex;
+  }
+
+  /* Lanes: the recorded shape by default (the finished call); live, a lane
+     lights up only while its party speaks. */
+  [data-kd-root] .kd-bar {
+    transform: scaleY(var(--kd-rec, 0.3));
+    transform-origin: center;
+    background-color: color-mix(in oklch, var(--foreground) 30%, transparent);
+  }
+
+  [data-kd-root] [data-kd-lane="agent"] .kd-bar {
+    background-color: color-mix(in oklch, var(--brand) 55%, transparent);
+  }
+
+  [data-kd-root]:not([data-phase="ended"]) .kd-bar {
+    transition: background-color 240ms ease;
+  }
+
+  [data-kd-root][data-phase="ended"] .kd-bar {
+    transition:
+      transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 400ms ease;
+  }
+
+  [data-kd-root]:not([data-phase="ended"]) [data-kd-lane="debtor"] .kd-bar {
+    background-color: color-mix(in oklch, var(--foreground) 22%, transparent);
+  }
+
+  [data-kd-root]:not([data-phase="ended"]) [data-kd-lane="agent"] .kd-bar {
+    background-color: color-mix(in oklch, var(--brand) 35%, transparent);
+  }
+
+  [data-kd-root][data-speaker="debtor"] [data-kd-lane="debtor"] .kd-bar {
+    background-color: color-mix(in oklch, var(--foreground) 62%, transparent);
+  }
+
+  [data-kd-root][data-speaker="agent"] [data-kd-lane="agent"] .kd-bar {
+    background-color: var(--brand);
+  }
+
+  [data-kd-root][data-kd-boot] .kd-bar {
+    transform: scaleY(0.1);
+  }
+
+  /* Transcript. */
+  [data-kd-root] [data-kd-list] {
+    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  [data-kd-root] .kd-scroll {
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 1.25rem);
+    mask-image: linear-gradient(to bottom, transparent, #000 1.25rem);
+  }
+
+  [data-kd-root] .kd-rule {
+    transition: border-color 300ms ease;
+  }
+
+  [data-kd-root] [data-kd-line][data-kd-now][data-kd-who="agent"] .kd-rule {
+    border-color: var(--brand);
+  }
+
+  [data-kd-root] [data-kd-line][data-kd-now][data-kd-who="debtor"] .kd-rule {
+    border-color: color-mix(in oklch, var(--foreground) 55%, transparent);
+  }
+
+  /* Caret on the agent's newest word while its caption is still growing.
+     Absolutely placed, so it never reflows the line. */
+  [data-kd-root] [data-kd-word] {
+    position: relative;
+  }
+
+  [data-kd-root] [data-kd-tip]::after {
+    position: absolute;
+    top: 0.2em;
+    bottom: 0.15em;
+    left: calc(100% + 2px);
+    width: 2px;
+    border-radius: 1px;
+    background: var(--brand);
+    content: "";
+    animation: kd-caret 900ms linear infinite;
+  }
+
+  /* The debtor's line lands whole once they finish; until then, dots. */
+  [data-kd-root] .kd-partial {
+    height: 1.5em;
+  }
+
+  [data-kd-root] .kd-partial i {
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: currentColor;
+    animation: kd-dot 1s ease-in-out infinite;
+  }
+
+  [data-kd-root] .kd-partial i:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  [data-kd-root] [data-kd-partial] i:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  /* KVKK gate card: the markup shows it verified (the finished call); the
+     opening state, before the script runs, shows it unverified. */
+  [data-kd-root] [data-kd-unverified] {
+    opacity: 0;
+  }
+
+  [data-kd-root][data-kd-boot] [data-kd-unverified] {
+    opacity: 1;
+  }
+
+  /* A paused or off-screen call is still: CSS loops stop with the timeline. */
+  [data-kd-root][data-kd-paused] *,
+  [data-kd-root][data-kd-paused] *::before,
+  [data-kd-root][data-kd-paused] *::after {
+    animation-play-state: paused !important;
+  }
+
+  /* Held back only between the inline boot script and sequence.ts taking
+     over. If the module never runs, the failsafe shows everything (and the
+     boot script's own timer flips the root to the finished call). */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-kd-root][data-kd-boot] [data-kd-gate] {
+      opacity: 0;
+      animation: kd-failsafe 1ms linear 5s forwards;
+    }
+
+    [data-kd-root][data-kd-boot] [data-kd-unverified] {
+      animation: kd-failsafe-out 1ms linear 5s forwards;
+    }
+  }
+
+  @keyframes kd-failsafe {
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes kd-failsafe-out {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes kd-caret {
+    0%,
+    55% {
+      opacity: 1;
+    }
+    56%,
+    100% {
+      opacity: 0.15;
+    }
+  }
+
+  @keyframes kd-dot {
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: translateY(0);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+  }
+
+  [data-kd-toggle][data-state="playing"] [data-kd-icon="play"],
+  [data-kd-toggle][data-state="paused"] [data-kd-icon="pause"] {
+    display: none;
+  }
+</style>

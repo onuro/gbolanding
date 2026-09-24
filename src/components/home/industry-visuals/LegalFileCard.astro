@@ -1,0 +1,173 @@
+---
+// Legal: a law firm's enforcement file worked by Kollektor, handed to a lawyer
+// when the debtor disputes the debt. Decorative; see KollektorCallCard for
+// the data-seq contract.
+import { ArrowUpRight, Check, Clock, Lock, ScrollText } from "lucide-react";
+import MockShell from "@/components/ui/MockShell.astro";
+import type { Locale } from "@/i18n/config";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const ui =
+  locale === "tr"
+    ? {
+        title: "İcra dosyası",
+        meta: "Dosya 2025/***318 · Hukuk bürosu",
+        status: "Avukata devredildi",
+        amountLabel: "Alacak tutarı",
+        amount: "₺86.450",
+        type: "İlamsız takip",
+        debtorId: "T.C. ***2093",
+        events: [
+          { text: "Borçlu arandı, kimlik doğrulandı", time: "11:20", handoff: false },
+          { text: "Taksitli ödeme teklif edildi", time: "11:23", handoff: false },
+          {
+            text: "Borçlu borca itiraz etti. P1 önceliğiyle avukata devredildi.",
+            time: "11:26",
+            handoff: true,
+          },
+        ],
+        nextLabel: "Sonraki adım",
+        next: "Avukat borçluyu geri arayacak",
+        nextTime: "Bugün 16:00",
+        footer: "Görüşme notu dosyaya eklendi",
+        chip: "Transkript 90 günde silinir",
+      }
+    : {
+        title: "Enforcement file",
+        meta: "File 2025/***318 · Law firm",
+        status: "Handed to a lawyer",
+        amountLabel: "Claim amount",
+        amount: "$86,450",
+        type: "Unpaid receivable",
+        debtorId: "ID ***2093",
+        events: [
+          { text: "Debtor called, identity verified", time: "11:20", handoff: false },
+          { text: "Installment plan offered", time: "11:23", handoff: false },
+          {
+            text: "Debtor disputed the debt. Handed to a lawyer as P1.",
+            time: "11:26",
+            handoff: true,
+          },
+        ],
+        nextLabel: "Next step",
+        next: "Lawyer calls the debtor back",
+        nextTime: "Today 16:00",
+        footer: "Call note added to the file",
+        chip: "Transcript purged in 90 days",
+      };
+---
+
+<div class="relative">
+  <MockShell
+    title={ui.title}
+    meta={ui.meta}
+    status={{ tone: "waiting", label: ui.status }}
+    bodyClass="flex flex-col gap-4 p-4"
+  >
+    <div data-seq style="--i: 0" class="flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <p class="data-label truncate">{ui.amountLabel}</p>
+        <p class="data-figure mt-2">{ui.amount}</p>
+      </div>
+      <div class="flex min-w-0 flex-col items-end gap-1.5">
+        <span
+          class="block h-5 max-w-full truncate rounded-chip border border-border px-1.5 text-micro leading-[1.125rem] text-muted-foreground"
+        >
+          {ui.type}
+        </span>
+        <span class="font-mono text-micro text-tertiary-foreground">
+          {ui.debtorId}
+        </span>
+      </div>
+    </div>
+
+    <ol class="flex flex-col">
+      {
+        ui.events.map((event, index) => {
+          const last = index === ui.events.length - 1;
+          return (
+            <li
+              data-seq
+              style={`--i: ${index + 1}`}
+              class:list={["relative flex gap-3", !last && "pb-3"]}
+            >
+              {!last && (
+                <span class="absolute bottom-0 left-2 top-5 w-px -translate-x-1/2 bg-border" />
+              )}
+              <span
+                class:list={[
+                  "relative mt-px grid size-4 shrink-0 place-items-center rounded-full",
+                  event.handoff
+                    ? "bg-attention-soft text-attention-ink ring-1 ring-attention-line"
+                    : "bg-brand-soft text-brand",
+                ]}
+              >
+                {event.handoff ? (
+                  <ArrowUpRight className="size-2.5" strokeWidth={2.25} aria-hidden="true" />
+                ) : (
+                  <Check className="size-2.5" strokeWidth={2.25} aria-hidden="true" />
+                )}
+              </span>
+              <p
+                class:list={[
+                  "min-w-0 flex-1 text-paragraph-xs",
+                  event.handoff ? "text-foreground" : "text-muted-foreground",
+                ]}
+              >
+                {event.text}
+              </p>
+              <span class="shrink-0 pt-px font-mono text-micro text-tertiary-foreground">
+                {event.time}
+              </span>
+            </li>
+          );
+        })
+      }
+    </ol>
+
+    <div
+      data-seq
+      style="--i: 4"
+      class="flex items-center justify-between gap-3 rounded-tile border border-attention-line bg-attention-soft px-3 py-2.5"
+    >
+      <div class="flex min-w-0 items-center gap-2.5">
+        <Clock
+          className="size-4 shrink-0 text-attention-ink"
+          strokeWidth={1.75}
+          aria-hidden="true"
+        />
+        <div class="min-w-0">
+          <p class="text-micro text-attention-ink">{ui.nextLabel}</p>
+          <p class="truncate text-label-xs text-foreground">{ui.next}</p>
+        </div>
+      </div>
+      <span class="shrink-0 font-mono text-micro text-muted-foreground">
+        {ui.nextTime}
+      </span>
+    </div>
+
+    <div slot="footer" class="flex min-w-0 items-center gap-2">
+      <ScrollText
+        className="size-3.5 shrink-0 text-muted-foreground"
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
+      <span class="truncate text-caption text-muted-foreground">{ui.footer}</span>
+    </div>
+  </MockShell>
+
+  <div
+    data-seq
+    data-seq-pop
+    style="--i: 5"
+    class="absolute -bottom-5 right-5 hidden h-8 items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card px-3 text-caption text-foreground shadow-float sm:flex"
+  >
+    <Lock className="size-3.5 text-brand" strokeWidth={1.75} aria-hidden="true" />
+    {ui.chip}
+  </div>
+</div>

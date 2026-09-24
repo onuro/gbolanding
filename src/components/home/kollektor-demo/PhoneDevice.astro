@@ -1,0 +1,818 @@
+---
+// The debtor's handset, beside the Kollektor window on the product stage. It
+// shows the other end of the same call: a lock screen while Kollektor dials,
+// the incoming-call screen while it rings, then the in-call screen with a
+// running timer, a voice ring that reacts to whoever is talking and a live
+// caption, and finally "call ended". Every screen is in the markup and the
+// root's data-phase picks one, so the phone follows the same schedule as the
+// window without owning any timing of its own.
+//
+// Everything inside is sized in em off the slot's font size, so one layout
+// scales from the compact phone above the window (below lg) to the full
+// handset standing beside it (lg and up). Purely decorative: the parent
+// wrapper is aria-hidden and none of the "buttons" are real controls.
+import { Lock, Phone, PhoneOff, Scale } from "lucide-react";
+
+interface Props {
+  copy: {
+    caller: string;
+    number: string;
+    lockTime: string;
+    incoming: string;
+    decline: string;
+    accept: string;
+    ended: string;
+    capAgent: string;
+    capDebtor: string;
+  };
+  /** Final call length, mm:ss, for the ended screen. */
+  duration: string;
+  /** Caption shown in the markup (the last line); the sequence rewrites it. */
+  caption: string;
+}
+
+const { copy, duration, caption } = Astro.props;
+
+const RAY_COUNT = 40;
+const rays = Array.from({ length: RAY_COUNT }, (_, i) => ({
+  angle: ((360 / RAY_COUNT) * i).toFixed(1),
+  // Resting length once the line is closed: short and slightly uneven.
+  rest: (0.16 + 0.1 * Math.abs(Math.sin(i * 1.9))).toFixed(3),
+}));
+---
+
+<div class="kd-phone-slot">
+  <div class="kd-phone">
+    <span class="kd-phone-key kd-phone-key--action"></span>
+    <span class="kd-phone-key kd-phone-key--up"></span>
+    <span class="kd-phone-key kd-phone-key--down"></span>
+    <span class="kd-phone-key kd-phone-key--power"></span>
+
+    <div class="kd-phone-screen">
+      <div class="kd-status">
+        <span class="kd-status-time">{copy.lockTime}</span>
+        <span class="kd-island"></span>
+        <span class="kd-status-icons">
+          <svg viewBox="0 0 17 11" class="kd-status-signal" aria-hidden="true">
+            <rect x="0" y="7" width="3" height="4" rx="0.8"></rect>
+            <rect x="4.6" y="5" width="3" height="6" rx="0.8"></rect>
+            <rect x="9.2" y="2.5" width="3" height="8.5" rx="0.8"></rect>
+            <rect x="13.8" y="0" width="3" height="11" rx="0.8"></rect>
+          </svg>
+          <svg viewBox="0 0 25 12" class="kd-status-battery" aria-hidden="true">
+            <rect
+              x="0.5"
+              y="0.5"
+              width="21"
+              height="11"
+              rx="3.2"
+              fill="none"
+              stroke="currentColor"
+              stroke-opacity="0.45"></rect>
+            <rect x="2" y="2" width="15" height="8" rx="1.8"></rect>
+            <path d="M23 4v4c.8-.3 1.3-1.1 1.3-2S23.8 4.3 23 4z" fill-opacity="0.45"></path>
+          </svg>
+        </span>
+      </div>
+
+      {/* Lock screen: the phone before the call reaches it. */}
+      <div class="kd-screen kd-screen--lock" data-kd-screen="dial">
+        <Lock className="kd-lock-icon" strokeWidth={2} aria-hidden="true" />
+        <p class="kd-lock-time">{copy.lockTime}</p>
+      </div>
+
+      {/* Incoming call. */}
+      <div class="kd-screen kd-screen--call" data-kd-screen="ring">
+        <div class="kd-caller">
+          <p class="kd-caller-name">{copy.caller}</p>
+          <p class="kd-caller-sub">{copy.number}</p>
+          <p class="kd-caller-status kd-blink">{copy.incoming}</p>
+        </div>
+        <div class="kd-viz">
+          <span class="kd-ring"></span>
+          <span class="kd-ring"></span>
+          <span class="kd-ring"></span>
+          <span class="kd-avatar">
+            <Scale className="kd-avatar-icon" strokeWidth={1.5} aria-hidden="true" />
+          </span>
+        </div>
+        <div class="kd-grow"></div>
+        <div class="kd-answer">
+          <span class="kd-key">
+            <span class="kd-key-dot kd-key-dot--end">
+              <PhoneOff className="kd-key-icon" strokeWidth={2} aria-hidden="true" />
+            </span>
+            <span class="kd-key-label">{copy.decline}</span>
+          </span>
+          <span class="kd-key">
+            <span class="kd-accept-pulse">
+              <span class="kd-key-dot kd-key-dot--accept" data-kd-accept>
+                <Phone className="kd-key-icon" strokeWidth={2} aria-hidden="true" />
+              </span>
+            </span>
+            <span class="kd-key-label">{copy.accept}</span>
+          </span>
+        </div>
+      </div>
+
+      {/* In call, then call ended. */}
+      <div class="kd-screen kd-screen--call" data-kd-screen="call ended">
+        <div class="kd-caller">
+          <p class="kd-caller-name">{copy.caller}</p>
+          <p class="kd-caller-status tabular-nums">
+            <span data-kd-when="dial ring call" data-kd-time>00:00</span>
+            <span data-kd-when="ended">{copy.ended} · {duration}</span>
+          </p>
+        </div>
+        <div class="kd-viz">
+          {
+            rays.map((ray) => (
+              <span class="kd-ray" style={`--kd-angle: ${ray.angle}deg`}>
+                <i data-kd-ray style={`--kd-rest: ${ray.rest}`} />
+              </span>
+            ))
+          }
+          <span class="kd-avatar">
+            <Scale className="kd-avatar-icon" strokeWidth={1.5} aria-hidden="true" />
+          </span>
+        </div>
+        <div
+          class="kd-cap"
+          data-kd-cap
+          data-who="agent"
+          data-label-agent={copy.capAgent}
+          data-label-debtor={copy.capDebtor}
+        >
+          <div class="kd-cap-window" data-kd-cap-window>
+            <p>
+              <span class="kd-cap-who" data-kd-cap-who>{copy.capAgent}</span>
+              <span data-kd-cap-text>{caption}</span>
+            </p>
+          </div>
+        </div>
+        <div class="kd-grow"></div>
+        <div class="kd-controls">
+          <span class="kd-key-dot kd-key-dot--end kd-key-dot--hangup">
+            <PhoneOff className="kd-key-icon" strokeWidth={2} aria-hidden="true" />
+          </span>
+        </div>
+      </div>
+
+      <span class="kd-home"></span>
+    </div>
+  </div>
+
+  {/* Audio between the handset and the Kollektor window (lg and up): the
+      debtor's voice flows in, the agent's voice flows out. */}
+  <div class="kd-link">
+    <span class="kd-link-line"></span>
+    <span class="kd-link-flow kd-link-flow--in"><i></i><i></i><i></i></span>
+    <span class="kd-link-flow kd-link-flow--out"><i></i><i></i><i></i></span>
+    <span class="kd-link-cap kd-link-cap--phone"></span>
+    <span class="kd-link-cap kd-link-cap--app"></span>
+  </div>
+</div>
+
+<style is:global>
+  /* Slot: compact and cropped above the window below lg, a full handset
+     standing on the stage beside the window from lg. The window's left
+     margin in KollektorDemo.astro matches 19.5em + the link width here. */
+  .kd-phone-slot {
+    position: relative;
+    width: 19.5em;
+    height: 23.4em;
+    margin: 0 auto 1rem;
+    overflow: hidden;
+    font-size: 0.75rem;
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 2.2em), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 2.2em), transparent);
+  }
+
+  @media (min-width: 40rem) {
+    .kd-phone-slot {
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .kd-phone-slot {
+      position: absolute;
+      top: 0;
+      bottom: auto;
+      left: 0;
+      height: 100%;
+      margin: 0;
+      overflow: visible;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+  }
+
+  @media (min-width: 80rem) {
+    .kd-phone-slot {
+      font-size: 1rem;
+    }
+  }
+
+  /* Handset. Always dark, like the stage it stands on. */
+  .kd-phone {
+    position: relative;
+    width: 19.5em;
+    height: 39em;
+    padding: 0.5em;
+    border-radius: 3em;
+    background: linear-gradient(150deg, #4a4a4f, #1b1b1e 38%, #2c2c30 70%, #151517);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 14%),
+      inset 0 0 0 0.22em #0b0b0c,
+      0 0 0 1px rgb(0 0 0 / 55%),
+      0 2.4em 4em -1.6em rgb(0 0 0 / 75%);
+    color: #fff;
+  }
+
+  @media (min-width: 64rem) {
+    .kd-phone {
+      height: 100%;
+    }
+  }
+
+  .kd-phone-key {
+    position: absolute;
+    width: 0.24em;
+    border-radius: 0.2em;
+    background: linear-gradient(90deg, #3c3c40, #1e1e21);
+  }
+
+  .kd-phone-key--action {
+    top: 6.2em;
+    left: -0.2em;
+    height: 1.9em;
+  }
+
+  .kd-phone-key--up {
+    top: 9.2em;
+    left: -0.2em;
+    height: 3.2em;
+  }
+
+  .kd-phone-key--down {
+    top: 13.1em;
+    left: -0.2em;
+    height: 3.2em;
+  }
+
+  .kd-phone-key--power {
+    top: 10.4em;
+    right: -0.2em;
+    height: 4.8em;
+  }
+
+  .kd-phone-screen {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 2.5em;
+    background: #0b0b0d;
+    isolation: isolate;
+  }
+
+  .kd-status {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 3;
+    display: flex;
+    height: 2.9em;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.15em 1.55em 0 1.95em;
+  }
+
+  .kd-status-time {
+    font-size: 0.95em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+  }
+
+  .kd-island {
+    position: absolute;
+    top: 0.6em;
+    left: 50%;
+    width: 6.2em;
+    height: 1.8em;
+    margin-left: -3.1em;
+    border-radius: 1em;
+    background: #000;
+  }
+
+  .kd-status-icons {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    fill: currentColor;
+  }
+
+  .kd-status-signal {
+    width: 1.2em;
+    height: 0.78em;
+  }
+
+  .kd-status-battery {
+    width: 1.75em;
+    height: 0.85em;
+  }
+
+  .kd-home {
+    position: absolute;
+    bottom: 0.55em;
+    left: 50%;
+    z-index: 3;
+    width: 6.4em;
+    height: 0.32em;
+    margin-left: -3.2em;
+    border-radius: 1em;
+    background: rgb(255 255 255 / 55%);
+  }
+
+  /* Screens sit on top of each other; the root's phase shows one. */
+  .kd-screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 2.9em;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(0.6em);
+    transition:
+      opacity 360ms ease,
+      transform 480ms var(--ease-out-quint),
+      visibility 0s linear 480ms;
+  }
+
+  [data-kd-root][data-phase="dial"] .kd-screen[data-kd-screen~="dial"],
+  [data-kd-root][data-phase="ring"] .kd-screen[data-kd-screen~="ring"],
+  [data-kd-root][data-phase="call"] .kd-screen[data-kd-screen~="call"],
+  [data-kd-root][data-phase="ended"] .kd-screen[data-kd-screen~="ended"] {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+      opacity 360ms ease,
+      transform 480ms var(--ease-out-quint),
+      visibility 0s;
+  }
+
+  .kd-screen--lock {
+    background:
+      radial-gradient(90% 55% at 25% 18%, rgb(5 221 135 / 30%), transparent 70%),
+      radial-gradient(80% 60% at 85% 95%, rgb(56 110 190 / 28%), transparent 70%),
+      #0b0f0e;
+  }
+
+  /* A screen that has just woken up for a call is brighter than one that
+     is still locked. */
+  [data-kd-root][data-phase="dial"] .kd-screen--lock {
+    opacity: 0.6;
+  }
+
+  .kd-lock-icon {
+    width: 1.1em;
+    height: 1.1em;
+    margin-top: 1.6em;
+    color: rgb(255 255 255 / 80%);
+  }
+
+  .kd-lock-time {
+    margin-top: 0.12em;
+    font-size: 4.4em;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    color: rgb(255 255 255 / 92%);
+  }
+
+  .kd-screen--call {
+    background:
+      radial-gradient(100% 45% at 50% 0%, rgb(255 255 255 / 7%), transparent 70%),
+      linear-gradient(180deg, #1c1c1f, #0f0f11 55%, #09090b);
+  }
+
+  .kd-caller {
+    display: flex;
+    height: 4.2em;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1.4em;
+    padding-inline: 1em;
+    text-align: center;
+  }
+
+  .kd-caller-name {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 1.4em;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .kd-caller-sub {
+    font-size: 0.85em;
+    line-height: 1.4;
+    color: rgb(255 255 255 / 55%);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .kd-caller-status {
+    font-size: 0.9em;
+    line-height: 1.4;
+    color: rgb(255 255 255 / 60%);
+  }
+
+  .kd-blink {
+    animation: kd-blink 2s ease-in-out infinite;
+  }
+
+  /* Voice ring: the avatar, with rings while ringing or rays that follow
+     the voice once the call is live. */
+  .kd-viz {
+    position: relative;
+    width: 9.2em;
+    height: 9.2em;
+    flex: none;
+    margin-top: 1.2em;
+  }
+
+  .kd-avatar {
+    position: absolute;
+    inset: 2.1em;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: linear-gradient(160deg, #5d5d63, #34343a);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 18%);
+  }
+
+  .kd-avatar-icon {
+    width: 2.2em;
+    height: 2.2em;
+    color: rgb(255 255 255 / 88%);
+  }
+
+  .kd-ring {
+    position: absolute;
+    inset: 2.1em;
+    border: 1px solid color-mix(in oklch, var(--brand) 70%, transparent);
+    border-radius: 999px;
+    opacity: 0;
+    animation: kd-ring 1.8s ease-out infinite;
+  }
+
+  .kd-ring:nth-child(2) {
+    animation-delay: 0.6s;
+  }
+
+  .kd-ring:nth-child(3) {
+    animation-delay: 1.2s;
+  }
+
+  .kd-ray {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    width: 0.22em;
+    height: 4.5em;
+    margin-left: -0.11em;
+    transform: rotate(var(--kd-angle));
+    transform-origin: 50% 100%;
+  }
+
+  .kd-ray i {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 1.55em;
+    border-radius: 1em;
+    background: rgb(255 255 255 / 22%);
+    transform: scaleY(var(--kd-rest, 0.2));
+    transform-origin: 50% 100%;
+    transition: background-color 240ms ease;
+  }
+
+  [data-kd-root][data-phase="ended"] .kd-ray i {
+    background: rgb(255 255 255 / 14%);
+    transition:
+      transform 700ms var(--ease-out-quint),
+      background-color 400ms ease;
+  }
+
+  [data-kd-root][data-speaker="agent"] .kd-ray i {
+    background: var(--brand);
+  }
+
+  [data-kd-root][data-speaker="debtor"] .kd-ray i {
+    background: rgb(255 255 255 / 80%);
+  }
+
+  /* Live caption: the tail of the current line, two lines at most. */
+  .kd-cap {
+    width: calc(100% - 2.6em);
+    flex: none;
+    margin-top: 1.4em;
+    padding: 0.55em 0.85em;
+    border-radius: 1em;
+    background: rgb(255 255 255 / 7%);
+    font-size: 0.9em;
+    line-height: 1.4;
+    color: rgb(255 255 255 / 78%);
+    transition: opacity 240ms ease;
+  }
+
+  /* Exactly two lines. The sequence keeps it scrolled to the end, so the
+     newest words stay in view and older ones scroll out of the top. */
+  .kd-cap-window {
+    height: 2.8em;
+    overflow: hidden;
+  }
+
+  .kd-cap[data-who="none"] {
+    opacity: 0;
+  }
+
+  [data-kd-root][data-phase="ended"] .kd-cap {
+    opacity: 0;
+  }
+
+  .kd-cap-who {
+    margin-right: 0.3em;
+    font-weight: 500;
+    color: rgb(255 255 255 / 95%);
+  }
+
+  .kd-cap[data-who="agent"] .kd-cap-who {
+    color: var(--brand);
+  }
+
+  .kd-grow {
+    flex: 1 1 0;
+  }
+
+  .kd-controls {
+    display: flex;
+    width: 100%;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.15em;
+    padding: 0 1.7em 2.1em;
+    transition: opacity 360ms ease;
+  }
+
+  [data-kd-root][data-phase="ended"] .kd-controls {
+    opacity: 0.35;
+  }
+
+  /* Decline / accept on the incoming-call screen: round key over a label. */
+  .kd-key {
+    display: flex;
+    width: 4.6em;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4em;
+  }
+
+  .kd-key-label {
+    font-size: 0.72em;
+    line-height: 1.3;
+    white-space: nowrap;
+    color: rgb(255 255 255 / 75%);
+  }
+
+  .kd-key-dot {
+    display: grid;
+    width: 3.9em;
+    height: 3.9em;
+    place-items: center;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 14%);
+  }
+
+  .kd-key-dot--end,
+  .kd-key-dot--accept {
+    width: 4.3em;
+    height: 4.3em;
+  }
+
+  .kd-key-dot--end {
+    background: var(--danger);
+  }
+
+  .kd-key-dot--accept {
+    background: var(--brand);
+    color: oklch(0.12 0.018 160);
+  }
+
+  .kd-key-icon {
+    width: 1.45em;
+    height: 1.45em;
+  }
+
+  .kd-key-dot--hangup .kd-key-icon {
+    width: 1.6em;
+    height: 1.6em;
+  }
+
+  .kd-answer {
+    display: flex;
+    width: 100%;
+    flex: none;
+    justify-content: space-between;
+    padding: 0 2.2em 3.3em;
+  }
+
+  .kd-accept-pulse {
+    display: grid;
+    border-radius: 999px;
+    animation: kd-accept 1.5s ease-in-out infinite;
+  }
+
+  /* Compact phone above the window: a smaller voice ring so the caption
+     still clears the crop. */
+  @media (max-width: 63.999rem) {
+    .kd-caller {
+      margin-top: 1.2em;
+    }
+
+    .kd-viz {
+      font-size: 0.75em;
+    }
+
+    .kd-cap {
+      margin-top: 1.1em;
+    }
+  }
+
+  /* Link between handset and window. Its width is the gap the window's
+     left margin leaves; its top is the centre of the voice ring. */
+  .kd-link {
+    display: none;
+    position: absolute;
+    top: 14.8em;
+    left: 100%;
+    width: 2.5rem;
+    height: 1em;
+    margin-top: -0.5em;
+  }
+
+  @media (min-width: 64rem) {
+    .kd-link {
+      display: block;
+    }
+  }
+
+  @media (min-width: 80rem) {
+    .kd-link {
+      width: 3rem;
+    }
+  }
+
+  .kd-link-line {
+    position: absolute;
+    top: 50%;
+    right: 0.3em;
+    left: 0.3em;
+    border-top: 1px dashed var(--border-strong);
+  }
+
+  .kd-link-cap {
+    position: absolute;
+    top: 50%;
+    width: 0.4em;
+    height: 0.4em;
+    margin-top: -0.2em;
+    border-radius: 999px;
+  }
+
+  .kd-link-cap--phone {
+    left: 0;
+    background: var(--tertiary-foreground);
+  }
+
+  .kd-link-cap--app {
+    right: 0;
+    background: var(--brand);
+  }
+
+  .kd-link-flow {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 300ms ease;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 25%, #000 75%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 25%, #000 75%, transparent);
+  }
+
+  .kd-link-flow--in {
+    color: var(--muted-foreground);
+  }
+
+  .kd-link-flow--out {
+    color: var(--brand);
+  }
+
+  .kd-link-flow i {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 0;
+    animation: kd-flow 1.1s linear infinite;
+  }
+
+  .kd-link-flow--out i {
+    animation-direction: reverse;
+  }
+
+  .kd-link-flow i:nth-child(2) {
+    animation-delay: -0.37s;
+  }
+
+  .kd-link-flow i:nth-child(3) {
+    animation-delay: -0.73s;
+  }
+
+  .kd-link-flow i::after {
+    position: absolute;
+    top: -2px;
+    right: 0;
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 0 6px currentColor;
+    content: "";
+  }
+
+  [data-kd-root][data-speaker="debtor"] .kd-link-flow--in,
+  [data-kd-root][data-speaker="agent"] .kd-link-flow--out {
+    opacity: 1;
+  }
+
+  [data-kd-root][data-phase="ring"] .kd-link-flow--out {
+    opacity: 0.55;
+  }
+
+  [data-kd-root][data-phase="ended"] .kd-link-cap--app {
+    background: var(--faint-foreground);
+  }
+
+  @keyframes kd-ring {
+    0% {
+      opacity: 0.85;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.8);
+    }
+  }
+
+  @keyframes kd-accept {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 color-mix(in oklch, var(--brand) 45%, transparent);
+    }
+    50% {
+      transform: scale(1.08);
+      box-shadow: 0 0 0 0.6em color-mix(in oklch, var(--brand) 0%, transparent);
+    }
+  }
+
+  @keyframes kd-blink {
+    0%,
+    100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes kd-flow {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+</style>

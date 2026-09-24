@@ -1,9 +1,13 @@
 ---
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Languages, Lock, Radio, ShieldCheck } from "lucide-react";
 
 import BlinkText from "@/components/BlinkText";
+import ProductPicker from "@/components/home/cta-parts/ProductPicker.astro";
 import WaitlistForm from "@/components/home/WaitlistForm.astro";
+import { LogoShape } from "@/components/logo";
+import MockShell from "@/components/ui/MockShell.astro";
 import type { Locale } from "@/i18n/config";
+import { pathFor } from "@/i18n/routes";
 import type { Messages } from "@/i18n/types";
 
 interface Props {
@@ -12,54 +16,160 @@ interface Props {
 }
 
 const { locale, messages } = Astro.props;
+
+// Unique per render so ids inside the card never collide if this section
+// appears more than once.
+const idBase = Math.random().toString(36).slice(2, 8);
+// Anchored to the home page: on /about a bare "#solutions" has no target.
+const solutionsHref = `${pathFor("home", locale)}#solutions`;
+
+const ui =
+  locale === "tr"
+    ? {
+        team: "GBO Vision ekibi",
+        products: "Kollektor · Intelval · Hastam · Özel yazılım",
+        privacy: "Yalnızca e-posta adresinizi istiyoruz.",
+        assurancesLabel: "Neden GBO Vision",
+        // Backed for Kollektor only (kollektorDeep FAQ + guardrails), so it
+        // names the product rather than reading as a company-wide badge.
+        kvkk: "Kollektor KVKK uyumlu",
+        languages: "Türkçe, İngilizce, Almanca",
+        live: "Kollektor ve Intelval canlıda",
+      }
+    : {
+        team: "GBO Vision team",
+        products: "Kollektor · Intelval · Hastam · Custom software",
+        privacy: "We only ask for your email address.",
+        assurancesLabel: "Why GBO Vision",
+        kvkk: "Kollektor is KVKK compliant",
+        languages: "Turkish, English, German",
+        live: "Kollektor and Intelval are live",
+      };
+
+const assurances = [
+  { label: ui.kvkk, Icon: ShieldCheck },
+  { label: ui.languages, Icon: Languages },
+  { label: ui.live, Icon: Radio },
+];
 ---
 
 <section
   id="demo"
   aria-labelledby="final-cta-heading"
   class="scroll-mt-20 border-b border-border bg-background"
+  data-reveal-root
 >
-  <div class="relative mx-auto w-full max-w-[83.75rem] overflow-hidden border-x border-border">
-    <div class="relative grid lg:grid-cols-12">
-      <div class="px-6 py-12 sm:px-8 sm:py-16 lg:col-span-7 lg:px-12 lg:py-20">
-        <p
-          class="inline-flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground"
-        >
-          <span aria-hidden="true" class="size-1.5 rounded-full bg-foreground/30"></span>
-          {messages.finalCta.eyebrow}
-        </p>
-        <h2
-          id="final-cta-heading"
-          class="mt-5 max-w-3xl text-balance text-3xl font-medium leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl"
-        >
-          <BlinkText client:visible text={messages.finalCta.title} />
-        </h2>
-        <p
-          class="mt-5 max-w-xl text-pretty text-base leading-7 text-muted-foreground sm:text-lg"
-        >
-          {messages.finalCta.description}
-        </p>
-      </div>
+  <div class="mx-auto w-full max-w-[83.75rem] border-x border-border">
+    <div class="grid lg:grid-cols-12">
+      {/* Statement */}
+      <div class="flex flex-col lg:col-span-6" data-reveal>
+        <div class="flex-1 px-6 py-14 sm:px-8 sm:py-16 lg:px-12 lg:py-24">
+          <p class="eyebrow">
+            <span class="eyebrow-mark" aria-hidden="true"></span>
+            {messages.finalCta.eyebrow}
+          </p>
+          <h2
+            id="final-cta-heading"
+            class="mt-5 max-w-2xl text-balance text-title-h2 text-foreground"
+          >
+            <BlinkText client:visible text={messages.finalCta.title} />
+          </h2>
+          <p
+            class="mt-6 max-w-xl text-pretty text-paragraph-lg text-muted-foreground"
+          >
+            {messages.finalCta.description}
+          </p>
 
-      <div
-        class="flex flex-col justify-center border-t border-border bg-card/30 px-6 py-12 sm:px-8 lg:col-span-5 lg:border-t-0 lg:border-l lg:px-10 lg:py-16"
-      >
-        <div class="pb-6">
-          <WaitlistForm locale={locale} messages={messages} />
+          <a
+            href={solutionsHref}
+            class="group mt-8 inline-flex min-h-11 w-fit items-center gap-2 text-label-sm text-foreground underline-offset-4 transition-colors hover:text-brand hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
+          >
+            {messages.finalCta.secondaryCta}
+            <ArrowRight
+              aria-hidden="true"
+              focusable="false"
+              className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+              strokeWidth={1.5}
+            />
+          </a>
         </div>
 
-        <a
-          href="#solutions"
-          class="group mt-1 inline-flex min-h-11 w-fit items-center gap-2 text-sm font-medium text-foreground underline-offset-4 transition-colors hover:text-brand hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
+        <ul
+          class="flex flex-wrap gap-x-6 gap-y-3 border-t border-border px-6 py-5 sm:px-8 lg:px-12"
+          aria-label={ui.assurancesLabel}
         >
-          {messages.finalCta.secondaryCta}
-          <ArrowRight
-            aria-hidden="true"
-            focusable="false"
-            className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-            strokeWidth={1.5}
-          />
-        </a>
+          {
+            assurances.map(({ label, Icon }) => (
+              <li class="inline-flex items-center gap-2 text-label-xs text-muted-foreground">
+                <Icon
+                  className="size-4 shrink-0 text-brand"
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                />
+                {label}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      {/* Contact card on the stage */}
+      <div
+        class="border-t border-border p-2 sm:p-3 lg:col-span-6 lg:border-t-0 lg:border-l"
+        data-reveal
+      >
+        <div
+          class="stage flex h-full items-center justify-center px-3 pb-10 pt-12 sm:px-10 sm:pb-14 sm:pt-16 lg:px-12 lg:pb-16 lg:pt-20"
+        >
+          <div class="relative w-full max-w-[28rem]">
+            {/* Two cards stacked behind the form, for depth. */}
+            <div
+              aria-hidden="true"
+              class="absolute inset-x-10 -top-5 h-16 rounded-shell border border-white/10 bg-white/5"
+            >
+            </div>
+            <div
+              aria-hidden="true"
+              class="absolute inset-x-5 -top-2.5 h-16 rounded-shell border border-white/15 bg-white/10"
+            >
+            </div>
+
+            <MockShell class="relative">
+              <div class="flex items-center gap-3 border-b border-border px-4 py-3.5 sm:px-5">
+                <span
+                  class="grid size-10 shrink-0 place-items-center rounded-full border border-brand-line bg-brand-soft text-brand"
+                  aria-hidden="true"
+                >
+                  <LogoShape glow={false} className="h-5 w-auto" aria-hidden="true" />
+                </span>
+                <div class="min-w-0">
+                  <p class="truncate text-title-h6 text-foreground">{ui.team}</p>
+                  <p class="mt-0.5 truncate text-caption text-tertiary-foreground">
+                    {ui.products}
+                  </p>
+                </div>
+              </div>
+
+              <div class="px-4 pb-5 pt-5 sm:px-5">
+                <WaitlistForm locale={locale} messages={messages} idBase={idBase}>
+                  <ProductPicker slot="before" locale={locale} />
+                </WaitlistForm>
+              </div>
+
+              <p
+                slot="footer"
+                class="flex min-w-0 items-center gap-2 text-caption text-tertiary-foreground"
+              >
+                <Lock
+                  className="size-3.5 shrink-0"
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                />
+                {ui.privacy}
+              </p>
+            </MockShell>
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -1,0 +1,56 @@
+---
+import StatusPill from "@/components/ui/StatusPill.astro";
+
+interface Props {
+  title?: string;
+  meta?: string;
+  status?: { tone?: "live" | "waiting" | "done"; label: string };
+  class?: string;
+  bodyClass?: string;
+  /** One surface. Skips the padded outer frame and the inner border. */
+  bare?: boolean;
+}
+
+const { title, meta, status, class: className, bodyClass, bare = false } = Astro.props;
+const hasHeader = Boolean(title || meta || status);
+const hasFooter = Astro.slots.has("footer");
+---
+
+<div
+  class:list={[
+    bare
+      ? "overflow-hidden rounded-card bg-background shadow-float"
+      : "rounded-shell border border-border bg-card p-1 shadow-float",
+    className,
+  ]}
+>
+  <div class:list={[!bare && "overflow-hidden rounded-card border border-border bg-background"]}>
+    {
+      hasHeader && (
+        <div class="flex min-h-11 items-center justify-between gap-3 border-b border-border px-4 py-2.5">
+          <div class="min-w-0">
+            {title && (
+              <p class="truncate text-label-xs text-foreground">{title}</p>
+            )}
+            {meta && (
+              <p class="mt-0.5 truncate text-micro text-tertiary-foreground">
+                {meta}
+              </p>
+            )}
+          </div>
+          {status && <StatusPill tone={status.tone} label={status.label} />}
+        </div>
+      )
+    }
+    <div class={bodyClass}>
+      <slot />
+    </div>
+    {
+      hasFooter && (
+        <div class="flex items-center justify-between gap-3 border-t border-border bg-foreground/[0.02] px-4 py-3">
+          <slot name="footer" />
+        </div>
+      )
+    }
+  </div>
+</div>

@@ -11,6 +11,16 @@ import BlinkText from "@/components/BlinkText";
 import EnterprisePhases from "@/components/home/EnterprisePhases.astro";
 import HastamProduct from "@/components/home/HastamProduct.astro";
 import ProductVideo from "@/components/home/ProductVideo.astro";
+import IntelvalReportCard from "@/components/home/solutions-mocks/IntelvalReportCard.astro";
+import KollektorCallCard from "@/components/home/solutions-mocks/KollektorCallCard.astro";
+import MockWell from "@/components/home/solutions-mocks/MockWell.astro";
+import {
+  formatPercent,
+  formatValue,
+  methodsFor,
+  positionOnRange,
+  valuation,
+} from "@/components/home/solutions-mocks/intelval-data";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
 
@@ -43,12 +53,9 @@ const visualCopy =
         // Converted at the TCMB rate for 11 Aug 2026, 47,7364 ₺/$.
         recoveredTotal: "₺1,2M",
         amounts: ["₺48.200", "₺12.750", "₺31.400", "₺7.900"],
-        analysis: "Analiz",
-        method: "Yöntem",
-        market: "Piyasa",
-        assets: "Varlıklar",
-        concluded: "Sonuçlanan değer",
-        valueRange: "Değer aralığı (M)",
+        analysis: "Konut",
+        concluded: "Tahmini değer",
+        valueRange: "₺ milyon",
         low: "Alt",
         high: "Üst",
         weight: "Ağırlık",
@@ -70,12 +77,9 @@ const visualCopy =
         escalated: "To your team",
         recoveredTotal: "$25K",
         amounts: ["$1,010", "$267", "$658", "$166"],
-        analysis: "Analysis",
-        method: "Method",
-        market: "Market",
-        assets: "Assets",
-        concluded: "Concluded value",
-        valueRange: "Value range (M)",
+        analysis: "Home",
+        concluded: "Estimated value",
+        valueRange: "₺ million",
         low: "Low",
         high: "High",
         weight: "Weight",
@@ -100,8 +104,10 @@ const caseRows = [
     amount: visualCopy.amounts[1],
     bar: 88,
   },
+  // Not K-1911: that case is the promise-to-pay call in the Kollektor demo
+  // above. This one is agreeing an instalment plan in the card's media well.
   {
-    id: "K-1911",
+    id: "K-1927",
     state: visualCopy.onCall,
     amount: visualCopy.amounts[2],
     bar: 46,
@@ -126,17 +132,10 @@ const caseStats = [
 const LIVE_WAVE = [38, 72, 54, 96, 62, 88, 44, 78, 58, 92, 48, 70, 36, 84, 52];
 const QUIET_WAVE = [22, 34, 26, 40, 30, 44, 24, 38, 28, 42, 26, 36, 22, 32, 24];
 
-// Three methods bracket a range, and the concluded figure is the output.
-const valuation = { low: 3.9, high: 4.6, concluded: 4.24 };
-const methods = [
-  { key: "DCF", label: visualCopy.method, value: "4.10", weight: 45 },
-  { key: "MKT", label: visualCopy.market, value: "3.90", weight: 30 },
-  { key: "NAV", label: visualCopy.assets, value: "4.60", weight: 25 },
-];
-const concludedAt = Math.round(
-  ((valuation.concluded - valuation.low) / (valuation.high - valuation.low)) *
-    100,
-);
+// Three methods bracket a range, and the concluded figure is the output. The
+// same numbers feed the draft report floating in the Intelval well.
+const methods = methodsFor(locale);
+const concludedAt = positionOnRange(valuation.concluded);
 ---
 
 <section
@@ -146,25 +145,25 @@ const concludedAt = Math.round(
 >
   <div
     class="grid grid-cols-1 border-b border-border lg:grid-cols-12 lg:items-end"
+    data-reveal-root
   >
-    <div class="px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12 lg:py-18">
-      <p
-        class="mb-5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
-      >
-        <span class="h-px w-5 bg-foreground/25" aria-hidden="true"></span>
+    <div class="px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12 lg:py-16" data-reveal>
+      <p class="eyebrow mb-5">
+        <span class="eyebrow-mark" aria-hidden="true"></span>
         {messages.intro.eyebrow}
       </p>
       <h2
         id="solutions-title"
-        class="max-w-3xl text-3xl font-medium leading-[1.1] tracking-[-0.035em] sm:text-5xl"
+        class="max-w-3xl text-title-h2"
       >
         <BlinkText client:visible text={messages.intro.title} />
       </h2>
     </div>
     <div
-      class="flex items-end border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:border-t-0 lg:px-10 lg:py-18"
+      class="flex items-end border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:border-t-0 lg:px-10 lg:py-16"
+      data-reveal
     >
-      <p class="max-w-lg text-pretty text-base leading-relaxed text-muted-foreground">
+      <p class="max-w-lg text-pretty text-paragraph-md text-muted-foreground">
         {messages.intro.description}
       </p>
     </div>
@@ -174,42 +173,52 @@ const concludedAt = Math.round(
     <div
       class="grid w-full min-w-0 grid-cols-1 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]"
     >
+    {/* Each article is its own reveal root, so on phones the second card still
+        lifts in when it arrives instead of with the first. The article itself
+        never fades: it is a cell of a hairline grid and would flash the rule
+        colour underneath. */}
     <article
       class="group relative flex min-h-[41rem] w-full min-w-0 flex-col overflow-hidden border-b border-border bg-background md:grid md:grid-rows-subgrid md:row-span-4 md:border-b-0 md:border-r"
+      data-reveal-root
     >
-      <div class="p-3" aria-hidden="true">
-        <div class="relative h-64 overflow-hidden rounded-[24px] bg-muted sm:h-80 md:h-72 xl:h-80">
-          <ProductVideo
-            image={kollektorImage}
-            widths={[480, 768, 1120, 1536]}
-            sizes="(min-width: 1340px) 756px, (min-width: 768px) calc(58.33vw - 24px), calc(100vw - 24px)"
-            position="45% 15%"
-            sources={[
-              { src: "/media/kollektor-human-conversation-1280.webm", type: "video/webm" },
-              { src: "/media/kollektor-human-conversation-1280.mp4", type: "video/mp4" },
-            ]}
-          />
-        </div>
+      <div class="p-3">
+        <MockWell
+          reveal
+          align="end"
+          class="h-full min-h-[26rem] pt-36 sm:min-h-[28rem] sm:pt-40"
+        >
+          <Fragment slot="media">
+            <ProductVideo
+              image={kollektorImage}
+              widths={[480, 768, 1120, 1536]}
+              sizes="(min-width: 1340px) 756px, (min-width: 768px) calc(58.33vw - 24px), calc(100vw - 24px)"
+              position="45% 15%"
+              sources={[
+                { src: "/media/kollektor-human-conversation-1280.webm", type: "video/webm" },
+                { src: "/media/kollektor-human-conversation-1280.mp4", type: "video/mp4" },
+              ]}
+            />
+          </Fragment>
+          <KollektorCallCard locale={locale} />
+        </MockWell>
       </div>
-      <div class="relative z-10 px-5 pt-8 sm:px-8 sm:pt-10">
+      <div class="relative z-10 px-5 pt-8 sm:px-8 sm:pt-10" data-reveal>
         <div class="flex items-start justify-between gap-6">
           <div class="min-w-0">
-            <p
-              class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
-            >
+            <p class="mb-3 text-label-sm text-tertiary-foreground">
               {kollektor.eyebrow}
             </p>
-            <h3 class="text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
+            <h3 class="text-title-h3">
               {kollektor.title}
             </h3>
           </div>
           <span
-            class="flex size-14 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground/70"
+            class="flex size-14 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground"
           >
             <Scale aria-hidden="true" className="size-6" strokeWidth={1.5} />
           </span>
         </div>
-        <p class="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
+        <p class="mt-4 max-w-2xl text-paragraph-md text-muted-foreground">
           {kollektor.description}
         </p>
 
@@ -219,14 +228,14 @@ const concludedAt = Math.round(
           {
             kollektor.highlights.map((highlight, index) => (
               <li class="flex items-baseline gap-2">
-                <span class="font-mono text-[10px] tabular-nums text-foreground/25">
+                <span class="data-label tabular-nums">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <span class="text-[10px] uppercase tracking-[0.08em] text-foreground/60">
+                <span class="text-label-xs text-muted-foreground">
                   {
                     highlightParts(highlight).map((part) =>
                       numberPart.test(part) ? (
-                        <span class="font-mono tabular-nums tracking-normal">{part}</span>
+                        <span class="font-mono tabular-nums">{part}</span>
                       ) : (
                         part
                       ),
@@ -244,13 +253,11 @@ const concludedAt = Math.round(
           <div
             class="flex items-center justify-between px-5 sm:px-8"
           >
-            <span
-              class="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/45"
-            >
+            <span class="data-label">
               Kollektor / {visualCopy.caseCommand}
             </span>
             <span
-              class="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-brand"
+              class="data-label flex items-center gap-2 text-brand"
             >
               <span class="size-1.5 rounded-full bg-brand"></span>
               {visualCopy.live}
@@ -260,11 +267,11 @@ const concludedAt = Math.round(
           <div class="grid grid-cols-3 border-b border-border">
             {
               caseStats.map((stat) => (
-                <div class="px-5 py-4 sm:px-8">
-                  <p class="text-3xl font-medium tabular-nums text-foreground/85 sm:text-4xl">
+                <div class="min-w-0 px-4 py-4 sm:px-8">
+                  <p class="text-2xl font-medium whitespace-nowrap tabular-nums text-foreground lg:text-4xl">
                     {stat.value}
                   </p>
-                  <p class="mt-1 truncate text-[10px] uppercase tracking-[0.14em] text-foreground/55 dark:text-foreground/30">
+                  <p class="data-label mt-1">
                     {stat.label}
                   </p>
                 </div>
@@ -273,7 +280,7 @@ const concludedAt = Math.round(
           </div>
 
           <div
-            class="grid grid-cols-[4.5rem_1fr_4.5rem] items-center gap-4 border-b border-border px-5 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/25 sm:grid-cols-[5rem_1fr_8.5rem_4.5rem] sm:px-8"
+            class="grid grid-cols-[4.5rem_1fr_4.5rem] items-center gap-4 border-b border-border px-5 py-2 data-label sm:grid-cols-[5rem_1fr_8.5rem_4.5rem] sm:px-8"
           >
             <span>{visualCopy.case}</span>
             <span>{visualCopy.callState}</span>
@@ -285,7 +292,7 @@ const concludedAt = Math.round(
             caseRows.map((row) => (
               <div
                 class:list={[
-                  "relative grid h-12 grid-cols-[4.5rem_1fr_4.5rem] items-center gap-4 border-b border-border px-5 font-mono text-[10px] last:border-b-0 sm:grid-cols-[5rem_1fr_8.5rem_4.5rem] sm:px-8",
+                  "relative grid h-12 grid-cols-[4.5rem_1fr_4.5rem] items-center gap-4 border-b border-border px-5 font-mono text-micro last:border-b-0 sm:grid-cols-[5rem_1fr_8.5rem_4.5rem] sm:px-8",
                   row.live && "bg-brand/[0.04]",
                 ]}
               >
@@ -298,7 +305,7 @@ const concludedAt = Math.round(
                 <span
                   class:list={[
                     "tabular-nums",
-                    row.live ? "text-foreground/85" : "text-foreground/45",
+                    row.live ? "text-foreground" : "text-tertiary-foreground",
                   ]}
                 >
                   {row.id}
@@ -327,18 +334,24 @@ const concludedAt = Math.round(
                 </span>
                 <span
                   class:list={[
-                    "hidden truncate text-[10px] uppercase tracking-[0.1em] sm:block",
+                    "data-label hidden truncate sm:block",
                     row.live && "text-brand",
-                    row.hold && "text-attention",
-                    !row.live && !row.hold && "text-foreground/35",
+                    row.hold && "text-attention-ink",
+                    !row.live && !row.hold && "text-tertiary-foreground",
                   ]}
                 >
-                  {row.live ? `${row.state} ${row.timer}` : row.state}
+                  {row.live ? (
+                    <>
+                      {row.state} <span data-call-timer>{row.timer}</span>
+                    </>
+                  ) : (
+                    row.state
+                  )}
                 </span>
                 <span
                   class:list={[
                     "text-right tabular-nums",
-                    row.live ? "text-foreground/85" : "text-foreground/35",
+                    row.live ? "text-foreground" : "text-tertiary-foreground",
                   ]}
                 >
                   {row.amount}
@@ -351,12 +364,12 @@ const concludedAt = Math.round(
 
       <a
         href="#kollektor"
-        class="relative z-20 flex min-h-14 items-center justify-between border-t border-border bg-background px-5 text-sm outline-none transition-colors group-hover:bg-foreground/[0.025] focus-visible:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:px-8"
+        class="relative z-20 flex min-h-14 items-center justify-between border-t border-border bg-background px-5 text-label-sm outline-none transition-colors group-hover:bg-foreground/[0.025] focus-visible:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:px-8"
       >
         {kollektor.cta}
         <ArrowUpRight
           aria-hidden="true"
-          className="size-4 text-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
+          className="size-4 text-tertiary-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
           strokeWidth={1.5}
         />
       </a>
@@ -364,37 +377,43 @@ const concludedAt = Math.round(
 
     <article
       class="group relative flex min-h-[41rem] w-full min-w-0 flex-col overflow-hidden bg-background md:grid md:grid-rows-subgrid md:row-span-4"
+      data-reveal-root
     >
-      <div class="p-3" aria-hidden="true">
-        <div class="h-64 overflow-hidden rounded-[24px] bg-muted sm:h-80 md:h-72 xl:h-80">
-          <Image
-            src={intelvalImage}
-            alt=""
-            width={1120}
-            widths={[480, 640, 960, 1120, 1536]}
-            sizes="(min-width: 1340px) 534px, (min-width: 768px) calc(41.67vw - 24px), calc(100vw - 24px)"
-            format="webp"
-            quality={72}
-            loading="lazy"
-            decoding="async"
-            class="h-full w-full object-cover"
-          />
-        </div>
+      <div class="p-3">
+        <MockWell
+          reveal
+          align="end"
+          class="h-full min-h-[26rem] pt-36 sm:min-h-[28rem] sm:pt-40"
+        >
+          <Fragment slot="media">
+            <Image
+              src={intelvalImage}
+              alt=""
+              width={1120}
+              widths={[480, 640, 960, 1120, 1536]}
+              sizes="(min-width: 1340px) 534px, (min-width: 768px) calc(41.67vw - 24px), calc(100vw - 24px)"
+              format="webp"
+              quality={72}
+              loading="lazy"
+              decoding="async"
+              class="absolute inset-0 h-full w-full object-cover"
+            />
+          </Fragment>
+          <IntelvalReportCard locale={locale} />
+        </MockWell>
       </div>
-      <div class="relative z-10 px-5 pt-8 sm:px-8 sm:pt-10">
+      <div class="relative z-10 px-5 pt-8 sm:px-8 sm:pt-10" data-reveal>
         <div class="flex items-start justify-between gap-6">
           <div class="min-w-0">
-            <p
-              class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/45"
-            >
+            <p class="mb-3 text-label-sm text-tertiary-foreground">
               {intelval.eyebrow}
             </p>
-            <h3 class="text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
+            <h3 class="text-title-h3">
               {intelval.title}
             </h3>
           </div>
           <span
-            class="flex size-14 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground/70"
+            class="flex size-14 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground"
           >
             <ChartNoAxesCombined
               aria-hidden="true"
@@ -403,7 +422,7 @@ const concludedAt = Math.round(
             />
           </span>
         </div>
-        <p class="mt-4 text-base leading-relaxed text-muted-foreground">
+        <p class="mt-4 text-paragraph-md text-muted-foreground">
           {intelval.description}
         </p>
 
@@ -413,14 +432,14 @@ const concludedAt = Math.round(
           {
             intelval.highlights.map((highlight, index) => (
               <li class="flex items-baseline gap-2">
-                <span class="font-mono text-[10px] tabular-nums text-foreground/25">
+                <span class="data-label tabular-nums">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <span class="text-[10px] uppercase tracking-[0.08em] text-foreground/60">
+                <span class="text-label-xs text-muted-foreground">
                   {
                     highlightParts(highlight).map((part) =>
                       numberPart.test(part) ? (
-                        <span class="font-mono tabular-nums tracking-normal">{part}</span>
+                        <span class="font-mono tabular-nums">{part}</span>
                       ) : (
                         part
                       ),
@@ -438,28 +457,22 @@ const concludedAt = Math.round(
           <div
             class="flex items-center justify-between px-5 sm:px-8"
           >
-            <span
-              class="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/45"
-            >
+            <span class="data-label">
               Intelval / {visualCopy.analysis}
             </span>
-            <span
-              class="font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/25"
-            >
+            <span class="data-label">
               {methods.length} {visualCopy.methodsLabel}
             </span>
           </div>
 
           <div class="flex flex-1 flex-col justify-center border-b border-border px-5 py-5 sm:px-8">
-            <p
-              class="font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/55 dark:text-foreground/30"
-            >
+            <p class="data-label">
               {visualCopy.concluded}
             </p>
             <p
-              class="mt-2 font-mono text-4xl tabular-nums leading-none tracking-[-0.02em] text-brand"
+              class="mt-2 text-3xl font-medium tabular-nums leading-none tracking-[-0.03em] text-brand sm:text-4xl"
             >
-              {valuation.concluded.toFixed(2)}
+              {formatValue(locale, valuation.concluded)}
             </p>
 
             <div class="mt-5">
@@ -471,7 +484,7 @@ const concludedAt = Math.round(
                   methods.map((method) => (
                     <span
                       class="absolute top-1/2 h-2 w-px -translate-y-1/2 bg-foreground/30"
-                      style={`left: ${Math.round(((Number(method.value) - valuation.low) / (valuation.high - valuation.low)) * 100)}%;`}
+                      style={`left: ${positionOnRange(method.value)}%;`}
                     />
                   ))
                 }
@@ -481,11 +494,11 @@ const concludedAt = Math.round(
                 ></span>
               </div>
               <div
-                class="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-foreground/30"
+                class="data-label flex items-center justify-between gap-3"
               >
-                <span>{visualCopy.low} {valuation.low.toFixed(2)}</span>
-                <span>{visualCopy.valueRange}</span>
-                <span>{valuation.high.toFixed(2)} {visualCopy.high}</span>
+                <span>{visualCopy.low} {formatValue(locale, valuation.low)}</span>
+                <span class="min-w-0 truncate">{visualCopy.valueRange}</span>
+                <span>{formatValue(locale, valuation.high)} {visualCopy.high}</span>
               </div>
             </div>
           </div>
@@ -495,20 +508,20 @@ const concludedAt = Math.round(
               methods.map((method, index) => (
                 <div
                   class:list={[
-                    "px-5 py-4 sm:px-6",
+                    "min-w-0 px-4 py-4 sm:px-6",
                     index !== 2 ? "border-r border-border" : "",
                   ]}
                 >
                   <div class="flex items-baseline justify-between gap-2">
-                    <span class="font-mono text-[10px] uppercase tracking-[0.14em] text-foreground/45">
+                    <span class="data-label">
                       {method.key}
                     </span>
-                    <span class="font-mono text-[10px] tabular-nums text-foreground/30">
-                      {method.weight}%
+                    <span class="text-micro tabular-nums text-tertiary-foreground">
+                      {formatPercent(locale, method.weight)}
                     </span>
                   </div>
-                  <p class="mt-2 font-mono text-lg tabular-nums text-foreground/85">
-                    {method.value}
+                  <p class="mt-2 text-lg font-medium tabular-nums text-foreground">
+                    {formatValue(locale, method.value)}
                   </p>
                   <span class="mt-3 block h-0.5 bg-foreground/[0.07]">
                     <span
@@ -516,7 +529,7 @@ const concludedAt = Math.round(
                       style={`width: ${method.weight * 2}%;`}
                     />
                   </span>
-                  <p class="mt-2 truncate font-mono text-[10px] uppercase tracking-[0.12em] text-foreground/50 dark:text-foreground/25">
+                  <p class="data-label mt-2">
                     {method.label}
                   </p>
                 </div>
@@ -528,19 +541,20 @@ const concludedAt = Math.round(
 
       <a
         href="#demo"
-        class="relative z-20 flex min-h-14 items-center justify-between border-t border-border bg-background px-5 text-sm outline-none transition-colors group-hover:bg-foreground/[0.025] focus-visible:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:px-8"
+        data-demo-product="intelval"
+        class="relative z-20 flex min-h-14 items-center justify-between border-t border-border bg-background px-5 text-label-sm outline-none transition-colors group-hover:bg-foreground/[0.025] focus-visible:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:px-8"
       >
         {intelval.cta}
         <ArrowUpRight
           aria-hidden="true"
-          className="size-4 text-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
+          className="size-4 text-tertiary-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
           strokeWidth={1.5}
         />
       </a>
     </article>
     </div>
 
-    <HastamProduct product={messages.solutions.hastam} />
+    <HastamProduct locale={locale} product={messages.solutions.hastam} />
     <EnterprisePhases locale={locale} messages={messages} />
   </div>
 </section>

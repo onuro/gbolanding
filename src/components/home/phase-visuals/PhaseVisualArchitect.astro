@@ -11,19 +11,28 @@ const { locale } = Astro.props;
 const copy =
   locale === "tr"
     ? {
-        title: "Mimari / Sistem tasarımı",
-        layerUnit: "katman",
+        title: "Sistem tasarımı",
+        meta: "Taslak v2 · 5 katman",
+        status: "İncelendi",
+        description:
+          "Örnek bir sistem tasarımı. Arayüzler, yapay zeka katmanı, servisler ve veri tek sistem olarak çizilir ve mevcut ERP, CRM ve e-posta araçlarına bağlanır.",
         layers: [
           { label: "Arayüzler", chips: ["Web", "Mobil", "Yönetim"] },
-          { label: "Yapay zeka", chips: ["Ajanlar", "Erişim", "Denetim"] },
+          { label: "Yapay zeka", chips: ["Ajanlar", "Bilgi erişimi", "Denetim"] },
           { label: "Servisler", chips: ["API", "Görevler", "Kimlik"] },
           { label: "Veri", chips: ["Model", "Depo", "Olaylar"] },
           { label: "Entegrasyon", chips: ["ERP", "CRM", "E-posta"] },
         ],
+        legendAi: "Yapay zeka katmanı",
+        legendNew: "Yeni sistem",
+        legendExisting: "Mevcut araçlar",
       }
     : {
-        title: "Architect / System design",
-        layerUnit: "layers",
+        title: "System design",
+        meta: "Draft v2 · 5 layers",
+        status: "Reviewed",
+        description:
+          "A sample system design. Surfaces, the AI layer, services and data are drawn as one system and connected to your existing ERP, CRM and email.",
         layers: [
           { label: "Surfaces", chips: ["Web", "Mobile", "Admin"] },
           { label: "AI layer", chips: ["Agents", "Retrieval", "Guardrails"] },
@@ -31,40 +40,76 @@ const copy =
           { label: "Data", chips: ["Model", "Store", "Events"] },
           { label: "Integrations", chips: ["ERP", "CRM", "Email"] },
         ],
+        legendAi: "AI layer",
+        legendNew: "New system",
+        legendExisting: "Existing tools",
       };
 
-// The AI layer is the part we build; everything else is the system it sits in.
+// The AI layer is the running core (brand). The last layer is the tools the
+// client already runs, drawn dashed; everything between is new.
 const CORE = 1;
+const EXISTING = copy.layers.length - 1;
 const layers = copy.layers.map((layer, index) => ({
   ...layer,
-  core: index === CORE,
+  kind: index === CORE ? "core" : index === EXISTING ? "existing" : "new",
 }));
+
+// Each row draws the wire down to the next row's node. Nodes sit 7px (stacked)
+// or 12px (side by side) below the row's top; rows are 10px apart, and the
+// dashed divider before the existing tools adds 4px margin, 1px border and
+// 14px padding. So a wire is its row's height plus the gap to the next node.
+const ROW_GAP = 10;
+const DIVIDER_GAP = ROW_GAP + 4 + 1 + 14;
 ---
 
 <PhaseVisualFrame
   title={copy.title}
-  meta={`0${layers.length} ${copy.layerUnit}`}
+  meta={copy.meta}
+  status={{ tone: "done", label: copy.status }}
+  description={copy.description}
 >
-  <div class="relative">
-    <span
-      class="absolute bottom-3 left-[0.3125rem] top-3 w-px bg-foreground/20"
-    ></span>
-    <ul class="space-y-2.5">
-      {
-        layers.map((layer) => (
-          <li class="relative grid gap-2 pl-6 sm:grid-cols-[6.5rem_1fr] sm:items-center sm:gap-4">
+  <ul class="flex flex-col gap-2.5">
+    {
+      layers.map((layer, index) => {
+        const next = layers[index + 1];
+        return (
+          <li
+            data-seq
+            class:list={[
+              "relative grid gap-1.5 pl-6 sm:grid-cols-[6.5rem_minmax(0,1fr)] sm:items-center sm:gap-4",
+              layer.kind === "existing" &&
+                "mt-1 border-t border-dashed border-border-strong pt-3.5",
+            ]}
+          >
+            {next && (
+              <span
+                data-seq="grow-y"
+                class:list={[
+                  "absolute left-[0.3125rem] top-[0.4375rem] w-0 origin-top border-l sm:top-3",
+                  next.kind === "existing"
+                    ? "border-dashed border-foreground/30"
+                    : "border-border-strong",
+                ]}
+                style={`height: calc(100% + ${next.kind === "existing" ? DIVIDER_GAP : ROW_GAP}px);`}
+              />
+            )}
             <span
               class:list={[
-                "absolute left-0 top-[0.375rem] size-2.5 rounded-full border",
-                layer.core
+                "absolute left-0 size-2.5 rounded-full border",
+                layer.kind === "existing"
+                  ? "top-4 sm:top-[1.3125rem]"
+                  : "top-0.5 sm:top-[0.4375rem]",
+                layer.kind === "core"
                   ? "border-brand bg-brand"
-                  : "border-foreground/30 bg-background",
+                  : layer.kind === "existing"
+                    ? "border-dashed border-foreground/40 bg-background"
+                    : "border-foreground/30 bg-background",
               ]}
             />
             <span
               class:list={[
-                "font-mono text-[10px] uppercase tracking-[0.14em]",
-                layer.core ? "text-brand" : "text-foreground/45",
+                "data-label",
+                layer.kind === "core" && "text-brand",
               ]}
             >
               {layer.label}
@@ -73,10 +118,12 @@ const layers = copy.layers.map((layer, index) => ({
               {layer.chips.map((chip) => (
                 <span
                   class:list={[
-                    "inline-flex h-6 items-center rounded-full border px-2.5 font-mono text-[10px] uppercase tracking-[0.08em]",
-                    layer.core
-                      ? "border-brand-line bg-brand-soft text-brand"
-                      : "border-border text-foreground/45",
+                    "inline-flex h-6 items-center rounded-chip border px-2 data-value",
+                    layer.kind === "core" &&
+                      "border-brand-line bg-brand-soft text-brand",
+                    layer.kind === "new" && "border-border bg-card",
+                    layer.kind === "existing" &&
+                      "border-dashed border-foreground/30 text-muted-foreground",
                   ]}
                 >
                   {chip}
@@ -84,8 +131,29 @@ const layers = copy.layers.map((layer, index) => ({
               ))}
             </span>
           </li>
-        ))
-      }
-    </ul>
+        );
+      })
+    }
+  </ul>
+
+  <div
+    slot="footer"
+    class="flex w-full flex-wrap items-center gap-x-4 gap-y-1.5"
+  >
+    <span class="flex items-center gap-1.5 data-label">
+      <span class="size-2 rounded-full bg-brand"></span>
+      {copy.legendAi}
+    </span>
+    <span class="flex items-center gap-1.5 data-label">
+      <span class="h-2.5 w-3.5 rounded-[3px] border border-border-strong bg-card"
+      ></span>
+      {copy.legendNew}
+    </span>
+    <span class="flex items-center gap-1.5 data-label">
+      <span
+        class="h-2.5 w-3.5 rounded-[3px] border border-dashed border-foreground/40"
+      ></span>
+      {copy.legendExisting}
+    </span>
   </div>
 </PhaseVisualFrame>

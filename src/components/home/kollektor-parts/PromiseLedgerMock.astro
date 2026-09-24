@@ -1,0 +1,250 @@
+---
+import MockShell from "@/components/ui/MockShell.astro";
+import StatusPill from "@/components/ui/StatusPill.astro";
+import type { Locale } from "@/i18n/config";
+import KollektorStage from "./KollektorStage.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const tr = locale === "tr";
+
+const ui = tr
+  ? {
+      title: "Ödeme sözleri ve tahsilat",
+      meta: "Mart tahsilat listesi · bugün",
+      status: "Güncel",
+      promised: "Ödeme sözü",
+      promisedNote: "Bu ay alınan sözler",
+      collected: "Tahsilat",
+      lastPayment: "Son ödeme",
+      ratio: "Sözlerin tahsil edilen kısmı",
+      record: "Kayıt",
+      time: "Saat",
+      amount: "Tutar",
+      state: "Durum",
+      awaiting: "Bekleniyor",
+      paid: "Ödendi",
+      callback: "Geri arama",
+      sr: "Ödeme sözlerini gerçekleşen tahsilatla yan yana gösteren bir özet. Toplam söz, tahsil edilen tutar ve saatiyle birlikte tek tek kayıtlar görünüyor.",
+    }
+  : {
+      title: "Promises and collections",
+      meta: "March recovery list · today",
+      status: "Up to date",
+      promised: "Promised",
+      promisedNote: "Promises taken this month",
+      collected: "Collected",
+      lastPayment: "Last payment",
+      ratio: "Share of promises collected",
+      record: "Record",
+      time: "Time",
+      amount: "Amount",
+      state: "Status",
+      awaiting: "Awaiting",
+      paid: "Paid",
+      callback: "Callback",
+      sr: "A summary that sets payment promises against actual collections: the promised total, the collected total and each record with its time.",
+    };
+
+const currency = tr ? "₺" : "$";
+const numbers = new Intl.NumberFormat(tr ? "tr-TR" : "en-US");
+const money = (value: number) => `${currency}${numbers.format(value)}`;
+
+const PROMISED = 1742500;
+const COLLECTED = 976400;
+const ratio = Math.round((COLLECTED / PROMISED) * 100);
+const ratioText = tr ? `%${ratio}` : `${ratio}%`;
+
+type Tone = "live" | "waiting" | "done";
+
+// One row per tone: a promise still waiting on the debtor, a paid one, and a
+// callback the system has already booked.
+const rows: { id: string; time: string; amount: number; tone: Tone; label: string }[] = [
+  { id: "K-0842", time: "18:00", amount: 12500, tone: "waiting", label: ui.awaiting },
+  { id: "K-0817", time: "14:00", amount: 8400, tone: "done", label: ui.paid },
+  { id: "K-0790", time: "17:30", amount: 21750, tone: "live", label: ui.callback },
+];
+
+const rowGrid =
+  "grid grid-cols-[minmax(0,1fr)_4.25rem_6rem] items-center gap-2 px-4 @sm:grid-cols-[minmax(0,1fr)_3.25rem_4.5rem_6.5rem] @sm:px-5";
+---
+
+<KollektorStage label={ui.sr} class="h-full">
+  <div class="w-full max-w-[34rem]" data-k-ledger data-locale={locale}>
+    <MockShell
+      title={ui.title}
+      meta={ui.meta}
+      status={{ tone: "done", label: ui.status }}
+      bodyClass="@container"
+    >
+      <div class="grid @md:grid-cols-2">
+        <div
+          class="border-b border-border px-4 py-5 @sm:px-5 @md:border-b-0 @md:border-r"
+        >
+          <p class="data-label">{ui.promised}</p>
+          <p
+            class="data-figure mt-3"
+            data-kl-count
+            data-to={PROMISED}
+            data-prefix={currency}
+          >
+            {money(PROMISED)}
+          </p>
+          <p class="mt-2 text-caption text-tertiary-foreground">
+            {ui.promisedNote}
+          </p>
+        </div>
+        <div class="px-4 py-5 @sm:px-5">
+          <p class="data-label">{ui.collected}</p>
+          <p
+            class="data-figure mt-3"
+            data-kl-count
+            data-to={COLLECTED}
+            data-prefix={currency}
+          >
+            {money(COLLECTED)}
+          </p>
+          <p class="mt-2 text-caption text-tertiary-foreground">
+            {ui.lastPayment} <span class="font-mono">14:00</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="border-t border-border px-4 py-4 @sm:px-5">
+        <div class="flex items-center justify-between gap-3">
+          <span class="min-w-0 truncate text-caption text-muted-foreground">
+            {ui.ratio}
+          </span>
+          <span
+            class="data-value"
+            data-kl-count
+            data-to={ratio}
+            data-prefix={tr ? "%" : ""}
+            data-suffix={tr ? "" : "%"}
+          >
+            {ratioText}
+          </span>
+        </div>
+        <div class="mt-2.5 h-2 overflow-hidden rounded-full bg-muted">
+          <span
+            class="block h-full rounded-full bg-brand"
+            style={`width:${ratio}%`}
+            data-kl-bar
+            data-to={ratio}
+          ></span>
+        </div>
+      </div>
+
+      <div class:list={[rowGrid, "border-t border-border bg-foreground/[0.02] py-2"]}>
+        <span class="data-label">{ui.record}</span>
+        <span class="hidden data-label @sm:block">{ui.time}</span>
+        <span class="data-label text-right">{ui.amount}</span>
+        <span class="data-label text-right">{ui.state}</span>
+      </div>
+      <ul>
+        {
+          rows.map((row) => (
+            <li
+              class:list={[rowGrid, "border-t border-border py-2.5"]}
+              data-kl-row
+            >
+              <span class="truncate font-mono text-caption text-tertiary-foreground">
+                {row.id}
+              </span>
+              <span class="hidden font-mono text-caption text-muted-foreground @sm:block">
+                {row.time}
+              </span>
+              <span class="data-value text-right">{money(row.amount)}</span>
+              <span class="flex justify-end">
+                <StatusPill tone={row.tone} label={row.label} />
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </MockShell>
+  </div>
+</KollektorStage>
+
+<script>
+  import { animate, stagger } from "animejs";
+  import { reducedMotion, watchVisibility } from "./motion";
+
+  // One-shot on first view: the two totals and the share count up, the bar
+  // fills, the records settle in. Already on screen at load means no replay.
+  function initLedger(root: HTMLElement) {
+    if (root.getBoundingClientRect().top < window.innerHeight) return;
+
+    const counters = [...root.querySelectorAll<HTMLElement>("[data-kl-count]")];
+    const bar = root.querySelector<HTMLElement>("[data-kl-bar]");
+    const rows = [...root.querySelectorAll<HTMLElement>("[data-kl-row]")];
+    const numbers = new Intl.NumberFormat(
+      root.dataset.locale === "tr" ? "tr-TR" : "en-US",
+      { maximumFractionDigits: 0 },
+    );
+
+    const write = (el: HTMLElement, value: number) => {
+      el.textContent = `${el.dataset.prefix ?? ""}${numbers.format(Math.round(value))}${el.dataset.suffix ?? ""}`;
+    };
+
+    let played = false;
+    let stop: (() => void) | null = null;
+
+    const run = () => {
+      if (played) return;
+      played = true;
+      stop?.();
+
+      counters.forEach((el, i) => {
+        const state = { value: 0 };
+        const target = Number(el.dataset.to) || 0;
+        animate(state, {
+          value: target,
+          duration: 1600,
+          delay: 150 + i * 120,
+          ease: "outExpo",
+          onUpdate: () => write(el, state.value),
+          onComplete: () => write(el, target),
+        });
+      });
+
+      if (bar) {
+        animate(bar, {
+          width: ["0%", `${Number(bar.dataset.to) || 0}%`],
+          duration: 1500,
+          delay: 300,
+          ease: "outExpo",
+        });
+      }
+
+      if (rows.length) {
+        animate(rows, {
+          opacity: [0, 1],
+          translateY: [8, 0],
+          duration: 650,
+          delay: stagger(110, { start: 600 }),
+          ease: "outQuint",
+        });
+      }
+    };
+
+    stop = watchVisibility(root, (active) => {
+      if (active) run();
+    }, 0.35);
+    if (!stop) return;
+
+    // Armed only once the observer exists, so a missing API keeps the totals.
+    counters.forEach((el) => write(el, 0));
+    if (bar) bar.style.width = "0%";
+    rows.forEach((row) => {
+      row.style.opacity = "0";
+    });
+  }
+
+  if (!reducedMotion()) {
+    document.querySelectorAll<HTMLElement>("[data-k-ledger]").forEach(initLedger);
+  }
+</script>

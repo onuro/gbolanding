@@ -1,0 +1,128 @@
+---
+import { Phone } from "lucide-react";
+import MockShell from "@/components/ui/MockShell.astro";
+import type { Locale } from "@/i18n/config";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+// The same call the console below lists as "on call": K-1927, ₺31.400 owed,
+// split into three instalments. (K-1911 belongs to the promise-to-pay call in
+// the Kollektor demo above, so it is not reused here.)
+const ui =
+  locale === "tr"
+    ? {
+        title: "Kollektor arıyor",
+        meta: "K-1927 · Mart tahsilat listesi",
+        live: "Canlı",
+        line: "Bugün ödeme yapabilir misiniz?",
+        plan: "Ödeme planı",
+        planValue: "3 taksit · ₺31.400",
+        summary:
+          "Örnek ekran: Kollektor, Mart tahsilat listesindeki K-1927 numaralı dosya için borçluyla görüşüyor ve üç taksitlik bir ödeme planı konuşuyor.",
+      }
+    : {
+        title: "Kollektor calling",
+        meta: "K-1927 · March recovery list",
+        live: "Live",
+        line: "Could you make a payment today?",
+        plan: "Payment plan",
+        planValue: "3 instalments · $658",
+        summary:
+          "Sample screen: Kollektor is on a call about case K-1927 from the March recovery list and is agreeing a three-instalment payment plan.",
+      };
+
+// Speech-shaped envelope: quiet at the edges, busiest in the middle. Each bar
+// gets its own tempo so the line never pulses in lockstep.
+const bars = Array.from({ length: 40 }, (_, i) => {
+  const t = i / 39;
+  const envelope = 0.35 + 0.65 * Math.sin(t * Math.PI);
+  const wobble = 0.45 + 0.55 * Math.abs(Math.sin(i * 1.9) * Math.cos(i * 0.7));
+  return {
+    height: Math.round(22 + envelope * wobble * 78),
+    tempo: 620 + ((i * 137) % 420),
+  };
+});
+---
+
+<div data-mock-seq="kollektor">
+  <p class="sr-only">{ui.summary}</p>
+  <div aria-hidden="true">
+    <MockShell
+      bare
+      title={ui.title}
+      meta={ui.meta}
+      status={{ tone: "live", label: ui.live }}
+      bodyClass="px-4 py-3.5"
+    >
+      <div class="flex items-center gap-3">
+        <span
+          class="grid size-8 shrink-0 place-items-center rounded-full border border-brand-line bg-brand-soft text-brand"
+        >
+          <Phone className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
+        </span>
+        <span class="kc-wave flex h-7 min-w-0 flex-1 items-center gap-[3px] overflow-hidden">
+          {
+            bars.map((bar, index) => (
+              <span
+                class="kc-bar w-[3px] shrink-0 rounded-full bg-brand"
+                style={`height: ${bar.height}%; --i: ${index}; --tempo: ${bar.tempo}ms;`}
+              />
+            ))
+          }
+        </span>
+        <span class="shrink-0 font-mono text-caption tabular-nums text-muted-foreground" data-call-timer>02:14</span>
+      </div>
+
+      <p
+        class="mt-3 w-fit max-w-full rounded-tile rounded-tl-chip bg-muted px-3 py-2 text-paragraph-sm text-foreground"
+        data-sm-part="line"
+      >
+        {ui.line}
+      </p>
+
+      <Fragment slot="footer">
+        {/* Wraps rather than clipping the amount on the narrowest phones. */}
+        <div class="flex w-full min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <span class="data-label">{ui.plan}</span>
+          <span class="data-value" data-sm-part="plan">{ui.planValue}</span>
+        </div>
+      </Fragment>
+    </MockShell>
+  </div>
+</div>
+
+<style>
+  .kc-wave {
+    -webkit-mask-image: linear-gradient(to right, black 80%, transparent);
+    mask-image: linear-gradient(to right, black 80%, transparent);
+  }
+
+  .kc-bar {
+    transform-origin: 50% 50%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .kc-bar {
+      animation: kc-talk var(--tempo) ease-in-out calc(var(--i) * -90ms)
+        infinite alternate;
+    }
+
+    /* Set by the sequencer while the card is off screen. */
+    [data-offscreen] .kc-bar {
+      animation-play-state: paused;
+    }
+  }
+
+  @keyframes kc-talk {
+    from {
+      transform: scaleY(0.35);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+</style>

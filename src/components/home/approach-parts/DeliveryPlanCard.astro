@@ -1,0 +1,124 @@
+---
+import { Check } from "lucide-react";
+
+import MockShell from "@/components/ui/MockShell.astro";
+import type { Locale } from "@/i18n/config";
+import StepHandoff from "./StepHandoff.astro";
+
+interface Props {
+  locale: Locale;
+  next: string;
+}
+
+type MilestoneState = "done" | "active" | "pending";
+
+const { locale, next } = Astro.props;
+
+const ui =
+  locale === "tr"
+    ? {
+        title: "Teslim planı",
+        meta: "4 kilometre taşı",
+        status: "Onay bekliyor",
+        review: "Sonraki inceleme: Perşembe",
+        states: { done: "Tamamlandı", active: "Taslakta", pending: "Sırada" },
+        milestones: [
+          { id: "H1", label: "Kapsam ve hedefler", state: "done" },
+          { id: "H2", label: "Kullanıcı akışı", state: "done" },
+          { id: "H3", label: "Entegrasyon planı", state: "active" },
+          { id: "H4", label: "Pilot ve eğitim", state: "pending" },
+        ],
+      }
+    : {
+        title: "Delivery plan",
+        meta: "4 milestones",
+        status: "Awaiting sign-off",
+        review: "Next review: Thursday",
+        states: { done: "Done", active: "Drafting", pending: "Queued" },
+        milestones: [
+          { id: "W1", label: "Scope and goals", state: "done" },
+          { id: "W2", label: "User flow", state: "done" },
+          { id: "W3", label: "Integration plan", state: "active" },
+          { id: "W4", label: "Pilot and training", state: "pending" },
+        ],
+      };
+
+const milestones = ui.milestones as {
+  id: string;
+  label: string;
+  state: MilestoneState;
+}[];
+---
+
+<MockShell
+  title={ui.title}
+  meta={ui.meta}
+  status={{ tone: "waiting", label: ui.status }}
+>
+  <div class="relative px-4 py-2">
+    {/* Rail through the disc centres: px-4 + id column + gap + half a disc.
+        It sits beside the list rather than inside it, so the list only holds
+        list items. */}
+    <span
+      aria-hidden="true"
+      class="absolute top-6 bottom-6 left-[calc(4.125rem-0.5px)] w-px bg-border sm:top-[1.625rem] sm:bottom-[1.625rem]"
+    ></span>
+    <ol>
+      {
+        milestones.map((milestone) => (
+          <li
+            class="relative grid grid-cols-[1.75rem_1.25rem_minmax(0,1fr)_auto] items-center gap-3 py-1.5 sm:py-2"
+            data-ap-item
+          >
+            <span class="font-mono text-micro tabular-nums text-tertiary-foreground">
+              {milestone.id}
+            </span>
+
+            {milestone.state === "done" && (
+              <span class="grid size-5 place-items-center rounded-full bg-foreground text-background">
+                <Check className="size-3" strokeWidth={2.25} aria-hidden="true" />
+              </span>
+            )}
+            {milestone.state === "active" && (
+              <span class="grid size-5 place-items-center rounded-full bg-background">
+                <span class="grid size-5 place-items-center rounded-full border border-brand-line bg-brand-soft">
+                  <span class="size-1.5 rounded-full bg-brand" />
+                </span>
+              </span>
+            )}
+            {milestone.state === "pending" && (
+              <span class="size-5 rounded-full border border-border-strong bg-background" />
+            )}
+
+            <span
+              class:list={[
+                "min-w-0 truncate",
+                milestone.state === "pending"
+                  ? "text-label-xs text-muted-foreground"
+                  : "data-value",
+              ]}
+            >
+              {milestone.label}
+            </span>
+            <span
+              class:list={[
+                "hidden text-caption sm:inline",
+                milestone.state === "active"
+                  ? "text-brand"
+                  : "text-tertiary-foreground",
+              ]}
+            >
+              {ui.states[milestone.state]}
+            </span>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+  <Fragment slot="footer">
+    <span class="hidden min-w-0 truncate text-caption text-tertiary-foreground sm:block">
+      {ui.review}
+    </span>
+    <StepHandoff locale={locale} next={next} />
+  </Fragment>
+</MockShell>

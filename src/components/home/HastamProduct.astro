@@ -1,60 +1,73 @@
 ---
 import ProductVideo from "@/components/home/ProductVideo.astro";
+import HastamBookingCard from "@/components/home/solutions-mocks/HastamBookingCard.astro";
+import MockWell from "@/components/home/solutions-mocks/MockWell.astro";
 import { ArrowUpRight, Stethoscope } from "lucide-react";
 import hastamImage from "@/assets/editorial/hastam-doctor-consultation.png";
+import type { Locale } from "@/i18n/config";
 import type { HastamSolutionMessage } from "@/i18n/types";
 
 interface Props {
+  locale: Locale;
   product: HastamSolutionMessage;
 }
 
-const { product } = Astro.props;
+const { locale, product } = Astro.props;
 ---
 
 <article
   id="hastam"
   aria-labelledby="hastam-title"
   class="group relative scroll-mt-16 overflow-hidden bg-background"
+  data-reveal-root
 >
   <div class="grid gap-px bg-border lg:grid-cols-2 xl:grid-cols-12">
     <div class="bg-background p-3 lg:order-2 lg:flex xl:col-span-5">
-      <div
-        class="relative h-72 w-full overflow-hidden rounded-[24px] bg-muted sm:h-96 lg:h-auto lg:min-h-[34rem] lg:flex-1"
+      {/* The exchange sits over the patient, so the doctor stays in view. */}
+      <MockWell
+        reveal
+        align="start"
+        class="w-full min-h-[28rem] pt-40 sm:min-h-[30rem] lg:min-h-[34rem] lg:flex-1"
       >
-        <ProductVideo
-          image={hastamImage}
-          label={product.imageAlt}
-          widths={[480, 768, 1120, 1536]}
-          sizes="(min-width: 1340px) 534px, (min-width: 1280px) calc(41.67vw - 24px), (min-width: 1024px) calc(50vw - 24px), calc(100vw - 24px)"
-          position="58% center"
-          sources={[{ src: "/media/hastam-doctor-consultation-960.mp4", type: "video/mp4" }]}
-        />
-      </div>
+        <Fragment slot="media">
+          <ProductVideo
+            image={hastamImage}
+            label={product.imageAlt}
+            widths={[480, 768, 1120, 1536]}
+            sizes="(min-width: 1340px) 534px, (min-width: 1280px) calc(41.67vw - 24px), (min-width: 1024px) calc(50vw - 24px), calc(100vw - 24px)"
+            position="58% center"
+            sources={[{ src: "/media/hastam-doctor-consultation-960.mp4", type: "video/mp4" }]}
+          />
+        </Fragment>
+        <HastamBookingCard locale={locale} />
+      </MockWell>
     </div>
 
     <div class="flex flex-col bg-background px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12 xl:col-span-7">
-      <div class="flex items-start justify-between gap-6">
-        <div class="min-w-0">
-          <p class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/55">
-            {product.eyebrow}
-          </p>
-          <h3 id="hastam-title" class="text-4xl font-medium tracking-[-0.035em] sm:text-5xl">
-            {product.title}
-          </h3>
+      <div data-reveal>
+        <div class="flex items-start justify-between gap-6">
+          <div class="min-w-0">
+            <p class="mb-3 text-label-sm text-tertiary-foreground">
+              {product.eyebrow}
+            </p>
+            <h3 id="hastam-title" class="text-title-h3">
+              {product.title}
+            </h3>
+          </div>
+          <span class="flex size-14 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground">
+            <Stethoscope aria-hidden="true" className="size-6" strokeWidth={1.5} />
+          </span>
         </div>
-        <span class="flex size-14 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground/70">
-          <Stethoscope aria-hidden="true" className="size-6" strokeWidth={1.5} />
-        </span>
+        <p class="mt-6 max-w-xl text-title-h4">
+          {product.headline}
+        </p>
+        <p class="mt-5 max-w-xl text-paragraph-md text-muted-foreground">
+          {product.description}
+        </p>
+        <p class="mt-7 max-w-xl border-t border-border pt-5 text-paragraph-sm text-muted-foreground">
+          {product.support}
+        </p>
       </div>
-      <p class="mt-6 max-w-xl text-2xl font-medium leading-[1.2] tracking-[-0.025em] sm:text-3xl">
-        {product.headline}
-      </p>
-      <p class="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
-        {product.description}
-      </p>
-      <p class="mt-7 max-w-xl border-t border-border pt-5 text-sm leading-relaxed text-muted-foreground">
-        {product.support}
-      </p>
     </div>
   </div>
 
@@ -65,12 +78,12 @@ const { product } = Astro.props;
         index < product.steps.length - 1 && "border-b border-border md:border-r md:border-b-0",
       ]}>
         <div class="mb-5" aria-hidden="true">
-          <span class="font-mono text-[11px] tabular-nums tracking-[0.1em] text-foreground/40">
+          <span class="data-label tabular-nums">
             {String(index + 1).padStart(2, "0")}
           </span>
         </div>
-        <h4 class="text-lg font-medium tracking-[-0.02em]">{step.title}</h4>
-        <p class="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
+        <h4 class="text-title-h6">{step.title}</h4>
+        <p class="mt-3 max-w-sm text-paragraph-sm text-muted-foreground">
           {step.description}
         </p>
       </li>
@@ -79,12 +92,13 @@ const { product } = Astro.props;
 
   <a
     href="#demo"
-    class="relative flex min-h-14 items-center justify-between gap-4 border-t border-border px-5 text-sm outline-none transition-colors hover:bg-foreground/[0.025] focus-visible:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:px-8"
+    data-demo-product="hastam"
+    class="relative flex min-h-14 items-center justify-between gap-4 border-t border-border px-5 text-label-sm outline-none transition-colors hover:bg-foreground/[0.025] focus-visible:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:px-8"
   >
     {product.cta}
     <ArrowUpRight
       aria-hidden="true"
-      className="size-4 text-foreground/40 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+      className="size-4 text-tertiary-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
       strokeWidth={1.5}
     />
   </a>

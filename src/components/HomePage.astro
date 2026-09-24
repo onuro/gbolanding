@@ -5,12 +5,14 @@ import ApproachSection from "@/components/home/ApproachSection.astro";
 import FinalCta from "@/components/home/FinalCta.astro";
 import HeroSection from "@/components/home/HeroSection.astro";
 import IndustriesSection from "@/components/home/IndustriesSection.astro";
+import ProductDemos from "@/components/home/ProductDemos.astro";
 import KollektorSection from "@/components/home/KollektorSection.astro";
 import PlatformSection from "@/components/home/PlatformSection.astro";
 import SolutionsGrid from "@/components/home/SolutionsGrid.astro";
 import ProofStrip from "@/components/home/ProofStrip.astro";
 import SiteFooter from "@/components/home/SiteFooter.astro";
 import SiteHeader from "@/components/home/SiteHeader.astro";
+import DecoSpacer from "@/components/ui/DecoSpacer.astro";
 
 interface Props {
   locale: Locale;
@@ -29,11 +31,16 @@ const skipLink = locale === "tr" ? "Ana içeriğe geç" : "Skip to content";
   <main id="main-content" tabindex="-1">
     <HeroSection locale={locale} messages={messages} />
     <ProofStrip locale={locale} messages={messages} />
+    <ProductDemos locale={locale} />
+    <DecoSpacer />
     <SolutionsGrid locale={locale} messages={messages} />
+    <DecoSpacer />
     <IndustriesSection locale={locale} messages={messages} />
     <KollektorSection locale={locale} messages={messages} />
+    <DecoSpacer />
     <PlatformSection locale={locale} messages={messages} />
     <ApproachSection locale={locale} messages={messages} />
+    <DecoSpacer />
     <FinalCta locale={locale} messages={messages} />
   </main>
 

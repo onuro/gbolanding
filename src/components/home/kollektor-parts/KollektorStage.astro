@@ -1,0 +1,52 @@
+---
+/**
+ * Visual well for a Kollektor chapter cell: the quiet dotted surface a
+ * MockShell floats on. The mock itself is decorative (aria-hidden); `label` is
+ * the one sentence screen readers get instead.
+ *
+ * `fixed` pins the well height from md up so side-by-side cells line up.
+ * `fade` lets a long mock (a list) run off the bottom edge into the surface.
+ */
+interface Props {
+  label: string;
+  fixed?: boolean;
+  fade?: boolean;
+  class?: string;
+}
+
+const { label, fixed = false, fade = false, class: className } = Astro.props;
+---
+
+<div
+  class:list={[
+    "stage-soft rounded-card",
+    fixed && "md:h-[26rem]",
+    className,
+  ]}
+>
+  <div
+    aria-hidden="true"
+    class:list={[
+      "flex justify-center px-3 py-8 sm:px-8",
+      fixed
+        ? "md:absolute md:inset-0 md:items-start md:px-5 md:pb-0 md:pt-8 lg:px-8"
+        : "h-full items-center sm:py-10",
+      fixed && fade && "k-stage-fade",
+    ]}
+  >
+    <slot />
+  </div>
+  <p class="sr-only">{label}</p>
+</div>
+
+<style>
+  @media (width >= 48rem) {
+    .k-stage-fade {
+      mask-image: linear-gradient(
+        to bottom,
+        black calc(100% - 2.75rem),
+        transparent
+      );
+    }
+  }
+</style>
