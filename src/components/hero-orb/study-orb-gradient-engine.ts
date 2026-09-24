@@ -78,6 +78,8 @@ export function createStudyOrbGradient(
     powerPreference: "high-performance",
   });
   renderer.setClearColor(new THREE.Color(...clearColor), 0);
+  // Initialise the backing buffer before asynchronous textures can arrive.
+  renderer.clear();
 
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
   camera.position.z = 1;
@@ -263,6 +265,7 @@ export function createStudyOrbGradient(
     (finalUniforms.u_resolution.value as THREE.Vector2).copy(
       drawingBufferSize
     );
+    renderer.clear();
     renderFinal();
   };
 

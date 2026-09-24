@@ -62,6 +62,7 @@ export function StudyOrbGradient({ className, theme }: StudyOrbGradientProps) {
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let cancelled = false;
+    let revealFrame = 0;
     let handle: StudyOrbGradientHandle | null = null;
 
     try {
@@ -72,7 +73,12 @@ export function StudyOrbGradient({ className, theme }: StudyOrbGradientProps) {
           }
         },
         onReady: () => {
-          if (!cancelled) setReady(true);
+          // Keep the GPU surface out of the first paint. The engine has drawn
+          // the selected texture; reveal it on the following animation frame.
+          if (cancelled) return;
+          revealFrame = requestAnimationFrame(() => {
+            if (!cancelled) setReady(true);
+          });
         },
       });
     } catch (error) {
@@ -133,6 +139,7 @@ export function StudyOrbGradient({ className, theme }: StudyOrbGradientProps) {
 
     return () => {
       cancelled = true;
+      cancelAnimationFrame(revealFrame);
       mimic?.stopMimicTalking();
       intersectionObserver.disconnect();
       window.removeEventListener("orb-level", onLevel);
@@ -159,6 +166,12 @@ export function StudyOrbGradient({ className, theme }: StudyOrbGradientProps) {
           ref={canvasRef}
           aria-hidden="true"
           data-shader-variant="study-orb"
+          // Inline visibility also protects the server-rendered loading state,
+          // before hydration or the opacity transition can run.
+          style={{
+            visibility: ready ? "visible" : "hidden",
+            backgroundColor: "transparent",
+          }}
           className={`absolute inset-0 block size-full transition-opacity duration-500 ${
             ready ? "opacity-100" : "opacity-0"
           }`}
