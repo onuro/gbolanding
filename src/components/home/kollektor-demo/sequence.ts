@@ -1,4 +1,4 @@
-// Scripted Kollektor call for the product stage under the hero.
+// Scripted Kollektor call for the product stage above the delivery phases.
 //
 // The markup ships the finished call (every caption, every tool result, the
 // receipt, the phone's "call ended" screen), so reduced-motion visitors and a

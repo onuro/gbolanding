@@ -8,7 +8,6 @@ import {
   Scale,
 } from "lucide-react";
 import BlinkText from "@/components/BlinkText";
-import EnterprisePhases from "@/components/home/EnterprisePhases.astro";
 import HastamProduct from "@/components/home/HastamProduct.astro";
 import ProductVideo from "@/components/home/ProductVideo.astro";
 import IntelvalReportCard from "@/components/home/solutions-mocks/IntelvalReportCard.astro";
@@ -105,7 +104,7 @@ const caseRows = [
     bar: 88,
   },
   // Not K-1911: that case is the promise-to-pay call in the Kollektor demo
-  // above. This one is agreeing an instalment plan in the card's media well.
+  // further down the page. This one is agreeing an instalment plan in the card's media well.
   {
     id: "K-1927",
     state: visualCopy.onCall,
@@ -555,6 +554,5 @@ const concludedAt = positionOnRange(valuation.concluded);
     </div>
 
     <HastamProduct locale={locale} product={messages.solutions.hastam} />
-    <EnterprisePhases locale={locale} messages={messages} />
   </div>
 </section>

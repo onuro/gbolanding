@@ -40,3 +40,7 @@ bun-debug.log*
 # leftover next
 /.next/
 /out/
+
+# hero-face build-time model cache (ICT-FaceKit source OBJs)
+/.cache
+/scripts/hero-face/node_modules

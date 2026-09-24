@@ -1,0 +1,14 @@
+{
+  "name": "hero-face-pipeline",
+  "private": true,
+  "type": "module",
+  "description": "Build-time pipeline that turns the ICT-FaceKit source OBJs into the hero face GLB. Not part of the site bundle.",
+  "dependencies": {
+    "@gltf-transform/core": "^4",
+    "@gltf-transform/extensions": "^4",
+    "@gltf-transform/functions": "^4",
+    "meshoptimizer": "^0.22",
+    "three": "0.185.1",
+    "three-mesh-bvh": "^0.9"
+  }
+}

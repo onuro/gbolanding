@@ -1,4 +1,4 @@
-// Scripted Hastam call for the product stage under the hero.
+// Scripted Hastam call for the product stage above the delivery phases.
 //
 // Ported from kollektor-demo/sequence.ts and re-prefixed (data-hd-*, hd-*) so
 // both demos can live on one page; fixes made there do not carry over.
