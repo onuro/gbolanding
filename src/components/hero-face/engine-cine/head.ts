@@ -31,7 +31,20 @@ export function createHeadGeometry(data: FaceMeshData): { geometry: THREE.Buffer
   const morphIndex: Record<string, number> = {};
   if (data.morphs.length) {
     g.morphAttributes.position = data.morphs.map((m) => new THREE.BufferAttribute(m.position, 3));
-    g.morphAttributes.normal = data.morphs.map((m) => new THREE.BufferAttribute(m.normal, 3));
+    // lip rounding (pucker / funnel) keeps its full normal change on the lips, but only 12 % of it on the cheeks:
+    // with the full change the cheek highlights flashed on and off with every rounded vowel (and speech drives pucker
+    // up to ~1.8 for a visibly rounded mouth)
+    const soft = new Set(['mouthPucker', 'mouthFunnel', 'mouthUpperUpLeft', 'mouthUpperUpRight']);
+    g.morphAttributes.normal = data.morphs.map((m) => {
+      if (!soft.has(m.name)) return new THREE.BufferAttribute(m.normal, 3);
+      const n = m.normal.slice();
+      for (let v = 0; v < n.length / 3; v++) {
+        const lip = Math.min(1, Math.max(0, data.feat[4 * v]! / 0.5));
+        const k = lip * lip; // (only the lips: the cheek / nasolabial fold flared with every strong pucker)
+        n[3 * v]! *= k; n[3 * v + 1]! *= k; n[3 * v + 2]! *= k;
+      }
+      return new THREE.BufferAttribute(n, 3);
+    });
     g.morphTargetsRelative = true;
     data.morphs.forEach((m, i) => (morphIndex[m.name] = i));
   }

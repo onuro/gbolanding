@@ -277,7 +277,13 @@ export interface LookParams {
   faceCine?: [number, number];
   // speaking lips (absent = off): upper-lip light at rest, upper-lip light added at full opening, lower-lip light
   // added at full opening, teeth ghost (default 0.06), mouth-socket ghost (default 0.004)
-  lipTalk?: [number, number, number, number, number];
+  lipTalk?: [number, number, number, number, number] | [number, number, number, number, number, number, number]; // + seal lip light, seal seam lift (0..1)
+  // the mouth interior (teeth / cavity ghost) as dots on the lattice pitch: dot gain, dot sigma (pitch units), smooth floor share
+  mouthDots?: [number, number, number];
+  /** speaking lips: brightness floor of the pouted upper lip (0..1 per unit of pout), so the everted lip reads as one lip, not two lit rows with a dark seam */
+  poutFill?: number;
+  /** speaking lips: share of the lip-seam shadow restored on the inner lips as the mouth opens (0..1), so an open mouth reads darker inside while a closure still reads as two lips pressed together */
+  mouthInnerDim?: number;
   harmFlow?: [number, number, number, number]; // shared curl flow: field amplitude (W), face amplitude (p), spatial frequency (1/W), tempo (1 = base)
   harmSize?: [number, number, number, number]; // dot-size breathing waves: field amplitude, face amplitude, brightness share, spatial frequency (1/W)
   harmWave?: [number, number, number, number]; // face-activity ripples: displacement (W), speed (W/s), ring width (W), decay (s)
@@ -1198,11 +1204,19 @@ PRESETS['planb-r1-cine-live-glow-turn'] = { ...PRESETS['planb-r1-cine-live-glow'
 
 // ---- THE APPROVED WOMAN, named explicitly. The owner approved mesh 'planb' + look approved-v002 ("NOW THATS A WOMAN");
 // the 'planb-r1*' links silently fell back to approved-v002 then (the preview routed only cine-* / harmony-* here).
-// speaking lips (lipTalk): both lips lit with the mouth opening, so she talks with lips instead of a dark void
-const LIP_TALK: [number, number, number, number, number] = [0.12, 0.5, 0.22, 0.02, 0.004];
-PRESETS['woman'] = { ...APPROVED_V002, lipTalk: LIP_TALK };
+// speaking lips (lipTalk): both lips lit with the mouth opening, so she talks with lips instead of a dark void; a
+// faint upper-teeth row (0.07: a hint behind the lips, as real mouths show on a / e / i; 0.16+ reads as a grey smear)
+// (teeth hint .17 -> .09 and the mouth-interior dots at about half: the owner asked for the inside of the mouth darker,
+// just a hint of the dots left; 2026-09-26)
+const LIP_TALK: [number, number, number, number, number, number, number] = [0.12, 0.5, 0.22, 0.09, 0.035, 0.35, 0.75];
+const MOUTH_DOTS: [number, number, number] = [1.2, 0.17, 0.15];
+const POUT_FILL = 0.35;
+// the eyes a little more visible (the owner, 2026-09-26): whites, iris, the frontal fill into the shadowed sockets, the
+// lash-line dots and the socket's floor each up a notch over the approved look
+const EYES_MORE = { scleraGhost: 0.055, irisGhost: 0.115, ghostFill: 0.07, lidLine: [0.18, 1] as [number, number], socket: [0.21, 0.13, 0.12, 0.012] as [number, number, number, number] };
+PRESETS['woman'] = { ...APPROVED_V002, lipTalk: LIP_TALK, mouthDots: MOUTH_DOTS, poutFill: POUT_FILL, mouthInnerDim: 0.7, ...EYES_MORE };
 // the woman + the cinematic layer (dodge, live dodge, bloom, glints, stars, field drift / life, light-only speech rings)
-PRESETS['woman-cine'] = { ...APPROVED_V002, ...cineFx(CINE_V004_ML_LIVE2), streakShare: 0, lipTalk: LIP_TALK };
+PRESETS['woman-cine'] = { ...APPROVED_V002, ...cineFx(CINE_V004_ML_LIVE2), streakShare: 0, lipTalk: LIP_TALK, mouthDots: MOUTH_DOTS, poutFill: POUT_FILL, mouthInnerDim: 0.7, ...EYES_MORE };
 // + the field / hair pulse (hot glowing hair and field dots, sparkling hair dots, drifting survivors)
 PRESETS['woman-cine-pulse'] = { ...PRESETS['woman-cine'], ...fieldLife(CINE_V004_ML_LIVE2) };
 // + glowing soft dots with a little size variety and the hot dots (the strongest dodge on the face)

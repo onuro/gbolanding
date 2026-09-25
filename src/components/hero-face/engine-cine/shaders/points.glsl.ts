@@ -910,6 +910,7 @@ uniform vec4 uVolQK2;    // volume haze knee: lit level above .x compresses soft
 uniform vec2 uT0OriginQ; // T0 / volume raster origin (device px, y down)
 uniform float uT0TexelQ;
 uniform vec2 uT0SizeQ;
+uniform vec4 uMouthDotQ; // speaking mouth interior as dots: dot gain, dot sigma (pitch units), smooth floor share (0 gain: off), pout dimming
 varying vec2 vUv;
 void main() {
   if (uView == 2) { gl_FragColor = vec4(vec3(textureLod(uGhost, vUv, uGhostLod + uLodOffQ).g), 1.0); return; }
@@ -921,7 +922,21 @@ void main() {
   float haze = mix(textureLod(uGhost, vUv, uHazeK.x + uLodOffQ).r, textureLod(uGhost, vUv, uHazeK.x + 2.0 + uLodOffQ).r, uHazeK.w);
   float cl0 = 0.25 + 1.5 * hf_fbm(vec3(h * uHazeK.z, 4.1));   // one cloud field for the face, seam and volume floors
   float cloud = mix(1.0, cl0, uHazeK.y);
-  float x = haze * cloud + textureLod(uGhost, vUv, uGhostLod + uLodOffQ).b;
+  float bg = textureLod(uGhost, vUv, uGhostLod + uLodOffQ).b;
+  if (uMouthDotQ.x > 0.0) {
+    // the mouth's ghost (teeth, cavity) as dim dots on the face lattice's pitch: a smooth grey panel was the only surface
+    // of the face without dot texture (the teeth read as a smeared second lip, the cavity as a black strip)
+    float mz = smoothstep(0.2, 0.26, h.y) * (1.0 - smoothstep(0.2, 0.28, abs(h.x)));
+    if (mz > 0.0) {
+      vec2 f = fract((sp - uT0OriginQ) / (4.0 * uT0TexelQ)) - 0.5;
+      float dm = exp(-dot(f, f) / (2.0 * uMouthDotQ.y * uMouthDotQ.y));
+      bg = mix(bg, bg * (uMouthDotQ.z + uMouthDotQ.x * dm), mz);
+      // (in a pout the lips roll forward over this fixed teeth / cavity ghost: its top row showed as a dim second row
+      // under the upper lip, the 'ribbed / double upper lip'; w = pout amount)
+      bg *= 1.0 - 0.7 * uMouthDotQ.w * mz;
+    }
+  }
+  float x = haze * cloud + bg;
   // faint fbm mist inside the head + hair envelope (zero beyond ~1.15 W)
   float rr = length((h - vec2(-0.05, 0.08)) * vec2(1.0, 0.82));
   float side = mix(1.0, uMistK.w, smoothstep(-0.3, 0.3, h.x));

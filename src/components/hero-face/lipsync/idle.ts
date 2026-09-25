@@ -159,6 +159,8 @@ export interface PerformerSample {
   speaking: boolean;
   /** index of the line being spoken (talk mode), -1 otherwise */
   line: number;
+  /** eye-in-head offset (rad, + = viewer's right / down): a speaker's glance away while talking */
+  gaze?: { yaw: number; pitch: number };
 }
 
 export interface Performer {

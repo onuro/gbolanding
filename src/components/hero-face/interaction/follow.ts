@@ -63,6 +63,9 @@ export interface FollowBase {
   pitch: number;
   /** max(eyeBlinkLeft, eyeBlinkRight) this frame */
   blink: number;
+  /** eye-in-head offset the performer asks for (rad, + = viewer's right / down): a speaker's glance away */
+  gazeYaw?: number;
+  gazePitch?: number;
 }
 
 export interface FollowSample {
@@ -103,6 +106,23 @@ function spring(s: Spring, target: number, omega: number, dt: number) {
   s.v = (s.v - omega * k * dt) * e;
 }
 
+/** The eight eyeLook weights for an eye-in-head direction (rad, + = viewer's right / down). */
+export function gazeMorphs(ey: number, ep: number, blink = 0): Record<string, number> {
+  const side = ey / DEG, vert = (ep / DEG) * (1 - Math.min(1, Math.max(0, blink)));
+  const w = (deg: number, full: number) => Math.min(1, Math.max(0, deg / full));
+  return {
+    // + = toward the viewer's right: the subject's left eye turns out, her right eye in
+    eyeLookOutLeft: w(side, EYE_ROT_DEG.out),
+    eyeLookInRight: w(side, EYE_ROT_DEG.in),
+    eyeLookInLeft: w(-side, EYE_ROT_DEG.in),
+    eyeLookOutRight: w(-side, EYE_ROT_DEG.out),
+    eyeLookDownLeft: w(vert, EYE_ROT_DEG.down),
+    eyeLookDownRight: w(vert, EYE_ROT_DEG.down),
+    eyeLookUpLeft: w(-vert, EYE_ROT_DEG.up),
+    eyeLookUpRight: w(-vert, EYE_ROT_DEG.up),
+  };
+}
+
 export function createFollow(tuning: Partial<FollowTuning> = {}): Follow {
   const T: FollowTuning = { ...FOLLOW_DEFAULTS, ...tuning };
   let tx = 0, ty = 0;
@@ -131,22 +151,9 @@ export function createFollow(tuning: Partial<FollowTuning> = {}): Follow {
       spring(hy, hYaw, oh, h); spring(hp, hPitch, oh, h);
       if (!engaged) for (const s of [gy, gp, hy, hp]) if (rest(s)) zero(s);
       // eye-in-head: gaze minus the whole head (follow + a share of the performer's sway / nods)
-      const ey = softClamp(gy.x - hy.x - T.vor * base.yaw, T.eyeMax[0]);
-      const ep = softClamp2(gp.x - hp.x - T.vor * base.pitch, T.eyeMax[1], T.eyeMax[2]);
-      const side = ey / DEG, vert = (ep / DEG) * (1 - Math.min(1, Math.max(0, base.blink)));
-      const w = (deg: number, full: number) => Math.min(1, Math.max(0, deg / full));
-      const morphs: Record<string, number> = {
-        // + = toward the viewer's right: the subject's left eye turns out, her right eye in
-        eyeLookOutLeft: w(side, EYE_ROT_DEG.out),
-        eyeLookInRight: w(side, EYE_ROT_DEG.in),
-        eyeLookInLeft: w(-side, EYE_ROT_DEG.in),
-        eyeLookOutRight: w(-side, EYE_ROT_DEG.out),
-        eyeLookDownLeft: w(vert, EYE_ROT_DEG.down),
-        eyeLookDownRight: w(vert, EYE_ROT_DEG.down),
-        eyeLookUpLeft: w(-vert, EYE_ROT_DEG.up),
-        eyeLookUpRight: w(-vert, EYE_ROT_DEG.up),
-      };
-      return { yaw: hy.x, pitch: hp.x, morphs, eyeYaw: ey, eyePitch: ep };
+      const ey = softClamp(gy.x - hy.x - T.vor * base.yaw + (base.gazeYaw ?? 0), T.eyeMax[0]);
+      const ep = softClamp2(gp.x - hp.x - T.vor * base.pitch + (base.gazePitch ?? 0), T.eyeMax[1], T.eyeMax[2]);
+      return { yaw: hy.x, pitch: hp.x, morphs: gazeMorphs(ey, ep, base.blink), eyeYaw: ey, eyePitch: ep };
     },
   };
 }

@@ -15,8 +15,9 @@ export interface VoiceFrame {
   fq: number;
 }
 
-const ORDER = 12;
-const N = 384; // analysis window at the decimated rate (~32 ms at 12 kHz)
+// defaults fit wideband voices; the call audio is narrowband (almost nothing above ~4 kHz): use createFormantTracker(sr, 8000, 10)
+const ORDER_DEFAULT = 12;
+const N_MS = 32; // analysis window, ms
 
 function lowpassTaps(n: number, fc: number): Float64Array {
   // windowed sinc (Blackman), fc as a fraction of the sample rate
@@ -35,22 +36,23 @@ function lowpassTaps(n: number, fc: number): Float64Array {
 }
 
 /** Samples of history the tracker reads (size the analyser's fftSize to at least this). */
-export function formantWindow(sampleRate: number): number {
-  const D = Math.max(1, Math.round(sampleRate / 12000));
-  return N * D + 64;
+export function formantWindow(sampleRate: number, targetRate = 12000): number {
+  const D = Math.max(1, Math.round(sampleRate / targetRate));
+  return Math.round((N_MS / 1000) * (sampleRate / D)) * D + 64;
 }
 
-export function createFormantTracker(sampleRate: number) {
-  const D = Math.max(1, Math.round(sampleRate / 12000));
+export function createFormantTracker(sampleRate: number, targetRate = 12000, ORDER = ORDER_DEFAULT) {
+  const D = Math.max(1, Math.round(sampleRate / targetRate));
   const fs = sampleRate / D;
-  const taps = lowpassTaps(33, 5200 / sampleRate);
+  const N = Math.round((N_MS / 1000) * fs);
+  const taps = lowpassTaps(33, (0.43 * fs) / sampleRate);
   const half = (taps.length - 1) / 2;
   const x = new Float64Array(N);
   const r = new Float64Array(ORDER + 1);
   const a = new Float64Array(ORDER + 1);
   const tmp = new Float64Array(ORDER + 1);
   const ham = new Float64Array(N).map((_, i) => 0.54 - 0.46 * Math.cos((2 * Math.PI * i) / (N - 1)));
-  const F0 = 150, F1H = 4200, STEP = 25;
+  const F0 = 150, F1H = Math.min(4200, 0.45 * fs), STEP = 25;
   const nf = Math.floor((F1H - F0) / STEP) + 1;
   const env = new Float64Array(nf);
   const cosT: Float64Array[] = [], sinT: Float64Array[] = [];
@@ -128,5 +130,39 @@ export function createFormantTracker(sampleRate: number) {
       else if (f >= f1 + 250 && f >= 700 && f <= 3300) { f2 = f; break; }
     }
     return { rms, f1, f2, fric, fq };
+  };
+}
+
+/** Voice pitch (F0) by normalised autocorrelation on a ~12 kHz decimation, 75-420 Hz; NaN when unvoiced.
+ *  Reads the last ~36 ms of `buf` ending at `end` (exclusive). Head motion follows it (visual prosody). */
+export function createPitchTracker(sampleRate: number) {
+  const D = Math.max(1, Math.round(sampleRate / 12000));
+  const fs = sampleRate / D;
+  const N = Math.round(0.036 * fs);
+  const lagMin = Math.floor(fs / 420), lagMax = Math.ceil(fs / 75);
+  const x = new Float64Array(N + lagMax);
+  return function pitch(buf: Float32Array, end = buf.length): { f0: number; clarity: number } {
+    const need = (N + lagMax) * D;
+    if (end - need < 0) return { f0: NaN, clarity: 0 };
+    // box-filter decimation (enough for F0: the harmonics above ~1 kHz only blur the peak)
+    let mean = 0;
+    for (let k = 0; k < N + lagMax; k++) {
+      let y = 0; const c = end - need + k * D;
+      for (let j = 0; j < D; j++) y += buf[c + j]!;
+      x[k] = y / D; mean += x[k]!;
+    }
+    mean /= N + lagMax;
+    for (let k = 0; k < N + lagMax; k++) x[k]! -= mean;
+    let e0 = 0; for (let k = lagMax; k < N + lagMax; k++) e0 += x[k]! * x[k]!;
+    if (e0 < 1e-7) return { f0: NaN, clarity: 0 };
+    let best = 0, bestLag = 0;
+    for (let lag = lagMin; lag <= lagMax; lag++) {
+      let num = 0, e1 = 0;
+      for (let k = lagMax; k < N + lagMax; k++) { const a = x[k]!, b = x[k - lag]!; num += a * b; e1 += b * b; }
+      const r = num / Math.sqrt(e0 * e1 + 1e-12);
+      if (r > best) { best = r; bestLag = lag; }
+    }
+    if (best < 0.55 || !bestLag) return { f0: NaN, clarity: best };
+    return { f0: fs / bestLag, clarity: best };
   };
 }

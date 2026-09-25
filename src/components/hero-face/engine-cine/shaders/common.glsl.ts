@@ -51,7 +51,7 @@ uniform vec4 uSocket2;       // soft inner, soft outer (ellipse units), below-ey
 uniform vec4 uLipK;          // gloss gain, gloss exponent, upper-lip border gain, mouth-corner shadow
 uniform vec4 uLidK;          // lid-line gain, lid-line socket lift, crown mottle amp, highlight knee
 uniform vec3 uLipCorner;     // |x| of the mouth corners, y, radius (W, rest pose)
-uniform vec4 uLipTalk;       // speaking lips: upper-lip light, lower-lip light (both scale with mouth opening), -, -
+uniform vec4 uLipTalk;       // speaking lips: upper-lip light, lower-lip light (both scale with mouth opening), pout amount, pout fill floor
 uniform vec3 uPupilObjL;
 uniform vec3 uPupilObjR;
 uniform vec4 uBlob[10];      // sculpt highlight blobs: centre xy, radius xy (object space, W)
@@ -130,7 +130,13 @@ float hf_litRaw(vec3 N, vec3 V, vec4 bake, vec3 obj, float curv, vec4 feat) {
   // speaking lips: the upper lip faces down and away from the key, so an open mouth read as a void under the
   // nose; a soft light on both lips keeps the mouth outline (and its shape per sound) readable
   float lipF = 0.35 + 0.65 * clamp(dot(N, V), 0.0, 1.0);
-  lit += lip * (uLipTalk.x * max(feat.y, 0.0) + uLipTalk.y * max(-feat.y, 0.0)) * lipF;
+  // puckered lips: the everted upper lip's lower edge turns down and went dark between two lit rows (a ribbed
+  // 'duck lip'); its fill stops depending on the view angle as the pout grows (uLipTalk.z = pout amount)
+  float lipFU = mix(lipF, 0.85, uLipTalk.z);
+  lit += lip * (uLipTalk.x * max(feat.y, 0.0) * lipFU + uLipTalk.y * max(-feat.y, 0.0) * mix(lipF, 0.75, 0.5 * uLipTalk.z));
+  // and the dark seam row between the vermilion and the everted band fills in: the pouted upper lip reads as one
+  // rounded lip (judges, rounds 14-15: 'two stacked rows with a dark line', 'a thin striped upper lip')
+  lit = max(lit, lip * max(feat.y, 0.0) * uLipTalk.z * uLipTalk.w);
   // mottling: smooth young skin on the face, broken up toward the crown / hairline (as in the refs)
   float crown = smoothstep(0.3, 0.62, obj.y);
   float m = hf_fbm(obj * uLightMottle.y + vec3(3.7, 1.3, 5.1));

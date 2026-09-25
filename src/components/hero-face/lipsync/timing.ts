@@ -50,13 +50,52 @@ export function mulberry32(seed: number) {
 
 type Token = { word: string } | { punct: string };
 
-export function tokenize(text: string): Token[] {
+const TR_ONES = ['', 'bir', 'iki', 'üç', 'dört', 'beş', 'altı', 'yedi', 'sekiz', 'dokuz'];
+const TR_TENS = ['', 'on', 'yirmi', 'otuz', 'kırk', 'elli', 'altmış', 'yetmiş', 'seksen', 'doksan'];
+const EN_ONES = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+const EN_TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+
+/** An integer as the agent says it (0 .. 999 999 999), for the mouth: spoken numbers need syllables too. */
+export function numberWords(n: number, lang: Lang): string {
+  if (!Number.isFinite(n) || n < 0 || n > 999_999_999) return '';
+  if (n === 0) return lang === 'tr' ? 'sıfır' : 'zero';
+  const out: string[] = [];
+  const under1000 = (x: number) => {
+    const h = Math.floor(x / 100), r = x % 100;
+    if (lang === 'tr') {
+      if (h) out.push(h > 1 ? `${TR_ONES[h]} yüz` : 'yüz');
+      if (r >= 10) out.push(TR_TENS[Math.floor(r / 10)]!);
+      if (r % 10) out.push(TR_ONES[r % 10]!);
+    } else {
+      if (h) out.push(`${EN_ONES[h]} hundred`);
+      if (r >= 20) { out.push(EN_TENS[Math.floor(r / 10)]!); if (r % 10) out.push(EN_ONES[r % 10]!); }
+      else if (r) out.push(EN_ONES[r]!);
+    }
+  };
+  const m = Math.floor(n / 1e6), k = Math.floor((n % 1e6) / 1000), u = n % 1000;
+  if (m) { under1000(m); out.push(lang === 'tr' ? 'milyon' : 'million'); }
+  if (k) { if (!(lang === 'tr' && k === 1)) under1000(k); out.push(lang === 'tr' ? 'bin' : 'thousand'); }
+  if (u) under1000(u);
+  return out.filter(Boolean).join(' ');
+}
+
+export function tokenize(text: string, lang?: Lang): Token[] {
   const out: Token[] = [];
-  const re = /([A-Za-zÀ-ÖØ-öø-ÿĞğİıŞşÇçÖöÜüÂâÎîÛû]+(?:['’][A-Za-zÀ-ÖØ-öø-ÿĞğİıŞşÇçÖöÜüÂâÎîÛû]+)*)|([,.;:!?…]|\s-\s)/g;
+  const re = /([A-Za-zÀ-ÖØ-öø-ÿĞğİıŞşÇçÖöÜüÂâÎîÛû]+(?:['’][A-Za-zÀ-ÖØ-öø-ÿĞğİıŞşÇçÖöÜüÂâÎîÛû]+)*)|(%?\d+(?:[.,]\d+)?%?)|([,.;:!?…]|\s-\s)/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
     if (m[1]) out.push({ word: m[1] });
-    else if (m[2]) out.push({ punct: m[2].trim() });
+    else if (m[2]) {
+      // numbers are spoken: "%30" / "30%" -> yüzde otuz / thirty percent, "1,5" -> bir buçuk-ish (both parts)
+      if (!lang) continue;
+      const pct = m[2].includes('%');
+      const parts = m[2].replace(/%/g, '').split(/[.,]/).map(Number);
+      const words: string[] = [];
+      if (pct && lang === 'tr') words.push('yüzde');
+      for (const p of parts) words.push(numberWords(p, lang));
+      if (pct && lang === 'en') words.push('percent');
+      for (const w of words.join(' ').split(/\s+/).filter(Boolean)) out.push({ word: w });
+    } else if (m[3]) out.push({ punct: m[3].trim() });
   }
   return out;
 }
@@ -69,7 +108,7 @@ export function timeText(text: string, opts: TimingOptions): Timed {
   const unstressedK = opts.lang === 'tr' ? 0.96 : 0.82;
 
   // group words into phrases (split at punctuation)
-  const toks = tokenize(text);
+  const toks = tokenize(text, opts.lang);
   const phrases: { words: WordPhone[][]; pause: number }[] = [];
   let cur: WordPhone[][] = [];
   for (const tk of toks) {

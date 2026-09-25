@@ -271,7 +271,16 @@ export function VoiceButton({
       let analyser: AnalyserNode | null = null;
       if (track instanceof RemoteAudioTrack) {
         analyser = createLevelAnalyser(context);
-        track.setWebAudioPlugins([analyser]);
+        // The particle face asks for a little look-ahead (window.__faceLookahead, seconds): the agent is heard that
+        // much later than the analyser sees it, so her mouth can shape a sound before it is heard, as people do.
+        const lookahead = (window as { __faceLookahead?: number }).__faceLookahead ?? 0;
+        const plugins: AudioNode[] = [analyser];
+        if (lookahead > 0) {
+          const delay = context.createDelay(1);
+          delay.delayTime.value = lookahead;
+          plugins.push(delay);
+        }
+        track.setWebAudioPlugins(plugins);
       }
       const element = track.attach();
       audioRef.current.push(element);

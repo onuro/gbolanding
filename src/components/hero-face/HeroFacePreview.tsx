@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { FaceEngine } from "./engine";
-import { createFollow, type Follow } from "./interaction/follow";
+import { createFollow, gazeMorphs, type Follow } from "./interaction/follow";
 import { attachPointerFollow, type PointerFollow } from "./interaction/pointer-follow";
 import type { Performer } from "./lipsync/idle";
 
@@ -72,7 +72,8 @@ async function loadPerformer(params: URLSearchParams): Promise<Performer> {
   const livePerf = createLivePerformer(voice);
   const base = await loadBasePerformer(params);
   if (params.get("live") === "1") return livePerf;
-  return { sample: (t) => (voice.live ? livePerf.sample(t) : base.sample(t)) };
+  // the live mouth only takes over while real agent audio exists (with ?talk=1 the dev mimic also announces orb-live)
+  return { sample: (t) => (voice.live && voice.analyser ? livePerf.sample(t) : base.sample(t)) };
 }
 
 async function loadBasePerformer(params: URLSearchParams): Promise<Performer> {
@@ -145,7 +146,11 @@ export function HeroFacePreview() {
         // the agent appends to one stream per reply
         const prev = d.id === lastId ? lastText : "";
         lastId = d.id; lastText = d.text;
-        show(d.text.slice(prev.length).split(/\s+/), "ai");
+        // her voice plays behind the face's look-ahead delay: show the word as it is heard, not as it arrives
+        const fresh = d.text.slice(prev.length).split(/\s+/);
+        const delay = 1000 * ((window as { __faceLookahead?: number }).__faceLookahead ?? 0);
+        if (delay > 0) timers.push(window.setTimeout(() => show(fresh, "ai"), delay));
+        else show(fresh, "ai");
         return;
       }
       // speech recognition re-sends the whole sentence on every revision: show only the words past the last count
@@ -226,7 +231,7 @@ export function HeroFacePreview() {
         const t = (now - start) / 1000;
         // pose = the idle sway (+ tiny nods while talking); morphs are absolute
         // (every driven morph each frame: blinks, mouth, smile)
-        const { pose, morphs } = performer.sample(t);
+        const { pose, morphs, gaze } = performer.sample(t);
         (window as unknown as { __faceMorphs?: Record<string, number> }).__faceMorphs = morphs; // dev: lip-sync measurements
         if (follow && pointer) {
           pointer.update();
@@ -234,12 +239,12 @@ export function HeroFacePreview() {
           // motion: the idle life exactly as without the follow)
           const on = pointer.enabled;
           const blink = Math.max(morphs.eyeBlinkLeft ?? 0, morphs.eyeBlinkRight ?? 0);
-          const f = follow.step((now - prev) / 1000, now / 1000, { yaw: on ? pose.yaw : 0, pitch: on ? pose.pitch : 0, blink });
+          const f = follow.step((now - prev) / 1000, now / 1000, { yaw: on ? pose.yaw : 0, pitch: on ? pose.pitch : 0, blink, gazeYaw: gaze?.yaw, gazePitch: gaze?.pitch });
           face.setPose({ ...pose, yaw: pose.yaw + f.yaw, pitch: pose.pitch + f.pitch });
           face.setMorphs({ ...morphs, ...f.morphs });
         } else {
           face.setPose(pose);
-          face.setMorphs(morphs);
+          face.setMorphs(gaze ? { ...morphs, ...gazeMorphs(gaze.yaw, gaze.pitch, Math.max(morphs.eyeBlinkLeft ?? 0, morphs.eyeBlinkRight ?? 0)) } : morphs);
         }
         prev = now;
         face.render(t);

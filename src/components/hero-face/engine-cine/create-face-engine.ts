@@ -252,6 +252,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     uT0TexelQ: { value: 1 },
     uT0SizeQ: { value: v2(1, 1) },
     uLodOffQ: { value: 0 },
+    uMouthDotQ: { value: v4() },
   };
   const quadMat = new THREE.ShaderMaterial({ vertexShader: GHOST_QUAD_VERT, fragmentShader: GHOST_QUAD_FRAG, uniforms: quadU, depthTest: false, depthWrite: false });
   const quad = new THREE.Mesh(quadGeo, quadMat);
@@ -624,6 +625,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     ghost.uniforms.uGhostK2.value.set(L.scleraGhost, L.lipTalk?.[3] ?? 0.06, L.lipTalk?.[4] ?? 0.004, L.ghostGamma);
     ghost.uniforms.uGhostK3.value.set(L.hazeAmp, L.hazeGamma, L.hazeFacing[0], L.hazeFacing[1]);
     quadU.uHazeK.value.set(L.hazeLod, L.hazeCloud, L.hazeScale, L.hazeGlow);
+    quadU.uMouthDotQ.value.set(L.mouthDots?.[0] ?? 0, L.mouthDots?.[1] ?? 0.2, L.mouthDots?.[2] ?? 1, 0);
     const mips = L.bloom.some((b) => b > 0);
     if (mips !== hdrMips) {
       hdrMips = mips;
@@ -892,6 +894,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     mainCam.updateProjectionMatrix();
   }
 
+  let lipEnv = 0, lipClock = 0;
   function applyMorphs() {
     for (const m of headMeshes) {
       const inf = m.morphTargetInfluences;
@@ -906,9 +909,38 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     const lt = look.lipTalk;
     if (lt) {
       const g = (k: string) => morphs[k] ?? 0;
-      const o = Math.min(1, 2.5 * g('jawOpen') + 0.6 * (g('mouthLowerDownLeft') + g('mouthLowerDownRight')) + 0.8 * (g('mouthUpperUpLeft') + g('mouthUpperUpRight')) + 0.8 * g('mouthFunnel'));
-      light.uLipTalk.value.set(lt[0] + lt[1] * o, lt[2] * o, 0, 0);
-    } else light.uLipTalk.value.set(0, 0, 0, 0);
+      // the lips' light follows a slow speaking envelope (attack ~80 ms, release ~350 ms), never each syllable: a light
+      // that switched with every opening read as the lip snapping between two widths
+      // speaking envelope: any mouth activity (the jaw stays > 0 through m / b / p seals) turns it on over ~250 ms and it
+      // holds through the syllables and the pauses of a conversation, releasing over ~8 s (a light that dimmed in each
+      // pause read as a 'speaking' indicator). The lips' light and the seam lift follow it,
+      // never the single sound: light tied to the opening or to the seal made the lips swell / flash on every syllable
+      // or m / b / p (the reviews: 'glowing pillows' on each closure, thin dim lips when open)
+      const oNow = Math.min(1, 1.6 * g('jawOpen') + 0.25 * (g('mouthLowerDownLeft') + g('mouthLowerDownRight')) + 0.5 * (g('mouthUpperUpLeft') + g('mouthUpperUpRight')) + 0.6 * g('mouthFunnel') + 0.4 * g('mouthPucker'));
+      // (_lipLight: the voice performer's 'a call is live' signal, consumed each frame, so the lips do not switch on at
+      // the first word)
+      const want = Math.max(Math.min(1, Math.max(0, (oNow - 0.03) / 0.12)), g('_lipLight'));
+      delete morphs._lipLight;
+      const dtS = lipClock > 0 ? Math.min(0.1, Math.max(0, lastTime - lipClock)) : 0;
+      lipClock = lastTime;
+      lipEnv += (want - lipEnv) * (dtS > 0 ? 1 - Math.exp(-dtS / (want > lipEnv ? 0.25 : 8)) : 1);
+      const o = lipEnv;
+      // while speaking both lips are lit and the seam shadow lifted, so a closure reads as two lips pressed together
+      // (not the resting dark line, which reads as a slightly open mouth) and an open mouth keeps full lips
+      // the lower lip is the fuller, brighter lip; the upper one (a fold facing the key) blew out into a white slab
+      // (the pout amount follows pucker + funnel from .3: at pucker-only near 1 the fill never engaged on o / ɹ / w)
+      const pout = Math.min(1, Math.max(0, (g('mouthPucker') + g('mouthFunnel') - 0.3) / 0.6));
+      light.uLipTalk.value.set(lt[0] + (0.32 * lt[1] + 0.2 * (lt[5] ?? 0)) * o, (lt[2] + 0.55 * (lt[5] ?? 0)) * o, pout, (look.poutFill ?? 0) * o);
+      // (the seam shadow sits on the rest mesh's lip line: in a pout the inner lip rolls out through it and showed as a
+      // dark stripe inside the upper lip, the 'ribbed / double upper lip' of every u / ü / o)
+      // (and it comes back on the inner lips as the mouth opens: lifted there too, the open mouth showed rows of lit inner-lip
+      // dots; the owner asked for the inside darker, 2026-09-26)
+      const openK = (look.mouthInnerDim ?? 0) * Math.min(1, Math.max(0, (g('jawOpen') - g('mouthClose') - 0.02) / 0.08));
+      light.uLipSeam.value.z = look.lipSeam[2] * (1 - (lt[6] ?? 0) * o * (1 - openK)) * (1 - 0.85 * pout);
+      // (only while the rounded opening is small: dimmed on an open o / ɔ the cavity read as a black oval, the rejected
+      // void mouth; u / ü keep a small dark hole)
+      quadU.uMouthDotQ.value.w = pout * o * Math.min(1, Math.max(0, 1 - (g('jawOpen') - 0.05) / 0.06));
+    } else { light.uLipTalk.value.set(0, 0, 0, 0); light.uLipSeam.value.z = look.lipSeam[2]; quadU.uMouthDotQ.value.w = 0; }
     const blink = Math.max(morphs.eyeBlinkLeft ?? 0, morphs.eyeBlinkRight ?? 0);
     pu.uCatch.value.w = 1 - Math.min(1, blink * 1.4);
   }

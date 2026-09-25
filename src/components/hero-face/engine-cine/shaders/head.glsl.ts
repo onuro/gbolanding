@@ -131,7 +131,7 @@ void main() {
     haze = uGhostK3.x * pow(Lc, uGhostK3.y) * keep * keep * smoothstep(uGhostK3.z, uGhostK3.w, ndv) * (1.0 - sw);
     litA = part < 0.5 ? Lc : 0.0;
   } else if (part < 1.5) {
-    g = uGhostK2.z * ndv;                          // mouth socket
+    g = uGhostK2.z * (0.35 + 0.65 * ndv);          // mouth socket (never quite black when it faces away)
   } else if (part < 2.5) {
     g = uGhostK2.y * (0.4 + 0.6 * ndv);            // teeth
   } else {
