@@ -275,6 +275,9 @@ export interface LookParams {
   portrait?: { url: string; affine?: [number, number, number, number]; px?: { eyeL: [number, number]; eyeR: [number, number]; mouth: [number, number]; size: [number, number] }; mix: number; gain: number; gamma: number; ellipse?: [number, number, number, number] };
   // face protection for the cinematic layer: dodge share, bloom share inside the face ellipse (absent = 1, 1)
   faceCine?: [number, number];
+  // speaking lips (absent = off): upper-lip light at rest, upper-lip light added at full opening, lower-lip light
+  // added at full opening, teeth ghost (default 0.06), mouth-socket ghost (default 0.004)
+  lipTalk?: [number, number, number, number, number];
   harmFlow?: [number, number, number, number]; // shared curl flow: field amplitude (W), face amplitude (p), spatial frequency (1/W), tempo (1 = base)
   harmSize?: [number, number, number, number]; // dot-size breathing waves: field amplitude, face amplitude, brightness share, spatial frequency (1/W)
   harmWave?: [number, number, number, number]; // face-activity ripples: displacement (W), speed (W/s), ring width (W), decay (s)
@@ -1195,9 +1198,11 @@ PRESETS['planb-r1-cine-live-glow-turn'] = { ...PRESETS['planb-r1-cine-live-glow'
 
 // ---- THE APPROVED WOMAN, named explicitly. The owner approved mesh 'planb' + look approved-v002 ("NOW THATS A WOMAN");
 // the 'planb-r1*' links silently fell back to approved-v002 then (the preview routed only cine-* / harmony-* here).
-PRESETS['woman'] = APPROVED_V002;
+// speaking lips (lipTalk): both lips lit with the mouth opening, so she talks with lips instead of a dark void
+const LIP_TALK: [number, number, number, number, number] = [0.12, 0.5, 0.22, 0.02, 0.004];
+PRESETS['woman'] = { ...APPROVED_V002, lipTalk: LIP_TALK };
 // the woman + the cinematic layer (dodge, live dodge, bloom, glints, stars, field drift / life, light-only speech rings)
-PRESETS['woman-cine'] = { ...APPROVED_V002, ...cineFx(CINE_V004_ML_LIVE2), streakShare: 0 };
+PRESETS['woman-cine'] = { ...APPROVED_V002, ...cineFx(CINE_V004_ML_LIVE2), streakShare: 0, lipTalk: LIP_TALK };
 // + the field / hair pulse (hot glowing hair and field dots, sparkling hair dots, drifting survivors)
 PRESETS['woman-cine-pulse'] = { ...PRESETS['woman-cine'], ...fieldLife(CINE_V004_ML_LIVE2) };
 // + glowing soft dots with a little size variety and the hot dots (the strongest dodge on the face)

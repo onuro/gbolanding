@@ -234,12 +234,15 @@ export function VoiceButton({
     // second, so the readers are a suspect in their own right, separately from
     // the caption they feed.
     if (!killed("transcription")) {
-      room.registerTextStreamHandler("lk.transcription", async (reader) => {
+      room.registerTextStreamHandler("lk.transcription", async (reader, participant) => {
         const id = reader.info.attributes?.["lk.segment_id"] ?? reader.info.id;
         const startedAt = reader.info.timestamp;
+        // the particle face (dev preview) shapes the mouth from the agent's words as they are spoken
+        const agent = participant.identity !== room.localParticipant.identity;
         let text = "";
         for await (const chunk of reader) {
           text += chunk;
+          window.dispatchEvent(new CustomEvent("face-transcript", { detail: { id, text, agent } }));
           // On a barge-in both sides stream at once; without this the caption
           // would flip between the two utterances on every chunk.
           const showing = captionSegment.current;
@@ -274,10 +277,14 @@ export function VoiceButton({
       audioRef.current.push(element);
       document.body.appendChild(element);
       if (analyser) analysersRef.current.set(track, meter(analyser));
+      // The particle face (dev preview) reads the agent's voice from this same analyser to lip-sync. Agent track
+      // only, never the mic; no extra node or context, it only reads the spectrum.
+      if (analyser) window.dispatchEvent(new CustomEvent("face-voice", { detail: analyser }));
     });
     room.on(RoomEvent.TrackUnsubscribed, (track) => {
       analysersRef.current.get(track)?.();
       analysersRef.current.delete(track);
+      window.dispatchEvent(new CustomEvent("face-voice", { detail: null }));
       track.detach().forEach((element) => element.remove());
       audioRef.current = audioRef.current.filter((el) => el.isConnected);
     });
@@ -301,6 +308,8 @@ export function VoiceButton({
       await room.connect(url, token);
       // Both need the user gesture we are still inside of.
       await room.startAudio();
+      // dev only: the particle-face lip-sync lab records real agent speech through this handle
+      if (import.meta.env.DEV) (window as { __gboRoom?: typeof room }).__gboRoom = room;
       window.dispatchEvent(new CustomEvent("orb-live", { detail: true }));
       setState("live");
     } catch (cause) {

@@ -130,6 +130,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     uSocket2: { value: v4() },
     uLipK: { value: v4() },
     uLidK: { value: v4() },
+    uLipTalk: { value: v4() },
     uLipCorner: { value: new THREE.Vector3(Math.abs((lm.mouthCornerL as number[] | undefined)?.[0] ?? 0.195), (lm.mouthCornerL as number[] | undefined)?.[1] ?? lm.mouthCentre[1], 0.03) },
     uPupilObjL: { value: v3(lm.pupilL) },
     uPupilObjR: { value: v3(lm.pupilR) },
@@ -620,7 +621,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
       light.uBlobG.value[i] = b ? b[4] : 0;
     }
     ghost.uniforms.uGhostK.value.set(L.ghost, L.ghostFill, L.irisGhost, L.pupilGhost);
-    ghost.uniforms.uGhostK2.value.set(L.scleraGhost, 0.06, 0.004, L.ghostGamma);
+    ghost.uniforms.uGhostK2.value.set(L.scleraGhost, L.lipTalk?.[3] ?? 0.06, L.lipTalk?.[4] ?? 0.004, L.ghostGamma);
     ghost.uniforms.uGhostK3.value.set(L.hazeAmp, L.hazeGamma, L.hazeFacing[0], L.hazeFacing[1]);
     quadU.uHazeK.value.set(L.hazeLod, L.hazeCloud, L.hazeScale, L.hazeGlow);
     const mips = L.bloom.some((b) => b > 0);
@@ -901,6 +902,13 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
         if (i !== undefined) inf[i] = w;
       }
     }
+    // speaking lips: light both lips with the mouth opening (look.lipTalk)
+    const lt = look.lipTalk;
+    if (lt) {
+      const g = (k: string) => morphs[k] ?? 0;
+      const o = Math.min(1, 2.5 * g('jawOpen') + 0.6 * (g('mouthLowerDownLeft') + g('mouthLowerDownRight')) + 0.8 * (g('mouthUpperUpLeft') + g('mouthUpperUpRight')) + 0.8 * g('mouthFunnel'));
+      light.uLipTalk.value.set(lt[0] + lt[1] * o, lt[2] * o, 0, 0);
+    } else light.uLipTalk.value.set(0, 0, 0, 0);
     const blink = Math.max(morphs.eyeBlinkLeft ?? 0, morphs.eyeBlinkRight ?? 0);
     pu.uCatch.value.w = 1 - Math.min(1, blink * 1.4);
   }

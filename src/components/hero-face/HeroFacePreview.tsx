@@ -20,11 +20,62 @@ const TALK_STYLES = ["minimal", "subtle", "natural"] as const;
 const PREVIEW_CSS = `
   .orb-well[data-face-preview] div.z-20 { display: none !important; }
 `;
+// With the face, the call control must never sit on her face (a white disc + rotating text over it read as a horror
+// film): a slim translucent pill at the bottom of the card with the button's own label (attr(aria-label), so it follows
+// the language and the call state), no rotating badge / ring caption, status and errors above the pill.
+const FACE_UI_CSS = `
+  .orb-well[data-face-preview] div.z-20:has(> button) { align-items: flex-end; padding-bottom: 28px; }
+  .orb-well[data-face-preview] div.z-20:has(> button) > svg { display: none; }
+  .orb-well[data-face-preview] div.z-20:has(> button) > button {
+    width: auto; height: 44px; gap: 10px; padding: 0 20px 0 16px; border-radius: 999px;
+    background: rgb(255 255 255 / 0.08); color: rgb(255 255 255 / 0.92);
+    border: 1px solid rgb(255 255 255 / 0.18); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 8px 30px rgb(0 0 0 / 0.35); transition: background 200ms ease, border-color 200ms ease;
+  }
+  .orb-well[data-face-preview] div.z-20:has(> button) > button:hover { background: rgb(255 255 255 / 0.14); border-color: rgb(255 255 255 / 0.3); }
+  .orb-well[data-face-preview] div.z-20:has(> button) > button > svg { width: 14px; height: 14px; transform: none; }
+  .orb-well[data-face-preview] div.z-20:has(> button) > button::after {
+    content: attr(aria-label); font-family: var(--font-mono, ui-monospace, monospace); font-size: 11px;
+    letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
+  }
+  .orb-well[data-face-preview] div.z-20 svg:not(button svg) { display: none; }
+  .face-word {
+    position: absolute; transform: translate(-50%, -50%); pointer-events: none; white-space: nowrap;
+    font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: rgb(255 255 255 / 0.9); padding: 4px 9px; border-radius: 6px;
+    background: rgb(0 0 0 / 0.62); border: 1px solid rgb(170 240 255 / 0.22);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 18px rgb(120 220 255 / 0.12);
+    animation: face-word 3.2s ease-out forwards;
+  }
+  .face-word[data-who="you"] { color: rgb(255 226 190 / 0.92); border-color: rgb(255 200 140 / 0.3); box-shadow: 0 0 18px rgb(255 190 120 / 0.1); }
+  @keyframes face-word {
+    0% { opacity: 0; filter: blur(6px); transform: translate(-50%, -50%) translateY(6px); }
+    12% { opacity: 1; filter: blur(0); transform: translate(-50%, -50%); }
+    70% { opacity: 0.85; }
+    100% { opacity: 0; filter: blur(3px); transform: translate(-50%, -50%) translateY(-10px); }
+  }
+  @media (prefers-reduced-motion: reduce) { .face-word { animation-duration: 2.4s; } }
+  .orb-well[data-face-preview] div.z-20.bottom-6 { bottom: 88px; }
+`;
 
 // Idle life for every ?face=1 mode; the lip-sync driver (G2P, coarticulation)
 // is only loaded in talk mode. Neither calls engine.setVoice, so the old
 // amplitude driver never moves the mouth.
+let liveDetach: (() => void) | null = null;
+
 async function loadPerformer(params: URLSearchParams): Promise<Performer> {
+  // a real call drives her on every link: while a call is live (orb-live) the AI voice moves the mouth (the agent
+  // analyser from VoiceButton, else orb-level as it drove the orb); otherwise the idle / mimic-talk performer below
+  const { createLivePerformer, listenFaceVoice } = await import("./lipsync/live");
+  const { voice, detach } = listenFaceVoice();
+  liveDetach = detach;
+  const livePerf = createLivePerformer(voice);
+  const base = await loadBasePerformer(params);
+  if (params.get("live") === "1") return livePerf;
+  return { sample: (t) => (voice.live ? livePerf.sample(t) : base.sample(t)) };
+}
+
+async function loadBasePerformer(params: URLSearchParams): Promise<Performer> {
   const talk = params.has("talk") && params.get("talk") !== "0";
   if (!talk) {
     const { createIdlePerformer } = await import("./lipsync/idle");
@@ -60,10 +111,51 @@ async function loadEngine(look: string | null): Promise<EngineModule> {
 export function HeroFacePreview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [enabled] = useState(
-    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).has("face"),
+    // DEV default: the face is on (mesh planb, look woman-cine-glow); ?face=0 shows the old orb
+    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("face") !== "0",
   );
   const [error, setError] = useState<string | null>(null);
+  const [live] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("live") === "1");
   const [label, setLabel] = useState<string>("");
+  // what is being said drifts into the field around her (never over her face): the AI's words as she says them
+  // (cool), the visitor's as their speech is recognised (warm), each on a dark chip so it reads over the dots
+  const [words, setWords] = useState<{ key: number; text: string; x: number; y: number; who: "ai" | "you" }[]>([]);
+  useEffect(() => {
+    if (!enabled) return;
+    let key = 0, lastId = "", lastText = "", youId = "", youCount = 0;
+    const timers: number[] = [];
+    const place = () => {
+      for (let i = 0; i < 12; i++) {
+        const x = 8 + Math.random() * 84, y = 6 + Math.random() * 74;
+        if (Math.hypot((x - 50) / 30, (y - 42) / 34) > 1) return { x, y };
+      }
+      return { x: Math.random() < 0.5 ? 14 : 86, y: 20 + Math.random() * 50 };
+    };
+    const show = (fresh: string[], who: "ai" | "you") => {
+      for (const w of fresh.filter((x) => x.replace(/[^\p{L}\p{N}]/gu, "").length > 1)) {
+        const k = ++key;
+        setWords((ws) => [...ws.slice(-9), { key: k, text: w.replace(/[.,!?;:]+$/, ""), who, ...place() }]);
+        timers.push(window.setTimeout(() => setWords((ws) => ws.filter((x) => x.key !== k)), 3300));
+      }
+    };
+    const on = (e: Event) => {
+      const d = (e as CustomEvent).detail as { id: string; text: string; agent: boolean } | null;
+      if (!d) return;
+      if (d.agent) {
+        // the agent appends to one stream per reply
+        const prev = d.id === lastId ? lastText : "";
+        lastId = d.id; lastText = d.text;
+        show(d.text.slice(prev.length).split(/\s+/), "ai");
+        return;
+      }
+      // speech recognition re-sends the whole sentence on every revision: show only the words past the last count
+      const all = d.text.trim().split(/\s+/).filter(Boolean);
+      if (d.id !== youId) { youId = d.id; youCount = 0; }
+      if (all.length > youCount) { show(all.slice(youCount), "you"); youCount = all.length; }
+    };
+    window.addEventListener("face-transcript", on);
+    return () => { window.removeEventListener("face-transcript", on); timers.forEach(clearTimeout); };
+  }, [enabled]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -83,14 +175,14 @@ export function HeroFacePreview() {
 
     (async () => {
       const params = new URLSearchParams(window.location.search);
-      const requested = params.get("look");
+      const requested = params.get("look") ?? "woman-cine-glow";
       const followOn = params.get("follow") !== "0";
       const [{ createFaceEngine, defaultFraming, loadLabMesh, PRESETS }, performer] = await Promise.all([
         loadEngine(requested),
         loadPerformer(params),
       ]);
       // ?mesh=<name> loads /dev-hero-face/mesh-<name>.json (alternative identities); default mesh-f5s
-      const meshName = params.get("mesh");
+      const meshName = params.get("mesh") ?? "planb";
       const meshUrl = meshName && /^[\w-]+$/.test(meshName) ? `/dev-hero-face/mesh-${meshName}.json` : MESH_URL;
       // an unknown / not-yet-published mesh falls back to the default instead of breaking the preview
       const mesh = await loadLabMesh(meshUrl).catch((cause) => {
@@ -135,6 +227,7 @@ export function HeroFacePreview() {
         // pose = the idle sway (+ tiny nods while talking); morphs are absolute
         // (every driven morph each frame: blinks, mouth, smile)
         const { pose, morphs } = performer.sample(t);
+        (window as unknown as { __faceMorphs?: Record<string, number> }).__faceMorphs = morphs; // dev: lip-sync measurements
         if (follow && pointer) {
           pointer.update();
           // the eyes counter the performer's head motion only while following is allowed (touch / reduced
@@ -163,6 +256,8 @@ export function HeroFacePreview() {
       cancelAnimationFrame(raf);
       observer?.disconnect();
       pointer?.detach();
+      liveDetach?.();
+      liveDetach = null;
       well?.removeAttribute("data-face-preview");
       engine?.dispose();
     };
@@ -171,14 +266,19 @@ export function HeroFacePreview() {
   if (!enabled) return null;
   return (
     <>
-      <style>{PREVIEW_CSS}</style>
+      <style>{FACE_UI_CSS}</style>
       <canvas
         ref={canvasRef}
         aria-hidden="true"
         className="absolute inset-0 z-[15] block size-full bg-black"
       />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[25] overflow-hidden">
+        {words.map((w) => (
+          <span key={w.key} className="face-word" data-who={w.who} style={{ left: `${w.x}%`, top: `${w.y}%` }}>{w.text}</span>
+        ))}
+      </div>
       {label && (
-        <p className="pointer-events-none absolute bottom-3 left-3 z-30 rounded bg-black/60 px-2 py-1 font-mono text-[10px] text-white/70">
+        <p className="pointer-events-none absolute top-3 left-3 z-30 rounded bg-black/60 px-2 py-1 font-mono text-[10px] text-white/70">
           {label}
         </p>
       )}
