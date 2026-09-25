@@ -5,6 +5,7 @@ import { LogoShape } from "@/components/logo";
 import OrbHud from "@/components/hero-orb/OrbHud.astro";
 import { StudyOrbGradient } from "@/components/hero-orb/StudyOrbGradient";
 import { VoiceButton } from "@/components/hero-orb/VoiceButton";
+import { HeroFacePreview } from "@/components/hero-face/HeroFacePreview";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
 
@@ -127,6 +128,8 @@ const { locale, messages } = Astro.props;
           />
           <OrbHud />
         </div>
+        {/* DEV-only particle-face preview: /?face=1 (&talk=1). Never rendered in production. */}
+        {import.meta.env.DEV && <HeroFacePreview client:only="react" />}
         <VoiceButton
           client:idle
           lang={locale}

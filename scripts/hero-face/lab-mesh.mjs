@@ -11,8 +11,12 @@
 //
 // usage:
 //   node lab-mesh.mjs [--identity weights.json] [--expr jawOpen=0.3 --expr mouthSmile_L=0.1 | --expr a=0.1,b=0.2]
-//                     [--targets lipsync|all|none|name,name] [--name neutral] [--out <dir>]
-//                     [--light -0.16,0.85,0.50] [--rays-vis 64] [--rays-ao 128] [--teeth 0.35]
+//                     [--targets lipsync|face|gaze|all|none|name,name] [--name neutral] [--out <dir>]
+//                     [--light -0.16,0.85,0.50] [--cone 4] [--rays-vis 64] [--rays-ao 128] [--teeth 0.35]
+//                     [--eye-rot 30,30,25,30]
+// --eye-rot: eyeball rotation (deg: in, out, up, down) baked into the eyeLook targets, see EYE_ROT
+// --cone: half-angle (deg) of the key light's disc; a soft box (~15-25 deg) gives soft penumbrae under the
+//         brow, nose and lower lip instead of hard 4 deg shadow edges
 // identity weights.json: [w0, w1, ...] | {"weights":[...]} | {"identity003": 1.2, "7": -0.4, ...}
 //   Base = neutral + sum_i w_i (identity_i - neutral); only identity000-029 are cached locally.
 
@@ -44,6 +48,7 @@ const args = parseArgs(process.argv.slice(2));
 const ICT = resolve(args.ict || DEFAULT_ICT);
 const OUT = resolve(args.out || DEFAULT_OUT);
 const LIGHT = (args.light || '-0.16,0.85,0.50').split(',').map(Number);
+const CONE_DEG = +(args.cone || 4);
 const RAYS_VIS = +(args['rays-vis'] || 64);
 const RAYS_AO = +(args['rays-ao'] || 128);
 const TEETH_RATIO = +(args.teeth || 0.35);
@@ -59,8 +64,25 @@ const ALL_TARGETS = [
   'eyeLookUp_L', 'eyeLookUp_R', 'eyeLookDown_L', 'eyeLookDown_R', 'eyeLookIn_L', 'eyeLookIn_R', 'eyeLookOut_L', 'eyeLookOut_R',
   'eyeWide_L', 'eyeWide_R', 'eyeSquint_L', 'eyeSquint_R', 'browInnerUp_L', 'browInnerUp_R', 'browDown_L', 'browDown_R',
 ];
+// 'face' = lipsync + the expression channels the talk/idle driver couples in (Duchenne eye narrowing and
+// light brow life). Appended AFTER the lipsync set so a lipsync mesh's existing arrays keep their offsets.
+const FACE_TARGETS = [
+  ...LIPSYNC_TARGETS, 'eyeSquint_L', 'eyeSquint_R', 'browInnerUp_L', 'browInnerUp_R', 'browDown_L', 'browDown_R',
+];
+// 'gaze' = face + the eyeLook channels (the preview's cursor follow: eyes lead the head). Appended AFTER the face
+// set, so a face mesh's arrays (rest data and all 20 morphs) keep their offsets and bytes.
+const GAZE_TARGETS = [
+  ...FACE_TARGETS, 'eyeLookIn_L', 'eyeLookIn_R', 'eyeLookOut_L', 'eyeLookOut_R', 'eyeLookUp_L', 'eyeLookUp_R', 'eyeLookDown_L', 'eyeLookDown_R',
+];
+// ICT's eyeLook shapes only move the lids and the skin around the eyes (the ICT rig turns the eyeballs separately and
+// a lab mesh has no rig), so each eyeLook target also carries a rigid eyeball rotation about the eyeball's fitted
+// sphere centre: --eye-rot in,out,up,down = degrees at weight 1 (default 30,30,25,30; 0,0,0,0 = ICT verbatim).
+// Linear blending of a rotation delta shortens the eyeball radius by 1 - cos(w a / 2) at most (~0.3 % at 12 deg).
+const EYE_ROT = (args['eye-rot'] || '30,30,25,30').split(',').map(Number);
 let TARGETS = LIPSYNC_TARGETS;
 if (args.targets === 'all') TARGETS = ALL_TARGETS;
+else if (args.targets === 'face') TARGETS = FACE_TARGETS;
+else if (args.targets === 'gaze') TARGETS = GAZE_TARGETS;
 else if (args.targets === 'none') TARGETS = [];
 else if (args.targets && args.targets !== 'lipsync') TARGETS = args.targets.split(',');
 
@@ -181,6 +203,24 @@ function buildWeld(pos, weldable, eps) {
   }
   return { map, count };
 }
+// least-squares sphere through vertices a..b (x^2 + y^2 + z^2 = 2 c.p + k): { c, r }
+function fitSphere(pos, a, b) {
+  const M = Array.from({ length: 4 }, () => new Float64Array(5));
+  for (let v = a; v <= b; v++) {
+    const x = pos[v * 3], y = pos[v * 3 + 1], z = pos[v * 3 + 2];
+    const row = [2 * x, 2 * y, 2 * z, 1], rhs = x * x + y * y + z * z;
+    for (let r = 0; r < 4; r++) { for (let c = 0; c < 4; c++) M[r][c] += row[r] * row[c]; M[r][4] += row[r] * rhs; }
+  }
+  for (let i = 0; i < 4; i++) {
+    let p = i;
+    for (let r = i + 1; r < 4; r++) if (Math.abs(M[r][i]) > Math.abs(M[p][i])) p = r;
+    [M[i], M[p]] = [M[p], M[i]];
+    for (let r = 0; r < 4; r++) if (r !== i) { const f = M[r][i] / M[i][i]; for (let c = i; c < 5; c++) M[r][c] -= f * M[i][c]; }
+  }
+  const s = M.map((row, i) => row[4] / row[i]);
+  const c = [s[0], s[1], s[2]];
+  return { c, r: Math.sqrt(s[3] + c[0] * c[0] + c[1] * c[1] + c[2] * c[2]) };
+}
 function mulberry32(a) {
   return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
@@ -200,15 +240,38 @@ async function main() {
     for (let k = 0; k < base.length; k++) base[k] += w * (m[k] - neutral[k]);
   }
   const exprW = parseKV(args.expr);
+  // eyeball rotation centres: least-squares sphere through each eyeball's sclera (identity applied, no expression)
+  const idBase = base.slice();
+  const eyeSphere = EYE_V.map((r, e) => fitSphere(idBase, r[0], IRIS_V[e][0] - 1));
   const exprCache = new Map();
   const loadExpr = (name) => {
     if (!exprCache.has(name)) {
       const m = parsePositions(join(ICT, `${name}.obj`));
       for (let k = 0; k < m.length; k++) m[k] -= neutral[k];
+      addEyeRotation(name, m);
       exprCache.set(name, m);
     }
     return exprCache.get(name);
   };
+  // eyeLook targets: + the rigid eyeball turn (EYE_ROT), as a delta on the rest eyeball. _L = subject's left eye (+X):
+  // out turns it toward +X; _R: out toward -X. Up turns the optical axis (+Z) toward +Y.
+  function addEyeRotation(name, d) {
+    const m = /^eyeLook(In|Out|Up|Down)_(L|R)$/.exec(name);
+    if (!m) return;
+    const [aIn, aOut, aUp, aDown] = EYE_ROT;
+    const e = m[2] === 'L' ? 0 : 1, side = e === 0 ? 1 : -1;
+    const deg = { In: -aIn * side, Out: aOut * side, Up: aUp, Down: -aDown }[m[1]];
+    if (!deg) return;
+    const a = (deg * Math.PI) / 180, ca = Math.cos(a), sa = Math.sin(a);
+    const yaw = m[1] === 'In' || m[1] === 'Out';
+    const c = eyeSphere[e].c;
+    for (let v = EYE_V[e][0]; v <= EYE_V[e][1]; v++) {
+      const x = idBase[v * 3] - c[0], y = idBase[v * 3 + 1] - c[1], z = idBase[v * 3 + 2] - c[2];
+      let nx = x, ny = y, nz = z;
+      if (yaw) { nx = x * ca + z * sa; nz = -x * sa + z * ca; } else { ny = y * ca + z * sa; nz = -y * sa + z * ca; }
+      d[v * 3] += nx - x; d[v * 3 + 1] += ny - y; d[v * 3 + 2] += nz - z;
+    }
+  }
   for (const [name, w] of Object.entries(exprW)) {
     const d = loadExpr(name);
     for (let k = 0; k < base.length; k++) base[k] += w * d[k];
@@ -317,6 +380,86 @@ async function main() {
     if (partOf[i] === PART.mouth || partOf[i] === PART.teeth) mouthW[i] = 1;
   }
 
+  // ---- feature masks (skin only, rest pose, frontal projection; ride the morphs as vertex attributes)
+  //   x: lip vermilion (1 inside the outer lip contour, soft 0.006 W edge)
+  //   y: lip side (+1 upper lip, -1 lower lip; smooth across the inner-lip seam)
+  //   z: upper-lip vermilion border band (Cupid's bow ridge, just above/at the outer upper contour)
+  //   w: upper-eyelid margin band (lash line, just above the upper lid contour)
+  const feat = new Float32Array(NV * 4);
+  {
+    const lm = LM68.map((v) => nrm([base[v * 3], base[v * 3 + 1], base[v * 3 + 2]]));
+    const pts = (ids) => ids.map((k) => [lm[k][0], lm[k][1]]);
+    const outer = pts([48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]);
+    const inner = pts([60, 61, 62, 63, 64, 65, 66, 67]);
+    const upperOuter = pts([48, 49, 50, 51, 52, 53, 54]);
+    // upper-lid polylines (subject's right eye 36-39, left eye 42-45)
+    const lidR = pts([36, 37, 38, 39]), lidL = pts([42, 43, 44, 45]);
+    const segDist = (x, y, poly, closed) => {
+      let best = 1e9;
+      const n = poly.length, m = closed ? n : n - 1;
+      for (let k = 0; k < m; k++) {
+        const [ax, ay] = poly[k], [bx, by] = poly[(k + 1) % n];
+        const ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey || 1e-12;
+        const t = Math.max(0, Math.min(1, ((x - ax) * ex + (y - ay) * ey) / l2));
+        best = Math.min(best, Math.hypot(x - ax - t * ex, y - ay - t * ey));
+      }
+      return best;
+    };
+    const inside = (x, y, poly) => {
+      let c = false;
+      for (let k = 0, j = poly.length - 1; k < poly.length; j = k++) {
+        const [xi, yi] = poly[k], [xj, yj] = poly[j];
+        if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi || 1e-12) + xi) c = !c;
+      }
+      return c;
+    };
+    // seam height at x: interpolated from the inner contour (upper and lower inner points averaged)
+    const seamY = (x) => {
+      const xs = inner.map((q) => q[0]);
+      const xl = Math.min(...xs), xr = Math.max(...xs);
+      const t = Math.max(xl, Math.min(xr, x));
+      let yU = null, yL = null;
+      const up = [inner[0], inner[1], inner[2], inner[3], inner[4]], lo = [inner[4], inner[5], inner[6], inner[7], inner[0]];
+      const interp = (poly) => {
+        for (let k = 0; k + 1 < poly.length; k++) {
+          const [ax, ay] = poly[k], [bx, by] = poly[k + 1];
+          if ((t - ax) * (t - bx) <= 0) return ay + ((t - ax) / (bx - ax || 1e-9)) * (by - ay);
+        }
+        return poly[0][1];
+      };
+      yU = interp(up); yL = interp(lo);
+      return 0.5 * (yU + yL);
+    };
+    const mouthZ = mouthC[2];
+    const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+    for (let i = 0; i < NV; i++) {
+      if (partOf[i] !== PART.skin) continue;
+      const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
+      if (N[i * 3 + 2] < 0.05) continue; // back-facing sheets (mouth / eye socket interiors) keep 0
+      if (z > mouthZ - 0.12 && Math.abs(x) < 0.3 && y < -0.35 && y > -0.68) {
+        const d = segDist(x, y, outer, true) * (inside(x, y, outer) ? 1 : -1);
+        feat[i * 4] = smooth(-0.006, 0.006, d);
+        feat[i * 4 + 1] = Math.tanh((y - seamY(x)) / 0.008);
+        // upper vermilion border: a band centred 0.004 W above the outer upper contour
+        const du = segDist(x, y + 0.002, upperOuter, false);
+        const above = y > -0.5;
+        feat[i * 4 + 2] = above ? Math.exp(-(du * du) / (2 * 0.0075 * 0.0075)) : 0;
+      }
+      if (z > -0.12 && y > -0.08 && y < 0.1 && Math.abs(x) < 0.45) {
+        const lid = x < 0 ? lidR : lidL;
+        const dl = segDist(x, y - 0.004, lid, false);
+        // lid contour height at x (the polyline runs corner -> corner); only the skin above it counts
+        const xs = lid.map((q) => q[0]);
+        let yl = null;
+        for (let k = 0; k + 1 < lid.length; k++) {
+          const [ax, ay] = lid[k], [bx, by] = lid[k + 1];
+          if ((x - ax) * (x - bx) <= 0) { yl = ay + ((x - ax) / (bx - ax || 1e-9)) * (by - ay); break; }
+        }
+        if (yl !== null && x >= Math.min(...xs) && x <= Math.max(...xs)) feat[i * 4 + 3] = Math.exp(-(dl * dl) / (2 * 0.007 * 0.007)) * smooth(-0.003, 0.003, y - yl);
+      }
+    }
+  }
+
   // ---- convexity (sculpt term): N . (p - laplacian-smoothed p), two scales, skin only
   const curv = new Float32Array(NV);
   {
@@ -365,7 +508,7 @@ async function main() {
   const Ld = new THREE.Vector3(...LIGHT).normalize();
   const rnd = mulberry32(1234);
   const coneDirs = [];
-  const cone = (4 * Math.PI) / 180;
+  const cone = (CONE_DEG * Math.PI) / 180;
   const tU = new THREE.Vector3(), tV = new THREE.Vector3();
   tU.set(0, 0, 1).cross(Ld).normalize(); tV.copy(Ld).cross(tU).normalize();
   for (let k = 0; k < RAYS_VIS; k++) {
@@ -440,6 +583,7 @@ async function main() {
   add('bake', bake, 'f32', 4);
   add('eye', aEye, 'f32', 1);
   add('curv', curv, 'f32', 1);
+  add('feat', feat, 'f32', 4);
   add('index', new Uint32Array(tris), 'u32', 1);
   const morphMeta = [];
   for (const m of morphs) {
@@ -455,7 +599,7 @@ async function main() {
     copyright: 'ICT-FaceKit (c) 2020 USC Institute for Creative Technologies, MIT License',
     units: 'W (face width = 2 x interpupillary distance); origin = midpoint between pupils; +Y up, +Z toward camera',
     Wcm: +Wcm.toFixed(4), ipdCm: +IPD.toFixed(4),
-    identity: idW, expressions: exprW, light: LIGHT, bake: { raysVis: RAYS_VIS, raysAo: RAYS_AO, aoMax: AO_MAX },
+    identity: idW, expressions: exprW, light: LIGHT, bake: { raysVis: RAYS_VIS, raysAo: RAYS_AO, aoMax: AO_MAX, coneDeg: CONE_DEG },
     vertexCount: NV, indexCount: tris.length, parts, partIds: PART, layout, morphs: morphMeta, landmarks,
     bbox: bb.map((a) => a.map((x) => +x.toFixed(4))),
   };

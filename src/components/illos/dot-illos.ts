@@ -12,15 +12,24 @@ import {
   oval,
   polar,
   polyline,
+  ring,
+  ringCount,
   trace,
   type Dot,
   type Point,
 } from "./dot-matrix";
 
+// The panel's resolution. Every spacing below is a multiple of it, so a finer
+// pitch means more dots in the same drawings, not smaller drawings.
+export const PITCH = 6;
+/** Dot diameter, drawn as the stroke width. */
+export const DOT = PITCH * 0.42;
+
 const O: Point = [240, 180];
-const PITCH = 9;
+// Halftone fills pack tighter than strokes.
+const FILL = PITCH * 0.62;
 // Closest two dots may sit; where strokes cross, the later one gives way.
-const GAP = 5.4;
+const GAP = PITCH * 0.6;
 
 // Discovery: a scope that has found one thing worth fixing.
 function analysis(): Dot[] {
@@ -28,20 +37,19 @@ function analysis(): Dot[] {
   const lit = (deg: number) => Math.abs(deg - BEARING) <= 12;
 
   const target = polar(O, 62, BEARING);
-  const blip = dots(
-    [...hexDisc(target, 5.6, 5.4), ...angles(12).map((deg) => polar(target, 15, deg))],
-    "accent",
-  );
+  const blip = dots([...hexDisc(target, 7.5, FILL), ...ring(target, 15, PITCH * 0.87)], "accent");
 
-  const bezel = angles(60).map((deg) =>
+  // Divisible by 12, so every 30° lands on a dot.
+  const bezel = angles(ringCount(108, PITCH * 1.25, 12)).map((deg) =>
     dot(polar(O, 108, deg), lit(deg) ? "accent" : deg % 30 === 0 ? "ink" : "dim"),
   );
   const majors = angles(12).map((deg) => dot(polar(O, 100, deg), lit(deg) ? "accent" : "ink"));
-  const scope = dots(angles(60).map((deg) => polar(O, 86, deg)), "ink");
-  const inner = dots(angles(36).map((deg) => polar(O, 43, deg)), "dim");
-  // On an 8.6 pitch so both rings fall on the axis rhythm.
+  const scope = dots(ring(O, 86, PITCH), "ink");
+  const inner = dots(ring(O, 43, PITCH * 0.84), "dim");
+  // On a pitch that divides 43, so both rings fall on the axis rhythm.
+  const axisPitch = 43 / Math.ceil(43 / PITCH);
   const axes = [0, 90, 180, 270].flatMap((deg) =>
-    [8.6, 17.2, 25.8, 34.4, 51.6, 60.2, 68.8, 77.4].map((r) => dot(polar(O, r, deg), "dim")),
+    dots(line(O, polar(O, 86, deg), axisPitch), "dim"),
   );
   const brackets = [
     [-1, -1],
@@ -51,7 +59,10 @@ function analysis(): Dot[] {
   ].flatMap(([sx, sy]) => {
     const corner: Point = [240 + sx * 124, 180 + sy * 118];
     return dots(
-      polyline([[corner[0] - sx * 22, corner[1]], corner, [corner[0], corner[1] - sy * 22]], 7.4),
+      polyline(
+        [[corner[0] - sx * 22, corner[1]], corner, [corner[0], corner[1] - sy * 22]],
+        PITCH * 0.82,
+      ),
       "ink",
     );
   });
@@ -74,11 +85,14 @@ function design(): Dot[] {
   const LR: Point = [300, 249.28];
   const B: Point = [240, 284];
 
-  const step = (from: Point, to: Point): Point => [(to[0] - from[0]) / 8, (to[1] - from[1]) / 8];
-  const interior = (i: number, j: number) => i > 0 && j > 0 && i < 8 && j < 8;
+  // As many steps across a face as there are gaps along an edge, so the
+  // faces' dots line up with the edges'.
+  const N = Math.round(Math.hypot(UL[0] - T[0], UL[1] - T[1]) / PITCH);
+  const step = (from: Point, to: Point): Point => [(to[0] - from[0]) / N, (to[1] - from[1]) / N];
+  const interior = (i: number, j: number) => i > 0 && j > 0 && i < N && j < N;
 
-  const top = dots(lattice(T, step(T, UR), step(T, UL), 8, 8, interior), "accent");
-  const side = dots(lattice(UL, step(UL, C), step(UL, LL), 8, 8, interior), "dim");
+  const top = dots(lattice(T, step(T, UR), step(T, UL), N, N, interior), "accent");
+  const side = dots(lattice(UL, step(UL, C), step(UL, LL), N, N, interior), "dim");
   const edges = dots(
     [
       [T, UL],
@@ -119,29 +133,32 @@ function automation(): Dot[] {
     ];
   };
   const spark = [0, 1, 2, 3].flatMap((q) =>
-    trace((t) => edge(-90 + 90 * (q + t)), 6.4).slice(1),
+    trace((t) => edge(-90 + 90 * (q + t)), PITCH * 0.71).slice(1),
   );
 
   const orbits = dots([45, -45].flatMap((tilt) => oval(O, 118, 46, PITCH, tilt)), "ink");
   const rays = [0, 90, 180, 270].flatMap((deg) =>
-    [72, 81, 90, 99].map((r) => dot(polar(O, r, deg), "dim")),
+    dots(line(polar(O, 72, deg), polar(O, 99, deg), PITCH), "dim"),
   );
 
-  return compose(GAP, dots([...spark, ...hexDisc(O, 12, 5.6)], "accent"), orbits, rays);
+  return compose(GAP, dots([...spark, ...hexDisc(O, 12, FILL)], "accent"), orbits, rays);
 }
 
 // Integration: every system on a spoke, meeting at one hub.
 function integration(): Dot[] {
   const spokes = [-90, -30, 30, 90, 150, 210];
-  const hub = dots(hexDisc(O, 17, 5.6), "accent");
+  const hub = dots(hexDisc(O, 17, FILL), "accent");
   const nodes = spokes.flatMap((deg) =>
-    [48, 96].flatMap((r) => {
-      const center = polar(O, r, deg);
-      return dots(angles(12, deg).map((a) => polar(center, 14, a)), "ink");
-    }),
+    [48, 96].flatMap((r) => dots(ring(polar(O, r, deg), 14, PITCH * 0.8, deg), "ink")),
   );
+  // Dotted links across the gaps: hub to inner ring, inner ring to outer.
   const links = spokes.flatMap((deg) =>
-    [21.5, 28, 68.5, 75.5].map((r) => dot(polar(O, r, deg), "dim")),
+    [
+      [17, 34],
+      [62, 82],
+    ].flatMap(([from, to]) =>
+      dots(line(polar(O, from, deg), polar(O, to, deg), PITCH * 0.72).slice(1, -1), "dim"),
+    ),
   );
 
   return compose(GAP, hub, nodes, links);
@@ -156,18 +173,20 @@ function oversight(): Dot[] {
       return [x, cy + sign * Math.sqrt(150 ** 2 - (x - 240) ** 2)];
     }, PITCH);
 
-  const pupil = dots(hexDisc(O, 17, 5.6), "accent");
-  const iris = dots(angles(36).map((deg) => polar(O, 48, deg)), "ink");
+  const pupil = dots(hexDisc(O, 17, FILL), "accent");
+  const iris = dots(ring(O, 48, PITCH * 0.93), "ink");
   const lids = dots([...lid(270, -1), ...lid(90, 1)], "ink");
-  const fibres = angles(24, 7.5).flatMap((deg) =>
-    [26, 33, 40].map((r) => dot(polar(O, r, deg), "dim")),
+  // Half a step round, so no fibre runs into a sight line on the axes.
+  const fibreCount = ringCount(26, PITCH * 0.76);
+  const fibres = angles(fibreCount, 180 / fibreCount).flatMap((deg) =>
+    dots(line(polar(O, 26, deg), polar(O, 40, deg), PITCH * 0.78), "dim"),
   );
   const sight = dots(
     [
-      line([78, 180], [108, 180], 7.5),
-      line([372, 180], [402, 180], 7.5),
-      line([240, 90], [240, 106], 8),
-      line([240, 254], [240, 270], 8),
+      line([78, 180], [108, 180], PITCH * 0.85),
+      line([372, 180], [402, 180], PITCH * 0.85),
+      line([240, 90], [240, 106], PITCH * 0.85),
+      line([240, 254], [240, 270], PITCH * 0.85),
     ].flat(),
     "dim",
   );
@@ -176,25 +195,33 @@ function oversight(): Dot[] {
 }
 
 // Improvement: an LED level meter. Every cell is drawn so the unlit headroom
-// shows; each release sits a little higher than the last, with the dips that
-// come from learning, and the newest is lit. It fills from the bottom row up.
+// shows. Releases climb in threes, a step, a jump and a dip that comes from
+// learning, and the newest fills the meter. It fills from the bottom row up.
 function improvement(): Dot[] {
-  const LEVELS = [4, 6, 5, 8, 10, 9, 12, 14, 13, 16, 18, 17, 21];
-  const ROWS = 21;
-  const DX = 15;
-  const DY = 8.4;
-  const left = 240 - ((LEVELS.length - 1) * DX) / 2;
-  const bottom = 180 + ((ROWS - 1) * DY) / 2;
+  const WIDTH = 180;
+  const HEIGHT = 168;
+  const cols = Math.round(WIDTH / (PITCH * 1.67)) + 1;
+  const rows = Math.round(HEIGHT / (PITCH * 0.93)) + 1;
+  const dx = WIDTH / (cols - 1);
+  const dy = HEIGHT / (rows - 1);
+  const left = 240 - WIDTH / 2;
+  const bottom = 180 + HEIGHT / 2;
 
-  return LEVELS.flatMap((level, col) =>
-    Array.from({ length: ROWS }, (_, row) =>
+  const perThree = 0.76 / ((cols - 1) / 3);
+  const level = (col: number) =>
+    col === cols - 1
+      ? rows
+      : Math.round(rows * (0.19 + perThree * (Math.floor(col / 3) + [0, 0.5, 0.25][col % 3])));
+
+  return Array.from({ length: cols }, (_, col) =>
+    Array.from({ length: rows }, (_, row) =>
       dot(
-        [left + col * DX, bottom - row * DY],
-        row >= level ? "dim" : col === LEVELS.length - 1 ? "accent" : "ink",
-        row / ROWS,
+        [left + col * dx, bottom - row * dy],
+        row >= level(col) ? "dim" : col === cols - 1 ? "accent" : "ink",
+        row / rows,
       ),
     ),
-  );
+  ).flat();
 }
 
 export const dotIllos = {

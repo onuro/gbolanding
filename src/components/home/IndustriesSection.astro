@@ -171,11 +171,11 @@ type GraphicKind = (typeof graphics)[number][number];
                           style="--i: 0"
                         ></span>
                         <span
-                          class="industries-ring industries-ring--mid absolute left-1/2 top-1/2 size-[46px] rounded-full bg-brand/10"
+                          class="industries-ring industries-ring--mid absolute left-1/2 top-1/2 size-[46px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/10"
                           style="--i: 1"
                         ></span>
                         <span
-                          class="industries-ring industries-ring--dot absolute left-1/2 top-1/2 size-3 rounded-full bg-brand"
+                          class="industries-ring industries-ring--dot absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand"
                           style="--i: 2"
                         ></span>
                       </div>
@@ -521,7 +521,6 @@ type GraphicKind = (typeof graphics)[number][number];
 
   .industries-ring--mid,
   .industries-ring--dot {
-    translate: -50% -50%;
     transform-origin: center;
   }
 

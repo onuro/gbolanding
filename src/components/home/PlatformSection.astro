@@ -72,16 +72,10 @@ const illos: DotIlloName[] = [
                 </div>
                 {illo && (
                   <div
-                    class="relative order-first flex h-64 items-center justify-center overflow-hidden rounded-card bg-well"
+                    class="order-first flex h-64 items-center justify-center overflow-hidden"
                     aria-hidden="true"
                   >
-                    <span class="absolute inset-x-0 top-1/2 h-px bg-border"></span>
-                    <span class="absolute inset-y-0 left-1/2 w-px bg-border"></span>
-                    <span class="absolute left-3 top-3 font-mono text-micro text-faint-foreground">+</span>
-                    <span class="absolute right-3 top-3 font-mono text-micro text-faint-foreground">+</span>
-                    <span class="absolute bottom-3 left-3 font-mono text-micro text-faint-foreground">+</span>
-                    <span class="absolute bottom-3 right-3 font-mono text-micro text-faint-foreground">+</span>
-                    <div class="relative w-[82%] max-w-[22rem] text-foreground transition-transform duration-700 ease-out group-hover:scale-[1.04]">
+                    <div class="w-[82%] max-w-[22rem] text-foreground transition-transform duration-700 ease-out group-hover:scale-[1.04]">
                       <DotIllo name={illo} boot />
                     </div>
                   </div>

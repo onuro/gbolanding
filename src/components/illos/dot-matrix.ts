@@ -35,6 +35,17 @@ export const angles = (count: number, from = 0, to = from + 360): number[] => {
   return Array.from({ length: count }, (_, i) => from + ((to - from) * i) / gaps);
 };
 
+/**
+ * How many dots go round a circle of radius r to sit about `pitch` apart,
+ * rounded to a multiple of `multiple`; 4 puts a dot on each axis.
+ */
+export const ringCount = (r: number, pitch: number, multiple = 4): number =>
+  Math.max(1, Math.round((2 * Math.PI * r) / (pitch * multiple))) * multiple;
+
+/** Dots round a circle about `pitch` apart, the first at `from` degrees. */
+export const ring = (center: Point, r: number, pitch: number, from = 0): Point[] =>
+  angles(ringCount(r, pitch), from).map((deg) => polar(center, r, deg));
+
 /** Both ends included, gaps as close to `pitch` as a whole count allows. */
 export function line(a: Point, b: Point, pitch: number): Point[] {
   const gaps = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / pitch));

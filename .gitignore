@@ -44,3 +44,5 @@ bun-debug.log*
 # hero-face build-time model cache (ICT-FaceKit source OBJs)
 /.cache
 /scripts/hero-face/node_modules
+# dev-only live preview assets for the particle face (?face=1), never deployed
+/public/dev-hero-face

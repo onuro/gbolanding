@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Bundles the hero-face engine + a lab entry into a single browser script with esbuild.
 // Does not touch the site build (.vite / dist): esbuild only writes --out.
-//   node build-lab.mjs [--entry <lab-main.ts>] [--out <lab.js>] [--watch]
+//   node build-lab.mjs [--entry <lab-main.ts>] [--out <lab.js>] [--engine <engine dir>] [--watch]
 // 'three' is pinned to scripts/hero-face/node_modules/three (0.185.1); 'hero-face-engine'
-// resolves to src/components/hero-face/engine/index.ts.
+// resolves to <engine dir>/index.ts (default src/components/hero-face/engine), so a lab can
+// bundle a scratch copy of the engine without touching the site's.
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as esbuild from 'esbuild';
@@ -16,13 +17,14 @@ const arg = (k, d) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i
 const entry = resolve(arg('entry', join(LAB, 'lab-main.ts')));
 const out = resolve(arg('out', join(LAB, 'lab.js')));
 const THREE_DIR = join(HERE, 'node_modules/three');
+const ENGINE_DIR = resolve(arg('engine', join(REPO, 'src/components/hero-face/engine')));
 
 const pin = {
   name: 'pin-three',
   setup(b) {
     b.onResolve({ filter: /^three$/ }, () => ({ path: join(THREE_DIR, 'build/three.module.js') }));
     b.onResolve({ filter: /^three\/(addons|examples\/jsm)\// }, (a) => ({ path: join(THREE_DIR, 'examples/jsm', a.path.replace(/^three\/(addons|examples\/jsm)\//, '')) + (a.path.endsWith('.js') ? '' : '.js') }));
-    b.onResolve({ filter: /^hero-face-engine$/ }, () => ({ path: join(REPO, 'src/components/hero-face/engine/index.ts') }));
+    b.onResolve({ filter: /^hero-face-engine$/ }, () => ({ path: join(ENGINE_DIR, 'index.ts') }));
   },
 };
 

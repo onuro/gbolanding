@@ -3,7 +3,7 @@
 // The dots are worked out at build time (dot-illos.ts), so the page ships a
 // few plain paths and no script.
 import type { DotIlloName } from "./dot-illos";
-import { dotIllos } from "./dot-illos";
+import { DOT, dotIllos } from "./dot-illos";
 import { render } from "./dot-matrix";
 
 interface Props {
@@ -22,7 +22,7 @@ const marks = render(dotIllos[name]());
   viewBox="0 0 480 360"
   fill="none"
   stroke="currentColor"
-  stroke-width="4.2"
+  stroke-width={+DOT.toFixed(2)}
   stroke-linecap="round"
   class:list={["dot-illo", boot && "dot-illo-boot", className]}
   aria-hidden="true"
@@ -40,7 +40,7 @@ const marks = render(dotIllos[name]());
   }
 
   svg.dot-illo .dot-dim {
-    stroke-opacity: 0.24;
+    stroke-opacity: 0.3;
   }
 
   svg.dot-illo .dot-accent {

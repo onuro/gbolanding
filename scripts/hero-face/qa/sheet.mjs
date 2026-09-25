@@ -15,16 +15,26 @@ const scale = +arg('scale', 2);
 const head = { cx: +arg('cx', 990.5), ey: +arg('ey', 703.5), W: +arg('W', 818) };
 const title = arg('title', '');
 
-// [name, u0, v0, u1, v1] in W (v down)
-const REGIONS = [
-  ['nose bridge', -0.14, -0.02, 0.14, 0.26],
-  ['left eye', -0.43, -0.12, -0.07, 0.12],
-  ['mouth', -0.2, 0.36, 0.2, 0.68],
-  ['forehead / crown', -0.25, -0.76, 0.25, -0.42],
-  ['hair edge (left)', -1.2, -0.12, -0.6, 0.2],
-  ['cheek / jaw (right)', 0.18, 0.1, 0.62, 0.62],
-  ['stars (top left)', -1.2, -0.86, -0.72, -0.5],
-];
+// [name, u0, v0, u1, v1, scale?] in W (v down); --regions default | f5b
+const REGION_SETS = {
+  default: [
+    ['nose bridge', -0.14, -0.02, 0.14, 0.26],
+    ['left eye', -0.43, -0.12, -0.07, 0.12],
+    ['mouth', -0.2, 0.36, 0.2, 0.68],
+    ['forehead / crown', -0.25, -0.76, 0.25, -0.42],
+    ['hair edge (left)', -1.2, -0.12, -0.6, 0.2],
+    ['cheek / jaw (right)', 0.18, 0.1, 0.62, 0.62],
+    ['stars (top left)', -1.2, -0.86, -0.72, -0.5],
+  ],
+  // feature sheet: both eyes, lips, nose, cheek (viewer-left, the brighter side)
+  f5b: [
+    ['eyes', -0.46, -0.14, 0.46, 0.12, 1.1],
+    ['lips', -0.28, 0.3, 0.28, 0.72, 1.6],
+    ['nose', -0.16, -0.06, 0.16, 0.4, 1.6],
+    ['cheek', -0.5, -0.02, -0.08, 0.45, 1.6],
+  ],
+};
+const REGIONS = REGION_SETS[arg('regions', 'default')] || REGION_SETS.default;
 
 const px = (u, v) => [Math.round(head.cx + u * head.W), Math.round(head.ey + v * head.W)];
 const label = (text, w, h = 34) => Buffer.from(
@@ -47,7 +57,7 @@ const fr = await sharp(ref).resize({ width: Math.round(1832 * fullS) }).png().to
 const fn = await sharp(ren).resize({ width: Math.round(1832 * fullS) }).png().toBuffer();
 const fh = Math.round(1580 * fullS), fw = Math.round(1832 * fullS);
 tiles.push({ name: 'full frame', a: { buf: fr, w: fw, h: fh }, b: { buf: fn, w: fw, h: fh } });
-for (const r of REGIONS) tiles.push({ name: r[0], a: await crop(ref, r.slice(1), scale), b: await crop(ren, r.slice(1), scale) });
+for (const r of REGIONS) tiles.push({ name: r[0], a: await crop(ref, r.slice(1, 5), r[5] ?? scale), b: await crop(ren, r.slice(1, 5), r[5] ?? scale) });
 
 const gap = 12;
 const width = Math.max(...tiles.map((t) => t.a.w + t.b.w + gap * 3));
