@@ -210,6 +210,9 @@ export function HeroFacePreview() {
   // and the visitor's as their speech is recognised, white on a soft dark shadow so they read over the dots
   const [words, setWords] = useState<{ key: number; text: string; x: number; y: number; who: "ai" | "you" }[]>([]);
   const wordsRef = useRef<HTMLDivElement>(null);
+  // ?fps=1 (production too, to test on a phone): frame rate, the slow-frame tail and the render scale, twice a second
+  const fpsRef = useRef<HTMLParagraphElement>(null);
+  const [showFps] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("fps") === "1");
   useEffect(() => {
     if (!enabled) return;
     let key = 0, lastId = "", aiCount = 0, youId = "", youCount = 0;
@@ -367,8 +370,11 @@ export function HeroFacePreview() {
       // the dot pitch floor scaled along (10 -> 8 device px: whole pixels, so exactly the same dots in CSS px) and the
       // engine's cheap bloom; on a slow GPU the glow pass was ~60 % of the frame and missed frames stuttered (halved the
       // frame time in the phone emulation). Desktop unchanged.
-      const phone = window.matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 820;
-      const dpr = Math.min(phone ? 1.6 : 2, window.devicePixelRatio || 1);
+      // (?dpr=<0.5..3> forces the render scale, in production too, to try values on a phone; the dot pitch floor
+      // follows it, so the dots stay the same in CSS px and only their sharpness changes)
+      const forced = Math.min(3, Math.max(0, Number(query.get("dpr")) || 0));
+      const phone = forced >= 0.5 || (window.matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 820);
+      const dpr = forced >= 0.5 ? forced : Math.min(phone ? 1.6 : 2, window.devicePixelRatio || 1);
       // &L.<param>=<number or a,b,c> overrides single look params live (e.g. &L.dotFade=0)
       const overrides: Record<string, number | number[]> = {};
       for (const [k, v] of params.entries()) {
@@ -383,7 +389,7 @@ export function HeroFacePreview() {
       const face = createFaceEngine(canvas, {
         mesh, preset, seed: 1, pixelRatio: dpr, look: overrides as never,
         // (phones: the DPR as given, not raised back to 2 for the pitch floor; cheap bloom)
-        ...(phone ? { minPixelRatio: 1, lite: true } : {}),
+        ...(phone ? { minPixelRatio: Math.min(1, dpr), lite: true } : {}),
       } as Parameters<typeof createFaceEngine>[1]);
       engine = face;
       progress(0.95);
@@ -410,6 +416,8 @@ export function HeroFacePreview() {
       // her first frame: the ring fills, then (once it has visibly closed) the preloader blurs out and the intro's spark
       // lights in its place
       let firstFrame = false;
+      const frameMs: number[] = [];
+      let fpsAt = 0;
       const onFirstFrame = () => {
         progress(1);
         loadedTimer = window.setTimeout(() => {
@@ -447,6 +455,7 @@ export function HeroFacePreview() {
         if (!visible) return;
         try {
           const now = performance.now();
+          const prev0 = prev;
           const t = (now - start) / 1000;
           // pose = the idle sway (+ tiny nods while talking); morphs are absolute
           // (every driven morph each frame: blinks, mouth, smile)
@@ -474,6 +483,15 @@ export function HeroFacePreview() {
           prev = now;
           face.render(t);
           if (!firstFrame) { firstFrame = true; onFirstFrame(); }
+          if (fpsRef.current) {
+            if (now - prev0 < 1000) frameMs.push(now - prev0);
+            if (now - fpsAt > 500 && frameMs.length > 5) {
+              const a = frameMs.splice(0).sort((x, y) => x - y);
+              const avg = a.reduce((x, y) => x + y, 0) / a.length;
+              fpsRef.current.textContent = `${Math.round(1000 / avg)} fps · slow ${a[Math.floor(0.95 * (a.length - 1))]!.toFixed(0)} ms · worst ${a[a.length - 1]!.toFixed(0)} ms · ${dpr}x`;
+              fpsAt = now;
+            }
+          }
         } catch (cause) {
           if (performance.now() - loopErr > 5000) { loopErr = performance.now(); console.error("[hero-face] frame failed", cause); }
         }
@@ -528,6 +546,9 @@ export function HeroFacePreview() {
           <span key={w.key} className="face-word" data-who={w.who} style={{ left: `${w.x}%`, top: `${w.y}%` }}>{w.text}</span>
         ))}
       </div>
+      {showFps && (
+        <p ref={fpsRef} className="pointer-events-none absolute top-3 left-3 z-30 rounded bg-black/70 px-2 py-1 font-mono text-[11px] text-white/85" />
+      )}
       {error && (
         <p className="absolute inset-x-4 top-4 z-30 rounded bg-black/80 p-2 font-mono text-xs text-red-300">
           face preview: {error}
