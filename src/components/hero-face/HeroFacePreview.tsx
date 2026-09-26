@@ -421,7 +421,7 @@ export function HeroFacePreview() {
       // her first frame: the ring fills, then (once it has visibly closed) the preloader blurs out and the intro's spark
       // lights in its place
       let firstFrame = false;
-      const frameMs: number[] = [];
+      const frameMs: number[] = [], jsMs: number[] = [];
       let fpsAt = 0;
       const onFirstFrame = () => {
         progress(1);
@@ -464,6 +464,7 @@ export function HeroFacePreview() {
           const t = (now - start) / 1000;
           // pose = the idle sway (+ tiny nods while talking); morphs are absolute
           // (every driven morph each frame: blinks, mouth, smile)
+          const js0 = performance.now();
           const { pose: pose0, morphs, gaze } = performer.sample(t);
           // she is still while she assembles; her life (sway, cursor follow) eases in over the intro's last 15 %
           const ip = intro.introProgress?.() ?? 1;
@@ -490,10 +491,14 @@ export function HeroFacePreview() {
           if (!firstFrame) { firstFrame = true; onFirstFrame(); }
           if (fpsRef.current) {
             if (now - prev0 < 1000) frameMs.push(now - prev0);
+            jsMs.push(performance.now() - js0);
             if (now - fpsAt > 500 && frameMs.length > 5) {
               const a = frameMs.splice(0).sort((x, y) => x - y);
               const avg = a.reduce((x, y) => x + y, 0) / a.length;
-              fpsRef.current.textContent = `${Math.round(1000 / avg)} fps · slow ${a[Math.floor(0.95 * (a.length - 1))]!.toFixed(0)} ms · worst ${a[a.length - 1]!.toFixed(0)} ms · ${dpr}x${diag.words ? "" : " · no words"}${diag.blend ? "" : " · no blend"}`;
+              // the face's own JS a frame (performer + lip-sync + follow + render calls): small while the fps is low means
+              // the time goes elsewhere (the GPU, the page, the call)
+              const j = jsMs.splice(0).sort((x, y) => x - y), jAvg = j.reduce((x, y) => x + y, 0) / Math.max(1, j.length);
+              fpsRef.current.textContent = `${Math.round(1000 / avg)} fps · slow ${a[Math.floor(0.95 * (a.length - 1))]!.toFixed(0)} ms · worst ${a[a.length - 1]!.toFixed(0)} ms · face js ${jAvg.toFixed(1)} / ${(j[Math.floor(0.95 * (j.length - 1))] ?? 0).toFixed(1)} ms · ${dpr}x${diag.words ? "" : " · no words"}${diag.blend ? "" : " · no blend"}`;
               fpsAt = now;
             }
           }
