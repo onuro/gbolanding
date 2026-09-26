@@ -96,6 +96,7 @@ export function createStreamAligner(sampleRate: number, lang: Lang, vis?: VisMod
   const ZERO = new Float32Array(25);
   let nextFrame = -1;
   let peak = -60, peakHold = -60;
+  let rev = 0; // bumps whenever the timeline may have changed (a decode, a new utterance): align-worker.ts re-sends it
   // speaker normalisation: running P10 / P90 from histograms seeded with the prior
   const h1 = new Float64Array(120), h2 = new Float64Array(140); // F1 150..1350 (10 Hz), F2 600..3400 (20 Hz)
   const seedHist = (h: Float64Array, lo: number, step: number, p10: number, p90: number, w: number) => {
@@ -221,6 +222,7 @@ export function createStreamAligner(sampleRate: number, lang: Lang, vis?: VisMod
   // ---- decode the window [f0, fEnd) over units[u0..] + pending + tail pause
   let poolV = new Float64Array(0), poolB = new Int16Array(0);
   function decode(fEnd: number) {
+    rev++;
     const W = fEnd - f0;
     if (W <= 0) return;
     const U = [...units.slice(u0), PEND, TAILP];
@@ -425,6 +427,7 @@ export function createStreamAligner(sampleRate: number, lang: Lang, vis?: VisMod
   return {
     /** Agent transcript chunk (the whole utterance text so far) at audio-clock time atMs. */
     text(id: string, text: string, atMs: number) {
+      rev++;
       if (id !== uttId) {
         // a new utterance: whatever is live becomes final, the unit list restarts
         committed.push(...live); live = [];
@@ -512,6 +515,23 @@ export function createStreamAligner(sampleRate: number, lang: Lang, vis?: VisMod
       return { loud: Math.max(0, Math.min(1, (e - th) / LOUD_BELOW_PEAK)), f1n: n1(F1[i]!), f2n: n2(F2[i]!), voiced, db: e, f0: P0[i]!, pc, pp, pf, ps };
     },
     targets() { return prior.targets; },
+    /** timeline revision: unchanged means timeline() is unchanged (align-worker.ts) */
+    rev() { return rev; },
+    /**
+     * The raw per-frame acoustics of the last `n` frames (absolute index `from` on), everything acousticAt reads, for
+     * a copy of acousticAt on the page (align-proxy.ts): dB, F1, F2, f0, the classifier's log posteriors (12 a frame,
+     * NaN when not known yet / no classifier), and the running loudness threshold and speaker ranges.
+     */
+    snapshot(n: number) {
+      const k = Math.min(n, E.length), i0 = E.length - k;
+      const e = new Float64Array(k), f1 = new Float64Array(k), f2 = new Float64Array(k), p0 = new Float64Array(k), lp = new Float32Array(k * 12).fill(NaN);
+      for (let j = 0; j < k; j++) {
+        e[j] = E[i0 + j]!; f1[j] = F1[i0 + j]!; f2[j] = F2[i0 + j]!; p0[j] = P0[i0 + j]!;
+        const l = net ? LP[i0 + j] : null;
+        if (l) lp.set(l, j * 12);
+      }
+      return { from: base + i0, e, f1, f2, p0, lp, th: loudTh(), below: LOUD_BELOW_PEAK, N1: [N1[0], N1[1]] as [number, number], N2: [N2[0], N2[1]] as [number, number] };
+    },
     state() { return { units: units.length, u0, f0, committed: committed.length, live: live.length, N1, N2, peak, lead, uttF0 }; },
   };
 }

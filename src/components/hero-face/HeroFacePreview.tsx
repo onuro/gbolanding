@@ -213,6 +213,11 @@ export function HeroFacePreview() {
   // ?fps=1 (production too, to test on a phone): frame rate, the slow-frame tail and the render scale, twice a second
   const fpsRef = useRef<HTMLParagraphElement>(null);
   const [showFps] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("fps") === "1");
+  // phone diagnostics (production too): ?words=0 hides the spoken words, ?blend=0 drops the canvas' screen blend
+  const [diag] = useState(() => {
+    const q = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    return { words: q.get("words") !== "0", blend: q.get("blend") !== "0" };
+  });
   useEffect(() => {
     if (!enabled) return;
     let key = 0, lastId = "", aiCount = 0, youId = "", youCount = 0;
@@ -370,11 +375,11 @@ export function HeroFacePreview() {
       // the dot pitch floor scaled along (10 -> 8 device px: whole pixels, so exactly the same dots in CSS px) and the
       // engine's cheap bloom; on a slow GPU the glow pass was ~60 % of the frame and missed frames stuttered (halved the
       // frame time in the phone emulation). Desktop unchanged.
-      // (?dpr=<0.5..3> forces the render scale, in production too, to try values on a phone; the dot pitch floor
+      // (?dpr=<0.1..3> forces the render scale, in production too, to try values on a phone; the dot pitch floor
       // follows it, so the dots stay the same in CSS px and only their sharpness changes)
       const forced = Math.min(3, Math.max(0, Number(query.get("dpr")) || 0));
-      const phone = forced >= 0.5 || (window.matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 820);
-      const dpr = forced >= 0.5 ? forced : Math.min(phone ? 1.6 : 2, window.devicePixelRatio || 1);
+      const phone = forced >= 0.1 || (window.matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 820);
+      const dpr = forced >= 0.1 ? forced : Math.min(phone ? 1.6 : 2, window.devicePixelRatio || 1);
       // &L.<param>=<number or a,b,c> overrides single look params live (e.g. &L.dotFade=0)
       const overrides: Record<string, number | number[]> = {};
       for (const [k, v] of params.entries()) {
@@ -488,7 +493,7 @@ export function HeroFacePreview() {
             if (now - fpsAt > 500 && frameMs.length > 5) {
               const a = frameMs.splice(0).sort((x, y) => x - y);
               const avg = a.reduce((x, y) => x + y, 0) / a.length;
-              fpsRef.current.textContent = `${Math.round(1000 / avg)} fps · slow ${a[Math.floor(0.95 * (a.length - 1))]!.toFixed(0)} ms · worst ${a[a.length - 1]!.toFixed(0)} ms · ${dpr}x`;
+              fpsRef.current.textContent = `${Math.round(1000 / avg)} fps · slow ${a[Math.floor(0.95 * (a.length - 1))]!.toFixed(0)} ms · worst ${a[a.length - 1]!.toFixed(0)} ms · ${dpr}x${diag.words ? "" : " · no words"}${diag.blend ? "" : " · no blend"}`;
               fpsAt = now;
             }
           }
@@ -539,10 +544,11 @@ export function HeroFacePreview() {
           ref={canvasRef}
           aria-hidden="true"
           className="face-canvas block size-full bg-black"
+          style={diag.blend ? undefined : { mixBlendMode: "normal" }}
         />
       </div>
       <div ref={wordsRef} aria-hidden="true" className="pointer-events-none absolute inset-0 z-[25] overflow-hidden">
-        {words.map((w) => (
+        {diag.words && words.map((w) => (
           <span key={w.key} className="face-word" data-who={w.who} style={{ left: `${w.x}%`, top: `${w.y}%` }}>{w.text}</span>
         ))}
       </div>
