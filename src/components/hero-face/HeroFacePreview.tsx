@@ -382,7 +382,8 @@ export function HeroFacePreview() {
       const dpr = forced >= 0.1 ? forced : Math.min(phone ? 1.6 : 2, window.devicePixelRatio || 1);
       // &L.<param>=<number or a,b,c> overrides single look params live (e.g. &L.dotFade=0)
       const overrides: Record<string, number | number[]> = {};
-      for (const [k, v] of params.entries()) {
+      // (read from the real query, production too: look values can be tried on a phone)
+      for (const [k, v] of query.entries()) {
         if (!k.startsWith("L.")) continue;
         const nums = v.split(",").map(Number);
         if (nums.every((n) => Number.isFinite(n))) overrides[k.slice(2)] = nums.length > 1 ? nums : nums[0]!;
@@ -420,6 +421,38 @@ export function HeroFacePreview() {
       }
       // her first frame: the ring fills, then (once it has visibly closed) the preloader blurs out and the intro's spark
       // lights in its place
+      // ?prof=1 (production too): every 6 s, 20 frames timed pass by pass on this device: a 1-px readback before and
+      // after each render call waits for the GPU, so each pass's time is its GPU time (the readbacks slow those frames)
+      const profOn = query.get("prof") === "1";
+      let profAt = 0, profText = "";
+      const profile = () => {
+        const r = (face as unknown as { renderer: { render: (s: unknown, c: unknown) => void; getContext: () => WebGL2RenderingContext; getRenderTarget: () => { width: number; height: number } | null } }).renderer;
+        const gl = r.getContext(), orig = r.render.bind(r);
+        const px = new Uint8Array(4), pxf = new Float32Array(4), pxh = new Uint16Array(4);
+        const sync = () => {
+          const f = gl.getParameter(gl.IMPLEMENTATION_COLOR_READ_FORMAT), ty = gl.getParameter(gl.IMPLEMENTATION_COLOR_READ_TYPE);
+          gl.readPixels(0, 0, 1, 1, f, ty, ty === gl.FLOAT ? pxf : ty === gl.HALF_FLOAT ? pxh : px);
+        };
+        const rows: { lab: string; ms: number }[][] = [];
+        let seq: { lab: string; ms: number }[] = [];
+        r.render = (sc: unknown, cam: unknown) => {
+          const rt = r.getRenderTarget();
+          sync(); const t0 = performance.now();
+          orig(sc, cam);
+          sync();
+          seq.push({ lab: rt ? `${rt.width}x${rt.height}` : "out", ms: performance.now() - t0 });
+          if (!rt) { rows.push(seq); seq = []; if (rows.length >= 20) { r.render = orig; report(); } }
+        };
+        const report = () => {
+          const n = Math.max(...rows.map((x) => x.length)), med: string[] = [];
+          for (let i = 0; i < n; i++) {
+            const v = rows.map((x) => x[i]).filter(Boolean) as { lab: string; ms: number }[];
+            const ms = v.map((x) => x.ms).sort((a, b) => a - b);
+            med.push(`${v[0]!.lab} ${ms[Math.floor(ms.length / 2)]!.toFixed(1)}`);
+          }
+          profText = "gpu ms: " + med.join(" · ");
+        };
+      };
       let firstFrame = false;
       const frameMs: number[] = [], jsMs: number[] = [];
       let fpsAt = 0;
@@ -489,6 +522,7 @@ export function HeroFacePreview() {
           prev = now;
           face.render(t);
           if (!firstFrame) { firstFrame = true; onFirstFrame(); }
+          if (profOn && now - profAt > 6000 && firstFrame) { profAt = now; profile(); }
           if (fpsRef.current) {
             if (now - prev0 < 1000) frameMs.push(now - prev0);
             jsMs.push(performance.now() - js0);
@@ -498,7 +532,7 @@ export function HeroFacePreview() {
               // the face's own JS a frame (performer + lip-sync + follow + render calls): small while the fps is low means
               // the time goes elsewhere (the GPU, the page, the call)
               const j = jsMs.splice(0).sort((x, y) => x - y), jAvg = j.reduce((x, y) => x + y, 0) / Math.max(1, j.length);
-              fpsRef.current.textContent = `${Math.round(1000 / avg)} fps · slow ${a[Math.floor(0.95 * (a.length - 1))]!.toFixed(0)} ms · worst ${a[a.length - 1]!.toFixed(0)} ms · face js ${jAvg.toFixed(1)} / ${(j[Math.floor(0.95 * (j.length - 1))] ?? 0).toFixed(1)} ms · ${dpr}x${diag.words ? "" : " · no words"}${diag.blend ? "" : " · no blend"}`;
+              fpsRef.current.textContent = `${Math.round(1000 / avg)} fps · slow ${a[Math.floor(0.95 * (a.length - 1))]!.toFixed(0)} ms · worst ${a[a.length - 1]!.toFixed(0)} ms · face js ${jAvg.toFixed(1)} / ${(j[Math.floor(0.95 * (j.length - 1))] ?? 0).toFixed(1)} ms · ${dpr}x${diag.words ? "" : " · no words"}${diag.blend ? "" : " · no blend"}${profText ? "\n" + profText : ""}`;
               fpsAt = now;
             }
           }
@@ -558,7 +592,7 @@ export function HeroFacePreview() {
         ))}
       </div>
       {showFps && (
-        <p ref={fpsRef} className="pointer-events-none absolute top-3 left-3 z-30 rounded bg-black/70 px-2 py-1 font-mono text-[11px] text-white/85" />
+        <p ref={fpsRef} className="pointer-events-none absolute top-3 left-3 right-3 z-30 whitespace-pre-wrap rounded bg-black/70 px-2 py-1 font-mono text-[11px] text-white/85" />
       )}
       {error && (
         <p className="absolute inset-x-4 top-4 z-30 rounded bg-black/80 p-2 font-mono text-xs text-red-300">
