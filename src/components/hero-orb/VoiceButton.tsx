@@ -13,11 +13,13 @@ import {
 
 // Astro inlines PUBLIC_* at build time; when it is missing, a production build
 // must not fall back to a localhost the visitor's browser cannot reach.
-const GBO_API =
-  import.meta.env.PUBLIC_GBO_API ??
-  (import.meta.env.DEV
-    ? "http://localhost:3010"
-    : "https://kollektor.gbovision.com");
+// Empty means same-origin, which only works in dev: src/pages/gbo/session.ts
+// is a dev-only proxy and 404s in production, so a production build made with
+// the local .env (PUBLIC_GBO_API=) treats empty as missing too.
+const PUBLIC_GBO_API: string | undefined = import.meta.env.PUBLIC_GBO_API;
+const GBO_API = import.meta.env.DEV
+  ? (PUBLIC_GBO_API ?? "http://localhost:3010")
+  : PUBLIC_GBO_API || "https://kollektor.gbovision.com";
 
 type Labels = {
   idle: string;
@@ -279,7 +281,10 @@ export function VoiceButton({
         analyser = createLevelAnalyser(context);
         // The particle face asks for a little look-ahead (window.__faceLookahead, seconds): the agent is heard that
         // much later than the analyser sees it, so her mouth can shape a sound before it is heard, as people do.
-        const lookahead = (window as { __faceLookahead?: number }).__faceLookahead ?? 0;
+        // Only while the face is up: when it fails the orb comes back and the well loses data-face-preview, but the
+        // face's request can outlive it (it is not withdrawn on failure), and an orb call gains nothing from a delay.
+        const faceUp = document.querySelector(".orb-well[data-face-preview]") !== null;
+        const lookahead = faceUp ? ((window as { __faceLookahead?: number }).__faceLookahead ?? 0) : 0;
         const plugins: AudioNode[] = [analyser];
         if (lookahead > 0) {
           const delay = context.createDelay(1);

@@ -15,7 +15,7 @@ import type { Performer } from "./lipsync/idle";
 // and her eyes lead it (interaction/); mouse / pen only, touch and prefers-reduced-motion keep the idle life.
 // the production mesh (scripts/hero-face/compact-mesh.mjs); dev: ?mesh=<name> loads /dev-hero-face/mesh-<name>.json and
 // a missing production mesh falls back to the dev planb mesh
-const FACE_MESH_URL = "/hero-face/mesh-planb.json";
+const FACE_MESH_URL = "/hero-face/face.json";
 const DEV_MESH_URL = "/dev-hero-face/mesh-planb.json";
 // ?face=1&look=<preset> previews another engine preset; unknown names fall back.
 const DEFAULT_PRESET = "approved-v002";
@@ -28,51 +28,86 @@ const PREVIEW_CSS = `
 // how long a spoken word stays on screen (the .face-word animation is 2.55 s)
 const FACE_WORD_MS = 2650;
 // With the face, the call control must never sit on her face (a white disc + rotating text over it read as a horror
-// film): a slim translucent pill at the bottom of the card with the button's own label (attr(aria-label), so it follows
-// the language and the call state), no rotating badge / ring caption, status and errors above the pill.
+// film): a white pill at the bottom centre of the card with the button's own label (attr(aria-label), so it follows
+// the language and the call state), no rotating badge / ring caption, status and errors above the pill; in a call the
+// end-call pill takes its place.
 const FACE_UI_CSS = `
   /* Keep the luminous face on the dark well in both themes. Screen blending matches the dark page
      background without picking up the old orb underneath the isolated surface. */
   .face-canvas { mix-blend-mode: screen; }
-  .orb-well[data-face-preview] div.z-20:has(> button) { align-items: flex-end; padding-bottom: 28px; }
-  .orb-well[data-face-preview] div.z-20:has(> button) > svg { display: none; }
-  .orb-well[data-face-preview] div.z-20:has(> button) > button {
-    width: auto; height: 44px; gap: 10px; padding: 0 20px 0 16px; border-radius: 999px;
-    background: rgb(255 255 255 / 0.08); color: rgb(255 255 255 / 0.92);
-    border: 1px solid rgb(255 255 255 / 0.18); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 8px 30px rgb(0 0 0 / 0.35); transition: background 200ms ease, border-color 200ms ease;
+  /* the pill's bottom edge above the card's bottom: on wide screens (xl, the hero's two columns side by side) its centre
+     is level with the left column's buttons (48 px column padding + half a 44 px button - the card's 12 px inset) */
+  .orb-well[data-face-preview] { --call-y: 28px; }
+  @media (min-width: 80rem) { .orb-well[data-face-preview] { --call-y: 36px; } }
+  /* (only the idle container, inset-0: the call row, bottom-6, is a column and flex-end pushed its pill to the right) */
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) { align-items: flex-end; padding-bottom: var(--call-y); }
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > svg { display: none; }
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button,
+  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group {
+    width: auto; height: 44px; border-radius: 999px; border: 0;
+    background: rgb(255 255 255 / 0.94); color: rgb(12 14 18);
+    box-shadow: 0 8px 30px rgb(0 0 0 / 0.35), 0 0 0 1px rgb(255 255 255 / 0.25);
+    transition: background-color 200ms ease, box-shadow 250ms ease, color 200ms ease, scale 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 250ms ease;
   }
-  .orb-well[data-face-preview] div.z-20:has(> button) > button:hover { background: rgb(255 255 255 / 0.14); border-color: rgb(255 255 255 / 0.3); }
-  .orb-well[data-face-preview] div.z-20:has(> button) > button > svg { width: 14px; height: 14px; transform: none; }
-  .orb-well[data-face-preview] div.z-20:has(> button) > button::after {
-    content: attr(aria-label); font-family: var(--font-mono, ui-monospace, monospace); font-size: 11px;
-    letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button { gap: 10px; padding: 0 20px 0 16px; }
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button:hover,
+  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group:hover {
+    background: rgb(255 255 255); scale: 1.03; box-shadow: 0 10px 34px rgb(0 0 0 / 0.45), 0 0 26px rgb(255 255 255 / 0.2);
   }
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button:active,
+  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group:active { scale: 0.97; transition-duration: 120ms; }
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button > svg { width: 14px; height: 14px; transform: none; }
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button::after { content: attr(aria-label); }
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button::after,
+  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group > span:first-child {
+    font-family: var(--font-mono, ui-monospace, monospace); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: rgb(12 14 18);
+  }
+  /* in a call: the end-call pill (label, then a dark stop disc tucked in its right end) takes the idle pill's place,
+     easing in as it appears; status and errors sit above it */
+  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group {
+    gap: 12px; padding: 0 6px 0 20px; order: 2; animation: face-call-in 350ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group > span:last-child {
+    width: 32px; height: 32px; border: 0; background: rgb(12 14 18); color: rgb(255 255 255); transition: background-color 200ms ease;
+  }
+  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group:hover > span:last-child { background: rgb(44 48 54); }
+  @keyframes face-call-in { from { opacity: 0; scale: 0.9; filter: blur(4px); } to { opacity: 1; scale: 1; filter: blur(0); } }
   .orb-well[data-face-preview] div.z-20 svg:not(button svg) { display: none; }
-  /* light frosted pills with dark text (the dark chips all but vanished over the dots, the owner): hers white, yours
-     warm cream, ~72 % over a backdrop blur; in over 0.3 s, fully readable for 2 s, out over 0.25 s (2.55 s, FACE_WORD_MS) */
+  /* bare white words, no pill, hers and yours alike (the owner, 2026-09-26), each on a soft dark shadow so it reads over
+     the bright dots; visible within 0.2 s, readable ~2 s, out over 0.25 s (2.55 s, FACE_WORD_MS) */
   .face-word {
     position: absolute; transform: translate(-50%, -50%); pointer-events: none; white-space: nowrap;
-    font-family: var(--font-mono, ui-monospace, monospace); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
-    text-transform: uppercase; color: rgb(12 14 18); padding: 4px 10px; border-radius: 999px;
-    background: rgb(255 255 255 / 0.72); border: 1px solid rgb(255 255 255 / 0.5);
-    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-    box-shadow: 0 4px 18px rgb(0 0 0 / 0.45), 0 0 22px rgb(170 230 255 / 0.18);
-    animation: face-word 2.55s forwards;
+    font-family: var(--font-mono, ui-monospace, monospace); font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: rgb(255 255 255 / 0.95); filter: blur(0.5px);
+    text-shadow: 0 0 2px rgb(0 0 0 / 0.9), 0 0 8px rgb(0 0 0 / 0.85), 0 0 16px rgb(0 0 0 / 0.6);
+    animation: face-word-fade 2.55s forwards, face-word-zoom 2.55s forwards;
   }
-  .face-word[data-who="you"] { color: rgb(46 26 8); background: rgb(255 231 200 / 0.74); border-color: rgb(255 214 170 / 0.55); box-shadow: 0 4px 18px rgb(0 0 0 / 0.45), 0 0 22px rgb(255 190 120 / 0.2); }
-  /* in: rises 12 px into place out of a 6 px blur (ease-out); holds still and sharp while readable; out: lifts 12 px
-     away into a 6 px blur (ease-in) */
-  @keyframes face-word {
-    0% { opacity: 0; filter: blur(6px); transform: translate(-50%, -50%) translateY(12px); animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
-    11.76% { opacity: 1; filter: blur(0); transform: translate(-50%, -50%); animation-timing-function: linear; }
-    90.2% { opacity: 1; filter: blur(0); transform: translate(-50%, -50%); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
-    100% { opacity: 0; filter: blur(6px); transform: translate(-50%, -50%) translateY(-12px); }
+  /* (fade and zoom on their own clocks: on one fast ease-out the word was already ~90 % down to size by the time it
+     could be seen, and the zoom read as a plain fade) fade: in over 0.2 s, out over the last 0.25 s */
+  @keyframes face-word-fade {
+    0% { opacity: 0; animation-timing-function: ease-out; }
+    7.84% { opacity: 1; animation-timing-function: linear; }
+    90.2% { opacity: 1; animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
+    100% { opacity: 0; }
+  }
+  /* zoom: in from 180 % out of an 8 px blur down to its size over 0.5 s (ease-out cubic), a soft 0.5 px blur while
+     readable, out a little past its size into an 8 px blur */
+  @keyframes face-word-zoom {
+    0% { filter: blur(8px); transform: translate(-50%, -50%) scale(1.8); animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1); }
+    19.6% { filter: blur(0.5px); transform: translate(-50%, -50%) scale(1); animation-timing-function: linear; }
+    90.2% { filter: blur(0.5px); transform: translate(-50%, -50%) scale(1); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
+    100% { filter: blur(8px); transform: translate(-50%, -50%) scale(1.25); }
   }
   @media (prefers-reduced-motion: reduce) {
-    @keyframes face-word { 0% { opacity: 0; } 11.76% { opacity: 1; } 90.2% { opacity: 1; } 100% { opacity: 0; } }
+    .face-word { animation: face-word-fade 2.55s forwards; }
   }
-  .orb-well[data-face-preview] div.z-20.bottom-6 { bottom: 88px; }
+  /* status / errors above the idle pill; in a call the row's end-call pill sits exactly where the idle pill was (the
+     small-screen idle label under the orb is dropped: the pill carries it) */
+  .orb-well[data-face-preview] div.z-20.bottom-6 { bottom: calc(var(--call-y) + 56px); }
+  .orb-well[data-face-preview] div.z-20.bottom-6:has(> button.group) { bottom: var(--call-y); }
+  .orb-well[data-face-preview] div.z-20.bottom-6 > p:not([role]) { display: none; }
 `;
 
 // Idle life for every ?face=1 mode; the lip-sync driver (G2P, coarticulation)
@@ -157,22 +192,22 @@ export function HeroFacePreview() {
   const [label, setLabel] = useState<string>("");
   const [tune, setTune] = useState<Omit<TunePanelProps, "onHold"> | null>(null);
   // what is being said drifts into the field around her (never over her face): the AI's words as she says them
-  // (cool), the visitor's as their speech is recognised (warm), each on a light pill so it reads over the dots
+  // and the visitor's as their speech is recognised, white on a soft dark shadow so they read over the dots
   const [words, setWords] = useState<{ key: number; text: string; x: number; y: number; who: "ai" | "you" }[]>([]);
   const wordsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!enabled) return;
     let key = 0, lastId = "", aiCount = 0, youId = "", youCount = 0;
     const timers: number[] = [];
-    // the pills on screen (px boxes, centre + size): a new word goes where it overlaps none of them, fully inside the
+    // the words on screen (px boxes, centre + size): a new word goes where it overlaps none of them, fully inside the
     // card, off her face and above the call pill; when there is no room left it takes the least crowded free spot and
     // the older words there go (the newest word always shows, words never stack)
     const boxes = new Map<number, { x: number; y: number; w: number; h: number }>();
     const GAP = 6;
     const place = (text: string) => {
       const W = wordsRef.current?.clientWidth || 533, H = wordsRef.current?.clientHeight || 768;
-      // the pill's size from its text (10 px mono caps, 0.08em tracking, 10 px side padding; measured)
-      const w = 22 + text.length * 7.2, h = 25;
+      // the word's size from its text (13 px mono caps, 0.08em tracking; ~9.2 px a letter measured) plus its shadow
+      const w = 10 + text.length * 9.3, h = 20;
       let best: { x: number; y: number; hits: number[] } | null = null;
       for (let i = 0; i < 48; i++) {
         const x = w / 2 + 8 + Math.random() * Math.max(1, W - w - 16), y = 0.05 * H + h / 2 + Math.random() * (0.72 * H - h);
@@ -200,8 +235,8 @@ export function HeroFacePreview() {
         timers.push(window.setTimeout(() => drop([k]), FACE_WORD_MS));
       }
     };
-    // only whole words become pills: text arrives in chunks that can end mid-word, and speech recognition sends
-    // interim guesses whose last word is still being spoken ('nel' / 'yap' of 'neler yapıyorsunuz' showed as pills).
+    // only whole words show: text arrives in chunks that can end mid-word, and speech recognition sends
+    // interim guesses whose last word is still being spoken ('nel' / 'yap' of 'neler yapıyorsunuz' showed as words).
     // A word counts once whitespace follows it; the last one when its stream is done and settled (final, or a stream
     // with no final flag), or when the visitor's sentence has not changed for YOU_SETTLE_MS.
     const YOU_SETTLE_MS = 700;

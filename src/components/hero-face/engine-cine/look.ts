@@ -1269,7 +1269,9 @@ PRESETS['woman-cine-pulse'] = { ...PRESETS['woman-cine'], ...fieldLife(CINE_V004
 const OWNER_TUNE_0926: Partial<LookParams> = { lipTalkShape: [0.1, 0.85], lipTalk: [0.12, 0.04, 0, 0.09, 0.035, 0.35, 0.14], lipGloss: [0.43, 20], lipFloor: 0.74, rBase: 0.0615, rMid: 0.0328, rTop: 0.0492, rMax: 0.1558, exposure: 1.76, vignette: [1, 0.45, 1.6], scatterCount: 0, dimShrink: 0.05, breath: [0.1, 0.143, 0.24, 0], voiceGlow: [0.91, 0.05, 0.06, 0.25], harmRippleLight: [0.93, 1.4], ghost: 0.18, lipCorner: [0.08, 0.025], gamma: 1.23, edgeFade: [0.195, 0.42, 0.88, 0.72], gridDiv: 81, survivorSize: [0.093, 0.1581], harmSize: [0.71, 0.06, 0.5, 2.2], dodge: 0.43, gain: 2.65, minPitchDevPx: 5, vignettePost: 0.93, earMask: [0.6, -0.08, -0.75, 0.14, 0.26, 0.24, 0.95, 1.92], hairDensity: 0.67, dotSoft: 0.25 };
 // the owner's second tuning-panel link (2026-09-26): back to a coarser grid (54: fewer, larger dots), a glossier lower
 // lip with a tighter spot and no upper-lip border, no speaking-lip light at rest, less gain, a little more exposure
-const OWNER_TUNE_0926B: Partial<LookParams> = { lipGloss: [1.5, 62], lipBorder: 0, lipTalk: [0, 0.04, 0, 0.09, 0.035, 0.35, 0.14], gain: 2, gamma: 1.24, dodge: 0.39, exposure: 1.89, gridDiv: 54, edgeFade: [0.195, 0.4, 0.88, 0.72] };
+const OWNER_TUNE_0926B: Partial<LookParams> = { lipGloss: [1.5, 62], lipBorder: 0, lipTalk: [0, 0.04, 0, 0.09, 0.035, 0.35, 0.14], gain: 2, gamma: 1.24, dodge: 0.39, exposure: 1.89, gridDiv: 54, edgeFade: [0.195, 0.4, 0.88, 0.72],
+  // no upper-lip light in a pout: the pout fill lit an arc of dots along the upper lip on every o / u (the owner, 2026-09-26)
+  poutFill: 0 };
 PRESETS['woman-cine-glow'] = {
   ...PRESETS['woman-cine-pulse'],
   dotSoft: CINE_V004_ML_LIVE2.dotSoft, dotLogSigma: [0.15, 0.45], dotHot: CINE_V004_ML_LIVE2.dotHot, dotCap: CINE_V004_ML_LIVE2.dotCap,

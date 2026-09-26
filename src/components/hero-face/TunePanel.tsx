@@ -95,6 +95,7 @@ const GROUPS: { title: string; knobs: Knob[] }[] = [
       elem("talkLower", "Lower lip light", "lipTalk", 2, 0, 0.8, 0.01),
       elem("talkSeal", "Extra light on closed lips (m/b/p)", "lipTalk", 5, 0, 1, 0.01),
       elem("talkSeam", "Seam lift (1 = no line between the lips)", "lipTalk", 6, 0, 1, 0.01),
+      abs("poutFill", "Upper lip light on o / u (pout)", 0, 1, 0.01, "0 = no highlight on the puckered upper lip"),
       elem("talkFade0", "Fade to corners: starts at", "lipTalkShape", 0, 0, 1.5, 0.01, "share of the way to the corner"),
       elem("talkFade1", "Fade to corners: gone at", "lipTalkShape", 1, 0.1, 2, 0.01),
     ],
