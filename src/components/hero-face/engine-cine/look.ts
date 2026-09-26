@@ -1267,6 +1267,9 @@ PRESETS['woman-cine-pulse'] = { ...PRESETS['woman-cine'], ...fieldLife(CINE_V004
 // the owner's tuned look (his tuning-panel link, 2026-09-26): finer grid (81) and smaller face dots, no free scatter,
 // brighter / higher-contrast face, softer dots, the speaking lips' light low, the stronger vignette and edge fade
 const OWNER_TUNE_0926: Partial<LookParams> = { lipTalkShape: [0.1, 0.85], lipTalk: [0.12, 0.04, 0, 0.09, 0.035, 0.35, 0.14], lipGloss: [0.43, 20], lipFloor: 0.74, rBase: 0.0615, rMid: 0.0328, rTop: 0.0492, rMax: 0.1558, exposure: 1.76, vignette: [1, 0.45, 1.6], scatterCount: 0, dimShrink: 0.05, breath: [0.1, 0.143, 0.24, 0], voiceGlow: [0.91, 0.05, 0.06, 0.25], harmRippleLight: [0.93, 1.4], ghost: 0.18, lipCorner: [0.08, 0.025], gamma: 1.23, edgeFade: [0.195, 0.42, 0.88, 0.72], gridDiv: 81, survivorSize: [0.093, 0.1581], harmSize: [0.71, 0.06, 0.5, 2.2], dodge: 0.43, gain: 2.65, minPitchDevPx: 5, vignettePost: 0.93, earMask: [0.6, -0.08, -0.75, 0.14, 0.26, 0.24, 0.95, 1.92], hairDensity: 0.67, dotSoft: 0.25 };
+// the owner's second tuning-panel link (2026-09-26): back to a coarser grid (54: fewer, larger dots), a glossier lower
+// lip with a tighter spot and no upper-lip border, no speaking-lip light at rest, less gain, a little more exposure
+const OWNER_TUNE_0926B: Partial<LookParams> = { lipGloss: [1.5, 62], lipBorder: 0, lipTalk: [0, 0.04, 0, 0.09, 0.035, 0.35, 0.14], gain: 2, gamma: 1.24, dodge: 0.39, exposure: 1.89, gridDiv: 54, edgeFade: [0.195, 0.4, 0.88, 0.72] };
 PRESETS['woman-cine-glow'] = {
   ...PRESETS['woman-cine-pulse'],
   dotSoft: CINE_V004_ML_LIVE2.dotSoft, dotLogSigma: [0.15, 0.45], dotHot: CINE_V004_ML_LIVE2.dotHot, dotCap: CINE_V004_ML_LIVE2.dotCap,
@@ -1280,6 +1283,7 @@ PRESETS['woman-cine-glow'] = {
   // 2026-09-26); planb's ears sit at |x| ~.60, y ~-.08, z ~-.75, the neck behind the jaw below y ~-.45 and z ~-.3
   earMask: [0.6, -0.08, -0.75, 0.14, 0.26, 0.24, 0.75, 1.25], neckMask: [-0.4, -0.55, -0.3, -0.45],
   ...OWNER_TUNE_0926,
+  ...OWNER_TUNE_0926B,
   // the intro (after the owner's stock reference, 2026-09-26; times on a 3.5 s timeline, scaled by the length)
   intro: [3.5, 0.35, 0.6, 1.2], introShape: [1.0, 0.35, 2, 1],
 };

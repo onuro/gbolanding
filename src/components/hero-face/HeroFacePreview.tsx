@@ -5,14 +5,18 @@ import { createFollow, gazeMorphs, type Follow } from "./interaction/follow";
 import { attachPointerFollow, type PointerFollow } from "./interaction/pointer-follow";
 import type { Performer } from "./lipsync/idle";
 
-// DEV-only live preview of the particle face inside the hero orb card: /?face=1.
+// The particle face in the hero orb card (production and dev; ?face=0 shows the old orb, which also stays as the
+// fallback when WebGL2 or the face fails). The dev switches below (?talk, ?look, ?mesh, ?L.*, ?tune, ?live) work in
+// dev only.
 // Idle: breathing, sway, blinks and an occasional soft closed-lip smile.
 // ?face=1&talk=1 plays mimicked speech (no audio) of the site lines in a loop:
 // &style=minimal|subtle|natural (default minimal), &lang=tr|en (default both).
 // Cursor follow (on by default, &follow=0 turns it off): the pointer anywhere over the page turns her head in 3D
 // and her eyes lead it (interaction/); mouse / pen only, touch and prefers-reduced-motion keep the idle life.
-// The real island replaces this; nothing here ships.
-const MESH_URL = "/dev-hero-face/mesh-f5s.json";
+// the production mesh (scripts/hero-face/compact-mesh.mjs); dev: ?mesh=<name> loads /dev-hero-face/mesh-<name>.json and
+// a missing production mesh falls back to the dev planb mesh
+const FACE_MESH_URL = "/hero-face/mesh-planb.json";
+const DEV_MESH_URL = "/dev-hero-face/mesh-planb.json";
 // ?face=1&look=<preset> previews another engine preset; unknown names fall back.
 const DEFAULT_PRESET = "approved-v002";
 const TALK_STYLES = ["minimal", "subtle", "natural"] as const;
@@ -130,30 +134,25 @@ const TunePanel = lazy(() => import("./TunePanel"));
 let holdHead = false;
 const setHoldHead = (hold: boolean) => { holdHead = hold; };
 
-// ?look=cine-* presets live in a separate engine copy (engine-cine/) while the
-// main engine is still being fixed. The path is resolved at runtime so the
-// preview keeps compiling before that folder exists; it falls back to ./engine.
-async function loadEngine(look: string | null): Promise<EngineModule> {
-  // ?look=orig-<preset>: the engine as it was at ~22:30 on 2026-09-24 (approved-v002 before the defect fixes)
-  if (look?.startsWith("orig-")) return (await import("./engine-orig")) as unknown as EngineModule;
-  if (look?.startsWith("woman") || look?.startsWith("planb") || look?.startsWith("cine") || look?.startsWith("harmony")) {
-    const url = "/src/components/hero-face/engine-cine/index.ts";
-    try {
-      return (await import(/* @vite-ignore */ url)) as EngineModule;
-    } catch (cause) {
-      console.warn("[hero-face preview] engine-cine not available yet", cause);
-    }
+// the face runs on engine-cine; dev only: ?look=orig-<preset> (the engine as it was at ~22:30 on 2026-09-24,
+// approved-v002 before the defect fixes) and the older looks on ./engine (both folded out of production builds)
+async function loadEngine(look: string): Promise<EngineModule> {
+  if (import.meta.env.DEV) {
+    if (look.startsWith("orig-")) return (await import("./engine-orig")) as unknown as EngineModule;
+    if (!["woman", "planb", "cine", "harmony"].some((k) => look.startsWith(k))) return import("./engine");
   }
-  return import("./engine");
+  return (await import("./engine-cine")) as unknown as EngineModule;
 }
 
 export function HeroFacePreview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [enabled] = useState(
-    // DEV default: the face is on (mesh planb, look woman-cine-glow); ?face=0 shows the old orb
-    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("face") !== "0",
+    // the face is on (look woman-cine-glow); ?face=0 and browsers without WebGL2 keep the old orb (as the page's inline
+    // script decided before first paint)
+    () => typeof window !== "undefined" && "WebGL2RenderingContext" in window && new URLSearchParams(window.location.search).get("face") !== "0",
   );
   const [error, setError] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
   const [live] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("live") === "1");
   const [label, setLabel] = useState<string>("");
   const [tune, setTune] = useState<Omit<TunePanelProps, "onHold"> | null>(null);
@@ -273,29 +272,32 @@ export function HeroFacePreview() {
     let follow: Follow | null = null;
     let pointer: PointerFollow | null = null;
     let introSeen: IntersectionObserver | null = null;
+    let inView: IntersectionObserver | null = null;
 
     (async () => {
-      const params = new URLSearchParams(window.location.search);
+      // (the dev switches read an empty query in production)
+      const params = new URLSearchParams(import.meta.env.DEV ? window.location.search : "");
+      const query = new URLSearchParams(window.location.search);
       const requested = params.get("look") ?? "woman-cine-glow";
-      const followOn = params.get("follow") !== "0";
+      const followOn = query.get("follow") !== "0";
       const [{ createFaceEngine, defaultFraming, loadLabMesh, PRESETS }, performer] = await Promise.all([
         loadEngine(requested),
         loadPerformer(params),
       ]);
-      // ?mesh=<name> loads /dev-hero-face/mesh-<name>.json (alternative identities); default mesh-f5s
-      const meshName = params.get("mesh") ?? "planb";
-      const meshUrl = meshName && /^[\w-]+$/.test(meshName) ? `/dev-hero-face/mesh-${meshName}.json` : MESH_URL;
-      // an unknown / not-yet-published mesh falls back to the default instead of breaking the preview
+      // dev: ?mesh=<name> loads /dev-hero-face/mesh-<name>.json (alternative identities)
+      const meshName = params.get("mesh");
+      const meshUrl = meshName && /^[\w-]+$/.test(meshName) ? `/dev-hero-face/mesh-${meshName}.json` : FACE_MESH_URL;
+      // (dev: an unknown / not-yet-published mesh falls back to the dev planb mesh instead of breaking the preview)
       const mesh = await loadLabMesh(meshUrl).catch((cause) => {
-        if (meshUrl === MESH_URL) throw cause;
-        console.warn(`[hero-face preview] mesh "${meshName}" not available, using the default`, cause);
-        return loadLabMesh(MESH_URL);
+        if (!import.meta.env.DEV || meshUrl === DEV_MESH_URL) throw cause;
+        console.warn(`[hero-face preview] mesh "${meshUrl}" not available, using ${DEV_MESH_URL}`, cause);
+        return loadLabMesh(DEV_MESH_URL);
       });
       if (disposed) return;
       const wanted = requested?.startsWith("orig-") ? requested.slice(5) : requested;
       const preset = wanted && wanted in PRESETS ? wanted : DEFAULT_PRESET;
       // dev label: which mesh / look is REALLY running (a missing preset silently fell back once and cost hours)
-      setLabel(`${meshName ?? "f5s"} · ${requested?.startsWith("orig-") ? "orig-" : ""}${preset}${wanted && preset !== wanted ? `  (\"${wanted}\" not found)` : ""}`);
+      if (import.meta.env.DEV) setLabel(`${meshName ?? "face"} · ${requested?.startsWith("orig-") ? "orig-" : ""}${preset}${wanted && preset !== wanted ? `  (\"${wanted}\" not found)` : ""}`);
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       // &L.<param>=<number or a,b,c> overrides single look params live (e.g. &L.dotFade=0)
       const overrides: Record<string, number | number[]> = {};
@@ -312,7 +314,7 @@ export function HeroFacePreview() {
       // the intro (engine-cine): armed dark at once (the first frames must not show her before it starts), played when the
       // card first comes into view; reduced motion and ?intro=0 skip it to the finished face
       const intro = face as Partial<IntroApi>;
-      if (intro.playIntro && params.get("intro") !== "0" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (intro.playIntro && query.get("intro") !== "0" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         intro.playIntro({ hold: true });
         introSeen = new IntersectionObserver((es) => {
           if (!es.some((e) => e.isIntersecting)) return;
@@ -329,6 +331,10 @@ export function HeroFacePreview() {
       size();
       observer = new ResizeObserver(size);
       observer.observe(canvas);
+      // no frames while the card is scrolled out of view (the clocks tolerate the gap: every spring clamps its step)
+      let visible = true;
+      inView = new IntersectionObserver((es) => { visible = es.some((e) => e.isIntersecting); }, { threshold: 0 });
+      inView.observe(canvas);
 
       // cursor follow: an additive head turn + the eight eyeLook morphs (absolute, every frame)
       follow = followOn ? createFollow() : null;
@@ -343,6 +349,7 @@ export function HeroFacePreview() {
         // (the next frame is asked for first and the frame body is guarded: one throw skips one frame, never stops the
         // loop; an uncaught error in the live lip-sync froze the face mid-call)
         raf = requestAnimationFrame(loop);
+        if (!visible) return;
         try {
           const now = performance.now();
           const t = (now - start) / 1000;
@@ -353,7 +360,7 @@ export function HeroFacePreview() {
           const ip = intro.introProgress?.() ?? 1;
           const lx = Math.min(1, Math.max(0, (ip - 0.85) / 0.15)), lw = ip >= 1 ? 1 : lx * lx * (3 - 2 * lx);
           const pose = lw === 1 ? pose0 : scalePose(pose0, lw);
-          (window as unknown as { __faceMorphs?: Record<string, number> }).__faceMorphs = morphs; // dev: lip-sync measurements
+          if (import.meta.env.DEV) (window as unknown as { __faceMorphs?: Record<string, number> }).__faceMorphs = morphs; // dev: lip-sync measurements
           if (follow && pointer && !holdHead) {
             pointer.update();
             // the eyes counter the performer's head motion only while following is allowed (touch / reduced
@@ -375,8 +382,16 @@ export function HeroFacePreview() {
       };
       raf = requestAnimationFrame(loop);
     })().catch((cause) => {
-      console.error("[hero-face preview]", cause);
-      setError(String(cause?.message ?? cause));
+      // no face (no WebGL2, the mesh failed to load, ...): the old orb comes back (its engine starts when the well loses
+      // data-face-preview); dev also shows why
+      console.error("[hero-face]", cause);
+      cancelAnimationFrame(raf);
+      engine?.dispose();
+      engine = null;
+      well?.removeAttribute("data-face-preview");
+      well?.removeAttribute("data-face-ready");
+      setFailed(true);
+      if (import.meta.env.DEV) setError(String(cause?.message ?? cause));
     });
 
     return () => {
@@ -384,6 +399,7 @@ export function HeroFacePreview() {
       cancelAnimationFrame(raf);
       observer?.disconnect();
       introSeen?.disconnect();
+      inView?.disconnect();
       pointer?.detach();
       liveDetach?.();
       liveDetach = null;
@@ -395,6 +411,7 @@ export function HeroFacePreview() {
   }, [enabled]);
 
   if (!enabled) return null;
+  if (failed) return error ? <p className="absolute inset-x-4 top-4 z-30 rounded bg-black/80 p-2 font-mono text-xs text-red-300">face: {error}</p> : null;
   return (
     <>
       <style>{FACE_UI_CSS}</style>

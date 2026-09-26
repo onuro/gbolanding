@@ -32,6 +32,18 @@ export function StudyOrbGradient({ className, theme }: StudyOrbGradientProps) {
   const [mode, setMode] = useState<"light" | "dark">(theme ?? "dark");
   const modeRef = useRef(mode);
   modeRef.current = mode;
+  // the particle face covers the orb while its well carries data-face-preview (set before first paint): no orb engine
+  // then (a second WebGL surface drawing under the face); it starts when the face falls back and drops the attribute
+  const [faceOn, setFaceOn] = useState<boolean | null>(null);
+  useEffect(() => {
+    const well = canvasRef.current?.closest(".orb-well");
+    if (!well) { setFaceOn(false); return; }
+    const read = () => setFaceOn(well.hasAttribute("data-face-preview"));
+    read();
+    const observer = new MutationObserver(read);
+    observer.observe(well, { attributes: true, attributeFilter: ["data-face-preview"] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (theme) {
@@ -53,7 +65,7 @@ export function StudyOrbGradient({ className, theme }: StudyOrbGradientProps) {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || faceOn !== false) return;
     // ?kill=orb — see CrashProbe. The WebGL surface, its two mipmapped posters
     // and the three.js runtime are the largest single thing this page holds.
     if (document.documentElement.dataset.kill?.split(",").includes("orb")) {
@@ -149,7 +161,7 @@ export function StudyOrbGradient({ className, theme }: StudyOrbGradientProps) {
       handle?.destroy();
       handleRef.current = null;
     };
-  }, []);
+  }, [faceOn]);
 
   useEffect(() => {
     handleRef.current?.setTheme(mode);

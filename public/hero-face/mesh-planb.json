@@ -1,0 +1,1238 @@
+{
+ "format": "hero-face-lab-mesh",
+ "version": 1,
+ "name": "planb",
+ "source": "\"Stylized Anime Female Head\" by Rodesqa (https://sketchfab.com/3d-models/stylized-anime-female-head-e8d04325a74e46a98a6494abe721a8b2), CC BY 4.0; decimated, lips split, mouth interior added, rigged with ICT-FaceKit Light expressions (commit da5f95a607f5e6b37755b38d3385d7f2853732e5)",
+ "copyright": "\"Stylized Anime Female Head\" by Rodesqa, licensed under CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/), modified. Expression shapes and teeth: ICT-FaceKit (c) 2020 USC Institute for Creative Technologies, MIT License",
+ "units": "W (= 2 x interpupillary distance; 1.4933 sculpt units); origin = midpoint between pupils; +Y up, +Z toward camera",
+ "Wcm": null,
+ "ipdCm": null,
+ "identity": [],
+ "expressions": {},
+ "light": [
+  -0.12,
+  0.72,
+  0.68
+ ],
+ "bake": {
+  "raysVis": 64,
+  "raysAo": 128,
+  "aoMax": 0.1,
+  "coneDeg": 18
+ },
+ "vertexCount": 32351,
+ "indexCount": 192240,
+ "parts": [
+  {
+   "name": "skin",
+   "id": 0,
+   "start": 0,
+   "count": 161895
+  },
+  {
+   "name": "skin-body",
+   "id": 0,
+   "start": 161895,
+   "count": 10065
+  },
+  {
+   "name": "lacrimal",
+   "id": 5,
+   "start": 171960,
+   "count": 0
+  },
+  {
+   "name": "mouth",
+   "id": 1,
+   "start": 171960,
+   "count": 6240
+  },
+  {
+   "name": "teeth",
+   "id": 2,
+   "start": 178200,
+   "count": 4440
+  },
+  {
+   "name": "sclera",
+   "id": 3,
+   "start": 182640,
+   "count": 8625
+  },
+  {
+   "name": "iris",
+   "id": 4,
+   "start": 191265,
+   "count": 975
+  }
+ ],
+ "partIds": {
+  "skin": 0,
+  "mouth": 1,
+  "teeth": 2,
+  "sclera": 3,
+  "iris": 4,
+  "lacrimal": 5
+ },
+ "layout": {
+  "position": {
+   "offset": 0,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "normal": {
+   "offset": 388212,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "bake": {
+   "offset": 776424,
+   "type": "f32",
+   "size": 4,
+   "count": 32351
+  },
+  "eye": {
+   "offset": 1294040,
+   "type": "f32",
+   "size": 1,
+   "count": 32351
+  },
+  "curv": {
+   "offset": 1423444,
+   "type": "f32",
+   "size": 1,
+   "count": 32351
+  },
+  "feat": {
+   "offset": 1552848,
+   "type": "f32",
+   "size": 4,
+   "count": 32351
+  },
+  "index": {
+   "offset": 2070464,
+   "type": "u32",
+   "size": 1,
+   "count": 192240
+  },
+  "morph:jawOpen:position": {
+   "offset": 2839424,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:jawOpen:normal": {
+   "offset": 3227636,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthClose:position": {
+   "offset": 3615848,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthClose:normal": {
+   "offset": 4004060,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthFunnel:position": {
+   "offset": 4392272,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthFunnel:normal": {
+   "offset": 4780484,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthPucker:position": {
+   "offset": 5168696,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthPucker:normal": {
+   "offset": 5556908,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthSmileLeft:position": {
+   "offset": 5945120,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthSmileLeft:normal": {
+   "offset": 6333332,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthSmileRight:position": {
+   "offset": 6721544,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthSmileRight:normal": {
+   "offset": 7109756,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthStretchLeft:position": {
+   "offset": 7497968,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthStretchLeft:normal": {
+   "offset": 7886180,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthStretchRight:position": {
+   "offset": 8274392,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthStretchRight:normal": {
+   "offset": 8662604,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthLowerDownLeft:position": {
+   "offset": 9050816,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthLowerDownLeft:normal": {
+   "offset": 9439028,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthLowerDownRight:position": {
+   "offset": 9827240,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthLowerDownRight:normal": {
+   "offset": 10215452,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthUpperUpLeft:position": {
+   "offset": 10603664,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthUpperUpLeft:normal": {
+   "offset": 10991876,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthUpperUpRight:position": {
+   "offset": 11380088,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:mouthUpperUpRight:normal": {
+   "offset": 11768300,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeBlinkLeft:position": {
+   "offset": 12156512,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeBlinkLeft:normal": {
+   "offset": 12544724,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeBlinkRight:position": {
+   "offset": 12932936,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeBlinkRight:normal": {
+   "offset": 13321148,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeWideLeft:position": {
+   "offset": 13709360,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeWideLeft:normal": {
+   "offset": 14097572,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeWideRight:position": {
+   "offset": 14485784,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeWideRight:normal": {
+   "offset": 14873996,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeSquintLeft:position": {
+   "offset": 15262208,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeSquintLeft:normal": {
+   "offset": 15650420,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeSquintRight:position": {
+   "offset": 16038632,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeSquintRight:normal": {
+   "offset": 16426844,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:browInnerUpLeft:position": {
+   "offset": 16815056,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:browInnerUpLeft:normal": {
+   "offset": 17203268,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:browInnerUpRight:position": {
+   "offset": 17591480,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:browInnerUpRight:normal": {
+   "offset": 17979692,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:browDownLeft:position": {
+   "offset": 18367904,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:browDownLeft:normal": {
+   "offset": 18756116,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:browDownRight:position": {
+   "offset": 19144328,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:browDownRight:normal": {
+   "offset": 19532540,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookInLeft:position": {
+   "offset": 19920752,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookInLeft:normal": {
+   "offset": 20308964,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookInRight:position": {
+   "offset": 20697176,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookInRight:normal": {
+   "offset": 21085388,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookOutLeft:position": {
+   "offset": 21473600,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookOutLeft:normal": {
+   "offset": 21861812,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookOutRight:position": {
+   "offset": 22250024,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookOutRight:normal": {
+   "offset": 22638236,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookUpLeft:position": {
+   "offset": 23026448,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookUpLeft:normal": {
+   "offset": 23414660,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookUpRight:position": {
+   "offset": 23802872,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookUpRight:normal": {
+   "offset": 24191084,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookDownLeft:position": {
+   "offset": 24579296,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookDownLeft:normal": {
+   "offset": 24967508,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookDownRight:position": {
+   "offset": 25355720,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  },
+  "morph:eyeLookDownRight:normal": {
+   "offset": 25743932,
+   "type": "f32",
+   "size": 3,
+   "count": 32351
+  }
+ },
+ "morphs": [
+  {
+   "name": "jawOpen",
+   "source": "jawOpen",
+   "centroidX": -0.001,
+   "gain": 1.35
+  },
+  {
+   "name": "mouthClose",
+   "source": "mouthClose",
+   "centroidX": -0.0011
+  },
+  {
+   "name": "mouthFunnel",
+   "source": "mouthFunnel",
+   "centroidX": -0.0014,
+   "gain": 1.3
+  },
+  {
+   "name": "mouthPucker",
+   "source": "mouthPucker",
+   "centroidX": -0.0014,
+   "gain": 1.3
+  },
+  {
+   "name": "mouthSmileLeft",
+   "source": "mouthSmile_L",
+   "centroidX": 0.19
+  },
+  {
+   "name": "mouthSmileRight",
+   "source": "mouthSmile_R",
+   "centroidX": -0.1898
+  },
+  {
+   "name": "mouthStretchLeft",
+   "source": "mouthStretch_L",
+   "centroidX": 0.1359
+  },
+  {
+   "name": "mouthStretchRight",
+   "source": "mouthStretch_R",
+   "centroidX": -0.1412
+  },
+  {
+   "name": "mouthLowerDownLeft",
+   "source": "mouthLowerDown_L",
+   "centroidX": 0.0607
+  },
+  {
+   "name": "mouthLowerDownRight",
+   "source": "mouthLowerDown_R",
+   "centroidX": -0.0579
+  },
+  {
+   "name": "mouthUpperUpLeft",
+   "source": "mouthUpperUp_L",
+   "centroidX": 0.1234
+  },
+  {
+   "name": "mouthUpperUpRight",
+   "source": "mouthUpperUp_R",
+   "centroidX": -0.1246
+  },
+  {
+   "name": "eyeBlinkLeft",
+   "source": "eyeBlink_L",
+   "centroidX": 0.2581
+  },
+  {
+   "name": "eyeBlinkRight",
+   "source": "eyeBlink_R",
+   "centroidX": -0.2585
+  },
+  {
+   "name": "eyeWideLeft",
+   "source": "eyeWide_L",
+   "centroidX": 0.2608
+  },
+  {
+   "name": "eyeWideRight",
+   "source": "eyeWide_R",
+   "centroidX": -0.26
+  },
+  {
+   "name": "eyeSquintLeft",
+   "source": "eyeSquint_L",
+   "centroidX": 0.2863
+  },
+  {
+   "name": "eyeSquintRight",
+   "source": "eyeSquint_R",
+   "centroidX": -0.286
+  },
+  {
+   "name": "browInnerUpLeft",
+   "source": "browInnerUp_L",
+   "centroidX": 0.1585
+  },
+  {
+   "name": "browInnerUpRight",
+   "source": "browInnerUp_R",
+   "centroidX": -0.1585
+  },
+  {
+   "name": "browDownLeft",
+   "source": "browDown_L",
+   "centroidX": 0.2754
+  },
+  {
+   "name": "browDownRight",
+   "source": "browDown_R",
+   "centroidX": -0.275
+  },
+  {
+   "name": "eyeLookInLeft",
+   "source": "eyeLookIn_L",
+   "centroidX": 0.2477
+  },
+  {
+   "name": "eyeLookInRight",
+   "source": "eyeLookIn_R",
+   "centroidX": -0.2481
+  },
+  {
+   "name": "eyeLookOutLeft",
+   "source": "eyeLookOut_L",
+   "centroidX": 0.2489
+  },
+  {
+   "name": "eyeLookOutRight",
+   "source": "eyeLookOut_R",
+   "centroidX": -0.2494
+  },
+  {
+   "name": "eyeLookUpLeft",
+   "source": "eyeLookUp_L",
+   "centroidX": 0.2456
+  },
+  {
+   "name": "eyeLookUpRight",
+   "source": "eyeLookUp_R",
+   "centroidX": -0.2456
+  },
+  {
+   "name": "eyeLookDownLeft",
+   "source": "eyeLookDown_L",
+   "centroidX": 0.2514
+  },
+  {
+   "name": "eyeLookDownRight",
+   "source": "eyeLookDown_R",
+   "centroidX": -0.2511
+  }
+ ],
+ "landmarks": {
+  "pupilL": [
+   0.25,
+   0,
+   0
+  ],
+  "pupilR": [
+   -0.25,
+   0,
+   0
+  ],
+  "eyeCentreL": [
+   0.23629,
+   0.00735,
+   -0.13861
+  ],
+  "eyeCentreR": [
+   -0.23628,
+   0.00737,
+   -0.13862
+  ],
+  "mouthCentre": [
+   0.00004,
+   -0.47734,
+   0.08355
+  ],
+  "mouthCornerL": [
+   0.16725,
+   -0.49159,
+   -0.02467
+  ],
+  "mouthCornerR": [
+   -0.1672,
+   -0.49123,
+   -0.02476
+  ],
+  "upperLip": [
+   -0.00032,
+   -0.41975,
+   0.12574
+  ],
+  "lowerLip": [
+   0.00015,
+   -0.55619,
+   0.06545
+  ],
+  "innerUpperLip": [
+   0.00004,
+   -0.477,
+   0.08355
+  ],
+  "innerLowerLip": [
+   -0.00011,
+   -0.47771,
+   0.08354
+  ],
+  "noseTip": [
+   0,
+   -0.26342,
+   0.21179
+  ],
+  "chin": [
+   0.00037,
+   -0.75967,
+   -0.03922
+  ],
+  "multiPie68": [
+   [
+    -0.52524,
+    0.04081,
+    -0.45723
+   ],
+   [
+    -0.50597,
+    -0.10838,
+    -0.45359
+   ],
+   [
+    -0.47725,
+    -0.24226,
+    -0.42146
+   ],
+   [
+    -0.44475,
+    -0.36891,
+    -0.38663
+   ],
+   [
+    -0.38077,
+    -0.51096,
+    -0.33501
+   ],
+   [
+    -0.27635,
+    -0.62452,
+    -0.26153
+   ],
+   [
+    -0.19186,
+    -0.68116,
+    -0.16424
+   ],
+   [
+    -0.10335,
+    -0.72669,
+    -0.05311
+   ],
+   [
+    0.00037,
+    -0.75967,
+    -0.03922
+   ],
+   [
+    0.10381,
+    -0.7262,
+    -0.05332
+   ],
+   [
+    0.19227,
+    -0.68056,
+    -0.16356
+   ],
+   [
+    0.27532,
+    -0.62537,
+    -0.26022
+   ],
+   [
+    0.37924,
+    -0.51279,
+    -0.33303
+   ],
+   [
+    0.4437,
+    -0.37205,
+    -0.38419
+   ],
+   [
+    0.47647,
+    -0.24588,
+    -0.41857
+   ],
+   [
+    0.50521,
+    -0.11264,
+    -0.45062
+   ],
+   [
+    0.52453,
+    0.036,
+    -0.45463
+   ],
+   [
+    -0.43648,
+    0.12663,
+    -0.13492
+   ],
+   [
+    -0.38222,
+    0.1783,
+    -0.03377
+   ],
+   [
+    -0.29818,
+    0.19412,
+    0.04028
+   ],
+   [
+    -0.18716,
+    0.18164,
+    0.08346
+   ],
+   [
+    -0.09087,
+    0.15089,
+    0.10618
+   ],
+   [
+    0.09034,
+    0.15102,
+    0.10665
+   ],
+   [
+    0.18635,
+    0.18048,
+    0.08389
+   ],
+   [
+    0.29691,
+    0.19387,
+    0.04115
+   ],
+   [
+    0.3812,
+    0.17666,
+    -0.03157
+   ],
+   [
+    0.43534,
+    0.12396,
+    -0.13201
+   ],
+   [
+    0.00001,
+    -0.01674,
+    0.08126
+   ],
+   [
+    -0.00005,
+    -0.12031,
+    0.11707
+   ],
+   [
+    -0.0002,
+    -0.18434,
+    0.1609
+   ],
+   [
+    0,
+    -0.26342,
+    0.21179
+   ],
+   [
+    -0.08155,
+    -0.34533,
+    0.05901
+   ],
+   [
+    -0.03917,
+    -0.35578,
+    0.09309
+   ],
+   [
+    -0.00001,
+    -0.35821,
+    0.09924
+   ],
+   [
+    0.03909,
+    -0.35559,
+    0.09324
+   ],
+   [
+    0.08079,
+    -0.34625,
+    0.05905
+   ],
+   [
+    -0.36145,
+    -0.01213,
+    -0.10171
+   ],
+   [
+    -0.29425,
+    0.02052,
+    -0.01561
+   ],
+   [
+    -0.22721,
+    0.02215,
+    -0.00083
+   ],
+   [
+    -0.1599,
+    -0.03603,
+    -0.0406
+   ],
+   [
+    -0.2246,
+    -0.05271,
+    -0.01956
+   ],
+   [
+    -0.29427,
+    -0.05699,
+    -0.03695
+   ],
+   [
+    0.15863,
+    -0.02976,
+    -0.03882
+   ],
+   [
+    0.29296,
+    0.02058,
+    -0.01483
+   ],
+   [
+    0.22594,
+    0.0221,
+    -0.00101
+   ],
+   [
+    0.36018,
+    -0.01593,
+    -0.09893
+   ],
+   [
+    0.22352,
+    -0.05242,
+    -0.01925
+   ],
+   [
+    0.29299,
+    -0.05727,
+    -0.03644
+   ],
+   [
+    -0.1672,
+    -0.49123,
+    -0.02476
+   ],
+   [
+    -0.11713,
+    -0.44081,
+    0.07601
+   ],
+   [
+    -0.05211,
+    -0.41942,
+    0.11811
+   ],
+   [
+    -0.00032,
+    -0.41975,
+    0.12574
+   ],
+   [
+    0.0518,
+    -0.41927,
+    0.11915
+   ],
+   [
+    0.11697,
+    -0.44075,
+    0.07814
+   ],
+   [
+    0.16725,
+    -0.49159,
+    -0.02467
+   ],
+   [
+    0.11549,
+    -0.52973,
+    0.02493
+   ],
+   [
+    0.06701,
+    -0.55212,
+    0.05373
+   ],
+   [
+    0.00015,
+    -0.55619,
+    0.06545
+   ],
+   [
+    -0.06742,
+    -0.55203,
+    0.05454
+   ],
+   [
+    -0.11556,
+    -0.52928,
+    0.02583
+   ],
+   [
+    -0.1672,
+    -0.49123,
+    -0.02476
+   ],
+   [
+    -0.08631,
+    -0.47967,
+    0.05471
+   ],
+   [
+    0.00004,
+    -0.47734,
+    0.08355
+   ],
+   [
+    0.08604,
+    -0.48687,
+    0.04553
+   ],
+   [
+    0.16725,
+    -0.49159,
+    -0.02467
+   ],
+   [
+    0.08604,
+    -0.48687,
+    0.04553
+   ],
+   [
+    0.00004,
+    -0.47734,
+    0.08355
+   ],
+   [
+    -0.08631,
+    -0.47967,
+    0.05471
+   ]
+  ],
+  "eyeAxisL": [
+   0.1024,
+   -0.05367,
+   0.99329
+  ],
+  "eyeAxisR": [
+   -0.09419,
+   -0.05182,
+   0.9942
+  ],
+  "eyeRadius": 0.13388,
+  "irisCos": 0.92718,
+  "crownSphere": [
+   -0.00025,
+   0.22557,
+   -0.59538,
+   0.65946
+  ]
+ },
+ "bbox": [
+  [
+   -1.0285,
+   -1.9211,
+   -1.3192
+  ],
+  [
+   1.0284,
+   0.8792,
+   0.2119
+  ]
+ ],
+ "bin": "mesh-planb.bin",
+ "lookData": {
+  "from": "mesh-sfp.json",
+  "rest": {
+   "browInnerUpLeft": 0.5,
+   "browInnerUpRight": 0.5,
+   "eyeSquintLeft": 0.3,
+   "eyeSquintRight": 0.3,
+   "eyeWideLeft": 0.05,
+   "eyeWideRight": 0.05,
+   "mouthSmileLeft": 0.1,
+   "mouthSmileRight": 0.1,
+   "mouthStretchLeft": 0.1,
+   "mouthStretchRight": 0.1,
+   "mouthUpperUpLeft": 0.06,
+   "mouthUpperUpRight": 0.06,
+   "mouthRollUpper": -0.3,
+   "mouthRollLower": -0.2,
+   "renorm": []
+  },
+  "addTargets": [
+   "browDownLeft",
+   "browDownRight",
+   "eyeLookInLeft",
+   "eyeLookInRight",
+   "eyeLookOutLeft",
+   "eyeLookOutRight",
+   "eyeLookUpLeft",
+   "eyeLookUpRight",
+   "eyeLookDownLeft",
+   "eyeLookDownRight"
+  ],
+  "shells": [
+   {
+    "kind": 3,
+    "n": 452,
+    "x": 0.253,
+    "y": 0.136
+   },
+   {
+    "kind": 3,
+    "n": 452,
+    "x": 0.254,
+    "y": 0.136
+   },
+   {
+    "kind": 1,
+    "n": 352,
+    "x": 0.283,
+    "y": 0.015
+   },
+   {
+    "kind": 1,
+    "n": 352,
+    "x": 0.284,
+    "y": 0.015
+   },
+   {
+    "kind": 2,
+    "n": 82,
+    "x": 0.349,
+    "y": -0.031
+   },
+   {
+    "kind": 2,
+    "n": 82,
+    "x": 0.349,
+    "y": -0.031
+   }
+  ],
+  "lashShellRemoved": 1720,
+  "browShell": {
+   "flattened": 904,
+   "miss": 0,
+   "lift": [
+    0.008,
+    0.018
+   ],
+   "tone": 0.75
+  },
+  "teeth": [
+   -0.01,
+   0.012
+  ],
+  "landmarksMoved": {
+   "mouthCentre": [
+    0,
+    0.0058,
+    0.0168
+   ],
+   "mouthCornerL": [
+    0.0065,
+    0.0049,
+    -0.0049
+   ],
+   "mouthCornerR": [
+    -0.0065,
+    0.0053,
+    -0.005
+   ],
+   "upperLip": [
+    -0.0003,
+    0.0105,
+    0.0061
+   ],
+   "lowerLip": [
+    0,
+    -0.0056,
+    0.0014
+   ],
+   "innerUpperLip": [
+    0,
+    0.0058,
+    0.0168
+   ],
+   "innerLowerLip": [
+    -0.0001,
+    0.0058,
+    0.0168
+   ],
+   "noseTip": [
+    0,
+    0.0032,
+    0
+   ],
+   "chin": [
+    0,
+    0.0027,
+    0.0011
+   ]
+  },
+  "rebake": {
+   "verts": 29500,
+   "s": 16
+  },
+  "iris": {
+   "target": 0.047,
+   "eyeRadius": 0.13388,
+   "k": 1.465,
+   "pupilRadius": 0.0176,
+   "verts": 1604
+  },
+  "lidBand": {
+   "up": 498,
+   "lo": 394,
+   "bandUp": 0.012,
+   "bandLo": 0.007
+  },
+  "hairFit": {
+   "y": -1.02,
+   "skinTris": 53965,
+   "bodyTris": 3355
+  },
+  "jawGain": 1.35,
+  "jawCouple": {
+   "mouthUpperUpLeft": 0.3,
+   "mouthUpperUpRight": 0.3
+  },
+  "gains": {
+   "mouthFunnel": 1.3,
+   "mouthPucker": 1.3
+  }
+ }
+}

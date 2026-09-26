@@ -89,6 +89,26 @@ export function buildHairVolume(mesh: FaceMeshData, o: HairVolumeOptions = HAIR_
       f.set(g);
     }
   };
+  const fillRows = (f: Float32Array, rows: number) => {
+    const has = (j: number) => { for (let i = 0; i < NT; i++) if (f[j * NT + i] > 0) return true; return false; };
+    for (let j = 0; j < rows; j++) {
+      const got: number[] = [];
+      for (let i = 0; i < NT; i++) if (f[j * NT + i] > 0) got.push(i);
+      if (!got.length) continue;
+      for (let g = 0; g < got.length; g++) {
+        const i0 = got[g], i1 = got[(g + 1) % got.length], span = ((i1 - i0 + NT - 1) % NT) + 1;
+        const r0 = f[j * NT + i0], r1 = f[j * NT + i1];
+        for (let d = 1; d < span; d++) f[j * NT + ((i0 + d) % NT)] = r0 + ((r1 - r0) * d) / span;
+      }
+    }
+    for (let j = 0; j < rows; j++) {
+      if (has(j)) continue;
+      for (let d = 1; d < rows; d++) {
+        const src = [j - d, j + d].find((k) => k >= 0 && k < rows && has(k));
+        if (src !== undefined) { f.copyWithin(j * NT, src * NT, src * NT + NT); break; }
+      }
+    }
+  };
   const blur = (f: Float32Array, rows: number, it: number) => {
     for (let k = 0; k < it; k++) {
       const g = f.slice();
@@ -104,6 +124,13 @@ export function buildHairVolume(mesh: FaceMeshData, o: HairVolumeOptions = HAIR_
       f.set(g);
     }
   };
+  // near the pole a theta bin covers a sliver of the skull (solid angle ~ sin phi): most of the first rows' bins hold no
+  // skin vertex (planb: 94 of 96 in the top row, still ~80 at 20 deg). Left at 0 they stayed near 0 through the dilate /
+  // blur, so the shells dipped into the head at those angles and the crown became a spiky star with notches (two bright
+  // 'ears' either side of a dark slit at the top of the card). Empty bins take the circular linear interpolation of their
+  // row's filled bins (a row with none copies the nearest filled row); filled bins are untouched. Only the crown's rows
+  // (phi < 30 deg): lower down the gaps are narrow enough for the dilate, and the approved hair shape stays exactly as it was.
+  fillRows(rS, Math.round((30 / 100) * NP));
   dilate(rS, NP, 2); blur(rS, NP, 4);
   // polar cap row 0 is degenerate (few vertices): use the max of the first rows
   let top = 0;
