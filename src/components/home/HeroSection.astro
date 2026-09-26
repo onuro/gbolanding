@@ -130,6 +130,13 @@ const { locale, messages } = Astro.props;
         </div>
         {/* DEV-only particle-face preview: /?face=1 (&talk=1). Never rendered in production. */}
         {import.meta.env.DEV && <HeroFacePreview client:only="react" />}
+        {/* DEV: the face island mounts only after its JS loads; until then the old orb and its play button showed on
+            every page load. Mark the well at parse time (before first paint) unless ?face=0 asks for the orb. */}
+        {import.meta.env.DEV && (
+          <script is:inline>
+            if (new URLSearchParams(location.search).get("face") !== "0") document.currentScript.closest(".orb-well")?.setAttribute("data-face-preview", "");
+          </script>
+        )}
         <VoiceButton
           client:idle
           lang={locale}
@@ -168,4 +175,7 @@ const { locale, messages } = Astro.props;
     --color-border: oklch(0.92 0.008 160 / 12%);
     --dot-grid-color: rgb(255 255 255 / 9%);
   }
+  /* DEV face preview: the orb stays hidden under the face, and the voice UI until the face has styled it */
+  .orb-well[data-face-preview] > div.z-10 { visibility: hidden; }
+  .orb-well[data-face-preview]:not([data-face-ready]) div.z-20 { visibility: hidden; }
 </style>

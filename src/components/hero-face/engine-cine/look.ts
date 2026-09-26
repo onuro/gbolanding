@@ -319,6 +319,12 @@ export interface LookParams {
   hudOffDot?: number;
   /** a vignette after the tone curve (same radius / exponent as vignette): the pre-tone one barely touches bright dots */
   vignettePost?: number;
+  /** the intro (engine.playIntro()): she assembles out of the dark from a spark between her eyes, the nose ridge first,
+   *  then a ragged front outward, the corona last. Length (s), ragged front (s), bright-first lead (s: the dimmest dots
+   *  arrive this much after the brightest), the front's flash (x brightness); absent = no intro */
+  intro?: [number, number, number, number];
+  /** intro shape: corona delay (s), smooth-shading lag behind the dots (s), front block size (lattice pitches), spark */
+  introShape?: [number, number, number, number];
   harmFlow?: [number, number, number, number]; // shared curl flow: field amplitude (W), face amplitude (p), spatial frequency (1/W), tempo (1 = base)
   harmSize?: [number, number, number, number]; // dot-size breathing waves: field amplitude, face amplitude, brightness share, spatial frequency (1/W)
   harmWave?: [number, number, number, number]; // face-activity ripples: displacement (W), speed (W/s), ring width (W), decay (s)
@@ -1274,6 +1280,8 @@ PRESETS['woman-cine-glow'] = {
   // 2026-09-26); planb's ears sit at |x| ~.60, y ~-.08, z ~-.75, the neck behind the jaw below y ~-.45 and z ~-.3
   earMask: [0.6, -0.08, -0.75, 0.14, 0.26, 0.24, 0.75, 1.25], neckMask: [-0.4, -0.55, -0.3, -0.45],
   ...OWNER_TUNE_0926,
+  // the intro (after the owner's stock reference, 2026-09-26; times on a 3.5 s timeline, scaled by the length)
+  intro: [3.5, 0.35, 0.6, 1.2], introShape: [1.0, 0.35, 2, 1],
 };
 // the Darkstar HUD look (Top Gun: Maverick): the face keeps the default's own tones; the corona (hair, field) goes
 // phosphor green (the site's brand green) with a radar sweep turning around the head and an LED panel's unlit cells;

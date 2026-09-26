@@ -68,6 +68,14 @@ export interface FaceEngine {
    */
   render(timeSec?: number): void;
   snapDots(): void;
+  /**
+   * the intro (look.intro): she assembles out of the dark from a spark between her eyes. hold: arm it (dark, waiting)
+   * without starting; a later playIntro() starts it from there (or restarts it when it is running / done)
+   */
+  playIntro(opts?: { hold?: boolean }): void;
+  skipIntro(): void;
+  /** 0 .. 1 while the intro is armed / playing, 1 when it is not */
+  introProgress(): number;
   info(): Record<string, unknown>;
   dispose(): void;
 }
@@ -251,7 +259,10 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
   // ---- main scene: ghost quad + points
   const quadGeo = new THREE.BufferGeometry();
   quadGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3));
+  // the intro's uniforms, shared by the points and the smooth-shading quad (INTRO_GLSL; uIntroA.x < 0: off)
+  const introU = { uIntroA: { value: v4(-1, 0, 0, 1) }, uIntroB: { value: v4(0, 1, 0, 0) }, uIntroC: { value: v4(1, 0, 3.5, 0.18) } };
   const quadU = {
+    ...introU,
     uGhost: { value: ghost.target.texture as THREE.Texture },
     uGhostLod: { value: 1 },
     uToneKq: { value: 1.15 },
@@ -311,6 +322,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     uFaceCine: { value: v2(1, 1) },
     uGlint: { value: [v4(), v4(), v4(), v4()] },
     uGlintK: { value: v4(1, 0, 0, 1) },
+    uSpark: { value: v4() },
   };
   const outMat = new THREE.ShaderMaterial({ vertexShader: OUTPUT_VERT, fragmentShader: OUTPUT_FRAG, uniforms: outU, depthTest: false, depthWrite: false });
   const outQuad = new THREE.Mesh(quadGeo, outMat);
@@ -415,6 +427,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     uHarmE: { value: v4() },
     uHarmF: { value: v4(0.25, 0.3, 0, 0) },
     uPulse: { value: [v4(), v4(), v4(), v4(), v4(), v4()] },
+    ...introU,
   };
   // dot life state (look.dotFade > 0): ping-pong RGBA16F targets, one texel per particle (LIFE_W per row)
   const LIFE_W = 256;
@@ -558,6 +571,38 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
       if (q) P[i].set(q.x, q.y, t - q.t0, q.a); else P[i].set(0, 0, 0, 0);
     }
     pu.uHarmD.value.set(1, o.x - harm.lag2.x, o.y - harm.lag2.y, harm.E);
+  }
+  // ---- intro (look.intro, playIntro()): its own clock on the 3.5 s base timeline, advancing by at most 1/30 s per
+  // rendered frame (a first-frame shader compile stall must not skip half of it); armed = held dark at its start
+  const INTRO_BASE = 3.5;
+  // rings out from the seed (base s, amplitude): the spark, the ridge, the face, the corona
+  const INTRO_RINGS: [number, number][] = [[0.12, 0.9], [0.8, 0.8], [1.6, 0.7], [2.5, 0.55]];
+  let introClk = -1, introRun = false, introRing = 0;
+  const introV = new THREE.Vector3();
+  function introFrame(t: number, dt: number) {
+    const L = look;
+    if (introClk >= 0 && introRun) introClk += (Math.min(dt, 1 / 30) * INTRO_BASE) / Math.max(L.intro?.[0] ?? INTRO_BASE, 0.1);
+    if (introClk >= INTRO_BASE || !L.intro) introClk = -1;
+    outU.uSpark.value.w = 0;
+    pu.uIntroA.value.x = introClk;
+    if (introClk < 0) return;
+    const [, ragged, bright, flash] = L.intro!;
+    const [coronaDelay, lag, block, spark] = L.introShape ?? [1, 0.35, 3, 1];
+    // the seed: between the eyes, a little above the pupils
+    const pl = lm.pupilL, pr = lm.pupilR;
+    introV.set(0.5 * (pl[0] + pr[0]), 0.5 * (pl[1] + pr[1]) + 0.02, 0.5 * (pl[2] + pr[2]) + 0.02).applyMatrix4(poseM).project(mainCam);
+    const sx = (introV.x * 0.5 + 0.5) * devW, sy = (0.5 - introV.y * 0.5) * devH;
+    pu.uIntroA.value.set(introClk, sx, sy, Wdev);
+    pu.uIntroB.value.set(ragged, Math.max(1, block * pitch), bright, flash);
+    pu.uIntroC.value.set(coronaDelay, lag, INTRO_BASE, 0.18);
+    // the spark: in over 0.1 s, out over ~0.35 s
+    const c = introClk;
+    const env = Math.min(1, c / 0.1) ** 2 * Math.exp(-Math.max(0, c - 0.1) / 0.35);
+    outU.uSpark.value.set(sx, devH - sy, Math.max(1, 0.3 * pitch), 6 * spark * env);
+    while (introRun && introRing < INTRO_RINGS.length && c >= INTRO_RINGS[introRing][0]) {
+      harm.pulses.push({ x: sx, y: sy, t0: t, a: INTRO_RINGS[introRing][1] });
+      introRing++;
+    }
   }
   const hashN = (n: number) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
   let dodgeSpeech = 0;
@@ -1045,6 +1090,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     pu.uTime.value = lastTime;
     updatePose();
     cineFrame(lastTime, dt);
+    introFrame(lastTime, dt);
     harmFrame(lastTime, dt);
     applyMorphs();
     flow.render(renderer, flowCam);
@@ -1151,6 +1197,14 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     },
     render,
     snapDots() { resetFrame = true; },
+    playIntro(opts) {
+      if (!look.intro) return;
+      if (opts?.hold) { introClk = 0; introRun = false; introRing = 0; return; }
+      if (introClk < 0 || introRun) { introClk = 0; introRing = 0; }
+      introRun = true;
+    },
+    skipIntro() { introClk = -1; introRun = false; },
+    introProgress() { return introClk < 0 ? 1 : introClk / INTRO_BASE; },
     info() {
       const gl = renderer.getContext();
       const dbg = gl.getExtension('WEBGL_debug_renderer_info');

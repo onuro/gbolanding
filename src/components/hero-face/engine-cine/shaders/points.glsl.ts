@@ -1,4 +1,4 @@
-import { NOISE_GLSL } from './common.glsl';
+import { INTRO_GLSL, NOISE_GLSL } from './common.glsl';
 
 // One THREE.Points draw for everything that glows (PLAN.md §3, P3 ②):
 //   kind 0  screen-aligned lattice point; samples T0 (4x4 box = one cell) + T1 (flow, exact)
@@ -20,6 +20,7 @@ export const POINTS_VERT = /* glsl */ `
 precision highp float;
 precision highp int;
 ${NOISE_GLSL}
+${INTRO_GLSL}
 attribute vec4 aRand;
 attribute vec4 aRand2;
 attribute float aKind;
@@ -817,6 +818,16 @@ void main() {
     // darkstar: an LED panel's unlit cell, a faint dark dot in every empty grid cell outside the head
     on = true; s = hudSl; vI = uHud.w; vShape = vec4(0.0, 0.13, 0.5, 2.0); vArc = vec4(0.0); vHalo = vec4(0.0); vBloomW = 0.0; vHeat = 0.0;
   }
+  if (uIntroA.x >= 0.0 && on) {
+    // the intro: each dot switches on as the front reaches it (bright dots ahead of dim ones, from small to full size)
+    // with a brief flash, the scanning edge; everything is in by the end, so the intro hands over without a pop
+    float tr = min(hf_introAt(s, hmW) + uIntroB.z * (1.0 - smoothstep(0.1, 1.2, vI)), uIntroC.z - uIntroC.w);
+    float ia = clamp((uIntroA.x - tr) / uIntroC.w, 0.0, 1.0);
+    if (ia <= 0.0) on = false;
+    ia = ia * ia * (3.0 - 2.0 * ia);
+    vI *= ia * (1.0 + uIntroB.w * exp(-max(uIntroA.x - tr, 0.0) / 0.2));
+    vShape.y *= mix(0.4, 1.0, ia);
+  }
   // (each corona particle its own share of the green, most toward mint / white: one even green read as flat)
   float fg = hf_hash12(aRand.zw * 31.7 + 2.1);
   vField = hmW * mix(1.0, fg * fg, uFieldVar);
@@ -967,6 +978,7 @@ void main() { vUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 0.0
 export const GHOST_QUAD_FRAG = /* glsl */ `
 precision highp float;
 ${NOISE_GLSL}
+${INTRO_GLSL}
 uniform sampler2D uGhost;
 uniform float uGhostLod;
 uniform float uLodOffQ;  // added to every ghost blur level (see uLodOff)
@@ -1052,6 +1064,8 @@ void main() {
     if (vr > uVolQK2.x) vr = uVolQK2.x + (vr - uVolQK2.x) / (1.0 + (vr - uVolQK2.x) / max(uVolQK2.y - uVolQK2.x, 1e-4));
     x += uVolQK.x * pow(vr, uVolQK.y) * cl;
   }
+  // the intro: the smooth shading follows the dots' front a little behind (the texture refines after the dots land)
+  if (uIntroA.x >= 0.0) x *= smoothstep(0.0, 0.5, uIntroA.x - min(hf_introAt(sp, 0.0) + uIntroC.y, uIntroC.z - 0.5));
   gl_FragColor = vec4(uTintMist * x, 0.0);
 }
 `;

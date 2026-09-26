@@ -115,6 +115,14 @@ async function loadBasePerformer(params: URLSearchParams): Promise<Performer> {
 }
 
 type EngineModule = typeof import("./engine");
+// the intro API of engine-cine (the other engines have none)
+type IntroApi = { playIntro(opts?: { hold?: boolean }): void; introProgress(): number };
+// the head pose toward rest by w (0 = at rest, 1 = as given)
+function scalePose<P extends object>(p: P, w: number): P {
+  const q = { ...p } as Record<string, unknown>;
+  for (const k of ["yaw", "pitch", "roll", "x", "y", "z"]) if (typeof q[k] === "number") q[k] = (q[k] as number) * w;
+  return q as P;
+}
 
 // dev only, temporary: /?tune=1 opens live sliders over the look params (TunePanel); its "hold the head still"
 // switch drops the cursor follow so the pointer on the panel does not turn her
@@ -255,6 +263,8 @@ export function HeroFacePreview() {
     // scoped to this attribute).
     const well = canvas.closest(".orb-well");
     well?.setAttribute("data-face-preview", "");
+    // (the page marks the well before first paint and keeps the voice UI hidden until the face's CSS has styled it)
+    well?.setAttribute("data-face-ready", "");
 
     let disposed = false;
     let raf = 0;
@@ -262,6 +272,7 @@ export function HeroFacePreview() {
     let observer: ResizeObserver | null = null;
     let follow: Follow | null = null;
     let pointer: PointerFollow | null = null;
+    let introSeen: IntersectionObserver | null = null;
 
     (async () => {
       const params = new URLSearchParams(window.location.search);
@@ -298,6 +309,19 @@ export function HeroFacePreview() {
       if (import.meta.env.DEV && params.get("tune") === "1") {
         setTune({ engine: face, base: PRESETS[preset] as unknown as Record<string, unknown>, initial: overrides, preset });
       }
+      // the intro (engine-cine): armed dark at once (the first frames must not show her before it starts), played when the
+      // card first comes into view; reduced motion and ?intro=0 skip it to the finished face
+      const intro = face as Partial<IntroApi>;
+      if (intro.playIntro && params.get("intro") !== "0" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        intro.playIntro({ hold: true });
+        introSeen = new IntersectionObserver((es) => {
+          if (!es.some((e) => e.isIntersecting)) return;
+          intro.playIntro?.();
+          introSeen?.disconnect();
+          introSeen = null;
+        }, { threshold: 0.35 });
+        introSeen.observe(canvas);
+      }
       const size = () => {
         const rect = canvas.getBoundingClientRect();
         face.resize(rect.width, rect.height, dpr);
@@ -324,7 +348,11 @@ export function HeroFacePreview() {
           const t = (now - start) / 1000;
           // pose = the idle sway (+ tiny nods while talking); morphs are absolute
           // (every driven morph each frame: blinks, mouth, smile)
-          const { pose, morphs, gaze } = performer.sample(t);
+          const { pose: pose0, morphs, gaze } = performer.sample(t);
+          // she is still while she assembles; her life (sway, cursor follow) eases in over the intro's last 15 %
+          const ip = intro.introProgress?.() ?? 1;
+          const lx = Math.min(1, Math.max(0, (ip - 0.85) / 0.15)), lw = ip >= 1 ? 1 : lx * lx * (3 - 2 * lx);
+          const pose = lw === 1 ? pose0 : scalePose(pose0, lw);
           (window as unknown as { __faceMorphs?: Record<string, number> }).__faceMorphs = morphs; // dev: lip-sync measurements
           if (follow && pointer && !holdHead) {
             pointer.update();
@@ -333,8 +361,8 @@ export function HeroFacePreview() {
             const on = pointer.enabled;
             const blink = Math.max(morphs.eyeBlinkLeft ?? 0, morphs.eyeBlinkRight ?? 0);
             const f = follow.step((now - prev) / 1000, now / 1000, { yaw: on ? pose.yaw : 0, pitch: on ? pose.pitch : 0, blink, gazeYaw: gaze?.yaw, gazePitch: gaze?.pitch });
-            face.setPose({ ...pose, yaw: pose.yaw + f.yaw, pitch: pose.pitch + f.pitch });
-            face.setMorphs({ ...morphs, ...f.morphs });
+            face.setPose({ ...pose, yaw: pose.yaw + lw * f.yaw, pitch: pose.pitch + lw * f.pitch });
+            face.setMorphs({ ...morphs, ...(lw === 1 ? f.morphs : Object.fromEntries(Object.entries(f.morphs).map(([k, v]) => [k, v * lw]))) });
           } else {
             face.setPose(pose);
             face.setMorphs(gaze ? { ...morphs, ...gazeMorphs(gaze.yaw, gaze.pitch, Math.max(morphs.eyeBlinkLeft ?? 0, morphs.eyeBlinkRight ?? 0)) } : morphs);
@@ -355,10 +383,12 @@ export function HeroFacePreview() {
       disposed = true;
       cancelAnimationFrame(raf);
       observer?.disconnect();
+      introSeen?.disconnect();
       pointer?.detach();
       liveDetach?.();
       liveDetach = null;
       well?.removeAttribute("data-face-preview");
+      well?.removeAttribute("data-face-ready");
       engine?.dispose();
       setTune(null);
     };

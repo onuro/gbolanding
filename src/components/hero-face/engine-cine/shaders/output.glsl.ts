@@ -32,6 +32,7 @@ uniform vec2 uDodgeT;       // time (s), smoothed speech energy 0..1
 uniform vec2 uFaceCine;     // face protection: dodge share, bloom share inside the face ellipse (1, 1 = no protection)
 uniform vec4 uGlint[4];     // x, y (device px, gl_FragCoord), 1 / e-fold length (px), amplitude (HDR)
 uniform vec4 uGlintK;       // vertical sigma (px), face ellipse centre x, y (gl px), face radius (px)
+uniform vec4 uSpark;        // the intro's seed spark between the eyes: x, y (gl px), core sigma (px), amplitude (HDR; 0 off)
 varying vec2 vUv;
 
 vec4 tent4(float lod) {
@@ -94,6 +95,15 @@ void main() {
     }
     dodge *= mix(1.0, uFaceCine.x, fmask);
     x = (x + bl + g) / (1.0 - clamp(dodge * a, 0.0, 0.85));
+    if (uSpark.w > 0.0) {
+      // a white-hot point with a soft glow and a thin cross flare (wider than tall), the intro's first light
+      vec2 d = gl_FragCoord.xy - uSpark.xy;
+      float r = uSpark.z, r2 = r * r;
+      float sp = exp(-0.5 * dot(d, d) / r2) + 0.12 * exp(-0.5 * dot(d, d) / (16.0 * r2))
+        + 0.35 * exp(-abs(d.x) / (12.0 * r)) * exp(-0.5 * d.y * d.y / (0.2 * r2))
+        + 0.2 * exp(-abs(d.y) / (6.0 * r)) * exp(-0.5 * d.x * d.x / (0.2 * r2));
+      x += uSpark.w * sp * vec3(0.9, 1.0, 1.03);
+    }
     // vignette (card space, 0 centre .. 1 corner), before the tone curve
     float dv = length(vUv - 0.5) * 1.41421;
     x *= 1.0 - uCineA.z * pow(smoothstep(uCineA.w, 1.0, dv), uCineB.x);

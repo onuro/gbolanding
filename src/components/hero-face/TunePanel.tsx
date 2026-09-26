@@ -8,6 +8,8 @@ type Look = Record<string, unknown>;
 interface TuneEngine {
   setLook(look: Record<string, Val>): void;
   info(): Record<string, unknown>;
+  /** the intro (engine-cine only) */
+  playIntro?(): void;
 }
 export interface TunePanelProps {
   engine: TuneEngine;
@@ -161,6 +163,20 @@ const GROUPS: { title: string; knobs: Knob[] }[] = [
       elem("neckY1", "Neck fade: gone below (y)", "neckMask", 1, -1.2, -0.2, 0.01),
       elem("neckZ0", "Neck fade: starts behind (z)", "neckMask", 2, -0.8, 0, 0.01),
       elem("neckZ1", "Neck fade: gone behind (z)", "neckMask", 3, -1.2, -0.1, 0.01),
+    ],
+  },
+  {
+    // (the intro plays once when the card first comes into view; "Replay intro" below plays it again with these)
+    title: "Intro",
+    knobs: [
+      elem("introLen", "Length (s)", "intro", 0, 1, 8, 0.1),
+      elem("introRag", "Ragged front", "intro", 1, 0, 1.2, 0.01, "0 = a clean ellipse"),
+      elem("introBright", "Bright dots first (s the dim ones lag)", "intro", 2, 0, 1.5, 0.01),
+      elem("introFlash", "Flash at the front", "intro", 3, 0, 4, 0.05),
+      elem("introBlock", "Front block size (dot pitches)", "introShape", 2, 0.5, 6, 0.1),
+      elem("introCorona", "Corona starts at (s)", "introShape", 0, 0, 2.5, 0.05),
+      elem("introLag", "Smooth shading lags the dots (s)", "introShape", 1, 0, 1, 0.01),
+      elem("introSpark", "Spark between the eyes", "introShape", 3, 0, 3, 0.05),
     ],
   },
   {
@@ -346,6 +362,9 @@ export default function TunePanel({ engine, base, initial, preset, onHold }: Tun
             </details>
           )}
           <div className="flex flex-wrap gap-1 pt-1">
+            {engine.playIntro && (
+              <button type="button" className="rounded bg-amber-300/25 px-2 py-1 hover:bg-amber-300/40" onClick={() => engine.playIntro?.()}>Replay intro</button>
+            )}
             <button type="button" className="rounded bg-white/15 px-2 py-1 hover:bg-white/25" onClick={() => setOver({})}>Reset all</button>
             <button type="button" className="rounded bg-white/15 px-2 py-1 hover:bg-white/25" onClick={() => copy("link", window.location.href)}>Copy link</button>
             <button type="button" className="rounded bg-white/15 px-2 py-1 hover:bg-white/25" onClick={() => copy("values", JSON.stringify(over))}>Copy values</button>

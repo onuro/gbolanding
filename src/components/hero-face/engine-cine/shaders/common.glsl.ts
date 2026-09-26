@@ -35,6 +35,25 @@ float hf_fbm(vec3 p) {
 // not hard ellipses), lip vermilion + gloss + upper-lip border, a soft lip seam and mouth corners.
 // feat (per-vertex, rest pose): x lip vermilion, y lip side (+1 upper, -1 lower), z upper-lip border band,
 // w upper-lid (lash line) band.
+// the intro (look.intro): when the assembling front reaches a screen point, on a 3.5 s base timeline. Needs NOISE_GLSL.
+export const INTRO_GLSL = /* glsl */ `
+uniform vec4 uIntroA;  // intro clock (base s; < 0: off), seed between the eyes (device px, y down), px per W
+uniform vec4 uIntroB;  // ragged front (s), front block size (device px), bright-first lead (s), front flash
+uniform vec4 uIntroC;  // corona delay (s), smooth-shading lag (s), end (s: everything is in by then), dot fade (s)
+// the nose ridge first (a thin line down from the seed, slow upward), then the face outward from the seed on an
+// ellipse taller than wide, then the corona behind her from ~1 s; the front is ragged and blocky (a hash per block
+// + a coarse fbm), never a clean circle
+float hf_introAt(vec2 s, float field) {
+  vec2 d = (s - uIntroA.yz) / uIntroA.w;
+  float ridge = 0.25 + 2.0 * max(d.y, -3.0 * d.y) + 9.0 * max(abs(d.x) - 0.02, 0.0);
+  float face = 0.5 + 2.6 * length(d * vec2(1.0, 0.7));
+  float corona = uIntroC.x + 1.05 * length(d * vec2(1.0, 0.85));
+  float n = hf_hash12(floor(s / uIntroB.y) + 17.0) - 0.5;
+  float n2 = hf_fbm(vec3(d * 2.4, 5.3)) - 0.5;
+  return max(mix(min(ridge, face), corona, field) + uIntroB.x * (0.7 * n + 1.4 * n2), 0.0);
+}
+`;
+
 export const LIGHT_GLSL = /* glsl */ `
 uniform vec3 uLightDir;      // key: view space, normalised (toward the light)
 uniform vec3 uFillDir;       // near-frontal fill (diffuse only)
