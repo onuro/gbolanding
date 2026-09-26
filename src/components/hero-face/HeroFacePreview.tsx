@@ -154,6 +154,20 @@ async function loadBasePerformer(params: URLSearchParams): Promise<Performer> {
 }
 
 type EngineModule = typeof import("./engine");
+// a fetch that reports a .bin body's download progress (bytes so far, total: content-length, else the compact mesh's
+// ~2.9 MB); json and other responses pass through untouched
+function progressFetch(onBytes: (got: number, total: number) => void): typeof fetch {
+  return async (input, init) => {
+    const res = await fetch(input, init);
+    if (!res.ok || !res.body || !String(input).split("?")[0]!.endsWith(".bin")) return res;
+    const total = Number(res.headers.get("content-length")) || 2.9e6;
+    let got = 0;
+    const body = res.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, ctl) { got += chunk.byteLength; onBytes(got, total); ctl.enqueue(chunk); },
+    }));
+    return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers });
+  };
+}
 // the intro API of engine-cine (the other engines have none)
 type IntroApi = { playIntro(opts?: { hold?: boolean }): void; introProgress(): number };
 // the head pose toward rest by w (0 = at rest, 1 = as given)
@@ -308,6 +322,17 @@ export function HeroFacePreview() {
     let pointer: PointerFollow | null = null;
     let introSeen: IntersectionObserver | null = null;
     let inView: IntersectionObserver | null = null;
+    let loadedTimer = 0;
+    // the preloader's ring (HeroSection): 0 .. 1, never backwards; the modules, then the mesh download (most of the
+    // wait), its decode, the engine, and her first frame
+    const bar = well?.querySelector<SVGElement>(".face-preloader-bar");
+    let shown = 0;
+    const progress = (p: number) => {
+      if (p <= shown) return;
+      shown = Math.min(1, p);
+      if (bar) bar.style.strokeDashoffset = String(100 - 97 * shown - 3);
+    };
+    progress(0.04);
 
     (async () => {
       // (the dev switches read an empty query in production)
@@ -319,15 +344,18 @@ export function HeroFacePreview() {
         loadEngine(requested),
         loadPerformer(params),
       ]);
+      progress(0.15);
+      const meshFetch = progressFetch((got, total) => progress(0.15 + 0.7 * Math.min(1, got / total)));
       // dev: ?mesh=<name> loads /dev-hero-face/mesh-<name>.json (alternative identities)
       const meshName = params.get("mesh");
       const meshUrl = meshName && /^[\w-]+$/.test(meshName) ? `/dev-hero-face/mesh-${meshName}.json` : FACE_MESH_URL;
       // (dev: an unknown / not-yet-published mesh falls back to the dev planb mesh instead of breaking the preview)
-      const mesh = await loadLabMesh(meshUrl).catch((cause) => {
+      const mesh = await loadLabMesh(meshUrl, meshFetch).catch((cause) => {
         if (!import.meta.env.DEV || meshUrl === DEV_MESH_URL) throw cause;
         console.warn(`[hero-face preview] mesh "${meshUrl}" not available, using ${DEV_MESH_URL}`, cause);
-        return loadLabMesh(DEV_MESH_URL);
+        return loadLabMesh(DEV_MESH_URL, meshFetch);
       });
+      progress(0.9);
       if (disposed) return;
       const wanted = requested?.startsWith("orig-") ? requested.slice(5) : requested;
       const preset = wanted && wanted in PRESETS ? wanted : DEFAULT_PRESET;
@@ -343,22 +371,37 @@ export function HeroFacePreview() {
       }
       const face = createFaceEngine(canvas, { mesh, preset, seed: 1, pixelRatio: dpr, look: overrides as never });
       engine = face;
+      progress(0.95);
       if (import.meta.env.DEV && params.get("tune") === "1") {
         setTune({ engine: face, base: PRESETS[preset] as unknown as Record<string, unknown>, initial: overrides, preset });
       }
-      // the intro (engine-cine): armed dark at once (the first frames must not show her before it starts), played when the
-      // card first comes into view; reduced motion and ?intro=0 skip it to the finished face
+      // the intro (engine-cine): armed dark at once (the first frames must not show her before it starts), played once
+      // the card has come into view and the preloader is on its way out (her first frame is up); reduced motion and
+      // ?intro=0 skip it to the finished face
       const intro = face as Partial<IntroApi>;
+      let seen = false, loaded = false;
+      const go = () => { if (seen && loaded) intro.playIntro?.(); };
       if (intro.playIntro && query.get("intro") !== "0" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         intro.playIntro({ hold: true });
         introSeen = new IntersectionObserver((es) => {
           if (!es.some((e) => e.isIntersecting)) return;
-          intro.playIntro?.();
+          seen = true;
+          go();
           introSeen?.disconnect();
           introSeen = null;
         }, { threshold: 0.35 });
         introSeen.observe(canvas);
       }
+      // her first frame: the ring fills, then (once it has visibly closed) the preloader blurs out and the intro's spark
+      // lights in its place
+      let firstFrame = false;
+      const onFirstFrame = () => {
+        progress(1);
+        loadedTimer = window.setTimeout(() => {
+          well?.setAttribute("data-face-loaded", "");
+          loadedTimer = window.setTimeout(() => { loaded = true; go(); }, 150);
+        }, 420);
+      };
       const size = () => {
         const rect = canvas.getBoundingClientRect();
         face.resize(rect.width, rect.height, dpr);
@@ -411,6 +454,7 @@ export function HeroFacePreview() {
           }
           prev = now;
           face.render(t);
+          if (!firstFrame) { firstFrame = true; onFirstFrame(); }
         } catch (cause) {
           if (performance.now() - loopErr > 5000) { loopErr = performance.now(); console.error("[hero-face] frame failed", cause); }
         }
@@ -435,6 +479,8 @@ export function HeroFacePreview() {
       observer?.disconnect();
       introSeen?.disconnect();
       inView?.disconnect();
+      window.clearTimeout(loadedTimer);
+      well?.removeAttribute("data-face-loaded");
       pointer?.detach();
       liveDetach?.();
       liveDetach = null;

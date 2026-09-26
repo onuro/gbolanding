@@ -1272,6 +1272,9 @@ const OWNER_TUNE_0926: Partial<LookParams> = { lipTalkShape: [0.1, 0.85], lipTal
 const OWNER_TUNE_0926B: Partial<LookParams> = { lipGloss: [1.5, 62], lipBorder: 0, lipTalk: [0, 0.04, 0, 0.09, 0.035, 0.35, 0.14], gain: 2, gamma: 1.24, dodge: 0.39, exposure: 1.89, gridDiv: 54, edgeFade: [0.195, 0.4, 0.88, 0.72],
   // no upper-lip light in a pout: the pout fill lit an arc of dots along the upper lip on every o / u (the owner, 2026-09-26)
   poutFill: 0 };
+// the owner's third tuning-panel link (2026-09-26): a finer grid again (65), more gain, gamma and a little less
+// exposure, a lighter smooth shading, and a few amber sparks in the field
+const OWNER_TUNE_0926C: Partial<LookParams> = { gridDiv: 65, hudRim: 0, hudSparks: 0.075, gamma: 1.62, ghost: 0.17, exposure: 1.36, gain: 3.2 };
 PRESETS['woman-cine-glow'] = {
   ...PRESETS['woman-cine-pulse'],
   dotSoft: CINE_V004_ML_LIVE2.dotSoft, dotLogSigma: [0.15, 0.45], dotHot: CINE_V004_ML_LIVE2.dotHot, dotCap: CINE_V004_ML_LIVE2.dotCap,
@@ -1286,6 +1289,7 @@ PRESETS['woman-cine-glow'] = {
   earMask: [0.6, -0.08, -0.75, 0.14, 0.26, 0.24, 0.75, 1.25], neckMask: [-0.4, -0.55, -0.3, -0.45],
   ...OWNER_TUNE_0926,
   ...OWNER_TUNE_0926B,
+  ...OWNER_TUNE_0926C,
   // the intro (after the owner's stock reference, 2026-09-26; times on a 3.5 s timeline, scaled by the length)
   intro: [3.5, 0.35, 0.6, 1.2], introShape: [1.0, 0.35, 2, 1],
 };
