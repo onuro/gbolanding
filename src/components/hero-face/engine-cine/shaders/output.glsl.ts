@@ -33,10 +33,17 @@ uniform vec2 uFaceCine;     // face protection: dodge share, bloom share inside 
 uniform vec4 uGlint[4];     // x, y (device px, gl_FragCoord), 1 / e-fold length (px), amplitude (HDR)
 uniform vec4 uGlintK;       // vertical sigma (px), face ellipse centre x, y (gl px), face radius (px)
 uniform vec4 uSpark;        // the intro's seed spark between the eyes: x, y (gl px), core sigma (px), amplitude (HDR; 0 off)
+uniform float uBloomLite;   // phone tier: 4 bilinear taps per bloom mip instead of the 9-tap tent
 varying vec2 vUv;
 
 vec4 tent4(float lod) {
   vec2 ts = exp2(lod) / uHdrSize;
+  if (uBloomLite > 0.5) {
+    // (each tap between four texels of the mip: a 4 x 4 texel footprint, close to the tent's, at 4 reads instead of 9)
+    vec2 h = 0.5 * ts;
+    return 0.25 * (textureLod(uHdr, vUv + vec2(h.x, h.y), lod) + textureLod(uHdr, vUv + vec2(-h.x, h.y), lod)
+                 + textureLod(uHdr, vUv + vec2(h.x, -h.y), lod) + textureLod(uHdr, vUv - h, lod));
+  }
   vec4 c = textureLod(uHdr, vUv, lod) * 0.25;
   c += (textureLod(uHdr, vUv + vec2(ts.x, 0.0), lod) + textureLod(uHdr, vUv - vec2(ts.x, 0.0), lod)
       + textureLod(uHdr, vUv + vec2(0.0, ts.y), lod) + textureLod(uHdr, vUv - vec2(0.0, ts.y), lod)) * 0.125;

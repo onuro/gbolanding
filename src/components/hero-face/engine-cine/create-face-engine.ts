@@ -40,6 +40,11 @@ export interface FaceEngineOptions {
    * 1.64x (0.67x). Never above 2; DPR >= 2 is native. A number restores a fixed floor (2 = at least 2x, a4 fix-r1).
    */
   minPixelRatio?: number;
+  /**
+   * phone tier: the output pass reads each bloom mip with 4 bilinear taps instead of the 9-tap tent (54 -> 24 reads a
+   * pixel; that pass was ~60 % of a slow GPU's frame). Default off: the desktop image is unchanged.
+   */
+  lite?: boolean;
   preserveDrawingBuffer?: boolean;
   view?: FaceView;
   /** framing override; default: defaultFraming (portrait: W = min(0.41 H, 0.66 w), eye line at 39 %) */
@@ -306,6 +311,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
   let hdrMips = look.bloom.some((b) => b > 0);
   let hdr = makeHdr(hdrMips);
   const outU = {
+    uBloomLite: { value: opts.lite ? 1 : 0 },
     uHdr: { value: hdr.texture as THREE.Texture },
     uHdrSize: { value: v2(4, 4) },
     uBloomW: { value: v4() },

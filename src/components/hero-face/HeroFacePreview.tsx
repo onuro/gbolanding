@@ -363,7 +363,12 @@ export function HeroFacePreview() {
       const preset = wanted && wanted in PRESETS ? wanted : DEFAULT_PRESET;
       // (a missing preset silently fell back once and cost hours; the on-card label that showed it is gone)
       if (import.meta.env.DEV && wanted && preset !== wanted) console.warn(`[hero-face] look "${wanted}" not found, using ${preset}`);
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      // phones (coarse pointer, small screen): 1.6x instead of 2x (0.64x the pixels for the dots and the glow pass) with
+      // the dot pitch floor scaled along (10 -> 8 device px: whole pixels, so exactly the same dots in CSS px) and the
+      // engine's cheap bloom; on a slow GPU the glow pass was ~60 % of the frame and missed frames stuttered (halved the
+      // frame time in the phone emulation). Desktop unchanged.
+      const phone = window.matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 820;
+      const dpr = Math.min(phone ? 1.6 : 2, window.devicePixelRatio || 1);
       // &L.<param>=<number or a,b,c> overrides single look params live (e.g. &L.dotFade=0)
       const overrides: Record<string, number | number[]> = {};
       for (const [k, v] of params.entries()) {
@@ -371,7 +376,15 @@ export function HeroFacePreview() {
         const nums = v.split(",").map(Number);
         if (nums.every((n) => Number.isFinite(n))) overrides[k.slice(2)] = nums.length > 1 ? nums : nums[0]!;
       }
-      const face = createFaceEngine(canvas, { mesh, preset, seed: 1, pixelRatio: dpr, look: overrides as never });
+      if (phone) {
+        const floor = (overrides.minPitchDevPx as number | undefined) ?? (PRESETS[preset] as { minPitchDevPx?: number }).minPitchDevPx ?? 5;
+        overrides.minPitchDevPx = (floor * dpr) / 2;
+      }
+      const face = createFaceEngine(canvas, {
+        mesh, preset, seed: 1, pixelRatio: dpr, look: overrides as never,
+        // (phones: the DPR as given, not raised back to 2 for the pitch floor; cheap bloom)
+        ...(phone ? { minPixelRatio: 1, lite: true } : {}),
+      } as Parameters<typeof createFaceEngine>[1]);
       engine = face;
       progress(0.95);
       if (import.meta.env.DEV && params.get("tune") === "1") {
