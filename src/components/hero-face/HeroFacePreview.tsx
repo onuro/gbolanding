@@ -3,6 +3,7 @@ import type { FaceEngine } from "./engine";
 import type { TunePanelProps } from "./TunePanel";
 import { createFollow, gazeMorphs, type Follow } from "./interaction/follow";
 import { attachPointerFollow, type PointerFollow } from "./interaction/pointer-follow";
+import { attachOrientationFollow, type OrientationFollow } from "./interaction/orientation-follow";
 import type { Performer } from "./lipsync/idle";
 
 // The particle face in the hero orb card (production and dev; ?face=0 shows the old orb, which also stays as the
@@ -12,7 +13,8 @@ import type { Performer } from "./lipsync/idle";
 // ?face=1&talk=1 plays mimicked speech (no audio) of the site lines in a loop:
 // &style=minimal|subtle|natural (default minimal), &lang=tr|en (default both).
 // Cursor follow (on by default, &follow=0 turns it off): the pointer anywhere over the page turns her head in 3D
-// and her eyes lead it (interaction/); mouse / pen only, touch and prefers-reduced-motion keep the idle life.
+// and her eyes lead it (interaction/); on touch devices the phone's tilt aims her instead; prefers-reduced-motion keeps
+// the idle life.
 // the production mesh (scripts/hero-face/compact-mesh.mjs); dev: ?mesh=<name> loads /dev-hero-face/mesh-<name>.json and
 // a missing production mesh falls back to the dev planb mesh
 const FACE_MESH_URL = "/hero-face/face.json";
@@ -203,7 +205,6 @@ export function HeroFacePreview() {
   const [error, setError] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
   const [live] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("live") === "1");
-  const [label, setLabel] = useState<string>("");
   const [tune, setTune] = useState<Omit<TunePanelProps, "onHold"> | null>(null);
   // what is being said drifts into the field around her (never over her face): the AI's words as she says them
   // and the visitor's as their speech is recognised, white on a soft dark shadow so they read over the dots
@@ -320,6 +321,7 @@ export function HeroFacePreview() {
     let observer: ResizeObserver | null = null;
     let follow: Follow | null = null;
     let pointer: PointerFollow | null = null;
+    let tilt: OrientationFollow | null = null;
     let introSeen: IntersectionObserver | null = null;
     let inView: IntersectionObserver | null = null;
     let loadedTimer = 0;
@@ -359,8 +361,8 @@ export function HeroFacePreview() {
       if (disposed) return;
       const wanted = requested?.startsWith("orig-") ? requested.slice(5) : requested;
       const preset = wanted && wanted in PRESETS ? wanted : DEFAULT_PRESET;
-      // dev label: which mesh / look is REALLY running (a missing preset silently fell back once and cost hours)
-      if (import.meta.env.DEV) setLabel(`${meshName ?? "face"} · ${requested?.startsWith("orig-") ? "orig-" : ""}${preset}${wanted && preset !== wanted ? `  (\"${wanted}\" not found)` : ""}`);
+      // (a missing preset silently fell back once and cost hours; the on-card label that showed it is gone)
+      if (import.meta.env.DEV && wanted && preset !== wanted) console.warn(`[hero-face] look "${wanted}" not found, using ${preset}`);
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       // &L.<param>=<number or a,b,c> overrides single look params live (e.g. &L.dotFade=0)
       const overrides: Record<string, number | number[]> = {};
@@ -419,6 +421,8 @@ export function HeroFacePreview() {
       // depth 0.45 (default 1): the pointer plane sits closer, so ordinary cursor moves turn her clearly (owner: the
       // turn felt like 10% of the posed stills)
       pointer = follow ? attachPointerFollow(follow, { canvas, origin: (w, h) => defaultFraming(w, h).origin, depth: 0.35 }) : null;
+      // phones / tablets: the device's tilt aims her instead (interaction/orientation-follow.ts)
+      tilt = follow && well ? attachOrientationFollow(follow, { card: well }) : null;
 
       const start = performance.now();
       let prev = start;
@@ -441,11 +445,13 @@ export function HeroFacePreview() {
           if (import.meta.env.DEV) (window as unknown as { __faceMorphs?: Record<string, number> }).__faceMorphs = morphs; // dev: lip-sync measurements
           if (follow && pointer && !holdHead) {
             pointer.update();
+            tilt?.update((now - prev) / 1000);
             // the eyes counter the performer's head motion only while following is allowed (touch / reduced
             // motion: the idle life exactly as without the follow)
-            const on = pointer.enabled;
+            const on = pointer.enabled || !!tilt?.enabled;
             const blink = Math.max(morphs.eyeBlinkLeft ?? 0, morphs.eyeBlinkRight ?? 0);
             const f = follow.step((now - prev) / 1000, now / 1000, { yaw: on ? pose.yaw : 0, pitch: on ? pose.pitch : 0, blink, gazeYaw: gaze?.yaw, gazePitch: gaze?.pitch });
+            if (import.meta.env.DEV) (window as unknown as { __faceFollow?: unknown }).__faceFollow = { yaw: f.yaw, pitch: f.pitch, eyeYaw: f.eyeYaw, eyePitch: f.eyePitch, tilt: !!tilt?.enabled }; // dev: follow measurements
             face.setPose({ ...pose, yaw: pose.yaw + lw * f.yaw, pitch: pose.pitch + lw * f.pitch });
             face.setMorphs({ ...morphs, ...(lw === 1 ? f.morphs : Object.fromEntries(Object.entries(f.morphs).map(([k, v]) => [k, v * lw]))) });
           } else {
@@ -482,6 +488,7 @@ export function HeroFacePreview() {
       window.clearTimeout(loadedTimer);
       well?.removeAttribute("data-face-loaded");
       pointer?.detach();
+      tilt?.detach();
       liveDetach?.();
       liveDetach = null;
       well?.removeAttribute("data-face-preview");
@@ -508,11 +515,6 @@ export function HeroFacePreview() {
           <span key={w.key} className="face-word" data-who={w.who} style={{ left: `${w.x}%`, top: `${w.y}%` }}>{w.text}</span>
         ))}
       </div>
-      {label && (
-        <p className="pointer-events-none absolute top-3 left-3 z-30 rounded bg-background/60 px-2 py-1 font-mono text-[10px] text-white/70">
-          {label}
-        </p>
-      )}
       {error && (
         <p className="absolute inset-x-4 top-4 z-30 rounded bg-black/80 p-2 font-mono text-xs text-red-300">
           face preview: {error}
