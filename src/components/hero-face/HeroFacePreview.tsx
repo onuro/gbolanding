@@ -86,7 +86,18 @@ async function loadPerformer(params: URLSearchParams): Promise<Performer> {
   const base = await loadBasePerformer(params);
   if (params.get("live") === "1") return livePerf;
   // the live mouth only takes over while real agent audio exists (with ?talk=1 the dev mimic also announces orb-live)
-  return { sample: (t) => (voice.live && voice.analyser ? livePerf.sample(t) : base.sample(t)) };
+  // (a throw in the live lip-sync falls back to the idle life for that frame instead of stopping the frame loop: one
+  // uncaught error froze the face mid-call)
+  let lastErr = 0;
+  return {
+    sample: (t) => {
+      if (!(voice.live && voice.analyser)) return base.sample(t);
+      try { return livePerf.sample(t); } catch (cause) {
+        if (performance.now() - lastErr > 5000) { lastErr = performance.now(); console.error("[hero-face] live lip-sync frame failed", cause); }
+        return base.sample(t);
+      }
+    },
+  };
 }
 
 async function loadBasePerformer(params: URLSearchParams): Promise<Performer> {
@@ -285,7 +296,7 @@ export function HeroFacePreview() {
       const face = createFaceEngine(canvas, { mesh, preset, seed: 1, pixelRatio: dpr, look: overrides as never });
       engine = face;
       if (import.meta.env.DEV && params.get("tune") === "1") {
-        setTune({ engine: face, base: PRESETS[preset] as unknown as Record<string, unknown>, initial: overrides });
+        setTune({ engine: face, base: PRESETS[preset] as unknown as Record<string, unknown>, initial: overrides, preset });
       }
       const size = () => {
         const rect = canvas.getBoundingClientRect();
@@ -303,29 +314,36 @@ export function HeroFacePreview() {
 
       const start = performance.now();
       let prev = start;
+      let loopErr = 0;
       const loop = () => {
-        const now = performance.now();
-        const t = (now - start) / 1000;
-        // pose = the idle sway (+ tiny nods while talking); morphs are absolute
-        // (every driven morph each frame: blinks, mouth, smile)
-        const { pose, morphs, gaze } = performer.sample(t);
-        (window as unknown as { __faceMorphs?: Record<string, number> }).__faceMorphs = morphs; // dev: lip-sync measurements
-        if (follow && pointer && !holdHead) {
-          pointer.update();
-          // the eyes counter the performer's head motion only while following is allowed (touch / reduced
-          // motion: the idle life exactly as without the follow)
-          const on = pointer.enabled;
-          const blink = Math.max(morphs.eyeBlinkLeft ?? 0, morphs.eyeBlinkRight ?? 0);
-          const f = follow.step((now - prev) / 1000, now / 1000, { yaw: on ? pose.yaw : 0, pitch: on ? pose.pitch : 0, blink, gazeYaw: gaze?.yaw, gazePitch: gaze?.pitch });
-          face.setPose({ ...pose, yaw: pose.yaw + f.yaw, pitch: pose.pitch + f.pitch });
-          face.setMorphs({ ...morphs, ...f.morphs });
-        } else {
-          face.setPose(pose);
-          face.setMorphs(gaze ? { ...morphs, ...gazeMorphs(gaze.yaw, gaze.pitch, Math.max(morphs.eyeBlinkLeft ?? 0, morphs.eyeBlinkRight ?? 0)) } : morphs);
-        }
-        prev = now;
-        face.render(t);
+        // (the next frame is asked for first and the frame body is guarded: one throw skips one frame, never stops the
+        // loop; an uncaught error in the live lip-sync froze the face mid-call)
         raf = requestAnimationFrame(loop);
+        try {
+          const now = performance.now();
+          const t = (now - start) / 1000;
+          // pose = the idle sway (+ tiny nods while talking); morphs are absolute
+          // (every driven morph each frame: blinks, mouth, smile)
+          const { pose, morphs, gaze } = performer.sample(t);
+          (window as unknown as { __faceMorphs?: Record<string, number> }).__faceMorphs = morphs; // dev: lip-sync measurements
+          if (follow && pointer && !holdHead) {
+            pointer.update();
+            // the eyes counter the performer's head motion only while following is allowed (touch / reduced
+            // motion: the idle life exactly as without the follow)
+            const on = pointer.enabled;
+            const blink = Math.max(morphs.eyeBlinkLeft ?? 0, morphs.eyeBlinkRight ?? 0);
+            const f = follow.step((now - prev) / 1000, now / 1000, { yaw: on ? pose.yaw : 0, pitch: on ? pose.pitch : 0, blink, gazeYaw: gaze?.yaw, gazePitch: gaze?.pitch });
+            face.setPose({ ...pose, yaw: pose.yaw + f.yaw, pitch: pose.pitch + f.pitch });
+            face.setMorphs({ ...morphs, ...f.morphs });
+          } else {
+            face.setPose(pose);
+            face.setMorphs(gaze ? { ...morphs, ...gazeMorphs(gaze.yaw, gaze.pitch, Math.max(morphs.eyeBlinkLeft ?? 0, morphs.eyeBlinkRight ?? 0)) } : morphs);
+          }
+          prev = now;
+          face.render(t);
+        } catch (cause) {
+          if (performance.now() - loopErr > 5000) { loopErr = performance.now(); console.error("[hero-face] frame failed", cause); }
+        }
       };
       raf = requestAnimationFrame(loop);
     })().catch((cause) => {

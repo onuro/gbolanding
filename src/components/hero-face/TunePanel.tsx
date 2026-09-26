@@ -15,6 +15,8 @@ export interface TunePanelProps {
   base: Look;
   /** the &L.* overrides the page was loaded with */
   initial: Record<string, Val>;
+  /** the running preset (the Darkstar switch reloads with ?look=woman-darkstar or back) */
+  preset: string;
   onHold(hold: boolean): void;
 }
 
@@ -96,6 +98,22 @@ const GROUPS: { title: string; knobs: Knob[] }[] = [
     ],
   },
   {
+    // (the Darkstar look's accents; on the default look they add amber to it)
+    title: "Darkstar",
+    knobs: [
+      abs("hudRim", "Amber outline (heat rim)", 0, 1.5, 0.01),
+      abs("hudVoice", "Amber speech heat (rings, field)", 0, 1.5, 0.01),
+      abs("hudSparks", "Amber sparks in the field (share)", 0, 0.15, 0.005),
+      abs("hudOffDot", "Unlit LED cells", 0, 0.15, 0.002),
+      elem("amberG", "Amber hue (low = red, high = yellow)", "hudAmber", 1, 0.05, 0.7, 0.01),
+      abs("tintFieldVar", "Corona green variety (toward white)", 0, 1, 0.01),
+      elem("irisAmt", "Iris texture (0 = flat disc)", "irisDetail", 0, 0, 1, 0.01),
+      elem("irisFib", "Iris fibres contrast", "irisDetail", 1, 0, 2, 0.01),
+      elem("irisLimb", "Iris dark outer ring", "irisDetail", 2, 0, 1, 0.01),
+      elem("irisBright", "Iris brightness", "irisDetail", 3, 0.3, 2.5, 0.01),
+    ],
+  },
+  {
     // (the breathing pulse and the speech-driven light: all read every frame)
     title: "Pulse",
     knobs: [
@@ -164,7 +182,7 @@ const parse = (s: string): Val | null => {
   return n.length > 1 ? n : n[0]!;
 };
 
-export default function TunePanel({ engine, base, initial, onHold }: TunePanelProps) {
+export default function TunePanel({ engine, base, initial, preset, onHold }: TunePanelProps) {
   // the overrides over the preset, param -> value (what the URL carries)
   const [over, setOver] = useState<Record<string, Val>>(initial);
   const [open, setOpen] = useState(() => {
@@ -253,6 +271,18 @@ export default function TunePanel({ engine, base, initial, onHold }: TunePanelPr
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={hold} onChange={(e) => setHold(e.target.checked)} />
             Hold the head still (ignore the mouse)
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox" checked={preset === "woman-darkstar"}
+              onChange={(e) => {
+                // a look is chosen when the engine is made: reload with it (the &L.* values stay in the URL)
+                const url = new URL(window.location.href);
+                if (e.target.checked) url.searchParams.set("look", "woman-darkstar"); else url.searchParams.delete("look");
+                window.location.assign(url);
+              }}
+            />
+            Darkstar look (Top Gun HUD colours)
           </label>
           {GROUPS.map((g) => (
             <fieldset key={g.title} className="min-w-0">

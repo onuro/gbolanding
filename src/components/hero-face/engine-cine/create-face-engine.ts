@@ -210,6 +210,11 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
   }
   const flow = createFlowPass(headGeo, light);
   const ghost = createGhostPass(headGeo, light);
+  // the iris texture works in each eye's own frame (rest pose; the eyeball's vertices carry it through the gaze)
+  ghost.uniforms.uEyeCL.value.set(lm.eyeCentreL[0], lm.eyeCentreL[1], lm.eyeCentreL[2]);
+  ghost.uniforms.uEyeCR.value.set(lm.eyeCentreR[0], lm.eyeCentreR[1], lm.eyeCentreR[2]);
+  ghost.uniforms.uEyeAL.value.set(...((lm.eyeAxisL ?? [0, 0, 1]) as [number, number, number]));
+  ghost.uniforms.uEyeAR.value.set(...((lm.eyeAxisR ?? [0, 0, 1]) as [number, number, number]));
   const headMeshes = [...flow.meshes, ghost.mesh];
   // a3 volume (lazily built when look.vol > 0)
   let volume: VolumePass | null = null;
@@ -255,6 +260,8 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     uView: { value: 0 },
     uOriginQ: { value: v2() },
     uViewportQ: { value: v2() },
+    uEyeScrQ: { value: v4() },
+    uEyeSharpQ: { value: v2() },
     uWpxQ: { value: 1 },
     uMistK: { value: v4() },
     uHazeK: { value: v4() },
@@ -374,6 +381,13 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     uLifeT: { value: v4() },
     uEyeClr: { value: v4() },
     uEdgeFade: { value: v4(0, 1, 1, 0) },
+    uHud: { value: v4() },
+    uAmber: { value: new THREE.Vector3(1, 0.42, 0.09) },
+    uTintRamp: { value: v2() },
+    uFieldVar: { value: 0 },
+    uTintField: { value: new THREE.Vector3(1, 1, 1) },
+    uTintFieldH: { value: new THREE.Vector3(1, 1, 1) },
+    uFieldOn: { value: 0 },
     uEdgeShape: { value: 0 },
     uFieldX: { value: v4() },
     uFieldY: { value: v4() },
@@ -464,6 +478,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
   const wrapPrev = new THREE.Vector2();
   const volK = new THREE.Vector2();
   let particleCounts: Record<string, number> = {};
+  const eyeP = new THREE.Vector3();
   let dirty = true;
   let lastTime = 0;
   // a5 cinematic state
@@ -677,7 +692,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     outU.uOutTone.value.set(L.toneK, L.toneMax, L.dither, L.outExposure);
     quadU.uGhostLod.value = L.ghostLod;
     quadU.uToneKq.value = L.toneK;
-    quadU.uTintMist.value.set(...L.tintHalo);
+    quadU.uTintMist.value.set(...(L.tintMist ?? L.tintHalo));
     quadU.uDither.value = L.dither;
     quadU.uMistK.value.set(L.mist, L.mistRadius[0], L.mistRadius[1], L.mistBalance);
     pu.uPitchWarp.value = L.pitchWarp;
@@ -701,6 +716,15 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     const ef = L.edgeFade ?? [0, 1, 1, 0];
     pu.uEdgeFade.value.set(ef[0], ef[1], ef[2], ef[3]);
     pu.uEdgeShape.value = L.edgeFadeShape ?? 0;
+    pu.uHud.value.set(L.hudRim ?? 0, L.hudVoice ?? 0, L.hudSparks ?? 0, L.hudOffDot ?? 0);
+    pu.uAmber.value.set(...(L.hudAmber ?? [1, 0.42, 0.09]));
+    pu.uTintRamp.value.set(L.tintRamp?.[0] ?? 0, L.tintRamp?.[1] ?? 0);
+    pu.uFieldVar.value = L.tintFieldVar ?? 0;
+    pu.uFieldOn.value = L.tintField ? 1 : 0;
+    pu.uTintField.value.set(...(L.tintField ?? [1, 1, 1]));
+    pu.uTintFieldH.value.set(...(L.tintFieldHalo ?? L.tintField ?? [1, 1, 1]));
+    const id = L.irisDetail;
+    ghost.uniforms.uIrisK.value.set(id ? id[0] : 0, id ? id[1] : 0, id ? id[2] : 0, id?.[3] ?? 1.4);
     pu.uToneK.value.set(L.toneK, L.edgeSoft, L.ringStroke, L.haloSigma);
     pu.uTailLen.value = L.tailLen;
     pu.uToneMax.value = L.toneMax;
@@ -933,6 +957,15 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     quadU.uOriginQ.value.set(ox, oy);
     quadU.uViewportQ.value.set(devW, devH);
     quadU.uWpxQ.value = Wdev;
+    // the eye zones (rest pupils on screen; the gaze moves the iris well inside the zone) read the ghost sharper
+    const es = look.eyeSharp;
+    if (es) {
+      eyeP.set(lm.pupilL[0], lm.pupilL[1], lm.pupilL[2]).applyMatrix4(poseM).project(mainCam);
+      const lx = (eyeP.x * 0.5 + 0.5) * devW, ly = (0.5 - eyeP.y * 0.5) * devH;
+      eyeP.set(lm.pupilR[0], lm.pupilR[1], lm.pupilR[2]).applyMatrix4(poseM).project(mainCam);
+      quadU.uEyeScrQ.value.set(lx, ly, (eyeP.x * 0.5 + 0.5) * devW, (0.5 - eyeP.y * 0.5) * devH);
+      quadU.uEyeSharpQ.value.set(es[0] * Wdev, es[1]);
+    } else quadU.uEyeSharpQ.value.x = 0;
     pu.uAnchor.value.set(ax, ay);
     // the lattice window (and the T0 / volume rasters with it) slides by whole cells so that it stays over the
     // viewport wherever the head anchor goes; cells leaving it re-enter on the other side (points.glsl wrapCell).

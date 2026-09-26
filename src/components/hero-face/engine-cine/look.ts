@@ -297,6 +297,26 @@ export interface LookParams {
   earMask?: [number, number, number, number, number, number, number, number];
   /** the neck behind and below the jaw fades out: y from y0 (kept) to y1 (faded), times z from z0 (kept) to z1 (faded) */
   neckMask?: [number, number, number, number];
+  /** darkstar HUD look (Top Gun: Maverick's Darkstar screens): amber accent colour (linear), heat rim on the face's
+   * outline, speech heat (rings + field while she talks), share of amber sparks in the field, unlit LED cell level */
+  hudAmber?: Vec3;
+  /** the dot core tint goes from tintMid (dim) to tintPeak (bright) over this HDR range; absent = tintMid for all */
+  tintRamp?: [number, number];
+  /** the smooth face shading (ghost / mist) tint; absent = tintHalo */
+  tintMist?: Vec3;
+  /** darkstar: the corona / field's own core tint and halo tint (the face keeps tintMid / tintHalo); absent = off */
+  tintField?: Vec3;
+  tintFieldHalo?: Vec3;
+  /** darkstar: how far each corona particle strays from tintField toward mint / white (0 = all the same green) */
+  tintFieldVar?: number;
+  /** a human iris texture instead of a flat disc: amount (0 = off), fibre contrast, limbal ring darkening, brightness */
+  irisDetail?: [number, number, number, number];
+  /** the eye zones read the ghost sharper: radius around each pupil (W), ghost mip there (absent = the ghostLod blur) */
+  eyeSharp?: [number, number];
+  hudRim?: number;
+  hudVoice?: number;
+  hudSparks?: number;
+  hudOffDot?: number;
   /** a vignette after the tone curve (same radius / exponent as vignette): the pre-tone one barely touches bright dots */
   vignettePost?: number;
   harmFlow?: [number, number, number, number]; // shared curl flow: field amplitude (W), face amplitude (p), spatial frequency (1/W), tempo (1 = base)
@@ -1238,6 +1258,9 @@ PRESETS['woman-cine'] = { ...APPROVED_V002, ...cineFx(CINE_V004_ML_LIVE2), strea
 // + the field / hair pulse (hot glowing hair and field dots, sparkling hair dots, drifting survivors)
 PRESETS['woman-cine-pulse'] = { ...PRESETS['woman-cine'], ...fieldLife(CINE_V004_ML_LIVE2) };
 // + glowing soft dots with a little size variety and the hot dots (the strongest dodge on the face)
+// the owner's tuned look (his tuning-panel link, 2026-09-26): finer grid (81) and smaller face dots, no free scatter,
+// brighter / higher-contrast face, softer dots, the speaking lips' light low, the stronger vignette and edge fade
+const OWNER_TUNE_0926: Partial<LookParams> = { lipTalkShape: [0.1, 0.85], lipTalk: [0.12, 0.04, 0, 0.09, 0.035, 0.35, 0.14], lipGloss: [0.43, 20], lipFloor: 0.74, rBase: 0.0615, rMid: 0.0328, rTop: 0.0492, rMax: 0.1558, exposure: 1.76, vignette: [1, 0.45, 1.6], scatterCount: 0, dimShrink: 0.05, breath: [0.1, 0.143, 0.24, 0], voiceGlow: [0.91, 0.05, 0.06, 0.25], harmRippleLight: [0.93, 1.4], ghost: 0.18, lipCorner: [0.08, 0.025], gamma: 1.23, edgeFade: [0.195, 0.42, 0.88, 0.72], gridDiv: 81, survivorSize: [0.093, 0.1581], harmSize: [0.71, 0.06, 0.5, 2.2], dodge: 0.43, gain: 2.65, minPitchDevPx: 5, vignettePost: 0.93, earMask: [0.6, -0.08, -0.75, 0.14, 0.26, 0.24, 0.95, 1.92], hairDensity: 0.67, dotSoft: 0.25 };
 PRESETS['woman-cine-glow'] = {
   ...PRESETS['woman-cine-pulse'],
   dotSoft: CINE_V004_ML_LIVE2.dotSoft, dotLogSigma: [0.15, 0.45], dotHot: CINE_V004_ML_LIVE2.dotHot, dotCap: CINE_V004_ML_LIVE2.dotCap,
@@ -1250,4 +1273,19 @@ PRESETS['woman-cine-glow'] = {
   // the ears and the neck fade out: as she turned to the cursor they showed as a dim ear and a neck column (the owner,
   // 2026-09-26); planb's ears sit at |x| ~.60, y ~-.08, z ~-.75, the neck behind the jaw below y ~-.45 and z ~-.3
   earMask: [0.6, -0.08, -0.75, 0.14, 0.26, 0.24, 0.75, 1.25], neckMask: [-0.4, -0.55, -0.3, -0.45],
+  ...OWNER_TUNE_0926,
+};
+// the Darkstar HUD look (Top Gun: Maverick): the face keeps the default's own tones; the corona (hair, field) goes
+// phosphor green (the site's brand green) with a radar sweep turning around the head and an LED panel's unlit cells;
+// eyes with a human iris texture; amber only as a signal: her voice heating the field, a few sparks
+PRESETS['woman-darkstar'] = {
+  ...PRESETS['woman-cine-glow'],
+  // (v4: the face keeps the default's own tones, green on it read as alien skin; the amber outline read as a weird halo)
+  tintField: [0.12, 1.0, 0.5], tintFieldHalo: [0.05, 0.9, 0.4],
+  hudAmber: [1.0, 0.26, 0.04], hudRim: 0, hudVoice: 0.7, hudSparks: 0.02, hudOffDot: 0.04,
+  // (v6: no amber eyes, no reticle, no radar; the eyes a human iris texture in the face's own tones; the corona's green
+  // scattered toward mint / white per particle)
+  tintFieldVar: 0.75,
+  // (the iris a little dimmer, 1.4 -> 1.15: the owner, 2026-09-26)
+  irisDetail: [1, 0.9, 0.55, 1.15], eyeSharp: [0.1, 0],
 };

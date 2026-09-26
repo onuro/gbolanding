@@ -6,6 +6,8 @@ export interface FaceLandmarks {
   pupilR: number[];
   eyeCentreL: number[];
   eyeCentreR: number[];
+  eyeAxisL?: number[];
+  eyeAxisR?: number[];
   mouthCentre: number[];
   chin: number[];
   noseTip: number[];

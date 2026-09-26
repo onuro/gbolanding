@@ -8,7 +8,12 @@ import { GHOST } from '../shaders/head.glsl';
 export interface GhostPass {
   target: THREE.WebGLRenderTarget;
   mesh: THREE.Mesh;
-  uniforms: { uGhostK: THREE.IUniform<THREE.Vector4>; uGhostK2: THREE.IUniform<THREE.Vector4>; uGhostK3: THREE.IUniform<THREE.Vector4> };
+  uniforms: {
+    uGhostK: THREE.IUniform<THREE.Vector4>; uGhostK2: THREE.IUniform<THREE.Vector4>; uGhostK3: THREE.IUniform<THREE.Vector4>;
+    // the human iris texture (look.irisDetail): settings and each eye's centre / optical axis
+    uIrisK: THREE.IUniform<THREE.Vector4>;
+    uEyeCL: THREE.IUniform<THREE.Vector3>; uEyeCR: THREE.IUniform<THREE.Vector3>; uEyeAL: THREE.IUniform<THREE.Vector3>; uEyeAR: THREE.IUniform<THREE.Vector3>;
+  };
   setSize(w: number, h: number): void;
   render(renderer: THREE.WebGLRenderer, camera: THREE.Camera): void;
   dispose(): void;
@@ -19,6 +24,11 @@ export function createGhostPass(geometry: THREE.BufferGeometry, light: Record<st
     uGhostK: { value: new THREE.Vector4() },
     uGhostK2: { value: new THREE.Vector4() },
     uGhostK3: { value: new THREE.Vector4() },
+    uIrisK: { value: new THREE.Vector4() },
+    uEyeCL: { value: new THREE.Vector3() },
+    uEyeCR: { value: new THREE.Vector3() },
+    uEyeAL: { value: new THREE.Vector3(0, 0, 1) },
+    uEyeAR: { value: new THREE.Vector3(0, 0, 1) },
   };
   const mat = new THREE.ShaderMaterial({
     vertexShader: GHOST.vertexShader,

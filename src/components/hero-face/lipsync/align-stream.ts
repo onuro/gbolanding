@@ -323,9 +323,11 @@ export function createStreamAligner(sampleRate: number, lang: Lang, vis?: VisMod
     const V = new Float64Array(NS), V2 = new Float64Array(NS), BP = new Int16Array(L * NS);
     const emit = new Float64Array(12);
     const em = (i: number) => {
-      const lp = LP[i]!, q = quiet(i), vo = voicedAt(i), vn = voicedNear(i);
+      // (a frame the classifier never saw inside [s, e) - dropped frames on the live page leave holes - votes for no
+      // class: the path carries on through it; reading it crashed the page's frame loop and froze the face mid-call)
+      const lp = LP[i], q = quiet(i), vo = voicedAt(i), vn = voicedNear(i);
       for (let c = 0; c < 12; c++) {
-        let x = lp[c]!;
+        let x = lp ? lp[c] ?? 0 : 0;
         if (c > 0 && q) x -= 6;
         if (c >= 6 && !vo) x -= X_UV;
         else if (c > 0 && c < 6 && !vn) x -= 6;

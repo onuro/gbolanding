@@ -103,6 +103,11 @@ ${HEAD_FRAG_COMMON}
 uniform vec4 uGhostK;     // ghost, fill, irisGhost, pupilGhost
 uniform vec4 uGhostK2;    // scleraGhost, teethGhost, mouthGhost, ghostGamma
 uniform vec4 uGhostK3;    // hazeAmp, hazeGamma, haze facing lo, haze facing hi
+uniform vec4 uIrisK;      // human iris texture: amount (0 = off), fibre contrast, limbal ring darkening, brightness
+uniform vec3 uEyeCL;      // eye centres / optical axes (rest pose, object space)
+uniform vec3 uEyeCR;
+uniform vec3 uEyeAL;
+uniform vec3 uEyeAR;
 // R = skin haze (lit face under the dots; blurred + clouded in the quad, fades before the silhouette so
 //     the face has no outline), G = silhouette mask, B = eye-zone / mouth ghost (lids, iris, pupil, teeth),
 // A = lit skin field (unfaded; read only at wide mips by the seamless face -> particle transition)
@@ -142,6 +147,25 @@ void main() {
     float limbus = iris * (1.0 - smoothstep(0.875, 0.91, c));
     g = mix(uGhostK2.x * ndv, uGhostK.z * (1.0 - 0.45 * limbus), iris);
     g = mix(g, uGhostK.w, pupil);
+    if (uIrisK.x > 0.0 && iris > 0.0) {
+      // a human iris instead of a flat disc (the owner: 'not how human eyes look'): radial fibres and streaks, a darker
+      // limbal ring at the edge, a lighter collarette ring about 40 % out, uneven crypts; in the eye's own frame (vRest
+      // rides the eyeball), so it follows the gaze
+      bool isL = vRest.x > 0.0;
+      vec3 ax = normalize(isL ? uEyeAL : uEyeAR), d = vRest - (isL ? uEyeCL : uEyeCR);
+      vec3 eu = normalize(cross(vec3(0.0, 1.0, 0.0), ax)), ev = cross(ax, eu);
+      float az = atan(dot(d, ev), dot(d, eu));
+      float r = acos(clamp(c, -1.0, 1.0)) / 0.524;   // 0 centre .. 1 the limbus (the iris edge at c ~ .865)
+      vec2 cs = vec2(cos(az), sin(az));
+      // fibres: noise stretched along the radius (streaks), two scales; crypts: coarser dark patches
+      float fib = hf_fbm(vec3(cs * 6.0, r * 1.5 + (isL ? 0.0 : 7.3))) + 0.5 * hf_fbm(vec3(cs * 14.0, r * 2.5 + 3.1));
+      float crypt = smoothstep(0.55, 0.75, hf_fbm(vec3(cs * 3.0, r * 4.0 + 11.0)));
+      float coll = exp(-pow((r - 0.42) / 0.07, 2.0));
+      float tex = (0.95 + uIrisK.y * (fib - 0.75)) * (1.0 + 0.35 * coll) * (1.0 - 0.3 * crypt);
+      tex *= 1.0 - uIrisK.z * smoothstep(0.72, 1.0, r);   // the dark limbal ring
+      float gi = uIrisK.w * uGhostK.z * max(tex, 0.05);   // (uIrisK.w: the iris's brightness against the flat disc)
+      g = mix(g, mix(g, gi, iris * (1.0 - pupil)), uIrisK.x);
+    }
   }
   gl_FragColor = vec4(haze, 1.0, g, litA);
 }

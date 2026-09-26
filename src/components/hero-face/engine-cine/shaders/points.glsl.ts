@@ -78,6 +78,8 @@ uniform sampler2D uLife; // dot life state of the previous frame (lattice: face 
 uniform vec4 uLifeK;     // on, dt (s), snap (1 = jump to this frame's decisions), curve (0 linear .. 1 smoothstep)
 uniform vec4 uLifeT;     // fade time lo, hi (s; per dot), state texture width, height
 uniform float uEdgeShape; // the edge fade's shape: 0 band along the card's edges, 1 radial (card ellipse)
+uniform float uFieldVar;  // darkstar: how far each corona particle strays from the green toward mint / white (0..1)
+uniform vec4 uHud;        // darkstar HUD look: amber heat rim, speech heat, spark share, unlit LED cell level (0 = off)
 uniform vec4 uEdgeFade;   // field toward the card edges: band (share of the short side), density, brightness left at the edge, noise
 uniform vec4 uEyeClr;    // free scatter kept out of the eyes: ellipse rx, ry (W) around each projected pupil, outer edge (x ellipse), unused
 uniform vec4 uFieldX;    // wide cards: far-field lateral stretch: knee |u| (W), stretch viewer-left, viewer-right, on
@@ -111,6 +113,8 @@ varying vec4 vLife;
 #endif
 
 varying float vI;
+varying float vHeat;     // darkstar: share of the amber accent in this dot's colour (0 = the look's tint)
+varying float vField;    // darkstar: face (0) .. corona / field (1), for the field's own tint
 varying vec4 vShape;     // glyph, radius (p), sprite half-size (p), superN | stroke half-length
 varying vec4 vArc;       // glyph params
 varying vec4 vHalo;      // halo amp, tail amp, distortion amp2, distortion amp3
@@ -330,6 +334,10 @@ void main() {
   vHalo = vec4(uHaloK.x, uHaloK.z, 0.0, 0.0);
   vBloomW = uCineW.x;
   vSoft = 0.0;
+  vHeat = 0.0;
+  vField = 0.0;
+  float hudCov = 1.0;
+  vec2 hudSl = vec2(-1e4);
   // a5 harmony weights: hmW 0 = face core (sub-cell motion) .. 1 = field; hmG gates the face features (eyes, mouth);
   // hmLag = share of the sympathetic lag (free scatter / stars only: the lattice is resampled from the head itself)
   float hmW = 1.0, hmG = 1.0, hmLag = 0.0;
@@ -354,6 +362,7 @@ void main() {
     float L = cell.r;
     float cov = cell.g;
     float mouth = cell.b;
+    hudCov = cov; hudSl = sl;
     float keep = cov > 0.001 ? cell.a / cov : 0.0;
     ivec2 tcc = t0Texel(sl);
     vec4 t1 = inT0(tcc) ? texelFetch(uT1, tcc, 0) : vec4(0.0);
@@ -515,6 +524,9 @@ void main() {
     } else if (faceVis) {
       on = true;
       vI = I * lifeW(pf);
+      // (darkstar: the face's outline runs hot, amber, like the jet's leading edges on the HUD)
+      vHeat = uHud.x * smoothstep(0.35, 0.9, edgeW);
+      vI *= 1.0 + 0.8 * vHeat;   // (a little brighter: the outline's dots are dim, grazing)
       vShape.y = r;
       pickGlyph(ringShare(L), L);
       if (uDotB.w > 0.0) {
@@ -568,6 +580,7 @@ void main() {
       bool hairGlyph = volW > 0.5 || !on;
       vI = mix(Ib, Ih, volW);
       vShape.y = mix(rb, rh, volW);
+      vHeat *= 1.0 - volW;   // (hair never takes the face outline's heat: it read as a yellow haze in the crown)
       if (hairGlyph) {
         vHalo = vec4(uHaloK.x, uHaloK.z, 0.0, 0.0);
         pickGlyph(min(1.0, ringShare(Ld) + uVolD.x), Ld);
@@ -789,6 +802,8 @@ void main() {
       rip += g;
     }
     disp += rd * uHarmC.x * uWpx * mix(0.08 * hmG, 1.0, hmW);
+    // (darkstar: her voice heats the field, the speech rings amber, the field warm while she talks)
+    vHeat = max(vHeat, uHud.y * hmW * max(clamp(rip, 0.0, 1.0), 0.3 * E));
     // sympathetic lag: the free scatter trails the head on a soft spring (stars: their own share)
     float lagK = hmLag < 0.0 ? uHarmE.w : hmLag * uHarmE.z;
     disp -= uHarmD.yz * lagK;
@@ -797,6 +812,14 @@ void main() {
     vShape.y *= max(sz, 0.3);
     vI *= max(1.0 + sA * uHarmB.z * bw + uHarmF.y * rip * hmW, 0.2) * (1.0 + uHarmE.x * E * hmW);
   }
+  if (uHud.z > 0.0 && on && hmW > 0.5 && hf_hash12(aRand.xy * 53.1 + 7.7) < uHud.z) vHeat = 1.0;   // amber sparks in the field
+  if (uHud.w > 0.0 && !on && kind < 0.5 && hudCov < 0.25) {
+    // darkstar: an LED panel's unlit cell, a faint dark dot in every empty grid cell outside the head
+    on = true; s = hudSl; vI = uHud.w; vShape = vec4(0.0, 0.13, 0.5, 2.0); vArc = vec4(0.0); vHalo = vec4(0.0); vBloomW = 0.0; vHeat = 0.0;
+  }
+  // (each corona particle its own share of the green, most toward mint / white: one even green read as flat)
+  float fg = hf_hash12(aRand.zw * 31.7 + 2.1);
+  vField = hmW * mix(1.0, fg * fg, uFieldVar);
   if (uEdgeFade.x > 0.0 && on) {
     // the field thins out and dims toward the card's edges (an even field right up to the border read as a flat
     // texture); the band's inner edge is broken up by noise so it never reads as a frame; the face's own dots (hmW 0)
@@ -835,12 +858,19 @@ uniform float uToneMax;
 uniform vec3 uTintMid;
 uniform vec3 uTintPeak;
 uniform vec3 uTintHalo;
+uniform vec3 uAmber;     // darkstar: the amber accent (linear)
+uniform vec3 uTintField;   // darkstar: the corona / field's own core and halo tints (the face keeps the look's)
+uniform vec3 uTintFieldH;
+uniform float uFieldOn;
+uniform vec2 uTintRamp;  // dim -> bright: the core tint goes from uTintMid to uTintPeak over this HDR range (off when equal)
 uniform vec4 uGlyphF;    // halo cap (HDR), ring min radius (p), unused, unused
 uniform vec4 uDotA;
 uniform vec4 uBright;    // a5 bright pass into HDR alpha: threshold (HDR), knee, on, unused
 varying float vBloomW;
 varying float vSoft;
 varying float vI;
+varying float vHeat;
+varying float vField;
 varying vec4 vShape;
 varying vec4 vArc;
 varying vec4 vHalo;
@@ -902,7 +932,13 @@ void main() {
   // linear HDR energy; the output pass blooms + tone-maps the sum once (per channel, so the mint
   // mid-tone tint saturates to neutral white in clipped cores)
   // the halo is capped: a hot dot glows like a warm one, so a bright ridge stays discrete dots, not a bar
-  vec3 e = vI * core * uTintMid + min(vI, uGlyphF.x) * halo * uTintHalo;
+  // (a dot's colour follows its brightness when uTintRamp is set: dim dots the green, bright cores near white, as an
+  // LED panel; one green over the whole face read as alien skin)
+  vec3 tMid = uTintRamp.y > uTintRamp.x ? mix(uTintMid, uTintPeak, smoothstep(uTintRamp.x, uTintRamp.y, vI)) : uTintMid;
+  // (darkstar: green only in the corona, the face keeps its own tones: green on the face read as alien skin)
+  vec3 tHalo = uTintHalo;
+  if (uFieldOn > 0.5) { tMid = mix(tMid, uTintField, vField); tHalo = mix(uTintHalo, uTintFieldH, vField); }
+  vec3 e = vI * core * mix(tMid, uAmber, vHeat) + min(vI, uGlyphF.x) * halo * mix(tHalo, uAmber, vHeat);
   if (e.g < 0.0015) discard;
   float bsrc = 1.0;
   if (uBright.z > 0.5) {
@@ -953,6 +989,8 @@ uniform vec4 uVolQK2;    // volume haze knee: lit level above .x compresses soft
 uniform vec2 uT0OriginQ; // T0 / volume raster origin (device px, y down)
 uniform float uT0TexelQ;
 uniform vec2 uT0SizeQ;
+uniform vec4 uEyeScrQ;   // both eyes on screen (device px, y down), for the sharper eye read
+uniform vec2 uEyeSharpQ; // the eye zones read the ghost at mip .y within .x px of each eye (off: .x = 0)
 uniform vec4 uMouthDotQ; // speaking mouth interior as dots: dot gain, dot sigma (pitch units), smooth floor share (0 gain: off), pout dimming
 varying vec2 vUv;
 void main() {
@@ -966,6 +1004,11 @@ void main() {
   float cl0 = 0.25 + 1.5 * hf_fbm(vec3(h * uHazeK.z, 4.1));   // one cloud field for the face, seam and volume floors
   float cloud = mix(1.0, cl0, uHazeK.y);
   float bg = textureLod(uGhost, vUv, uGhostLod + uLodOffQ).b;
+  if (uEyeSharpQ.x > 0.0) {
+    // the eyes read sharper than the rest of the ghost: the iris's fibres and dark rim were blurred into a flat disc
+    float ez = 1.0 - smoothstep(0.7 * uEyeSharpQ.x, uEyeSharpQ.x, min(length(sp - uEyeScrQ.xy), length(sp - uEyeScrQ.zw)));
+    if (ez > 0.0) bg = mix(bg, textureLod(uGhost, vUv, uEyeSharpQ.y + uLodOffQ).b, ez);
+  }
   if (uMouthDotQ.x > 0.0) {
     // the mouth's ghost (teeth, cavity) as dim dots on the face lattice's pitch: a smooth grey panel was the only surface
     // of the face without dot texture (the teeth read as a smeared second lip, the cavity as a black strip)
