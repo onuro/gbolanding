@@ -90,6 +90,18 @@ export const defaultFraming = (w: number, h: number): FaceFraming => {
   return { faceWidth: W, origin: [w / 2, (0.39 + (REF2_EYE_H - 0.39) * t) * h] };
 };
 
+// turned head: the far-side dissolve (hf_keep) is measured across the view, from the head's vertical axis shifted
+// toward the far side. The far outline moves in fast at first (the far ear and temple are hidden by ~0.15 rad), then
+// slowly, so the shift is a C1 ramp in |sin yaw| saturating at FAR_FADE_TURN plus a gentle slope: 0 at rest, ~0.21 W at
+// 0.1 rad, ~0.31 W at 0.2, ~0.40 W at 0.45 (sin(yaw) itself reached only the last 1-2 cells at 0.2 rad, where the
+// cursor spends most of its time, and overshot at 0.45)
+const FAR_FADE_SHIFT = 0.235;
+const FAR_FADE_TURN = 0.15;
+const FAR_FADE_SLOPE = 0.367;
+// far-side face cells the dissolve empties fill with survivors at this density (x the turn ramp): without it the far
+// cheek thinned into a dark moat, as the viewer-right field is sparse by design (sideDensity 0.35)
+const FAR_FILL = 0.7;
+
 const v2 = (x = 0, y = 0) => new THREE.Vector2(x, y);
 const v3 = (a: number[]) => new THREE.Vector3(a[0], a[1], a[2]);
 const v4 = (x = 0, y = 0, z = 0, w = 0) => new THREE.Vector4(x, y, z, w);
@@ -131,6 +143,10 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     uLipK: { value: v4() },
     uLidK: { value: v4() },
     uLipTalk: { value: v4() },
+    uLipTalkShape: { value: v4(2, 3, 0, 0) },
+    uEarA: { value: v4() },
+    uEarB: { value: v4(1, 1, 0, 0) },
+    uNeckM: { value: v4() },
     uLipCorner: { value: new THREE.Vector3(Math.abs((lm.mouthCornerL as number[] | undefined)?.[0] ?? 0.195), (lm.mouthCornerL as number[] | undefined)?.[1] ?? lm.mouthCentre[1], 0.03) },
     uPupilObjL: { value: v3(lm.pupilL) },
     uPupilObjR: { value: v3(lm.pupilR) },
@@ -149,6 +165,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     uPortE: { value: v4(-0.13, 0.5, 0.78, 0.2) },
     uRefMV: { value: new THREE.Matrix4() },
     uRigid: { value: 0 },
+    uSideAx: { value: v4() },
   };
   const sculptWhite = new THREE.DataTexture(new Uint16Array([THREE.DataUtils.toHalfFloat(1)]), 1, 1, THREE.RedFormat, THREE.HalfFloatType);
   sculptWhite.needsUpdate = true;
@@ -280,6 +297,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     // a5 cinematic layer
     uCineA: { value: v4() },
     uCineB: { value: v4(1, 0, 0, 1) },
+    uVigPost: { value: 0 },
     uGradeHi: { value: new THREE.Vector3(1, 1, 1) },
     uDodgeLive: { value: v4() },
     uDodgeT: { value: v2() },
@@ -325,11 +343,13 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     uEnvD: { value: v4() },
     uEnvE: { value: v4() },
     uEnvF: { value: v4() },
+    uFarFill: { value: v4() },
     uRow: { value: v4() },
     uHot: { value: v4() },
     uStarK: { value: v4() },
     uPupilL: { value: v3(lm.pupilL) },
     uPupilR: { value: v3(lm.pupilR) },
+    uNoseObj: { value: v3(lm.noseTip) },
     uCatch: { value: v4() },
     uCatchOff: { value: v4() },
     uToneK: { value: v4() },
@@ -353,8 +373,12 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     uLifeK: { value: v4() },
     uLifeT: { value: v4() },
     uEyeClr: { value: v4() },
+    uEdgeFade: { value: v4(0, 1, 1, 0) },
+    uEdgeShape: { value: 0 },
     uFieldX: { value: v4() },
     uFieldY: { value: v4() },
+    uWrap: { value: v4() },
+    uWrapN: { value: v4(0, 0, 1, 1) },
     uLodOff: { value: 0 },
     uDotA: { value: v4(0, 2.3, 3.2, 0) },
     uDotB: { value: v4(0.5, 1.1, 0, 0) },
@@ -423,6 +447,8 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
   let pose: HeadPose = { ...REST_POSE };
   const refM = new THREE.Matrix4();
   const poseM = new THREE.Matrix4();
+  const rotM = new THREE.Matrix4();
+  const rotE = new THREE.Euler();
   const morphs: Record<string, number> = {};
   let voice: FaceVoice = { level: 0 };
   // requested DPR (the screen's) and the effective one the engine renders at (layout(): effectiveDpr)
@@ -431,6 +457,12 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
   let devW = 1, devH = 1, Wdev = 1, pitch = 1;
   let originDev = new THREE.Vector2();
   let latRange: LatticeRange = { i0: 0, i1: 0, j0: 0, j1: 0 };
+  // lattice window: the anchor at the rest pose, the whole cells the window slid by this frame to stay over the
+  // viewport, the slide the dot-life state was written at, the slide the volume was drawn at
+  const anchor0 = new THREE.Vector2();
+  const wrapK = new THREE.Vector2();
+  const wrapPrev = new THREE.Vector2();
+  const volK = new THREE.Vector2();
   let particleCounts: Record<string, number> = {};
   let dirty = true;
   let lastTime = 0;
@@ -589,6 +621,11 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     light.uSocket2.value.set(L.socketSoft[0], L.socketSoft[1], L.socketSquash[0], L.socketSquash[1]);
     light.uLipK.value.set(L.lipGloss[0], L.lipGloss[1], L.lipBorder, L.lipCorner[0]);
     light.uLipCorner.value.z = L.lipCorner[1];
+    light.uLipTalkShape.value.set(L.lipTalkShape?.[0] ?? 2, L.lipTalkShape?.[1] ?? 3, 0, 0);
+    const em = L.earMask, nm = L.neckMask;
+    light.uEarA.value.set(em ? em[0] : 0, em ? em[1] : 0, em ? em[2] : 0, em ? em[6] : 0);
+    light.uEarB.value.set(em ? em[3] : 1, em ? em[4] : 1, em ? em[5] : 1, em ? em[7] : 0);
+    light.uNeckM.value.set(nm ? nm[0] : 0, nm ? nm[1] : 0, nm ? nm[2] : 0, nm ? nm[3] : 0);
     light.uLidK.value.set(L.lidLine[0], L.lidLine[1], L.crownMottle, L.highlightKnee);
     light.uLightAmb.value.set(L.ambTop, L.ambBottom, L.exposure, L.contrast);
     light.uLightMottle.value.set(L.mottleAmp, L.mottleScale, L.lacrimalGain, L.facingPow);
@@ -661,6 +698,9 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     pu.uStarK.value.set(L.starSaturated, L.starGain, L.starHot ?? 0, 0);
     pu.uCatch.value.set(L.catchR, L.catchHdr, L.catchSecondary, 1);
     pu.uCatchOff.value.set(L.catchOffset[0], L.catchOffset[1], L.catchSecondaryOffset[0], L.catchSecondaryOffset[1]);
+    const ef = L.edgeFade ?? [0, 1, 1, 0];
+    pu.uEdgeFade.value.set(ef[0], ef[1], ef[2], ef[3]);
+    pu.uEdgeShape.value = L.edgeFadeShape ?? 0;
     pu.uToneK.value.set(L.toneK, L.edgeSoft, L.ringStroke, L.haloSigma);
     pu.uTailLen.value = L.tailLen;
     pu.uToneMax.value = L.toneMax;
@@ -704,6 +744,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     pu.uFLife.value.set(cn ? L.fieldLife[0] : 0, L.fieldLife[1], L.fieldLife[2], L.fieldLife[3]);
     pu.uDepthK.value.set(L.depthSize[0], L.depthSize[1], L.depthSize[2], 0);
     outU.uCineA.value.set(cn ? 1 : 0, L.dodge, L.vignette[0], L.vignette[1]);
+    outU.uVigPost.value = L.vignettePost ?? 0;
     const fc = L.faceCine ?? [1, 1];
     outU.uFaceCine.value.set(fc[0], fc[1]);
     outU.uGradeHi.value.set(...L.gradeHi);
@@ -803,6 +844,9 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     // lattice covering the viewport (+ margin) around the anchor
     latRange = lay.range;
     const cols = latRange.i1 - latRange.i0 + 1, rows = latRange.j1 - latRange.j0 + 1;
+    anchor0.set(originDev.x + look.gridPhase[0] * pitch, originDev.y + look.gridPhase[1] * pitch);
+    pu.uWrapN.value.set(latRange.i0, latRange.j0, cols, rows);
+    wrapPrev.set(0, 0);
     flow.setSize(cols, rows);
     volume?.setSize(cols, rows);
     ghost.setSize(devW, devH);
@@ -871,6 +915,13 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
       anchorM = refM;
     }
     if (anchorOnly) { poseMatrix({ ...pose, yaw: 0, pitch: 0, roll: 0 }, refM); anchorM = refM; }
+    // far-side view-lateral axis for the dissolve: row 0 of the head rotation, signed toward the side she turns away
+    // from, and its shift (z = 0: yaw 0, the shaders skip it); tw is the same C1 turn ramp for the far-side fill
+    rotM.makeRotationFromEuler(rotE.set(pose.pitch, pose.yaw, pose.roll, 'YXZ'));
+    const r = rotM.elements, sg = Math.sign(r[8]), st = Math.abs(r[8]);
+    const tq = Math.min(1, st / FAR_FADE_TURN), tw = tq * tq * (3 - 2 * tq);
+    light.uSideAx.value.set(sg * r[0], sg * r[4], sg * r[8], FAR_FADE_SHIFT * tw + FAR_FADE_SLOPE * st);
+    pu.uFarFill.value.set(tw * FAR_FILL, sg, 0, 0);
     if (volume) for (const m of volume.meshes) { m.matrix.copy(poseM); m.matrixWorld.copy(poseM); }
     if (points) { points.matrix.copy(poseM); points.matrixWorld.copy(poseM); }
     if (lifePoints) { lifePoints.matrix.copy(poseM); lifePoints.matrixWorld.copy(poseM); }
@@ -883,7 +934,12 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     quadU.uViewportQ.value.set(devW, devH);
     quadU.uWpxQ.value = Wdev;
     pu.uAnchor.value.set(ax, ay);
-    const t0x = ax + (latRange.i0 - 0.5) * pitch, t0y = ay + (latRange.j0 - 0.5) * pitch;
+    // the lattice window (and the T0 / volume rasters with it) slides by whole cells so that it stays over the
+    // viewport wherever the head anchor goes; cells leaving it re-enter on the other side (points.glsl wrapCell).
+    // A fixed range around the anchor left a straight-edged empty band on the far side of a turned head.
+    wrapK.set(Math.round((anchor0.x - ax) / pitch), Math.round((anchor0.y - ay) / pitch));
+    pu.uWrap.value.set(wrapK.x, wrapK.y, wrapPrev.x, wrapPrev.y);
+    const t0x = ax + (latRange.i0 + wrapK.x - 0.5) * pitch, t0y = ay + (latRange.j0 + wrapK.y - 0.5) * pitch;
     pu.uT0Origin.value.set(t0x, t0y);
     quadU.uT0OriginQ.value.set(t0x, t0y);
     quadU.uT0TexelQ.value = pu.uT0Texel.value;
@@ -1000,7 +1056,7 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     renderer.setRenderTarget(null);
     renderer.setClearColor(0x000000, 1);
     renderer.render(outScene, mainCam);
-    if (lifeOn) life!.reverse();
+    if (lifeOn) { life!.reverse(); wrapPrev.copy(wrapK); }
   }
 
   // true when the volume must be redrawn (see volFresh); records the pose it is drawn at
@@ -1017,11 +1073,13 @@ export function createFaceEngine(canvas: HTMLCanvasElement, opts: FaceEngineOpti
     // volReuse[1] frames in a row while it moves (a stale volume steps the hair-dot brightness)
     const [maxMove, maxSkip] = look.volReuse;
     const texel = pitch / 4;
-    if (volFresh && maxMove > 0 && moved <= maxMove * texel && (moved < 1e-3 * texel || volSkipped < maxSkip)) {
+    // (a slid lattice window moves the raster by whole cells: never reused across a slide)
+    if (volFresh && volK.equals(wrapK) && maxMove > 0 && moved <= maxMove * texel && (moved < 1e-3 * texel || volSkipped < maxSkip)) {
       volSkipped++;
       return false;
     }
     volCur.forEach((c, k) => volAt[k].copy(c));
+    volK.copy(wrapK);
     volFresh = true;
     volSkipped = 0;
     return true;

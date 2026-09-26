@@ -239,10 +239,13 @@ export function VoiceButton({
         const startedAt = reader.info.timestamp;
         // the particle face (dev preview) shapes the mouth from the agent's words as they are spoken
         const agent = participant.identity !== room.localParticipant.identity;
+        // (final: the recognizer's settled sentence, not an interim guess; absent on streams that carry no flag)
+        const finalAttr = reader.info.attributes?.["lk.transcription_final"];
+        const final = finalAttr === undefined ? undefined : finalAttr === "true";
         let text = "";
         for await (const chunk of reader) {
           text += chunk;
-          window.dispatchEvent(new CustomEvent("face-transcript", { detail: { id, text, agent } }));
+          window.dispatchEvent(new CustomEvent("face-transcript", { detail: { id, text, agent, final } }));
           // On a barge-in both sides stream at once; without this the caption
           // would flip between the two utterances on every chunk.
           const showing = captionSegment.current;
@@ -252,6 +255,9 @@ export function VoiceButton({
           captionSegment.current = { id, startedAt };
           setCaption({ id, text });
         }
+        // the stream is complete: its last word is whole now (the face's word pills wait for this). A separate event,
+        // so the lip-sync's chunk log (face-transcript) is unchanged
+        window.dispatchEvent(new CustomEvent("face-transcript-end", { detail: { id, text, agent, final, done: true } }));
       });
     }
 

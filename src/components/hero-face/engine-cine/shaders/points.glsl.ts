@@ -53,6 +53,7 @@ uniform vec4 uEnvC;      // hardFade0, hardFade1, hairBottom, hairWidth
 uniform vec4 uEnvD;      // hairFlare, hairDensity, strayIn, scatterShare
 uniform vec4 uEnvE;      // survivorJitter, hotShare, filamentShare, scatterNorm
 uniform vec4 uEnvF;      // densL, densR, survivor brightness lo, hi
+uniform vec4 uFarFill;   // turned head: far-side survivor fill density (0 at rest), far side sign (+1 viewer-right), unused x2
 uniform vec4 uRow;       // eyeRow strength, eyeRowDy, keepPow, rim mask lod
 uniform vec4 uHot;       // hot survivor brightness lo, hi; survivor size base, hot size base (p)
 uniform vec4 uStarK;     // saturated share, star gain, unused, unused
@@ -70,14 +71,19 @@ uniform vec4 uVolD;      // extra ring share, brightness gain, band log sigma, d
 
 uniform vec3 uPupilL;
 uniform vec3 uPupilR;
+uniform vec3 uNoseObj;   // nose tip (object space, rest pose): no survivors on the nose tip / nostril wings
 uniform vec4 uCatch;     // radius (p), hdr, secondary factor, visible (blink)
 uniform vec4 uCatchOff;  // primary offset xy (W, y up), secondary offset xy
 uniform sampler2D uLife; // dot life state of the previous frame (lattice: face dot, survivor, face-owns-cell, hair weight; scatter: presence)
 uniform vec4 uLifeK;     // on, dt (s), snap (1 = jump to this frame's decisions), curve (0 linear .. 1 smoothstep)
 uniform vec4 uLifeT;     // fade time lo, hi (s; per dot), state texture width, height
+uniform float uEdgeShape; // the edge fade's shape: 0 band along the card's edges, 1 radial (card ellipse)
+uniform vec4 uEdgeFade;   // field toward the card edges: band (share of the short side), density, brightness left at the edge, noise
 uniform vec4 uEyeClr;    // free scatter kept out of the eyes: ellipse rx, ry (W) around each projected pupil, outer edge (x ellipse), unused
 uniform vec4 uFieldX;    // wide cards: far-field lateral stretch: knee |u| (W), stretch viewer-left, viewer-right, on
 uniform vec4 uFieldY;    // wide cards: viewer-right field balance toward the viewer-left profile (share), unused, ramp u0, u1 (W)
+uniform vec4 uWrap;      // lattice window: whole cells it slid by to stay over the viewport (x, y), the previous frame's (x, y)
+uniform vec4 uWrapN;     // lattice window at rest: first cell i0, j0; cols, rows
 uniform vec4 uDotA;      // a5 proto: dotSoft, dotBeta, dotCap, logSigma core
 uniform vec4 uDotB;      // hot L0, L1, gain, face jitter core (p)
 uniform vec4 uDotC;      // dust gain, r min, r max, streak share
@@ -135,6 +141,18 @@ float lifeTo(float p, float target) {
   return abs(d) <= max(lifeStep, 1.0 / 1024.0) ? target : p + sign(d) * lifeStep;
 }
 float lifeW(float p) { return mix(p, p * p * (3.0 - 2.0 * p), uLifeK.w); }
+
+// The lattice window follows the viewport, not the head anchor: a cell (or dust speck) that leaves it on one side,
+// 1.5+ cells off screen, re-enters on the other, so a turned / nodding head never leaves an empty straight-edged band
+// on the far side of the card (the window was a fixed cell range around the anchor, the viewport + 2 cells at rest).
+// At rest (k = 0) every cell keeps its own index, bit for bit.
+vec2 wrapTurns(vec2 ij, vec2 k) { return floor((ij - (uWrapN.xy + k - 0.5)) / uWrapN.zw); }
+vec2 wrapCell(vec2 ij) {
+  vec2 n = wrapTurns(ij, uWrap.xy);
+  // a cell that wrapped since the previous frame is a different cell now: its dot life snaps (off screen)
+  if (any(notEqual(n, wrapTurns(ij, uWrap.zw)))) lifeSnap = true;
+  return ij - n * uWrapN.zw;
+}
 
 ivec2 t0Texel(vec2 s) {
   vec2 tc = (s - uT0Origin) / uT0Texel;
@@ -328,7 +346,7 @@ void main() {
 
   if (kind < 0.5) {
     // ---------------------------------------------------------------- lattice
-    vec2 ij = position.xy;
+    vec2 ij = wrapCell(position.xy);
     float xl = ij.x * uPitch;
     float uL = xl / uWpx;
     vec2 sl = uAnchor + vec2(xl * (1.0 + uPitchWarp * uL * uL / 3.0), ij.y * uPitch);
@@ -413,7 +431,14 @@ void main() {
     bool wantFace = a > 0.02 && faceKeep;
     float pk = lifeTo(lifeP.z, faceKeep ? 1.0 : 0.0);
     float own = smoothstep(0.45, 0.85, keep * cov) * pk;
-    float sDens = mix(envH, uEnvD.z, own) * (1.0 - envSup);
+    float sDens = mix(envH, uEnvD.z, own);
+    if (uFarFill.x > 0.0) {
+      // turned head: far-side face cells the dissolve emptied (inside the outline, cheek to jaw, never the eye) fill
+      // with survivors at the field's density, so the far cheek thins into the field instead of a dark moat
+      float far = smoothstep(0.1, 0.25, uFarFill.y * h.x) * (1.0 - smoothstep(0.7, 0.9, h.y)) * (1.0 - eye);
+      sDens = max(sDens, uFarFill.x * far * step(0.5, maskAt(sl, 1.0)) * smoothstep(0.5, 0.9, cov) * (1.0 - own));
+    }
+    sDens *= 1.0 - envSup;
     sDens *= 1.0 - smoothstep(0.08, 0.3, mouth);
     sDens *= 1.0 - 0.8 * eye;
     // no bright strays in the face's own dark areas (nostrils, under-nose shadow, sockets): at fine lattices they
@@ -422,6 +447,11 @@ void main() {
     // the nostril openings are holes in the mesh (low coverage = 'outside the head'): keep the nose base clear
     float noseBase = 1.0 - smoothstep(0.7, 1.0, length((h - vec2(0.0, 0.5)) / vec2(0.23, 0.16)));
     sDens *= 1.0 - noseBase;
+    // nor on the nose tip and nostril wings, around the tip as projected in the current pose: that zone sits above the
+    // nose base and moves with the turn, and three survivors in its shadows came and went as she swayed (the owner)
+    vec4 cn = projectionMatrix * viewMatrix * modelMatrix * vec4(uNoseObj, 1.0);
+    vec2 pn = (cn.xy / cn.w * vec2(0.5, -0.5) + 0.5) * uViewport;
+    sDens *= smoothstep(0.75, 1.0, length((sl - pn - vec2(0.0, 0.02 * uWpx)) / (vec2(0.17, 0.1) * uWpx)));
     float sRowD = abs(h.y - uRow.y) * uWpx / uPitch;
     float axF = abs(fieldH(h).x);   // the eye-level row reaches the side edges as in ref 2 (wide cards: stretched)
     float sRow = uRow.x * (1.0 - smoothstep(0.45, 0.55, sRowD)) * (1.0 - smoothstep(1.05, 1.3, axF)) * (1.0 - step(0.3, cov));
@@ -669,7 +699,7 @@ void main() {
     vI *= 1.0 - hf_darkFace(s);
   } else if (kind > 3.5) {
     // ---------------------------------------------------------------- a5 proto: off-lattice dust specks
-    vec2 ij = position.xy;
+    vec2 ij = wrapCell(position.xy);
     float xl = ij.x * uPitch;
     float uL = xl / uWpx;
     vec2 sl = uAnchor + vec2(xl * (1.0 + uPitchWarp * uL * uL / 3.0), ij.y * uPitch);
@@ -766,6 +796,19 @@ void main() {
     float sz = 1.0 + sA * bw + uHarmF.x * rip * mix(0.2 * hmG, 1.0, hmW);
     vShape.y *= max(sz, 0.3);
     vI *= max(1.0 + sA * uHarmB.z * bw + uHarmF.y * rip * hmW, 0.2) * (1.0 + uHarmE.x * E * hmW);
+  }
+  if (uEdgeFade.x > 0.0 && on) {
+    // the field thins out and dims toward the card's edges (an even field right up to the border read as a flat
+    // texture); the band's inner edge is broken up by noise so it never reads as a frame; the face's own dots (hmW 0)
+    // never fade
+    vec2 ev = min(s, uViewport - s);
+    float de = min(ev.x, ev.y) / (uEdgeFade.x * min(uViewport.x, uViewport.y));
+    // (radial: by the distance from the card's centre, 1 at the side midpoints, so the corners fade the most)
+    float dr = (1.0 - length(s / uViewport * 2.0 - 1.0)) / (2.0 * uEdgeFade.x);
+    de = mix(de, dr, uEdgeShape);
+    float ef = smoothstep(0.0, 1.0, de + uEdgeFade.w * (hf_fbm(vec3(s / uWpx * 2.2, 3.1)) - 0.5));
+    if (hf_hash12(aRand.zw * 91.7 + 3.3) > mix(1.0, mix(uEdgeFade.y, 1.0, ef), hmW)) on = false;
+    vI *= mix(1.0, mix(uEdgeFade.z, 1.0, ef), hmW);
   }
   if (!on || vI < 0.004) {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0);

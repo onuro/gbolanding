@@ -24,6 +24,7 @@ uniform vec3 uBloomTint;
 uniform vec4 uOutTone;      // k, toneMax, dither (LSB), exposure
 // a5 cinematic layer
 uniform vec4 uCineA;        // on (bloom from HDR alpha = per-fragment bright pass), dodge, vignette amount, vignette r0
+uniform float uVigPost;     // vignette after the tone curve (amount; radius / exponent as the pre-tone one)
 uniform vec4 uCineB;        // vignette exponent, grain amount, grain frame index, bloom multiplier (breath x voice)
 uniform vec3 uGradeHi;
 uniform vec4 uDodgeLive;    // light-play amount, speech gain, spatial frequency (cycles / card height), tempo
@@ -98,6 +99,8 @@ void main() {
     x *= 1.0 - uCineA.z * pow(smoothstep(uCineA.w, 1.0, dv), uCineB.x);
     x *= uOutTone.w;
     vec3 t = uOutTone.y * (1.0 - exp(-uOutTone.x * max(x, vec3(0.0))));
+    // and after it, where it also dims the bright dots (the pre-tone vignette is swallowed by the highlight roll-off)
+    t *= 1.0 - uVigPost * pow(smoothstep(uCineA.w, 1.0, dv), uCineB.x);
     float lum = dot(t, vec3(0.2126, 0.7152, 0.0722));
     t *= mix(vec3(1.0), uGradeHi, smoothstep(0.2, 0.8, lum));
     // fine grain: luminance-weighted (zero on black), refreshed at a film rate

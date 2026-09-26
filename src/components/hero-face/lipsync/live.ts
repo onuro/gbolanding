@@ -10,7 +10,7 @@
 // the moment being heard with that much of the future already analysed (plus the output latency, e.g. Bluetooth).
 import { createStreamAligner } from './align-stream';
 import { EXPR } from './expression';
-import { createIdlePerformer, type Performer } from './idle';
+import { createIdlePerformer, duchenneMorphs, smileMorphs, type Performer } from './idle';
 import { ANIM_DEFAULTS, mouthAt } from './speech-anim';
 import { createSpeechFace } from './speech-face';
 import type { Lang } from './timing';
@@ -35,15 +35,19 @@ export interface LiveVoice {
   live: boolean;
   /** agent transcript chunks not yet consumed (audio-clock ms at arrival) */
   chunks: { id: string; text: string; atCtxMs: number | null; atPerf: number }[];
+  /** performance.now() of the visitor's latest recognised speech (0: none yet) */
+  userAt: number;
 }
 
 /** Listens for 'face-voice' (detail: AnalyserNode | null), 'orb-live', 'orb-level' and the agent's 'face-transcript'. */
 export function listenFaceVoice(): { voice: LiveVoice; detach(): void } {
-  const voice: LiveVoice = { analyser: null, level: 0, live: false, chunks: [] };
+  const voice: LiveVoice = { analyser: null, level: 0, live: false, chunks: [], userAt: 0 };
   (window as { __faceLookahead?: number }).__faceLookahead = FACE_LOOKAHEAD;
   const tr = (e: Event) => {
     const d = (e as CustomEvent).detail as { id: string; text: string; agent: boolean } | null;
-    if (!d || !d.agent || !d.text) return;
+    if (!d || !d.text) return;
+    // the visitor talking (ends her waiting smile after a question)
+    if (!d.agent) { voice.userAt = performance.now(); return; }
     const ctx = voice.analyser?.context;
     voice.chunks.push({ id: d.id, text: d.text, atCtxMs: ctx ? ctx.currentTime * 1000 : null, atPerf: performance.now() });
     if (voice.chunks.length > 200) voice.chunks.splice(0, voice.chunks.length - 200);
@@ -66,12 +70,21 @@ export function listenFaceVoice(): { voice: LiveVoice; detach(): void } {
 
 export const LIVE = {
   squint: [0.16, 0.26] as [number, number], // eye engagement while speaking (base, + accents)
+  // a reply that ends in a question: once she has stopped, a soft closed-lip smile while she waits for the answer
+  // (smile, asym, delay after her voice ends (s), longest hold (s), rise / fall time constants (s))
+  askSmile: { smile: 0.3, asym: 0.08, delay: 0.25, hold: 6, rise: 0.18, fall: 0.25 },
 };
 
 export function createLivePerformer(voice: LiveVoice, lang: Lang = typeof document !== 'undefined' && document.documentElement.lang.startsWith('en') ? 'en' : 'tr'): Performer {
   const idle = createIdlePerformer({ firstSmileAt: 3 });
   loadVis();
   let last = 0, speak = 0, turn = 0, accent = 0, prevLoud = 0, alVis = false;
+  // the question smile: the latest reply's id / text, how long she has been silent after it, its envelope
+  let replyId = '', replyText = '', askAt = 0, askWait = 0, askEnv = 0;
+  // the audio clock as the frames see it: ctx.currentTime moves in audio-callback blocks (~10-20 ms, more over
+  // Bluetooth) and stands still between them, so it is carried on with the frame clock between blocks (at most 40 ms),
+  // never backwards; the mouth stepped in blocks at 120 Hz (the live 'chirping')
+  let clkCtx = -1, clkPerf = 0, clkLast = 0;
   const face = createSpeechFace(1 + Math.floor(Math.random() * 997)); // blinks / nods never repeat on the same beats
   const anim = { ...ANIM_DEFAULTS, lang };
   const mstate = { jaw: 0, t: 0 };
@@ -80,7 +93,7 @@ export function createLivePerformer(voice: LiveVoice, lang: Lang = typeof docume
   let al: ReturnType<typeof createStreamAligner> | null = null;
   const retap = (a: AnalyserNode | null) => {
     if (src && tap) { try { src.disconnect(tap); } catch { /* already gone */ } }
-    src = a; tap = null; buf = null; al = null;
+    src = a; tap = null; buf = null; al = null; clkCtx = -1; clkLast = 0;
     if (!a) return;
     try {
       tap = a.context.createAnalyser();
@@ -106,8 +119,15 @@ export function createLivePerformer(voice: LiveVoice, lang: Lang = typeof docume
       // the model arrived after the tap was made: start over with it while nothing has been said yet
       if (!alVis && visModel && al.state().units === 0) { al = createStreamAligner(src.context.sampleRate, lang, visModel); alVis = true; }
       const ctx = src.context as AudioContext;
-      const nowMs = ctx.currentTime * 1000;
-      for (const c of voice.chunks) al.text(c.id, c.text, c.atCtxMs ?? nowMs - (performance.now() - c.atPerf));
+      const ctxMs = ctx.currentTime * 1000, perfMs = performance.now();
+      if (ctxMs !== clkCtx) { if (ctxMs < clkCtx - 1000) clkLast = 0; clkCtx = ctxMs; clkPerf = perfMs; }
+      const nowMs = Math.max(clkLast, ctxMs + Math.min(40, perfMs - clkPerf));
+      clkLast = nowMs;
+      for (const c of voice.chunks) {
+        al.text(c.id, c.text, c.atCtxMs ?? nowMs - (performance.now() - c.atPerf));
+        if (c.id !== replyId) { replyId = c.id; askAt = performance.now(); }
+        replyText = c.text;
+      }
       voice.chunks.length = 0;
       tap.getFloatTimeDomainData(buf);
       al.audio(buf, Math.round(ctx.currentTime * ctx.sampleRate));
@@ -141,6 +161,22 @@ export function createLivePerformer(voice: LiveVoice, lang: Lang = typeof docume
       m.browInnerUpLeft = Math.min(EXPR.maxBrowUp, (m.browInnerUpLeft ?? 0) + f.brow);
       m.browInnerUpRight = Math.min(EXPR.maxBrowUp, (m.browInnerUpRight ?? 0) + f.brow * 0.9);
       if (f.blink !== null) { m.eyeBlinkLeft = Math.max(f.blink, speak < 0.4 ? m.eyeBlinkLeft ?? 0 : 0); m.eyeBlinkRight = m.eyeBlinkLeft; }
+      // she asked something: once her voice has ended (past the last aligned sound, quiet), a soft smile while she
+      // waits; it goes as the visitor answers, as her next reply starts, or after askSmile.hold. Never while she speaks
+      const A = LIVE.askSmile;
+      const asked = /[?？]["'”’)\]]*\s*$/.test(replyText) && voice.userAt < askAt;
+      const lastEnd = tl.reduce((e, q) => (q.kind !== 'P' ? Math.max(e, q.end) : e), 0);
+      const done = heard > lastEnd + 150 && ac.loud < 0.05;
+      askWait = asked && done ? askWait + dt : 0;
+      const want = askWait > A.delay && askWait < A.delay + A.hold ? 1 : 0;
+      askEnv += (want - askEnv) * (1 - Math.exp(-dt / (want > askEnv ? A.rise : A.fall)));
+      if (askEnv > 0.001) {
+        const s = A.smile * askEnv * askEnv * (3 - 2 * askEnv) * (1 - speak);
+        const sm = smileMorphs({ smile: s, asym: A.asym }), dq = duchenneMorphs({ smile: s, asym: A.asym });
+        for (const [key, v] of Object.entries(sm)) m[key] = Math.max(m[key] ?? 0, v);
+        m.eyeSquintLeft = Math.min(EXPR.maxSquint, Math.max(m.eyeSquintLeft ?? 0, dq.eyeSquintLeft * (1 - blink)));
+        m.eyeSquintRight = Math.min(EXPR.maxSquint, Math.max(m.eyeSquintRight ?? 0, dq.eyeSquintRight * (1 - blink)));
+      }
       out.gaze = { yaw: f.gazeYaw, pitch: f.gazePitch };
       out.speaking = speak > 0.5;
       if (import.meta.env?.DEV) {

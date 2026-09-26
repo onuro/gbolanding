@@ -79,6 +79,8 @@ uniform vec4 uLifeT;     // fade time lo, hi (s; per dot), state texture width, 
 uniform vec4 uEyeClr;    // free scatter kept out of the eyes: ellipse rx, ry (W) around each projected pupil, outer edge (x ellipse), unused
 uniform vec4 uFieldX;    // wide cards: far-field lateral stretch: knee |u| (W), stretch viewer-left, viewer-right, on
 uniform vec4 uFieldY;    // wide cards: viewer-right field balance toward the viewer-left profile (share), unused, ramp u0, u1 (W)
+uniform vec4 uWrap;      // lattice window: whole cells it slid by to stay over the viewport (x, y), the previous frame's (x, y)
+uniform vec4 uWrapN;     // lattice window at rest: first cell i0, j0; cols, rows
 #ifdef HF_LIFE
 varying vec4 vLife;
 #endif
@@ -103,6 +105,18 @@ float lifeTo(float p, float target) {
   return abs(d) <= max(lifeStep, 1.0 / 1024.0) ? target : p + sign(d) * lifeStep;
 }
 float lifeW(float p) { return mix(p, p * p * (3.0 - 2.0 * p), uLifeK.w); }
+
+// The lattice window follows the viewport, not the head anchor: a cell that leaves it on one side, 1.5+ cells off
+// screen, re-enters on the other, so a turned / nodding head never leaves an empty straight-edged band on the far
+// side of the card (the window was a fixed cell range around the anchor, the viewport + 2 cells at rest).
+// At rest (k = 0) every cell keeps its own index, bit for bit.
+vec2 wrapTurns(vec2 ij, vec2 k) { return floor((ij - (uWrapN.xy + k - 0.5)) / uWrapN.zw); }
+vec2 wrapCell(vec2 ij) {
+  vec2 n = wrapTurns(ij, uWrap.xy);
+  // a cell that wrapped since the previous frame is a different cell now: its dot life snaps (off screen)
+  if (any(notEqual(n, wrapTurns(ij, uWrap.zw)))) lifeSnap = true;
+  return ij - n * uWrapN.zw;
+}
 
 ivec2 t0Texel(vec2 s) {
   vec2 tc = (s - uT0Origin) / uT0Texel;
@@ -276,7 +290,7 @@ void main() {
 
   if (kind < 0.5) {
     // ---------------------------------------------------------------- lattice
-    vec2 ij = position.xy;
+    vec2 ij = wrapCell(position.xy);
     float xl = ij.x * uPitch;
     float uL = xl / uWpx;
     vec2 sl = uAnchor + vec2(xl * (1.0 + uPitchWarp * uL * uL / 3.0), ij.y * uPitch);

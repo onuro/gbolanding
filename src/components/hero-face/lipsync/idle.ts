@@ -135,9 +135,10 @@ export function smileMorphs(v: SmileValue): Record<string, number> {
 }
 
 /** Duchenne coupling: a real smile narrows the eyes a little (the lower lids rise), a beat after the mouth.
- *  k = eyeSquint per unit of mouthSmile (the idle smile 0.22-0.3 -> 0.24-0.33: a visible, gentle lower-lid rise,
- *  never a squint-glare), lag in s. The lids hand over to blinks (the performers scale the squint by 1 - blink). */
-export const DUCHENNE = { k: 1.2, lag: 0.1, max: 0.5 };
+ *  k = eyeSquint per unit of mouthSmile (the idle smile 0.22-0.3 -> 0.44-0.6: the lower lids visibly rise over the iris,
+ *  never a squint-glare; 0.24-0.33 barely read on the dots and the owner asked for a little squint with the smile,
+ *  2026-09-26), lag in s. The lids hand over to blinks (the performers scale the squint by 1 - blink). */
+export const DUCHENNE = { k: 2.0, lag: 0.1, max: 0.6 };
 
 export function duchenneMorphs(v: SmileValue): { eyeSquintLeft: number; eyeSquintRight: number } {
   const s = Math.min(DUCHENNE.max, DUCHENNE.k * v.smile);

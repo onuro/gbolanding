@@ -46,11 +46,16 @@ uniform vec4 uLightAmb;      // ambTop, ambBottom, exposure, contrast
 uniform vec4 uLightMottle;   // face mottle amp, scale, lacrimalGain, facingPow
 uniform vec4 uLightFade;     // sideFade0, sideFade1, crownFade0, crownFade1
 uniform vec4 uLightFade2;    // neckFade0, neckFade1, keepFacing0, keepFacing1
+uniform vec4 uSideAx;        // turned head: far-side view-lateral axis, object space (xyz, w offset); 0 at yaw 0
 uniform vec4 uSocket;        // radius x, radius y, floor, y offset (W, object space)
 uniform vec4 uSocket2;       // soft inner, soft outer (ellipse units), below-eye squash, nose-side squash
 uniform vec4 uLipK;          // gloss gain, gloss exponent, upper-lip border gain, mouth-corner shadow
 uniform vec4 uLidK;          // lid-line gain, lid-line socket lift, crown mottle amp, highlight knee
 uniform vec3 uLipCorner;     // |x| of the mouth corners, y, radius (W, rest pose)
+uniform vec4 uEarA;          // ear fade: centre |x|, y, z (W), inner edge (ellipse radius); off when the outer edge is 0
+uniform vec4 uEarB;          // ear fade: radius x, y, z (W), outer edge
+uniform vec4 uNeckM;         // neck fade: y kept, y faded, z kept, z faded (W); off when y kept == y faded
+uniform vec4 uLipTalkShape;  // speaking lips: the light fades toward the corners from x (share of the corner distance) to y
 uniform vec4 uLipTalk;       // speaking lips: upper-lip light, lower-lip light (both scale with mouth opening), pout amount, pout fill floor
 uniform vec3 uPupilObjL;
 uniform vec3 uPupilObjR;
@@ -133,7 +138,9 @@ float hf_litRaw(vec3 N, vec3 V, vec4 bake, vec3 obj, float curv, vec4 feat) {
   // puckered lips: the everted upper lip's lower edge turns down and went dark between two lit rows (a ribbed
   // 'duck lip'); its fill stops depending on the view angle as the pout grows (uLipTalk.z = pout amount)
   float lipFU = mix(lipF, 0.85, uLipTalk.z);
-  lit += lip * (uLipTalk.x * max(feat.y, 0.0) * lipFU + uLipTalk.y * max(-feat.y, 0.0) * mix(lipF, 0.75, 0.5 * uLipTalk.z));
+  // (full over the middle of the lips, fading to the corners: an even fill end to end read as two sausages)
+  float lipMid = 1.0 - smoothstep(uLipTalkShape.x, uLipTalkShape.y, abs(obj.x - uMouthObj.x) / uLipCorner.x);
+  lit += lip * lipMid * (uLipTalk.x * max(feat.y, 0.0) * lipFU + uLipTalk.y * max(-feat.y, 0.0) * mix(lipF, 0.75, 0.5 * uLipTalk.z));
   // and the dark seam row between the vermilion and the everted band fills in: the pouted upper lip reads as one
   // rounded lip (judges, rounds 14-15: 'two stacked rows with a dark line', 'a thin striped upper lip')
   lit = max(lit, lip * max(feat.y, 0.0) * uLipTalk.z * uLipTalk.w);
@@ -160,10 +167,27 @@ float hf_socket(vec3 obj) {
 // dissolve keep factor: ears / head sides, skull top, neck and grazing surfaces break up into the scatter
 float hf_keep(vec3 N, vec3 V, vec3 obj) {
   float side = 1.0 - smoothstep(uLightFade.x, uLightFade.y, abs(obj.x));
+  if (uSideAx.z != 0.0) {
+    // turned head: the far outline is the cheek (|x| ~0.42, inside this fade; the side fade and the hair overlap that
+    // make the rest pose seamless sit behind it), so the dots ran undissolved up to it, a mask edge. The side fade is
+    // also measured across the view on the far side (a band that follows the outline in), never over the far eye.
+    // (yaw 0: skipped, the approved path bit for bit)
+    float sv = 1.0 - smoothstep(uLightFade.x, uLightFade.y, dot(uSideAx.xyz, obj) + uSideAx.w);
+    // guard: the far eye's socket ellipse (lids, lashes and brow), so no field particles land on the eye or brow
+    vec3 pe = obj.x > 0.0 ? uPupilObjL : uPupilObjR;
+    sv = mix(1.0, sv, smoothstep(0.9, 1.3, hf_socket1(obj, pe)));
+    side = min(side, sv);
+  }
   float top = 1.0 - smoothstep(uLightFade.z, uLightFade.w, obj.y);
   float neck = smoothstep(uLightFade2.x, uLightFade2.y, obj.y);
   float graze = smoothstep(uLightFade2.z, uLightFade2.w, dot(N, V));
   graze = mix(graze, 1.0, uEdgeK2.y * hf_edgeW(obj));
+  // the ears and the neck behind / below the jaw fade out: they showed as a dim ear and a neck column when she turned
+  if (uEarB.w > 0.0) {
+    float e = length((vec3(abs(obj.x), obj.y, obj.z) - uEarA.xyz) / uEarB.xyz);
+    side *= smoothstep(uEarA.w, uEarB.w, e);
+  }
+  if (uNeckM.x != uNeckM.y) neck *= 1.0 - smoothstep(uNeckM.x, uNeckM.y, obj.y) * smoothstep(uNeckM.z, uNeckM.w, obj.z);
   return side * top * neck * graze;
 }
 

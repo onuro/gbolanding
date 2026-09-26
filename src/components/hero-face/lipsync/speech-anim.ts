@@ -135,8 +135,8 @@ export function acousticVowel(a: AcousticFrame, targets: Record<string, [number,
 }
 
 /** One timed gesture of the blend. */
-interface Core { w: number; round: boolean; p: number; f: number; jaw: number; ld: number; st: number; tw: number; pr: number; unr: number }
-interface Item { shape: Shape; a: [number, number, number, number]; on: number; hold: number; end: number; rate: number; kind: 'V' | 'C' | 'P'; ph: string; amp: number; rel?: number; pr?: number }
+interface Core { w: number; round: boolean; p: number; f: number; jaw: number; ld: number; st: number; tw: number; ts: number; pr: number; unr: number }
+interface Item { shape: Shape; a: [number, number, number, number]; on: number; hold: number; end: number; rate: number; kind: 'V' | 'C' | 'P'; ph: string; amp: number; rel?: number; pr?: number; rg?: boolean }
 
 const BASE = [0.06, 0.04, 0.2, 0.2];
 let VOWEL_JAW = 1;
@@ -148,7 +148,7 @@ const quintic = (x: number) => { const t = Math.min(1, Math.max(0, x)); return t
 /** lab: per-vowel loudness gains (set to [] to record) */
 export let LOUD_DBG: { v?: string; start: number; pkDb: number; meanDb: number; loudK: number; stressed: boolean }[] | null = null;
 export function setLoudDbg(on: boolean) { LOUD_DBG = on ? [] : null; return () => LOUD_DBG; }
-export const TUNE = { jawWin: 0.4, sealLead: 35, sealClose: 42, sealAhead: 45, mHold: 16, minSeal: 30, dipJ: 0.085, dipHalf: 34, pcK: 0.4, pcDip: 0.45, acLabio: 0.3, acLean: 0, jawUp: 0.85, sealPart: 55, keepV: 0.45, urgW: 20, sealLate: 10, openStep: 0.042, closeStep: 0.04, pUp: 0.11, sealX: 0.006, lead: 10, stStep: 0.06, stInh: 0.45, stBreath: 0.3, uJaw: 0.08, jawCc: 150, loudWin: 3000, loudA: 1.1, loudS: 0.05, loudHi: 0.25, stressDb: 3, prDb: 4, prFloor: 0.1, prVel: 0.1, sealP: 0.09 };
+export const TUNE = { jawWin: 0.4, sealLead: 35, sealClose: 42, sealAhead: 45, mHold: 16, minSeal: 30, dipJ: 0.085, dipHalf: 34, pcK: 0.4, pcDip: 0.45, acLabio: 0.3, acLean: 0, jawUp: 0.85, sealPart: 55, keepV: 0.45, urgW: 20, sealLate: 10, openStep: 0.042, closeStep: 0.04, pUp: 0.11, sealX: 0.006, lead: 10, stStep: 0.06, stInh: 0.45, stBreath: 0.3, uJaw: 0.08, jawCc: 95, loudWin: 3000, loudA: 1.1, loudS: 0.05, loudHi: 0.25, stressDb: 3, prDb: 4, prFloor: 0.1, prVel: 0.1, sealP: 0.09, ccCore: 0.25, ccTop: 3, rFun: 0.6, heldMs: 120, heldPc: 0.25, pCc: 75, stBreath2: 0.25, sealCap: 0.09, planK: 1.7, planD: 10, planMid: 25, labHold: 30, planPre: 8, planShort: 80, outW: 90, outLead: 20 };
 let ACOUSTIC_SEAL = 0.6;
 export function setAcousticSeal(v: number) { ACOUSTIC_SEAL = v; }
 let ENV_K = 0;
@@ -274,8 +274,9 @@ function itemsOf(segs: readonly AlignSeg[], acousticAt: (ms: number) => Acoustic
       // a diphthong is a trajectory: the first target for ~55 %, then the glide (aɪ opens then spreads, oʊ rounds more)
       // (the glide is the last ~40 %: growth's oʊ read as a tight u pout from its start)
       const m = s.start + 0.6 * dur;
-      out.push({ shape, a: [alpha, alpha, alpha, alpha], on: s.start, hold: s.start + 0.4 * dur, end: m, rate, kind: 'V', ph: s.v ?? '', amp });
       const g = specShape(specOf(s.v2, lang));
+      // (rg: the glide is rounded, so its first half is no unrounded vowel for the pout gate in mouthAt)
+      out.push({ shape, a: [alpha, alpha, alpha, alpha], on: s.start, hold: s.start + 0.4 * dur, end: m, rate, kind: 'V', ph: s.v ?? '', amp, rg: (g.pucker ?? 0) + (g.funnel ?? 0) >= 0.6 });
       if (s.v2 === 'ʊ' || s.v2 === 'u') { g.pucker = 0.65 * (g.pucker ?? 0); g.jaw = Math.max(g.jaw ?? 0, 0.07); }
       out.push({ shape: g, a: [alpha, alpha, alpha, alpha], on: m, hold: m + 0.25 * dur, end: s.end, rate, kind: 'V', ph: s.v2, amp: 0.95 * amp });
     } else {
@@ -283,7 +284,12 @@ function itemsOf(segs: readonly AlignSeg[], acousticAt: (ms: number) => Acoustic
       // was one template: the same U under the same lip, only the height varied)
       const openV = (shape.jaw ?? 0) >= 0.17;
       if (openV) shape = { ...shape, upperUp: (shape.upperUp ?? 0) * Math.min(1.3, Math.max(0.7, 1 + 2 * (loudK - 1))) };
-      out.push({ shape, a: [alpha, alpha, openV ? 0.55 * alpha : alpha, alpha], on: s.start, hold: s.start + (stressed ? 0.75 : 0.45) * dur, end: s.end, rate, kind: 'V', ph: s.v ?? '', amp, pr });
+      // (a vowel out of an m / b / p holds its target ~TUNE.labHold ms longer: its lips spend the first 2-3 frames
+      // parting, and the jaw had already let go when they were open, so the loud manuel a peaked at 46 px and the u's
+      // pout came in over it)
+      const pl = out[out.length - 1], postLab = !!pl && pl.kind === 'C' && PHONEMES[pl.ph]?.viseme === 'PP' && s.start - pl.end < 20;
+      const hold = s.start + (stressed ? 0.75 : 0.45) * dur;
+      out.push({ shape, a: [alpha, alpha, openV ? 0.55 * alpha : alpha, alpha], on: s.start, hold: postLab ? Math.max(hold, Math.min(s.start + 0.75 * dur, hold + TUNE.labHold)) : hold, end: s.end, rate, kind: 'V', ph: s.v ?? '', amp, pr });
     }
   }
   // consonants made with the tongue keep the lips of the vowels around them (a speaker only closes on m / b / p):
@@ -337,6 +343,44 @@ export interface MouthState {
   /** spring state per output morph (the smoothing stage) */
   x?: Record<string, number>;
   v?: Record<string, number>;
+  /** tongue consonants the live timeline showed near t lately (withHeld) */
+  held?: { seg: AlignSeg; seen: number }[];
+  /** the last shape returned (shown again while the clock stands still) */
+  last?: Record<string, number>;
+}
+
+/** The live decode can merge a consonant it already placed back into the vowel beside it for a few frames and split it
+ *  out again (kurum's u-ɾ-u shown as one 200 ms u, dağınık's ı-n-ı as one ı, just before they were displayed), so its
+ *  trough never fired. A tongue consonant seen in the last ~120 ms keeps its place in a vowel that swallowed it (never
+ *  over a pause or another consonant; m / b / p / f / v keep their own seal paths, ş / ç / c their protrusion). */
+function withHeld(segs: readonly AlignSeg[], t: number, st: MouthState, acousticAt: (ms: number) => AcousticFrame): readonly AlignSeg[] {
+  const tongue = (q: AlignSeg) => q.kind === 'C' && !!q.cons?.length && q.cons.every((c) => { const vis = PHONEMES[c]?.viseme; return vis !== 'PP' && vis !== 'FF' && vis !== 'WW' && vis !== 'HH' && vis !== 'SH'; });
+  const held = (st.held ??= []);
+  for (const q of segs) {
+    if (q.kind !== 'C' || q.end < t - 40 || q.start > t + 250) continue;
+    // (a consonant the decode moved is the same one, not a second: the s of 'and scattered' shown 50 ms later)
+    for (let i = held.length - 1; i >= 0; i--) { const h = held[i]!.seg; if ((h.end > q.start && h.start < q.end) || (h.end > q.start - 60 && h.start < q.end + 60 && h.cons!.some((c) => q.cons?.includes(c)))) held.splice(i, 1); }
+    if (tongue(q)) held.push({ seg: q, seen: t });
+  }
+  for (let i = held.length - 1; i >= 0; i--) if (t - held[i]!.seen > TUNE.heldMs || t < held[i]!.seen || held[i]!.seg.end < t - 60) held.splice(i, 1);
+  let out: AlignSeg[] | null = null;
+  for (const h of held) {
+    if (h.seen === t) continue;
+    const c = h.seg, cm = (c.start + c.end) / 2, cur: readonly AlignSeg[] = out ?? segs;
+    if (cur.some((q) => q.kind !== 'V' && q.end > c.start - 5 && q.start < c.end + 5)) continue;
+    // (and only where the voice has some consonant there: a ɾ left inside the ü of müşteri, where the classifier heard
+    // none, took its pout .94 -> .68; the swallowed ones sit mid-vowel too, u-ɾ-u read as one u, so not by place)
+    let pc = -1; for (let x = c.start - 10; x <= c.end + 10; x += 10) { const q = acousticAt(x).pc; if (q !== undefined) pc = Math.max(pc, q); }
+    if (pc >= 0 && pc < TUNE.heldPc) continue;
+    const vi = cur.findIndex((q) => q.kind === 'V' && !q.v2 && q.start <= cm && q.end >= cm);
+    if (vi < 0) continue;
+    const V = cur[vi]!, parts: AlignSeg[] = [];
+    if (c.start - V.start >= 15) parts.push({ ...V, end: c.start });
+    parts.push({ ...c, start: Math.max(c.start, V.start), end: Math.min(c.end, V.end) });
+    if (V.end - c.end >= 15) parts.push({ ...V, start: c.end });
+    out = [...cur.slice(0, vi), ...parts, ...cur.slice(vi + 1)];
+  }
+  return out ?? segs;
 }
 
 // smoothing: critically damped springs read ahead by their lag (2 / omega) so they add none. Fast enough for the
@@ -348,6 +392,7 @@ let OMEGA: Record<string, number> = { jawOpen: 95, mouthLowerDownLeft: 100, mout
 export function setJawOmega(j: number, l: number) { OMEGA = { ...OMEGA, jawOpen: j, mouthLowerDownLeft: l, mouthLowerDownRight: l }; }
 const OMEGA_DEF = 55;
 const SEAL_OMEGA: [number, number] = [42, 62]; // closing (~70 ms, 2 frames at 30 fps; the seal's own: TUNE.sealClose), parting
+const OUT_FILTERED = ['jawOpen', 'mouthClose', 'mouthLowerDownLeft', 'mouthLowerDownRight', 'mouthUpperUpLeft', 'mouthUpperUpRight', 'mouthFunnel', 'mouthPucker', 'mouthStretchLeft', 'mouthStretchRight'] as const;
 const MAX_STEP: Record<string, number> = { jawOpen: 0.07 }; // per 16.7 ms frame; others 0.15
 
 /** Morph weights for the mouth at display time t (ms, audio clock). The timeline must extend ~150 ms past t (the
@@ -363,8 +408,13 @@ export function mouthAt(
 ): Record<string, number> {
   if (!prev) { const r = rawMouthAt(t, segs, acousticAt, vowelTargets, opt, speaking), o = applySeal(r.w, r.seal, r.labio); o.mouthClose = (o.mouthClose ?? 0) + poutPress(o, r.seal, [acousticAt(t - 15), acousticAt(t), acousticAt(t + 25)]); return o; }
   const dt = prev.t > 0 ? Math.min(0.1, Math.max(0, (t - prev.t) / 1000)) : 0;
+  // the page's audio clock moves in audio-callback blocks (~10-20 ms, more over Bluetooth) and stands still between
+  // them: a frame that sees no time pass shows the last shape (it snapped every spring to its target and skipped every
+  // limiter and the lip inertia, the live-only 'chirping' at 120 Hz). A clock that went back (a new call) starts over
+  if (prev.t > 0 && t === prev.t && prev.last) return { ...prev.last };
   prev.t = t;
   const x = (prev.x ??= {}), v = (prev.v ??= {});
+  segs = withHeld(segs, t, prev, acousticAt);
   const out: Record<string, number> = {};
   // each channel's target is read 2 / omega ahead (its spring's lag); channels sharing an omega share one read
   const reads = new Map<number, ReturnType<typeof rawMouthAt>>();
@@ -372,10 +422,16 @@ export function mouthAt(
   const at = (lead: number) => { const k = Math.round(lead + TUNE.lead); let r = reads.get(k); if (!r) { r = rawMouthAt(t + k, segs, acousticAt, vowelTargets, opt, speaking); reads.set(k, r); } return r; };
   // (between two close vowels the jaw / lower lip follow faster: their beats are ~1 dot, and at 95 the springs rounded
   // most 30-40 ms dips of 'ri-ni-zi' away between two 30 fps frames; the step caps below still prevent pops)
-  const fastJ = at(0).cc;
+  // (at 150 the dip still only showed between two 30 fps frames, sıdır's d one frame at 27 px then 39)
+  // (and the pout between two u / ü, away from a seal: at 75 it reached its dip only between frames, the ɾ of ku-ru and
+  // the j of bü-yü showed .75-.81 on the 30 fps frames, .67 / .71 now)
+  // (TUNE.jawCc / pCc are now the springs' own 95 / 75: the faster 220 / 150 made the dips land on the 30 fps judged
+  // frames but read as a vibrating 'cat chatter' at the page's 60 fps; the owner, 2026-09-26. Judge motion at 60 fps)
+  const fastJ = at(0).cc, fastP = at(0).rr && at(0).seal < 0.05 && at(40).seal < 0.05;
   for (const k of MOUTH_OUT) {
-    const w = fastJ && (k === 'jawOpen' || k.startsWith('mouthLowerDown')) ? TUNE.jawCc : OMEGA[k] ?? OMEGA_DEF;
-    const tg = at(2000 / w).w[k] ?? 0;
+    const w = fastJ && (k === 'jawOpen' || k.startsWith('mouthLowerDown')) ? TUNE.jawCc : fastP && k === 'mouthPucker' ? TUNE.pCc : OMEGA[k] ?? OMEGA_DEF;
+    // (read ahead by the output inertia's lag too, TUNE.outLead: the seal keeps its own timing)
+    const tg = at(2000 / w + TUNE.outLead).w[k] ?? 0;
     if (dt <= 0 || x[k] === undefined) { x[k] = tg; v[k] = 0; out[k] = tg; continue; }
     // exact critically damped step toward the target
     const d = x[k]! - tg, e = Math.exp(-w * dt), kk = v[k]! + w * d;
@@ -390,20 +446,33 @@ export function mouthAt(
   // the lip seal / labiodental contact have their own springs (a closure takes ~65 ms, parting ~55 ms: real lips; a
   // one-frame seal reads as a slam / mouth blink), read ahead by their lag so they land on the sound
   const cs: Record<'seal' | 'labio', number> = { seal: 0, labio: 0 };
+  // a closure out of a loud open vowel starts once what is left of the time before the voice's fall is what closing
+  // the visible gap takes at the lips' speed (~TUNE.planK ms per px), and keeps closing to it (latched): the spring's
+  // own start left the loud a's open 20-40 ms into their m (Hastam, müşteri, Karmaşık)
+  { const r0 = at(0), due = r0.sealDue; if (dt > 0 && due < Infinity && t >= r0.sealFrom && t + TUNE.planK * (x._fG ?? 0) >= due) { x._plan = due + 20; x._planF = r0.sealShort ? due - TUNE.planD : -Infinity; } }
+  if (x._plan !== undefined && (t >= x._plan || x._plan - t > 300)) { delete x._plan; delete x._planF; } // (stale: passed, or the clock restarted)
+  const plan = x._plan !== undefined;
+  const spring = (key: string, up: number, down: number, wc: number, wp: number) => {
+    const cur = x[key];
+    const rising = cur === undefined || up > cur;
+    const w = rising ? wc : wp, tg = rising ? up : down;
+    if (dt <= 0 || cur === undefined) { x[key] = tg; v[key] = 0; return tg; }
+    const d = cur - tg, e = Math.exp(-w * dt), kk = v[key]! + w * d;
+    x[key] = tg + (d + kk * dt) * e;
+    v[key] = (v[key]! - w * kk * dt) * e;
+    return Math.min(1, Math.max(0, x[key]!));
+  };
+  let sealN = 0;
   for (const k of ['seal', 'labio'] as const) {
     // (a closure squeezed after a short vowel closes faster: ~45 ms instead of ~70)
     const wc = k === 'seal' ? TUNE.sealClose + TUNE.urgW * at(1000 / TUNE.sealClose).sealUrg : SEAL_OMEGA[0];
     const wp = k === 'seal' ? TUNE.sealPart : SEAL_OMEGA[1];
+    // (a nasal m keeps its contact to its release: read ahead by the parting's lag, the voice's gate on the vowel after
+    // it parted Karmaşık's m ~25 ms before its a, sealed on one 30 fps frame)
     const up = at(1000 / wc)[k], down = at(2000 / wp)[k];
-    const key = '_' + k;
-    const cur = x[key];
-    const rising = cur === undefined || up > cur;
-    const w = rising ? wc : wp, tg = rising ? up : down;
-    if (dt <= 0 || cur === undefined) { x[key] = tg; v[key] = 0; cs[k] = tg; continue; }
-    const d = cur - tg, e = Math.exp(-w * dt), kk = v[key]! + w * d;
-    x[key] = tg + (d + kk * dt) * e;
-    v[key] = (v[key]! - w * kk * dt) * e;
-    cs[k] = Math.min(1, Math.max(0, x[key]!));
+    cs[k] = spring('_' + k, k === 'seal' && plan ? 1 : up, down, wc, wp);
+    // (and the seal's own spring without the plan, for the planned closure's limit before the voice falls)
+    if (k === 'seal') sealN = spring('_sN', up, down, wc, wp);
   }
   // the core constraints again on the smoothed curves (the springs smeared them: rounding peaked on the j / r between
   // rounded vowels and leaked into the next e; close vowels peaked below their floor). Blended by the core weight, so
@@ -430,7 +499,9 @@ export function mouthAt(
       const nv = dt > 0 ? cur + Math.max(-cap, Math.min(cap, want - cur)) : want;
       x[key] = nv; return nv;
     };
-    const bJ = lim('_bJ', dJ, 0.03), bL = lim('_bL', dL, 0.06), bP = lim('_bP', dP, 0.12), bF = lim('_bF', dF, 0.12), bS = lim('_bS', dS, 0.1);
+    // (the floors rise at ~0.7 / 1.5 per second: at 0.03 / 0.06 a vowel core that came and went bumped the jaw up and
+    // back within 3-4 frames, part of the 60 fps chatter)
+    const bJ = lim('_bJ', dJ, 0.012), bL = lim('_bL', dL, 0.025), bP = lim('_bP', dP, 0.12), bF = lim('_bF', dF, 0.12), bS = lim('_bS', dS, 0.1);
     out.mouthStretchLeft = (out.mouthStretchLeft ?? 0) + bS; out.mouthStretchRight = (out.mouthStretchRight ?? 0) + bS;
     // (the ceiling holds after the springs too: spring + the floor correction took a loud tr1 a to .298)
     out.jawOpen = Math.min(opt.jawMax, (out.jawOpen ?? 0) + bJ);
@@ -449,22 +520,31 @@ export function mouthAt(
   // (the wide-jaw press only once the closure's own ramp has started: pressing from the spring's first rise shut the
   // complex ɑ on its loudest frame)
   const pressK = Math.min(1, at(0).seal);
-  const res = applySeal(out, cs.seal, cs.labio, pressK);
+  // (out of a short vowel, the voice falling within ~TUNE.planShort ms of its onset, the planned closure takes at most
+  // ~TUNE.planPre px off the gap the seal's own spring leaves until that fall: started from its middle it shrank the vowel
+  // itself under base, 'kısa bir' a 40 -> 29 px, 'demo' ɛ 39 -> 27; a long one has shown its opening, Hastam / müşteri)
+  if (plan && x._planF !== undefined && t < x._planF && cs.seal > sealN) {
+    const gOf = (s: number) => { const r = applySeal(out, s, cs.labio, pressK), j = r.jawOpen ?? 0, c = r.mouthClose ?? 0; return 220 * Math.max(0, j - c) + 25 * (r.mouthLowerDownLeft ?? 0) * (1 - (j > 0.005 ? Math.min(1, c / j) : 0)); };
+    const g0 = gOf(sealN) - TUNE.planPre;
+    if (gOf(cs.seal) < g0) { let lo = sealN, hi = cs.seal; for (let i = 0; i < 8; i++) { const m = 0.5 * (lo + hi); if (gOf(m) < g0) hi = m; else lo = m; } cs.seal = lo; }
+  }
+  const res = applySeal(out, cs.seal, cs.labio, pressK), j1 = res.jawOpen ?? 0;
   // the final shape changes at most ~2 dots of lip gap and ~0.25 of pout per 30 fps frame, in any combination of
   // jaw, seal and rounding (a full closure or un-pout takes 2-3 frames: a one-frame snap reads as a puppet)
   if (dt > 0) {
-    // (a closure the late seal bound held back builds its forced contact a little slower, ~1.5 dots per 30 fps frame
-    // instead of ~1.6: it met the same distance in less time, and at 60 fps more closings went past 2 dots per frame;
-    // slower still left the complex ɑ open 41 px a frame before its m)
-    const f = dt / (1 / 60), grow = at(0).sealLt ? 0.025 : 0.03;
+    // (a seal builds its forced contact at ~1.5 dots per 30 fps frame, not ~1.6: at 60 fps the faster closings went past
+    // 2 dots per frame. It was slowed only for the closures the late bound held back, as the others had no time to spare;
+    // with the closure out of a loud open vowel started early enough (plan above), all of them take it; slower still left
+    // the complex ɑ open 41 px a frame before its m)
+    const f = dt / (1 / 60), grow = 0.025;
     // the visible gap (jaw past the lips + the lower lip's own drop ~0.11 of it + the upper lip's lift ~0.16) moves at
     // most ~real lip speed (~150 mm/s: ~1.5 dots per 30 fps frame, a little more into a bilabial seal): closings into
     // consonants snapped 2-3 dots in one frame. A too-fast closing is slowed on the jaw itself (the lower lip follows
     // it: holding the gap with the lower lip left it hanging under a closing jaw); a too-fast opening by the lips' contact
     const visOf = (r: Record<string, number>) => (r.jawOpen ?? 0) - (r.mouthClose ?? 0) + 0.114 * (r.mouthLowerDownLeft ?? 0) + 0.16 * (r.mouthUpperUpLeft ?? 0) + 0.15 * (r.mouthFunnel ?? 0);
     // (the funnel opens its own round hole: at most ~0.12 per 30 fps frame; ɔ -> ɹ shut 2+ dots in one frame)
+    // (against the last shown funnel, the pout press's give-way below included: kept apart it flickered .17 -> 0 -> .12)
     if (x._fF2 !== undefined) res.mouthFunnel = Math.max(x._fF2 - 0.06 * f, Math.min(x._fF2 + 0.06 * f, res.mouthFunnel ?? 0));
-    x._fF2 = res.mouthFunnel ?? 0;
     // (the upper lip lifts at most ~0.08 per 30 fps frame: its jump added ~7 px to every release)
     if (x._fU !== undefined) { const u = res.mouthUpperUpLeft ?? 0, lu = Math.min(u, x._fU + 0.04 * f), d = lu - u; res.mouthUpperUpLeft = lu; res.mouthUpperUpRight = Math.max(0, (res.mouthUpperUpRight ?? 0) + d); }
     x._fU = res.mouthUpperUpLeft ?? 0;
@@ -472,7 +552,9 @@ export function mouthAt(
       const v0 = visOf(res), down = (TUNE.closeStep + TUNE.sealX * cs.seal) * f;
       if (v0 < x._fVis - down && x._fJ !== undefined) {
         const need = x._fVis - down - v0;
-        const j = res.jawOpen ?? 0, c = res.mouthClose ?? 0, k = j > 1e-4 ? c / j : 0;
+        // (a seal's share at most all of it: a pouted seal's contact past a small jaw, scaled up with the jaw held open,
+        // pressed müşteri's m 0.08 past a .19 jaw; f / v keep theirs, the lower lip pressed to the teeth by the jaw)
+        const j = res.jawOpen ?? 0, c = res.mouthClose ?? 0, k = j > 1e-4 ? (cs.labio >= 0.5 ? c / j : Math.min(1, c / j)) : 0;
         // more jaw (the lips' contact keeps its share of it), then less contact
         const addJ = Math.min(Math.max(0, x._fJ - j), need / Math.max(0.15, 1 - k));
         res.jawOpen = j + addJ; res.mouthClose = c + k * addJ;
@@ -490,16 +572,26 @@ export function mouthAt(
       if (v1 > x._fVis + up) res.mouthClose = Math.min(res.jawOpen ?? 0, (res.mouthClose ?? 0) + (v1 - (x._fVis + up)));
     }
     // (and the jaw itself never jumps: the compensation above lets go at the jaw's own speed)
-    if (x._fJ !== undefined) { const j = res.jawOpen ?? 0, cap = (cs.seal > 0.5 ? 0.08 : 0.06) * f, lj = Math.max(x._fJ - cap, Math.min(x._fJ + cap, j)); if (lj !== j) { const k = j > 1e-4 ? (res.mouthClose ?? 0) / j : 0; res.jawOpen = lj; res.mouthClose = Math.min(2 * lj, k * lj); } }
+    // (the contact follows it by its share, but a seal's contact past the jaw keeps only its own excess)
+    if (x._fJ !== undefined) { const j = res.jawOpen ?? 0, cap = (cs.seal > 0.5 ? 0.08 : 0.06) * f, lj = Math.max(x._fJ - cap, Math.min(x._fJ + cap, j)); if (lj !== j) { const c = res.mouthClose ?? 0, k = j > 1e-4 ? (cs.labio >= 0.5 ? c / j : Math.min(1, c / j)) : 0; res.jawOpen = lj; res.mouthClose = Math.max(0, Math.min(2 * lj, c + k * (lj - j))); } }
     // m / b / p seal whatever the limited jaw does (contact from the seal spring; a rounded m keeps a pout this rig can
     // still close, <= .45)
     if (cs.seal >= 0.5) {
       const sk = Math.min(1, cs.seal / 0.85);
       // (the contact builds at ~2 dots per frame at most, then holds: forced in one step it snapped 2.5 dots)
-      const want = sk * ((res.jawOpen ?? 0) * (1 + 0.8 * Math.min(1, res.mouthPucker ?? 0)) + 0.6 * pressK * Math.max(0, (res.jawOpen ?? 0) - 0.1)), allowed = x._fC !== undefined ? x._fC + (0.02 + grow * sk) * f : want;
+      // (never more than ~0.09 past the jaw, as in applySeal; the wide-jaw press only on a jaw that is really open, not
+      // on one the limiters above still hold up while the lips close; and the pout's share no more than it takes to
+      // close the pout, as at a small jaw: scaled with a .19 jaw both pressed müşteri's m to 11 px and Karmaşık's to 17,
+      // under rest. The press is for a jaw opening behind closed lips, manuel's m)
+      const J = res.jawOpen ?? 0, P = Math.min(1, res.mouthPucker ?? 0), held = Math.min(1, Math.max(0, (J - j1) / 0.03));
+      const want = Math.min(J + TUNE.sealCap, sk * (J + Math.min(0.8 * P * J, TUNE.sealP * P) + 0.6 * pressK * (1 - held) * Math.max(0, J - 0.1))), allowed = x._fC !== undefined ? x._fC + (0.02 + grow * sk) * f : want;
       res.mouthClose = Math.max(res.mouthClose ?? 0, Math.min(want, allowed));
     }
+    // (no path past the jaw + TUNE.sealCap: the jaw's step cap above rescaled a contact computed at the spring's lower jaw,
+    // C .31 at J .20)
+    res.mouthClose = Math.min(res.mouthClose ?? 0, (res.jawOpen ?? 0) + TUNE.sealCap);
     x._fVis = visOf(res); x._fJ = res.jawOpen ?? 0; x._fC = res.mouthClose ?? 0;
+    { const j = res.jawOpen ?? 0, c = res.mouthClose ?? 0; x._fG = 220 * Math.max(0, j - c) + 25 * (res.mouthLowerDownLeft ?? 0) * (1 - (j > 0.005 ? Math.min(1, c / j) : 0)); }
     // (a pout gives way faster while the lips seal: this rig's pucker parts them, and kurum-s-al sealed only on the s;
     // and never comes back while the seal is closing: the pout fluttered 1 -> .68 -> .79 -> .38 into the m)
     if (x._fP !== undefined) {
@@ -514,6 +606,9 @@ export function mouthAt(
     }
     x._fP = res.mouthPucker ?? 0; x._pS = cs.seal;
     // the spread changes at most ~0.12 per 30 fps frame (the wide i switched on and off in one frame: corner twitches)
+    // (a tongue consonant between spread vowels lets go of some width past the core push, which put it back: the n's of
+    // ri-ni-zi / -ni-zi held .48-.49 against the i's .55; the vowels' own cores keep it, 'i wider than e')
+    { const ts = at(0).core.ts; if (ts > 0) { const k0 = 1 - TUNE.stBreath2 * ts; res.mouthStretchLeft = (res.mouthStretchLeft ?? 0) * k0; res.mouthStretchRight = (res.mouthStretchRight ?? 0) * k0; } }
     if (x._fS !== undefined) {
       // (a spread starts quickly and relaxes slowly, except into a pout: the corners came in late on 'We', oʊ, ş)
       const pouting = (res.mouthPucker ?? 0) > (x._fP0 ?? 0) + 0.005 && (res.mouthPucker ?? 0) > 0.2;
@@ -532,8 +627,29 @@ export function mouthAt(
     const tgt = TUNE.sealP * Math.min(1, Math.max(0, res.mouthPucker ?? 0));
     x._fPr = pr; res.mouthClose = Math.max(c, Math.min(c + pr, (res.jawOpen ?? 0) + tgt));
     // (and its funnel gives way as under a full seal: the funnel's own round hole kept kurumsal's pressed m at 24 px)
-    if (pr > 0 && tgt > 1e-4) res.mouthFunnel = (res.mouthFunnel ?? 0) * (1 - Math.min(1, pr / tgt));
+    // (at the funnel's own speed: a one-step press on a k heard as m switched a .17 funnel off and on again)
+    if (pr > 0 && tgt > 1e-4) res.mouthFunnel = Math.max(dt > 0 && x._fF2 !== undefined ? x._fF2 - 0.06 * f : 0, (res.mouthFunnel ?? 0) * (1 - Math.min(1, pr / tgt)));
+    if (dt > 0) x._fF2 = res.mouthFunnel ?? 0;
   }
+  // the final shape goes through lip inertia (a critically damped follow, ~2 / TUNE.outW behind): whatever the
+  // stages above do in 1-3 frames (consonant dips, floors, limiters trading off) no longer reads as a vibrating,
+  // chattering mouth at 60 fps; a closing lip gap (seal / labiodental contact) is never held back by it
+  if (TUNE.outW > 0 && dt > 0) {
+    const w = TUNE.outW, e = Math.exp(-w * dt);
+    const g0 = (res.jawOpen ?? 0) - (res.mouthClose ?? 0);
+    for (const k of OUT_FILTERED) {
+      const tg = res[k] ?? 0, pk = '_o' + k;
+      if (x[pk] === undefined) { x[pk] = tg; v[pk] = 0; continue; }
+      const d = x[pk]! - tg, kk = v[pk]! + w * d;
+      x[pk] = tg + (d + kk * dt) * e; v[pk] = (v[pk]! - w * kk * dt) * e;
+      res[k] = Math.max(0, x[pk]!);
+    }
+    if (cs.seal > 0.3 || cs.labio > 0.3) {
+      const g = (res.jawOpen ?? 0) - (res.mouthClose ?? 0);
+      if (g0 < g) { res.mouthClose = (res.jawOpen ?? 0) - g0; x._omouthClose = res.mouthClose; }
+    }
+  } else if (TUNE.outW > 0) for (const k of OUT_FILTERED) { x['_o' + k] = res[k] ?? 0; v['_o' + k] = 0; }
+  prev.last = { ...res };
   return res;
 }
 
@@ -566,7 +682,9 @@ function applySeal(w: Record<string, number>, seal0: number, labio0: number, pre
   // (a pouted m presses shut: in this rig contact = jaw leaves a pucker .8 parted, 1.5-2x closes it; f / v press the
   // lower lip up to the teeth: the old contact left them a parted m, gap 44 vs 34 for m, calibration render wcal3)
   const pk = Math.min(1, w.mouthPucker ?? 0);
-  o.mouthClose = Math.min(o.jawOpen * 2, Math.max(Math.min(0.75 * o.jawOpen, o.mouthClose ?? 0), seal * (o.jawOpen * (1 + 0.8 * pk) + 0.6 * press * Math.max(0, o.jawOpen - 0.1)), labio * o.jawOpen * (0.8 + 0.35 * labio)));
+  // (and never more than TUNE.sealCap past the jaw, the pout's share no more than closing the pout takes, sealP x pout:
+  // the pout and wide-jaw terms added up while a late closure's jaw was still wide, J .20 C .32, pressed under rest)
+  o.mouthClose = Math.min(o.jawOpen * 2, o.jawOpen + TUNE.sealCap, Math.max(Math.min(0.75 * o.jawOpen, o.mouthClose ?? 0), seal * (o.jawOpen + Math.min(0.8 * pk * o.jawOpen, TUNE.sealP * pk) + 0.6 * press * Math.max(0, o.jawOpen - 0.1)), labio * o.jawOpen * (0.8 + 0.35 * labio)));
   for (const k of ['mouthLowerDownLeft', 'mouthLowerDownRight', 'mouthUpperUpLeft', 'mouthUpperUpRight']) o[k] = (o[k] ?? 0) * open;
   // f / v: the lower lip rises flat and the upper lip lifts clear of it, so the upper teeth row shows between (an m has
   // both lips even); no rounding through it (the f of 'transform' read as the open rounded vowel after it)
@@ -601,14 +719,14 @@ function rawMouthAt(
   vowelTargets: Record<string, [number, number]>,
   opt: AnimOptions,
   speaking: number,
-): { w: Record<string, number>; seal: number; labio: number; core: Core; sealUrg: number; sealLt: number; cc: boolean } {
+): { w: Record<string, number>; seal: number; labio: number; core: Core; sealUrg: number; sealDue: number; sealFrom: number; sealShort: boolean; sealHold: number; cc: boolean; rr: boolean } {
   const items = itemsOf(segs, acousticAt, vowelTargets, opt.lang, t);
   // dominance-weighted average per channel group (silence fills with rest so the sum never drops to zero)
   const num: Record<Ch, number> = { jaw: 0, lowerDown: 0, upperUp: 0, stretch: 0, smile: 0, funnel: 0, pucker: 0 };
   // a neutral (rest) competitor in every group: a weak, far gesture only pulls in proportion to its envelope
   // (without it, consonants with lip dominance .06 let the next vowel's rounding win ~160 ms early)
   const den = [...BASE];
-  let seal = 0, labioDental = 0, sibilant = 0, rounded = 0, rw = 0, vowelW = 0, sealUrg = 0, sealLt = 0;
+  let seal = 0, labioDental = 0, sibilant = 0, rounded = 0, rw = 0, vowelW = 0, sealUrg = 0, sealDue = Infinity, sealFrom = 0, sealShort = false, sealHold = 0;
   let nuc: Item | null = null, nucW = 0, cons: Item | null = null, consW = 0, unrV = false;
   for (let ii = 0; ii < items.length; ii++) {
     const it = items[ii]!;
@@ -637,9 +755,14 @@ function rawMouthAt(
         // (before another consonant the lips part at that consonant: the release search found the vowel's rise after it,
         // and kurumsal's m held shut through the s, mouthClose .13 at the a's onset)
         const nx = items[ii + 1], nxV = nx ? PHONEMES[nx.ph]?.viseme : undefined;
-        const clus = !!nx && nx.kind === 'C' && nx.on - it.end < 20 && nxV !== 'PP' && nxV !== 'FF';
+        // (an m keeps its hold before t / k and a sonorant: the release search finds the burst after the stop's silent
+        // closure, or the sonorant's own rise, and the m is heard to it; parted at the aligned end, 'Welcome to',
+        // 'transform complex' and 'Hastam yapay' opened while the m still sounded. Before a fricative the search ran on to
+        // the vowel after its quiet frication, and before d / g to the stop's release into the vowel)
+        const nasal = it.ph === 'm', nxC = nx ? PHONEMES[nx.ph]?.cls : undefined;
+        const partAtC = !nasal || nxC === 'fric' || nxC === 'affr' || nx?.ph === 'd' || nx?.ph === 'g';
+        const clus = !!nx && nx.kind === 'C' && nx.on - it.end < 20 && nxV !== 'PP' && nxV !== 'FF' && partAtC;
         const rel = it.rel ?? it.end;
-        const nasal = it.ph === 'm';
         // (the closing time scales with how far the lips are apart: from an open a ~70 ms, from a small ü ~35; a
         // fixed lead sealed the whole short second ü of büyü-me)
         // (and never before ~60 % of the vowel before it, closing faster instead: a 70 ms a before b / p was sealed over
@@ -650,21 +773,31 @@ function rawMouthAt(
         const lead = TUNE.sealLead * Math.min(1.25, Math.max(0.45, pvJ / 0.2));
         // (the closure starts where the voice falls, when that is earlier than the aligned onset: yapay's p sealed only on
         // its burst, ~40 ms late)
-        let onA = it.on, fall = it.on;
+        let onA = it.on, fall = it.on, fell = false;
         { let pk = 0, tPk = it.on - 120; for (let x = it.on - 120; x <= it.on; x += 10) { const l = acousticAt(x).loud; if (l > pk) { pk = l; tPk = x; } }
           let lo = pk; for (let x = tPk; x <= rel; x += 10) lo = Math.min(lo, acousticAt(x).loud);
-          if (pk - lo > 0.25) { const half = lo + 0.5 * (pk - lo); for (let x = tPk; x <= it.on + 20; x += 5) if (acousticAt(x).loud < half) { fall = Math.min(it.on, x); onA = Math.max(it.on - 25, fall); break; } } }
+          if (pk - lo > 0.25) { const half = lo + 0.5 * (pk - lo); for (let x = tPk; x <= it.on + 20; x += 5) if (acousticAt(x).loud < half) { fall = Math.min(it.on, x); onA = Math.max(it.on - 25, fall); fell = true; break; } } }
         const a0 = Math.max(rel - 125 - lead, Math.min(onA - lead, rel - TUNE.minSeal - TUNE.sealLead));
         const a1 = Math.min(Math.max(a0, pvKeep), onA + 5);
+        const r2 = clus ? Math.min(rel, it.end) : nasal ? Math.max(rel, it.end) + TUNE.mHold : rel - 10;
         // (and not before ~10 ms ahead of the closure itself, nor after the voice's fall, where it is long enough to hold
         // the seal: completed 25-40 ms early, the complex ɑ was half shut on its loudest frame and the transform m sealed on
         // the ɹ; this only moves the closure later, it does not hurry it like a short vowel does)
-        const a = Math.max(a1, Math.min(onA - TUNE.sealLate, fall, rel - TUNE.minSeal - TUNE.sealLead));
+        // (only where the voice's own fall confirms that timing, and long enough before the release actually used (r2):
+        // with no fall to go by the aligned onset alone moved Teslim's m, aligned 35 ms late, a frame later)
+        const a = fell ? Math.max(a1, Math.min(onA - TUNE.sealLate, fall, Math.min(rel, r2) - TUNE.minSeal - TUNE.sealLead)) : a1;
         if (t >= a - 40 && t <= rel) sealUrg = Math.max(sealUrg, Math.min(1, (a1 - a0) / 40));
-        if (t >= a - 40 && t <= rel && a > a1 + 1) sealLt = 1; // (for the contact's speed in mouthAt)
-        const a2 = a, r2 = clus ? Math.min(rel, it.end) : nasal ? Math.max(rel, it.end) + TUNE.mHold : rel - 10;
-        const e = t >= a2 && t <= r2 ? 1 : t < a2 ? quintic(1 - (a2 - t) / 20) : quintic(1 - (t - r2) / 15);
+        // (out of an open vowel (or its liquid) that the voice itself falls from, mouthAt starts closing early enough to
+        // be shut by then at the lips' own speed: from a loud a's wide opening the closure takes 80-100 ms, and the late
+        // bound left Hastam / müşteri / Karmaşık open into their heard m; after a close vowel or a consonant the jaw is
+        // on its way down by itself)
+        // (not before about the vowel's middle, less the lips' reaction: a 60-80 ms a would close from its onset)
+        let pv = items[ii - 1]; if (pv && pv.kind === 'C' && (LIQ.has(pv.ph) || pv.ph === 'ɾ')) pv = items[ii - 2];
+        if (fell && t < a && pv && pv.kind === 'V' && (pv.shape.jaw ?? 0) >= 0.17 && fall + TUNE.planD < sealDue) { sealDue = fall + TUNE.planD; sealFrom = (pv.on + pv.end) / 2 - TUNE.planMid; sealShort = fall - pv.on <= TUNE.planShort; }
+        const e = t >= a && t <= r2 ? 1 : t < a ? quintic(1 - (a - t) / 20) : quintic(1 - (t - r2) / 15);
         seal = Math.max(seal, e);
+        // (for mouthAt: until when a nasal m's contact holds)
+        if (nasal && !clus && t >= a) sealHold = Math.max(sealHold, Math.min(rel, it.end));
       }
       // (narrow windows: at 50 ms in / 40 ms out the sibilant jaw cap covered the neighbouring vowels' cores in fast
       // speech, so 'sıdır', '-rinizi' never opened)
@@ -676,7 +809,7 @@ function rawMouthAt(
       // (the cap lets go in the consonant's last ~25 ms so the next vowel opens on time: kurumsal's a peaked 54 ms late)
       if (vis === 'SS' || vis === 'SH') { const e1 = Math.max(it.on + 20, it.end - 25), a1 = Math.min(it.on - 5, e1 - 30); sibilant = Math.max(sibilant, t >= a1 && t <= e1 ? 1 : t < a1 ? quintic(1 - (a1 - t) / 25) : quintic(1 - (t - e1) / 25)); }
     }
-    if (it.kind === 'V') { const r = (it.shape.funnel ?? 0) + (it.shape.pucker ?? 0); const w = weight(it, 3, t); rounded += w * r; rw += w; if (r < 0.1 && t >= it.on && t < it.end) unrV = true; }
+    if (it.kind === 'V') { const r = (it.shape.funnel ?? 0) + (it.shape.pucker ?? 0); const w = weight(it, 3, t); rounded += w * r; rw += w; if (r < 0.1 && !it.rg && t >= it.on && t < it.end) unrV = true; }
   }
   const ch = {} as Record<Ch, number>;
   for (const c of CH) ch[c] = num[c] / den[GROUP[c]]!;
@@ -722,7 +855,7 @@ function rawMouthAt(
   for (const q of items) { if (q.kind === 'P') { if (tcx(q) <= t) pvC = undefined; else break; } else if (q.kind === 'V') { if (tcx(q) <= t) pvC = q; else { nvC = q; break; } } }
   if (pvC && t - pvC.end > 250) pvC = undefined;
   if (nvC && nvC.on - t > 250) nvC = undefined;
-  const closeV = (q?: Item) => !!q && (q.shape.jaw ?? 0) < 0.125;
+  const closeV = (q?: Item) => !!q && (q.shape.jaw ?? 0) < 0.125, rnd = (q?: Item) => closeV(q) && (q!.shape.pucker ?? 0) >= 1.2;
   const nucC = pvC && nvC ? (t - tcx(pvC) < tcx(nvC) - t ? pvC : nvC) : pvC ?? nvC;
   // (not over a j / r / l the timeline has here: the classifier hears them as vowel, the i-j of '-iyor' merged)
   const liq = items.some((q) => q.kind === 'C' && LIQ.has(q.ph) && t >= q.on - 15 && t <= q.end + 15);
@@ -732,29 +865,40 @@ function rawMouthAt(
   // 'dağınık', 'inTELligence' merged into one slit), deepest at the consonant's middle
   // (a short consonant's dip lasts at least 50 ms, centred on it, and the vowels' opening floors give way inside it:
   // a 20 ms n between two i's never moved the springs, and 'ri-ni-zi' held one frozen shape for 170 ms)
-  let troughW = 0, troughLiq = false;
+  let troughW = 0, troughLiq = false, troughPh = '';
   for (let i = 0; i < items.length; i++) {
     const c = items[i]!;
     if (c.kind !== 'C' || PHONEMES[c.ph]?.viseme === 'HH') continue;
-    const cm = (c.on + c.end) / 2, half = Math.max(TUNE.dipHalf, (c.end - c.on) / 2), c0 = cm - half, c1 = cm + half;
+    const cm = (c.on + c.end) / 2, half = Math.max(TUNE.dipHalf, (c.end - c.on) / 2);
+    let c0 = cm - half, c1 = cm + half;
     if (t <= c0 || t >= c1) continue;
     let pv: Item | undefined, nv: Item | undefined;
     for (let j = i - 1; j >= 0; j--) { const q = items[j]!; if (q.kind === 'P') break; if (q.kind === 'V') { if (c.on - q.end < 250) pv = q; break; } }
     for (let j = i + 1; j < items.length; j++) { const q = items[j]!; if (q.kind === 'P') break; if (q.kind === 'V') { if (q.on - c.end < 250) nv = q; break; } }
     if (!pv || !nv) continue;
+    // (next to a close vowel the dip leaves that vowel's middle half: the 68 ms windows of a 10 ms ɾ and a 20 ms n left
+    // 17 ms of verilerinizi's 70 ms first i, 36 px against the ɾ's 28, 40 now; m / b / p / f / v keep their windows for
+    // the seals)
+    const lab = PHONEMES[c.ph]?.viseme === 'PP' || PHONEMES[c.ph]?.viseme === 'FF', cp = !lab && closeV(pv), cn = !lab && closeV(nv);
+    if (cp) c0 = Math.max(c0, Math.min(cm - 12, tcx(pv) + TUNE.ccCore * (pv.end - pv.on)));
+    if (cn) c1 = Math.min(c1, Math.max(cm + 12, tcx(nv) - TUNE.ccCore * (nv.end - nv.on)));
+    if (t <= c0 || t >= c1) continue;
     const vj = Math.min((pv.shape.jaw ?? 0) * pv.amp, (nv.shape.jaw ?? 0) * nv.amp);
     const vl = Math.min((pv.shape.lowerDown ?? 0) * pv.amp, (nv.shape.lowerDown ?? 0) * nv.amp);
     // (flat-topped: the full dip holds over the middle of the window, so it survives the speed limits and 30 fps)
     // (and gives way where the voice has a close nucleus with its own consonant dip close by: the window was misplaced)
-    const w = Math.min(1, 1.6 * Math.sin(Math.PI * (t - c0) / (c1 - c0))) * (1 - vPk * vb.near);
+    // (steeper on the side of a close vowel, so the shorter window still holds its dip over two 30 fps frames; the open
+    // side keeps its ramp: steeper there, closings into m / b / p and open vowels' middles went)
+    const xw = (t - c0) / (c1 - c0), w = Math.min(1, ((xw < 0.5 ? cp : cn) ? TUNE.ccTop : 1.6) * Math.sin(Math.PI * xw)) * (1 - vPk * vb.near);
     const capJ = Math.max(vj - TUNE.dipJ, 0.02), capL = Math.max(vl - 0.08, 0);
     if (ch.jaw > capJ) ch.jaw += (capJ - ch.jaw) * w;
     if (ch.lowerDown > capL) ch.lowerDown += (capL - ch.lowerDown) * w;
-    troughW = w; troughLiq = LIQ.has(c.ph);
+    troughW = w; troughLiq = LIQ.has(c.ph); troughPh = c.ph;
     break;
   }
   // (the width breathes too: a tongue consonant between i's lets go ~30 % of the spread; it held .55 through ri-ni-zi)
-  { const spr = (q?: Item) => !!q && (q.shape.stretch ?? 0) >= 0.4; if (spr(pvC) && spr(nvC)) ch.stretch *= 1 - TUNE.stBreath * troughW; }
+  const spr = (q?: Item) => !!q && (q.shape.stretch ?? 0) >= 0.4, spr2 = spr(pvC) && spr(nvC);
+  if (spr2) ch.stretch *= 1 - TUNE.stBreath * troughW;
   floorJaw *= 1 - troughW; floorLD *= 1 - troughW;
   // rounding spans: a run of rounded vowels (and the consonants between them, and the consonant just before the first)
   // holds one rounding plateau, peaking on the vowels, ramping in over ~60 ms before and out over ~60 ms after (the
@@ -778,7 +922,12 @@ function rawMouthAt(
       for (let k = j + 1; k < items.length; k++) { const q = items[k]!; if (q.kind === 'V' || q.kind === 'P' || PHONEMES[q.ph]?.viseme === 'PP') { hi = q.on; break; } }
       const ramp = t < lo || t > hi ? 0 : t < s0 ? quintic(1 - (s0 - t) / Math.min(60, Math.max(1, s0 - lo))) : t > s1 ? quintic(1 - (t - s1) / Math.min(60, Math.max(1, hi - s1))) : 1;
       const ease = 1 - 0.18 * troughW;
-      if (ramp > 0) { ch.pucker = Math.max(ch.pucker * ease, 0.85 * minP * ramp * ease); ch.funnel = Math.max(ch.funnel, 0.85 * minF * ramp) + 0.08 * troughW * ramp; }
+      // (and between two rounded vowels the funnel gives way in the trough too: its own round hole, +0.08 there, held the
+      // lips as open on the j of büyü as on the ü's, 46 / 49 px; the ramps into / out of a span keep it, the f of
+      // transform would open 31 px in one frame into its ɔ; and not on a ş / ç / c, whose flare is its own: ş of
+      // dönüştürüyoruz F .15 -> .04)
+      const between = j > i && t > items[i]!.on && t < items[j]!.end, fEase = PHONEMES[troughPh]?.viseme === 'SH' ? 1 : 1 - TUNE.rFun * troughW;
+      if (ramp > 0) { ch.pucker = Math.max(ch.pucker * ease, 0.85 * minP * ramp * ease); ch.funnel = between ? Math.max(ch.funnel, 0.85 * minF) * fEase : Math.max(ch.funnel, 0.85 * minF * ramp) + 0.08 * troughW * ramp; }
       i = j;
     }
   }
@@ -922,9 +1071,13 @@ function rawMouthAt(
   // (but not inside the rounded vowel itself: through the pout spring's ~37 ms read-ahead the lower ceiling and the
   // eased core push reached into a short u / ü before a liquid, pucker .95 -> .74)
   const inRV = items.some((q) => q.kind === 'V' && (q.shape.pucker ?? 0) + (q.shape.funnel ?? 0) >= 0.6 && t >= q.on && t <= q.end);
-  for (const k in w) w[k] = Math.max(0, Math.min(k.startsWith('mouthLowerDown') ? 1.6 : k.startsWith('mouthUpperUp') ? 0.7 : k === 'mouthPucker' ? 1.0 - (troughLiq && !inRV ? 0.42 : 0.28) * troughW : 1, w[k]!));
+  // (a j / r / l between two u / ü to ~.5: at ~.58 its 30 fps frames showed .75-.77; not a w, rounded itself: the w of
+  // 'you would' went .74 -> .66 and took the ʊ's pout with it)
+  for (const k in w) w[k] = Math.max(0, Math.min(k.startsWith('mouthLowerDown') ? 1.6 : k.startsWith('mouthUpperUp') ? 0.7 : k === 'mouthPucker' ? 1.0 - (troughLiq && !inRV ? (rnd(pvC) && rnd(nvC) && troughPh !== 'w' ? 0.5 : 0.42) : 0.28) * troughW : 1, w[k]!));
+  // (a spread vowel's core, for the width's breathing between spread vowels in mouthAt)
+  const inSV = items.some((q) => { const m = Math.min(15, 0.25 * (q.end - q.on)); return q.kind === 'V' && (q.shape.stretch ?? 0) >= 0.4 && t >= q.on + m && t <= q.end - m; });
   // the vowel core at t, for the constraints re-applied after smoothing (mouthAt)
-  const core: Core = { w: nuc ? nucW : 0, round: nuc ? (nuc.shape.pucker ?? 0) + (nuc.shape.funnel ?? 0) >= 0.6 : false, p: nuc?.shape.pucker ?? 0, f: nuc?.shape.funnel ?? 0, jaw: floorJaw, ld: floorLD, st: nuc && (nuc.shape.pucker ?? 0) + (nuc.shape.funnel ?? 0) < 0.3 ? nuc.shape.stretch ?? 0 : 0, tw: inRV ? 0 : troughW, pr: nuc?.pr ?? 0, unr: unrV ? Math.min(1, Math.max(0, (acousticAt(t).loud - 0.15) / 0.25)) : 0 };
-  // (cc: t lies between two close vowels, for the springs in mouthAt)
-  return { w, seal, labio: labioDental, core, sealUrg, sealLt, cc: closeV(pvC) && closeV(nvC) };
+  const core: Core = { w: nuc ? nucW : 0, round: nuc ? (nuc.shape.pucker ?? 0) + (nuc.shape.funnel ?? 0) >= 0.6 : false, p: nuc?.shape.pucker ?? 0, f: nuc?.shape.funnel ?? 0, jaw: floorJaw, ld: floorLD, st: nuc && (nuc.shape.pucker ?? 0) + (nuc.shape.funnel ?? 0) < 0.3 ? nuc.shape.stretch ?? 0 : 0, tw: inRV ? 0 : troughW, ts: inSV || !spr2 ? 0 : troughW, pr: nuc?.pr ?? 0, unr: unrV ? Math.min(1, Math.max(0, (acousticAt(t).loud - 0.15) / 0.25)) : 0 };
+  // (cc: t lies between two close vowels, rr: between two u / ü, for the springs in mouthAt)
+  return { w, seal, labio: labioDental, core, sealUrg, sealDue, sealFrom, sealShort, sealHold, cc: closeV(pvC) && closeV(nvC), rr: rnd(pvC) && rnd(nvC) };
 }

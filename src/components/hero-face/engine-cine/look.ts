@@ -284,6 +284,21 @@ export interface LookParams {
   poutFill?: number;
   /** speaking lips: share of the lip-seam shadow restored on the inner lips as the mouth opens (0..1), so an open mouth reads darker inside while a closure still reads as two lips pressed together */
   mouthInnerDim?: number;
+  /** speaking lips: the speaking light fades from the lips' middle to the corners over this share of the corner distance
+   * (start, end); absent = even to the corners */
+  lipTalkShape?: [number, number];
+  /** field particles thin out and dim toward the card's edges: band width (share of the card's short side), density
+   * left at the edge (0..1), brightness left at the edge (0..1), noise on the band's inner edge (0 = a clean line) */
+  edgeFade?: [number, number, number, number];
+  /** the edge fade's shape: 0 = a band along the card's edges, 1 = radial (an ellipse on the card, the corners fade most) */
+  edgeFadeShape?: number;
+  /** ears fade out (a head-space ellipsoid around each ear, so they never show as she turns): centre x (|x|), y, z,
+   * radius x, y, z (W), fade from ellipse radius e0 (gone) to e1 (kept) */
+  earMask?: [number, number, number, number, number, number, number, number];
+  /** the neck behind and below the jaw fades out: y from y0 (kept) to y1 (faded), times z from z0 (kept) to z1 (faded) */
+  neckMask?: [number, number, number, number];
+  /** a vignette after the tone curve (same radius / exponent as vignette): the pre-tone one barely touches bright dots */
+  vignettePost?: number;
   harmFlow?: [number, number, number, number]; // shared curl flow: field amplitude (W), face amplitude (p), spatial frequency (1/W), tempo (1 = base)
   harmSize?: [number, number, number, number]; // dot-size breathing waves: field amplitude, face amplitude, brightness share, spatial frequency (1/W)
   harmWave?: [number, number, number, number]; // face-activity ripples: displacement (W), speed (W/s), ring width (W), decay (s)
@@ -1211,16 +1226,28 @@ PRESETS['planb-r1-cine-live-glow-turn'] = { ...PRESETS['planb-r1-cine-live-glow'
 const LIP_TALK: [number, number, number, number, number, number, number] = [0.12, 0.5, 0.22, 0.09, 0.035, 0.35, 0.75];
 const MOUTH_DOTS: [number, number, number] = [1.2, 0.17, 0.15];
 const POUT_FILL = 0.35;
+// the speaking light is full over the middle of the lips and fades out toward the corners (an even fill end to end
+// read as two sausages the moment she spoke; the owner, 2026-09-26)
+const LIP_TALK_SHAPE: [number, number] = [0.3, 1.0];
 // the eyes a little more visible (the owner, 2026-09-26): whites, iris, the frontal fill into the shadowed sockets, the
 // lash-line dots and the socket's floor each up a notch over the approved look
 const EYES_MORE = { scleraGhost: 0.055, irisGhost: 0.115, ghostFill: 0.07, lidLine: [0.18, 1] as [number, number], socket: [0.21, 0.13, 0.12, 0.012] as [number, number, number, number] };
-PRESETS['woman'] = { ...APPROVED_V002, lipTalk: LIP_TALK, mouthDots: MOUTH_DOTS, poutFill: POUT_FILL, mouthInnerDim: 0.7, ...EYES_MORE };
+PRESETS['woman'] = { ...APPROVED_V002, lipTalk: LIP_TALK, lipTalkShape: LIP_TALK_SHAPE, mouthDots: MOUTH_DOTS, poutFill: POUT_FILL, mouthInnerDim: 0.7, ...EYES_MORE };
 // the woman + the cinematic layer (dodge, live dodge, bloom, glints, stars, field drift / life, light-only speech rings)
-PRESETS['woman-cine'] = { ...APPROVED_V002, ...cineFx(CINE_V004_ML_LIVE2), streakShare: 0, lipTalk: LIP_TALK, mouthDots: MOUTH_DOTS, poutFill: POUT_FILL, mouthInnerDim: 0.7, ...EYES_MORE };
+PRESETS['woman-cine'] = { ...APPROVED_V002, ...cineFx(CINE_V004_ML_LIVE2), streakShare: 0, lipTalk: LIP_TALK, lipTalkShape: LIP_TALK_SHAPE, mouthDots: MOUTH_DOTS, poutFill: POUT_FILL, mouthInnerDim: 0.7, ...EYES_MORE };
 // + the field / hair pulse (hot glowing hair and field dots, sparkling hair dots, drifting survivors)
 PRESETS['woman-cine-pulse'] = { ...PRESETS['woman-cine'], ...fieldLife(CINE_V004_ML_LIVE2) };
 // + glowing soft dots with a little size variety and the hot dots (the strongest dodge on the face)
 PRESETS['woman-cine-glow'] = {
   ...PRESETS['woman-cine-pulse'],
   dotSoft: CINE_V004_ML_LIVE2.dotSoft, dotLogSigma: [0.15, 0.45], dotHot: CINE_V004_ML_LIVE2.dotHot, dotCap: CINE_V004_ML_LIVE2.dotCap,
+  // a stronger breathing pulse: glow +-15 %, exposure +-4 % every ~4.5 s (+-6 % / +-1.5 % barely read; the owner, 2026-09-26)
+  breath: [0.15, 0.04, 0.22, 0],
+  // the field thins and dims over the outer ~20 % toward the card's edges, radially (the corners most), and a vignette
+  // after the tone curve dims the bright dots out there too (even density to the border read as a flat texture; the
+  // owner picked radial + post-tone vignette 0.5, 2026-09-26)
+  edgeFade: [0.2, 0.35, 0.5, 0.5], edgeFadeShape: 1, vignettePost: 0.5,
+  // the ears and the neck fade out: as she turned to the cursor they showed as a dim ear and a neck column (the owner,
+  // 2026-09-26); planb's ears sit at |x| ~.60, y ~-.08, z ~-.75, the neck behind the jaw below y ~-.45 and z ~-.3
+  earMask: [0.6, -0.08, -0.75, 0.14, 0.26, 0.24, 0.75, 1.25], neckMask: [-0.4, -0.55, -0.3, -0.45],
 };

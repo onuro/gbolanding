@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import type { FaceEngine } from "./engine";
+import type { TunePanelProps } from "./TunePanel";
 import { createFollow, gazeMorphs, type Follow } from "./interaction/follow";
 import { attachPointerFollow, type PointerFollow } from "./interaction/pointer-follow";
 import type { Performer } from "./lipsync/idle";
@@ -20,10 +21,15 @@ const TALK_STYLES = ["minimal", "subtle", "natural"] as const;
 const PREVIEW_CSS = `
   .orb-well[data-face-preview] div.z-20 { display: none !important; }
 `;
+// how long a spoken word stays on screen (the .face-word animation is 2.55 s)
+const FACE_WORD_MS = 2650;
 // With the face, the call control must never sit on her face (a white disc + rotating text over it read as a horror
 // film): a slim translucent pill at the bottom of the card with the button's own label (attr(aria-label), so it follows
 // the language and the call state), no rotating badge / ring caption, status and errors above the pill.
 const FACE_UI_CSS = `
+  /* Keep the luminous face on the dark well in both themes. Screen blending matches the dark page
+     background without picking up the old orb underneath the isolated surface. */
+  .face-canvas { mix-blend-mode: screen; }
   .orb-well[data-face-preview] div.z-20:has(> button) { align-items: flex-end; padding-bottom: 28px; }
   .orb-well[data-face-preview] div.z-20:has(> button) > svg { display: none; }
   .orb-well[data-face-preview] div.z-20:has(> button) > button {
@@ -39,22 +45,29 @@ const FACE_UI_CSS = `
     letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
   }
   .orb-well[data-face-preview] div.z-20 svg:not(button svg) { display: none; }
+  /* light frosted pills with dark text (the dark chips all but vanished over the dots, the owner): hers white, yours
+     warm cream, ~72 % over a backdrop blur; in over 0.3 s, fully readable for 2 s, out over 0.25 s (2.55 s, FACE_WORD_MS) */
   .face-word {
     position: absolute; transform: translate(-50%, -50%); pointer-events: none; white-space: nowrap;
-    font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; letter-spacing: 0.12em;
-    text-transform: uppercase; color: rgb(255 255 255 / 0.9); padding: 4px 9px; border-radius: 6px;
-    background: rgb(0 0 0 / 0.62); border: 1px solid rgb(170 240 255 / 0.22);
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 18px rgb(120 220 255 / 0.12);
-    animation: face-word 3.2s ease-out forwards;
+    font-family: var(--font-mono, ui-monospace, monospace); font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; color: rgb(12 14 18); padding: 4px 10px; border-radius: 999px;
+    background: rgb(255 255 255 / 0.72); border: 1px solid rgb(255 255 255 / 0.5);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 4px 18px rgb(0 0 0 / 0.45), 0 0 22px rgb(170 230 255 / 0.18);
+    animation: face-word 2.55s forwards;
   }
-  .face-word[data-who="you"] { color: rgb(255 226 190 / 0.92); border-color: rgb(255 200 140 / 0.3); box-shadow: 0 0 18px rgb(255 190 120 / 0.1); }
+  .face-word[data-who="you"] { color: rgb(46 26 8); background: rgb(255 231 200 / 0.74); border-color: rgb(255 214 170 / 0.55); box-shadow: 0 4px 18px rgb(0 0 0 / 0.45), 0 0 22px rgb(255 190 120 / 0.2); }
+  /* in: rises 12 px into place out of a 6 px blur (ease-out); holds still and sharp while readable; out: lifts 12 px
+     away into a 6 px blur (ease-in) */
   @keyframes face-word {
-    0% { opacity: 0; filter: blur(6px); transform: translate(-50%, -50%) translateY(6px); }
-    12% { opacity: 1; filter: blur(0); transform: translate(-50%, -50%); }
-    70% { opacity: 0.85; }
-    100% { opacity: 0; filter: blur(3px); transform: translate(-50%, -50%) translateY(-10px); }
+    0% { opacity: 0; filter: blur(6px); transform: translate(-50%, -50%) translateY(12px); animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
+    11.76% { opacity: 1; filter: blur(0); transform: translate(-50%, -50%); animation-timing-function: linear; }
+    90.2% { opacity: 1; filter: blur(0); transform: translate(-50%, -50%); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
+    100% { opacity: 0; filter: blur(6px); transform: translate(-50%, -50%) translateY(-12px); }
   }
-  @media (prefers-reduced-motion: reduce) { .face-word { animation-duration: 2.4s; } }
+  @media (prefers-reduced-motion: reduce) {
+    @keyframes face-word { 0% { opacity: 0; } 11.76% { opacity: 1; } 90.2% { opacity: 1; } 100% { opacity: 0; } }
+  }
   .orb-well[data-face-preview] div.z-20.bottom-6 { bottom: 88px; }
 `;
 
@@ -92,6 +105,12 @@ async function loadBasePerformer(params: URLSearchParams): Promise<Performer> {
 
 type EngineModule = typeof import("./engine");
 
+// dev only, temporary: /?tune=1 opens live sliders over the look params (TunePanel); its "hold the head still"
+// switch drops the cursor follow so the pointer on the panel does not turn her
+const TunePanel = lazy(() => import("./TunePanel"));
+let holdHead = false;
+const setHoldHead = (hold: boolean) => { holdHead = hold; };
+
 // ?look=cine-* presets live in a separate engine copy (engine-cine/) while the
 // main engine is still being fixed. The path is resolved at runtime so the
 // preview keeps compiling before that folder exists; it falls back to ./engine.
@@ -118,48 +137,103 @@ export function HeroFacePreview() {
   const [error, setError] = useState<string | null>(null);
   const [live] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("live") === "1");
   const [label, setLabel] = useState<string>("");
+  const [tune, setTune] = useState<Omit<TunePanelProps, "onHold"> | null>(null);
   // what is being said drifts into the field around her (never over her face): the AI's words as she says them
-  // (cool), the visitor's as their speech is recognised (warm), each on a dark chip so it reads over the dots
+  // (cool), the visitor's as their speech is recognised (warm), each on a light pill so it reads over the dots
   const [words, setWords] = useState<{ key: number; text: string; x: number; y: number; who: "ai" | "you" }[]>([]);
+  const wordsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!enabled) return;
-    let key = 0, lastId = "", lastText = "", youId = "", youCount = 0;
+    let key = 0, lastId = "", aiCount = 0, youId = "", youCount = 0;
     const timers: number[] = [];
-    const place = () => {
-      for (let i = 0; i < 12; i++) {
-        const x = 8 + Math.random() * 84, y = 6 + Math.random() * 74;
-        if (Math.hypot((x - 50) / 30, (y - 42) / 34) > 1) return { x, y };
+    // the pills on screen (px boxes, centre + size): a new word goes where it overlaps none of them, fully inside the
+    // card, off her face and above the call pill; when there is no room left it takes the least crowded free spot and
+    // the older words there go (the newest word always shows, words never stack)
+    const boxes = new Map<number, { x: number; y: number; w: number; h: number }>();
+    const GAP = 6;
+    const place = (text: string) => {
+      const W = wordsRef.current?.clientWidth || 533, H = wordsRef.current?.clientHeight || 768;
+      // the pill's size from its text (10 px mono caps, 0.08em tracking, 10 px side padding; measured)
+      const w = 22 + text.length * 7.2, h = 25;
+      let best: { x: number; y: number; hits: number[] } | null = null;
+      for (let i = 0; i < 48; i++) {
+        const x = w / 2 + 8 + Math.random() * Math.max(1, W - w - 16), y = 0.05 * H + h / 2 + Math.random() * (0.72 * H - h);
+        if (Math.hypot((x / W - 0.5) / 0.3, (y / H - 0.42) / 0.34) <= 1) continue;
+        const hits = [...boxes].filter(([, b]) => Math.abs(b.x - x) < (b.w + w) / 2 + GAP && Math.abs(b.y - y) < (b.h + h) / 2 + GAP).map(([k]) => k);
+        if (!hits.length) return { x, y, w, h, hits };
+        if (!best || hits.length < best.hits.length) best = { x, y, hits };
       }
-      return { x: Math.random() < 0.5 ? 14 : 86, y: 20 + Math.random() * 50 };
+      return best ? { ...best, w, h } : { x: w / 2 + 8, y: 0.3 * H, w, h, hits: [...boxes.keys()] };
+    };
+    const drop = (ks: number[]) => {
+      if (!ks.length) return;
+      ks.forEach((k) => boxes.delete(k));
+      setWords((ws) => ws.filter((x) => !ks.includes(x.key)));
     };
     const show = (fresh: string[], who: "ai" | "you") => {
       for (const w of fresh.filter((x) => x.replace(/[^\p{L}\p{N}]/gu, "").length > 1)) {
         const k = ++key;
-        setWords((ws) => [...ws.slice(-9), { key: k, text: w.replace(/[.,!?;:]+$/, ""), who, ...place() }]);
-        timers.push(window.setTimeout(() => setWords((ws) => ws.filter((x) => x.key !== k)), 3300));
+        const text = w.replace(/[.,!?;:]+$/, "");
+        const p = place(text);
+        drop(p.hits);
+        boxes.set(k, { x: p.x, y: p.y, w: p.w, h: p.h });
+        const W = wordsRef.current?.clientWidth || 533, H = wordsRef.current?.clientHeight || 768;
+        setWords((ws) => [...ws, { key: k, text, who, x: (100 * p.x) / W, y: (100 * p.y) / H }]);
+        timers.push(window.setTimeout(() => drop([k]), FACE_WORD_MS));
       }
     };
+    // only whole words become pills: text arrives in chunks that can end mid-word, and speech recognition sends
+    // interim guesses whose last word is still being spoken ('nel' / 'yap' of 'neler yapıyorsunuz' showed as pills).
+    // A word counts once whitespace follows it; the last one when its stream is done and settled (final, or a stream
+    // with no final flag), or when the visitor's sentence has not changed for YOU_SETTLE_MS.
+    const YOU_SETTLE_MS = 700;
+    let youTimer = 0;
+    const recentYou = new Map<string, number>();
+    const whole = (text: string, last: boolean) => {
+      const all = text.trim().split(/\s+/).filter(Boolean);
+      return last || /\s$/.test(text) ? all : all.slice(0, -1);
+    };
+    const showYou = (ws: string[]) => {
+      // a revision under a new segment id re-sends the same words: never the same word twice within 3 s
+      const now = performance.now();
+      const fresh = ws.filter((w) => { const k = w.toLocaleLowerCase("tr"); const seen = recentYou.get(k); recentYou.set(k, now); return !seen || now - seen > 3000; });
+      if (fresh.length) show(fresh, "you");
+    };
     const on = (e: Event) => {
-      const d = (e as CustomEvent).detail as { id: string; text: string; agent: boolean } | null;
+      const d = (e as CustomEvent).detail as { id: string; text: string; agent: boolean; final?: boolean; done?: boolean } | null;
       if (!d) return;
+      const settled = !!d.done && d.final !== false;
       if (d.agent) {
-        // the agent appends to one stream per reply
-        const prev = d.id === lastId ? lastText : "";
-        lastId = d.id; lastText = d.text;
+        // the agent appends to one stream per reply: count its whole words
+        if (d.id !== lastId) { lastId = d.id; aiCount = 0; }
+        const all = whole(d.text, settled);
+        const fresh = all.slice(aiCount);
+        aiCount = Math.max(aiCount, all.length);
+        if (!fresh.length) return;
         // her voice plays behind the face's look-ahead delay: show the word as it is heard, not as it arrives
-        const fresh = d.text.slice(prev.length).split(/\s+/);
         const delay = 1000 * ((window as { __faceLookahead?: number }).__faceLookahead ?? 0);
         if (delay > 0) timers.push(window.setTimeout(() => show(fresh, "ai"), delay));
         else show(fresh, "ai");
         return;
       }
-      // speech recognition re-sends the whole sentence on every revision: show only the words past the last count
-      const all = d.text.trim().split(/\s+/).filter(Boolean);
+      // speech recognition re-sends the whole sentence on every revision: show only whole words past the last count
       if (d.id !== youId) { youId = d.id; youCount = 0; }
-      if (all.length > youCount) { show(all.slice(youCount), "you"); youCount = all.length; }
+      const all = whole(d.text, settled);
+      if (all.length > youCount) { showYou(all.slice(youCount)); youCount = all.length; }
+      window.clearTimeout(youTimer);
+      const id = d.id, text = d.text;
+      youTimer = window.setTimeout(() => {
+        if (id !== youId) return;
+        const done = whole(text, true);
+        if (done.length > youCount) { showYou(done.slice(youCount)); youCount = done.length; }
+      }, YOU_SETTLE_MS);
     };
     window.addEventListener("face-transcript", on);
-    return () => { window.removeEventListener("face-transcript", on); timers.forEach(clearTimeout); };
+    window.addEventListener("face-transcript-end", on);
+    return () => {
+      window.removeEventListener("face-transcript", on); window.removeEventListener("face-transcript-end", on);
+      timers.forEach(clearTimeout); window.clearTimeout(youTimer);
+    };
   }, [enabled]);
 
   useEffect(() => {
@@ -210,6 +284,9 @@ export function HeroFacePreview() {
       }
       const face = createFaceEngine(canvas, { mesh, preset, seed: 1, pixelRatio: dpr, look: overrides as never });
       engine = face;
+      if (import.meta.env.DEV && params.get("tune") === "1") {
+        setTune({ engine: face, base: PRESETS[preset] as unknown as Record<string, unknown>, initial: overrides });
+      }
       const size = () => {
         const rect = canvas.getBoundingClientRect();
         face.resize(rect.width, rect.height, dpr);
@@ -233,7 +310,7 @@ export function HeroFacePreview() {
         // (every driven morph each frame: blinks, mouth, smile)
         const { pose, morphs, gaze } = performer.sample(t);
         (window as unknown as { __faceMorphs?: Record<string, number> }).__faceMorphs = morphs; // dev: lip-sync measurements
-        if (follow && pointer) {
+        if (follow && pointer && !holdHead) {
           pointer.update();
           // the eyes counter the performer's head motion only while following is allowed (touch / reduced
           // motion: the idle life exactly as without the follow)
@@ -265,6 +342,7 @@ export function HeroFacePreview() {
       liveDetach = null;
       well?.removeAttribute("data-face-preview");
       engine?.dispose();
+      setTune(null);
     };
   }, [enabled]);
 
@@ -272,18 +350,20 @@ export function HeroFacePreview() {
   return (
     <>
       <style>{FACE_UI_CSS}</style>
-      <canvas
-        ref={canvasRef}
-        aria-hidden="true"
-        className="absolute inset-0 z-[15] block size-full bg-black"
-      />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[25] overflow-hidden">
+      <div className="absolute inset-0 z-[15] isolate bg-background">
+        <canvas
+          ref={canvasRef}
+          aria-hidden="true"
+          className="face-canvas block size-full bg-black"
+        />
+      </div>
+      <div ref={wordsRef} aria-hidden="true" className="pointer-events-none absolute inset-0 z-[25] overflow-hidden">
         {words.map((w) => (
           <span key={w.key} className="face-word" data-who={w.who} style={{ left: `${w.x}%`, top: `${w.y}%` }}>{w.text}</span>
         ))}
       </div>
       {label && (
-        <p className="pointer-events-none absolute top-3 left-3 z-30 rounded bg-black/60 px-2 py-1 font-mono text-[10px] text-white/70">
+        <p className="pointer-events-none absolute top-3 left-3 z-30 rounded bg-background/60 px-2 py-1 font-mono text-[10px] text-white/70">
           {label}
         </p>
       )}
@@ -291,6 +371,11 @@ export function HeroFacePreview() {
         <p className="absolute inset-x-4 top-4 z-30 rounded bg-black/80 p-2 font-mono text-xs text-red-300">
           face preview: {error}
         </p>
+      )}
+      {tune && (
+        <Suspense fallback={null}>
+          <TunePanel {...tune} onHold={setHoldHead} />
+        </Suspense>
       )}
     </>
   );
