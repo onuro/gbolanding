@@ -1278,6 +1278,9 @@ const OWNER_TUNE_0926C: Partial<LookParams> = { gridDiv: 65, hudRim: 0, hudSpark
 // the owner's fourth link (2026-09-26): the grid set by a 10 device-px pitch floor (gridDiv 130 never binds: ~630 px
 // face / 130 < 10), so the dot spacing is ~5 CSS px on any 2x screen and smaller cards get fewer dots
 const OWNER_TUNE_0926D: Partial<LookParams> = { minPitchDevPx: 10, gridDiv: 130 };
+// the owner's latest tuning links (2026-09-27): a finer grid with an 8 device-px pitch floor,
+// a little more exposure and a much stronger colour dodge
+const OWNER_TUNE_0927: Partial<LookParams> = { gridDiv: 130, minPitchDevPx: 8, exposure: 1.78, dodge: 0.81 };
 PRESETS['woman-cine-glow'] = {
   ...PRESETS['woman-cine-pulse'],
   dotSoft: CINE_V004_ML_LIVE2.dotSoft, dotLogSigma: [0.15, 0.45], dotHot: CINE_V004_ML_LIVE2.dotHot, dotCap: CINE_V004_ML_LIVE2.dotCap,
@@ -1294,6 +1297,7 @@ PRESETS['woman-cine-glow'] = {
   ...OWNER_TUNE_0926B,
   ...OWNER_TUNE_0926C,
   ...OWNER_TUNE_0926D,
+  ...OWNER_TUNE_0927,
   // the intro (after the owner's stock reference, 2026-09-26; times on a 3.5 s timeline, scaled by the length)
   intro: [3.5, 0.35, 0.6, 1.2], introShape: [1.0, 0.35, 2, 1],
 };

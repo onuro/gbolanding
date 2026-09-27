@@ -372,7 +372,7 @@ export function HeroFacePreview() {
       // (a missing preset silently fell back once and cost hours; the on-card label that showed it is gone)
       if (import.meta.env.DEV && wanted && preset !== wanted) console.warn(`[hero-face] look "${wanted}" not found, using ${preset}`);
       // phones (coarse pointer, small screen): 1.6x instead of 2x (0.64x the pixels for the dots and the glow pass) with
-      // the dot pitch floor scaled along (10 -> 8 device px: whole pixels, so exactly the same dots in CSS px) and the
+      // the dot pitch floor scaled along to preserve the spacing in CSS px, subject to pixel snapping, and the
       // engine's cheap bloom; on a slow GPU the glow pass was ~60 % of the frame and missed frames stuttered (halved the
       // frame time in the phone emulation). Desktop unchanged.
       // (?dpr=<0.1..3> forces the render scale, in production too, to try values on a phone; the dot pitch floor
