@@ -1,0 +1,31 @@
+---
+// State inside a /hastam picture, as a chip with a dot. Unlike StatusPill's
+// "live" tone it never pings: below the hero nothing on the page may move by
+// itself, and a finished state ("the patient was told") is not a live one.
+import type { HastamTone } from "@/i18n/page-types/hastam";
+
+interface Props {
+  tone?: HastamTone;
+  label: string;
+  class?: string;
+}
+
+const { tone = "info", label, class: className } = Astro.props;
+
+const toneClass = {
+  pending: "border-attention-line bg-attention-soft text-attention-ink",
+  ok: "border-brand-line bg-brand-soft text-brand",
+  info: "border-border-strong bg-transparent text-muted-foreground",
+}[tone];
+---
+
+<span
+  class:list={[
+    "data-label inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full border px-2 whitespace-nowrap",
+    toneClass,
+    className,
+  ]}
+>
+  <span class="size-1.5 rounded-full bg-current" aria-hidden="true"></span>
+  {label}
+</span>

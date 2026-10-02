@@ -13,6 +13,7 @@ import ProductVideo from "@/components/home/ProductVideo.astro";
 import IntelvalReportCard from "@/components/home/solutions-mocks/IntelvalReportCard.astro";
 import KollektorCallCard from "@/components/home/solutions-mocks/KollektorCallCard.astro";
 import MockWell from "@/components/home/solutions-mocks/MockWell.astro";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
 import {
   formatPercent,
   formatValue,
@@ -21,6 +22,7 @@ import {
   valuation,
 } from "@/components/home/solutions-mocks/intelval-data";
 import type { Locale } from "@/i18n/config";
+import { pathFor } from "@/i18n/routes";
 import type { Messages } from "@/i18n/types";
 
 interface Props {
@@ -139,34 +141,18 @@ const concludedAt = positionOnRange(valuation.concluded);
 
 <section
   id="solutions"
-  class="mx-auto w-full max-w-[83.75rem] scroll-mt-16 border-x border-b border-border"
+  class="frame border-b border-border"
   aria-labelledby="solutions-title"
 >
-  <div
-    class="grid grid-cols-1 border-b border-border lg:grid-cols-12 lg:items-end"
-    data-reveal-root
+  <SectionHeader
+    eyebrow={messages.intro.eyebrow}
+    lead={messages.intro.description}
+    headingId="solutions-title"
+    reveal="cells"
+    revealRoot
   >
-    <div class="px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12 lg:py-16" data-reveal>
-      <p class="eyebrow mb-5">
-        <span class="eyebrow-mark" aria-hidden="true"></span>
-        {messages.intro.eyebrow}
-      </p>
-      <h2
-        id="solutions-title"
-        class="max-w-3xl text-title-h2"
-      >
-        <BlinkText client:visible text={messages.intro.title} />
-      </h2>
-    </div>
-    <div
-      class="flex items-end border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:border-t-0 lg:px-10 lg:py-16"
-      data-reveal
-    >
-      <p class="max-w-lg text-pretty text-paragraph-md text-muted-foreground">
-        {messages.intro.description}
-      </p>
-    </div>
-  </div>
+    <BlinkText client:visible text={messages.intro.title} />
+  </SectionHeader>
 
   <div class="grid grid-cols-1 gap-px bg-border">
     <div
@@ -361,17 +347,30 @@ const concludedAt = positionOnRange(valuation.concluded);
         </div>
       </div>
 
-      <a
-        href="#kollektor"
-        class="relative z-20 flex min-h-14 items-center justify-between border-t border-border bg-background px-5 text-label-sm outline-none transition-colors group-hover:bg-foreground/[0.025] focus-visible:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:px-8"
-      >
-        {kollektor.cta}
-        <ArrowUpRight
-          aria-hidden="true"
-          className="size-4 text-tertiary-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
-          strokeWidth={1.5}
-        />
-      </a>
+      {/* Two ways on from the card: down to the story on this page, or out to
+          Kollektor's own page. They share one row, so the card keeps its four
+          subgrid rows and stays level with Intelval. */}
+      <div class="relative z-20 grid border-t border-border bg-background sm:grid-cols-2">
+        <a href="#kollektor" class="group/row flex min-h-14 items-center justify-between gap-4 px-5 py-3 text-label-sm outline-none transition-colors hover:bg-foreground/[0.025] focus-visible:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:px-8">
+          {kollektor.cta}
+          <ArrowUpRight
+            aria-hidden="true"
+            className="size-4 shrink-0 text-tertiary-foreground transition-all group-hover/row:translate-x-0.5 group-hover/row:-translate-y-0.5 group-hover/row:text-brand"
+            strokeWidth={1.5}
+          />
+        </a>
+        <a
+          href={pathFor("kollektor", locale)}
+          class="group/row border-t border-border sm:border-t-0 sm:border-l flex min-h-14 items-center justify-between gap-4 px-5 py-3 text-label-sm outline-none transition-colors hover:bg-foreground/[0.025] focus-visible:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:px-8"
+        >
+          {kollektor.pageCta}
+          <ArrowUpRight
+            aria-hidden="true"
+            className="size-4 shrink-0 text-tertiary-foreground transition-all group-hover/row:translate-x-0.5 group-hover/row:-translate-y-0.5 group-hover/row:text-brand"
+            strokeWidth={1.5}
+          />
+        </a>
+      </div>
     </article>
 
     <article

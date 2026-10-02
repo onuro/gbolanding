@@ -3,7 +3,10 @@ import BlinkText from "@/components/BlinkText";
 import FinalCta from "@/components/home/FinalCta.astro";
 import SiteFooter from "@/components/home/SiteFooter.astro";
 import SiteHeader from "@/components/home/SiteHeader.astro";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
+import { ArrowRight } from "lucide-react";
 import type { Locale } from "@/i18n/config";
+import { pathFor } from "@/i18n/routes";
 import type { Messages } from "@/i18n/types";
 import { brand } from "@/lib/brand";
 
@@ -42,7 +45,18 @@ const facts: Fact[] = [
     : null,
 ].filter((fact): fact is Fact => fact !== null);
 
-const products = [solutions.kollektor, solutions.intelval, solutions.hastam];
+// Kollektor and Hastam have their own pages; Intelval does not yet.
+const products = [
+  {
+    product: solutions.kollektor,
+    page: { href: pathFor("kollektor", locale), label: solutions.kollektor.pageCta },
+  },
+  { product: solutions.intelval, page: undefined },
+  {
+    product: solutions.hastam,
+    page: { href: pathFor("hastam", locale), label: solutions.hastam.pageCta },
+  },
+];
 ---
 
 <a class="skip-link" href="#main-content">{skipLink}</a>
@@ -52,30 +66,20 @@ const products = [solutions.kollektor, solutions.intelval, solutions.hastam];
 
   <main id="main-content" tabindex="-1">
     <section
-      class="mx-auto w-full max-w-[83.75rem] scroll-mt-16 border-x border-b border-border"
+      class="frame border-b border-border"
       aria-labelledby="about-title"
     >
-      <div class="grid grid-cols-1 border-b border-border lg:grid-cols-12">
-        <div class="px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12 lg:py-16">
-          <p class="eyebrow mb-5">
-            <span class="eyebrow-mark" aria-hidden="true"></span>
-            {about.eyebrow}
-          </p>
-          <h1
-            id="about-title"
-            class="max-w-3xl text-title-h2"
-          >
-            <BlinkText client:idle priority text={about.title} />
-          </h1>
-        </div>
-        <div
-          class="flex items-end border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:border-t-0 lg:border-l lg:px-10 lg:py-16"
-        >
-          <p class="max-w-lg text-pretty text-paragraph-md text-muted-foreground">
-            {about.lead}
-          </p>
-        </div>
-      </div>
+      {/* The display size, as on the home and product pages. At the default
+          h2 size the page title was no larger than "Neler ürettik" below it. */}
+      <SectionHeader
+        as="h1"
+        eyebrow={about.eyebrow}
+        lead={about.lead}
+        headingId="about-title"
+        headingClass="max-w-3xl text-display"
+      >
+        <BlinkText client:idle priority text={about.title} />
+      </SectionHeader>
 
       <div class="grid grid-cols-1 gap-px bg-border lg:grid-cols-12">
         <div class="bg-background px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12">
@@ -93,7 +97,7 @@ const products = [solutions.kollektor, solutions.intelval, solutions.hastam];
           </div>
         </div>
 
-        <div class="bg-background px-5 py-10 sm:px-8 sm:py-14 lg:col-span-5 lg:px-10">
+        <div class="bg-background px-5 py-10 sm:px-8 sm:py-14 lg:col-span-5 lg:px-12">
           <h2 class="text-label-sm text-tertiary-foreground">
             {about.factsTitle}
           </h2>
@@ -127,30 +131,20 @@ const products = [solutions.kollektor, solutions.intelval, solutions.hastam];
     </section>
 
     <section
-      class="mx-auto w-full max-w-[83.75rem] scroll-mt-16 border-x border-b border-border"
+      class="frame border-b border-border"
       aria-labelledby="about-products-title"
     >
-      <div class="grid grid-cols-1 border-b border-border lg:grid-cols-12">
-        <div class="px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12 lg:py-16">
-          <h2
-            id="about-products-title"
-            class="max-w-2xl text-title-h2"
-          >
-            <BlinkText client:visible text={about.productsTitle} />
-          </h2>
-        </div>
-        <div
-          class="flex items-end border-t border-border px-5 py-8 sm:px-8 lg:col-span-5 lg:border-t-0 lg:border-l lg:px-10 lg:py-16"
-        >
-          <p class="max-w-lg text-pretty text-paragraph-md text-muted-foreground">
-            {about.productsIntro}
-          </p>
-        </div>
-      </div>
+      <SectionHeader
+        lead={about.productsIntro}
+        headingId="about-products-title"
+        headingClass="max-w-2xl text-title-h2"
+      >
+        <BlinkText client:visible text={about.productsTitle} />
+      </SectionHeader>
 
       <div class="grid grid-cols-1 gap-px bg-border lg:grid-cols-3">
         {
-          products.map((product) => (
+          products.map(({ product, page }) => (
             <article class="flex flex-col bg-background px-5 py-10 sm:px-8 sm:py-12">
               <p class="text-label-sm text-tertiary-foreground">
                 {product.eyebrow}
@@ -168,6 +162,22 @@ const products = [solutions.kollektor, solutions.intelval, solutions.hastam];
                   </li>
                 ))}
               </ul>
+              {page && (
+                <div class="mt-auto pt-6">
+                  <a
+                    href={page.href}
+                    class="group inline-flex min-h-11 w-fit items-center gap-2 text-label-sm text-foreground underline-offset-4 transition-colors hover:text-brand hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
+                  >
+                    {page.label}
+                    <ArrowRight
+                      aria-hidden="true"
+                      focusable="false"
+                      className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                      strokeWidth={1.5}
+                    />
+                  </a>
+                </div>
+              )}
             </article>
           ))
         }

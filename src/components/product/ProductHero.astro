@@ -1,0 +1,143 @@
+---
+// The top of a product page: who it is for, what it does in one sentence, and
+// on the right a picture of the product at work (slot "visual"). The three
+// steps under it repeat what the picture shows, as sentences.
+//
+// The h1 uses BlinkText with `priority`, as the home hero does: it is painted
+// from first HTML and only flickers once it is already readable.
+//
+// Text and picture sit side by side from xl only. At lg the text column was
+// about 330px: the h1 broke into five lines, the two buttons stacked and the
+// picture ran under the fold. Below xl the picture goes under the text.
+import { ArrowDown, ArrowRight } from "lucide-react";
+import BlinkText from "@/components/BlinkText";
+import type { ProductHeroCopy } from "@/i18n/page-types/shared";
+
+interface Props {
+  copy: ProductHeroCopy;
+  /** Preselects this product in the demo form. */
+  product: "kollektor" | "hastam";
+  /** Where the secondary link goes: an in-page section or another site. */
+  secondaryHref: string;
+  secondaryExternal?: boolean;
+  headingId?: string;
+}
+
+const {
+  copy,
+  product,
+  secondaryHref,
+  secondaryExternal = false,
+  headingId = "product-title",
+} = Astro.props;
+---
+
+<section
+  aria-labelledby={headingId}
+  class="mx-auto w-full max-w-[83.75rem] border-x border-b border-border bg-background"
+>
+  <div class="grid xl:grid-cols-12">
+    <div
+      class="flex flex-col justify-center px-5 py-12 sm:px-8 sm:py-16 lg:px-12 xl:col-span-5 xl:py-20"
+    >
+      <slot name="logo" />
+      {/* Top-aligned, with the mark dropped to the middle of the first line: a
+          long audience line wraps on a phone, and a centred mark would float
+          between its two lines. */}
+      <p class="eyebrow items-start">
+        <span class="eyebrow-mark mt-1.25" aria-hidden="true"></span>
+        {copy.eyebrow}
+      </p>
+      <h1 id={headingId} class="mt-5 text-balance text-display text-foreground">
+        <BlinkText client:idle priority text={copy.title} />
+      </h1>
+      <p class="mt-6 max-w-xl text-pretty text-lead text-muted-foreground">
+        {copy.lead}
+      </p>
+
+      {
+        copy.chips.length > 0 && (
+          <ul class="mt-7 flex flex-wrap gap-2">
+            {copy.chips.map((chip) => (
+              <li class="rounded-full border border-border px-3 py-1 text-label-xs text-muted-foreground">
+                {chip}
+              </li>
+            ))}
+          </ul>
+        )
+      }
+
+      <div class="mt-9 flex flex-wrap items-center gap-3">
+        <a
+          href="#demo"
+          data-demo-product={product}
+          class="button button-lg button-primary group"
+        >
+          {copy.primaryCta}
+          <ArrowRight
+            aria-hidden="true"
+            className="size-4 transition-transform group-hover:translate-x-0.5"
+            strokeWidth={1.75}
+          />
+        </a>
+        <a
+          href={secondaryHref}
+          rel={secondaryExternal ? "noopener" : undefined}
+          class="button button-lg button-secondary group"
+        >
+          {copy.secondaryCta}
+          {
+            secondaryExternal ? (
+              <ArrowRight
+                aria-hidden="true"
+                className="size-4 -rotate-45 text-tertiary-foreground"
+                strokeWidth={1.75}
+              />
+            ) : (
+              <ArrowDown
+                aria-hidden="true"
+                className="size-4 text-tertiary-foreground"
+                strokeWidth={1.75}
+              />
+            )
+          }
+        </a>
+      </div>
+    </div>
+
+    <div
+      class="min-w-0 border-t border-border p-3 xl:col-span-7 xl:border-t-0 xl:border-l"
+    >
+      <slot name="visual" />
+    </div>
+  </div>
+
+  <ol class="grid border-t border-border md:grid-cols-3">
+    {
+      copy.steps.map((step, index) => (
+        <li
+          class:list={[
+            "flex gap-4 px-5 py-7 sm:px-8 lg:px-12",
+            index < copy.steps.length - 1 &&
+              "border-b border-border md:border-r md:border-b-0",
+          ]}
+        >
+          <span
+            class="data-label grid size-8 shrink-0 place-items-center rounded-full border border-border-strong tabular-nums text-foreground"
+            aria-hidden="true"
+          >
+            {index + 1}
+          </span>
+          <div>
+            {/* Not a heading: the page's h2s are its sections (Chapter). These
+                are the three items of this list, at a sixth of that size. */}
+            <p class="text-title-h6 text-foreground">{step.title}</p>
+            <p class="mt-1.5 max-w-sm text-pretty text-paragraph-sm text-muted-foreground">
+              {step.description}
+            </p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</section>

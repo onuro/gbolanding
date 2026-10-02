@@ -11,12 +11,18 @@ const origin = "https://gbovision.com";
 const clusters = {
   home: { tr: "/", en: "/en" },
   about: { tr: "/about", en: "/en/about" },
+  kollektor: { tr: "/kollektor", en: "/en/kollektor" },
+  hastam: { tr: "/hastam", en: "/en/hastam" },
 };
 const pages = [
   { path: "/", locale: "tr", page: "home", title: "Kurumsal Yapay Zeka" },
   { path: "/en", locale: "en", page: "home", title: "Enterprise AI Agency" },
   { path: "/about", locale: "tr", page: "about", title: "GBO Vision Hakkında" },
   { path: "/en/about", locale: "en", page: "about", title: "About GBO Vision" },
+  { path: "/kollektor", locale: "tr", page: "kollektor", title: "Kollektor" },
+  { path: "/en/kollektor", locale: "en", page: "kollektor", title: "Kollektor" },
+  { path: "/hastam", locale: "tr", page: "hastam", title: "Hastam" },
+  { path: "/en/hastam", locale: "en", page: "hastam", title: "Hastam" },
 ];
 const absolute = (path) => new URL(path, origin).href;
 
@@ -117,7 +123,7 @@ for (const page of pages) {
 
 const sitemap = await readFile(new URL("sitemap.xml", staticRoot), "utf8");
 const entries = [...sitemap.matchAll(/<url>([\s\S]*?)<\/url>/g)].map(([, entry]) => entry);
-assert.equal(entries.length, pages.length, "sitemap: exactly four canonical pages");
+assert.equal(entries.length, pages.length, "sitemap: exactly one entry per canonical page");
 const locations = entries.map((entry) => entry.match(/<loc>([^<]+)<\/loc>/)?.[1]);
 assert.deepEqual(locations.toSorted(), pages.map((page) => absolute(page.path)).toSorted());
 for (const entry of entries) {

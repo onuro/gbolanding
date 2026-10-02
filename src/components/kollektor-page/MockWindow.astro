@@ -1,0 +1,50 @@
+---
+// The window every mock on this page sits in: the site's MockShell frame with
+// one header that names the screen and says once that its data is made up.
+// Text inside stays on three sizes (text-paragraph-sm, text-label-xs,
+// data-label); MockShell's own header uses a fourth, so it is not used here.
+//
+// The gutter inside a window is 1rem, and 0.75rem while the window is under
+// 18rem wide (a 320px phone): that is what lets a table row fit there without
+// cutting a name or a state. The header and every mock use the same pair
+// (px-3 @2xs:px-4), so their left edges stay on one line.
+import SampleTag from "@/components/product/SampleTag.astro";
+import MockShell from "@/components/ui/MockShell.astro";
+import type { Locale } from "@/i18n/config";
+
+interface Props {
+  locale: Locale;
+  /** Whose screen this is. Printed above the window, so a visitor never has
+   *  to guess who looks at it. */
+  owner: string;
+  /** Names the screen: what it is, in the product's own word. */
+  title: string;
+  /** One short line under the title: a file name, a range, a state. */
+  meta?: string;
+  class?: string;
+}
+
+const { locale, owner, title, meta, class: className } = Astro.props;
+---
+
+<div class:list={["w-full", className]}>
+  <p class="mb-2.5 pl-1 data-label">{owner}</p>
+  <MockShell bodyClass="@container">
+    <div
+      class="flex min-h-12 items-center justify-between gap-3 border-b border-border px-3 py-2.5 @2xs:px-4"
+    >
+      <div class="min-w-0">
+        <p class="truncate text-label-xs text-foreground">{title}</p>
+        {
+          (meta || Astro.slots.has("meta")) && (
+            <p class="mt-0.5 flex items-center gap-1.5 truncate data-label">
+              <slot name="meta">{meta}</slot>
+            </p>
+          )
+        }
+      </div>
+      <SampleTag locale={locale} />
+    </div>
+    <slot />
+  </MockShell>
+</div>

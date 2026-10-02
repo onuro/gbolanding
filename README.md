@@ -17,12 +17,19 @@ Open [http://localhost:4321](http://localhost:4321).
 - `bun run build` — production build (Vercel SSR adapter)
 - `bun run preview` — not supported with the Vercel adapter; use `bun run dev` locally
 
-## Locales
+## Pages and locales
 
-- `/` — English (default)
-- `/tr` — Turkish
+Turkish is served at the root; English is an explicit `/en` choice. The language
+comes only from the URL: there is no cookie, geo or `Accept-Language` detection.
 
-Locale is auto-detected via cookie, Vercel geo (`x-vercel-ip-country`), or `Accept-Language`, then persisted in the `gbo_locale` cookie.
+| Page | Turkish | English |
+| --- | --- | --- |
+| Home | `/` | `/en` |
+| About | `/about` | `/en/about` |
+| Kollektor | `/kollektor` | `/en/kollektor` |
+| Hastam | `/hastam` | `/en/hastam` |
+
+The route table is `src/i18n/routes.ts`. See `docs/language-routing.md`.
 
 ## Waitlist
 

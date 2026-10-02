@@ -1,0 +1,41 @@
+---
+// Numbered rows laid side by side on hairlines, for the full-width band under
+// a wide picture. The page's other lists are one row list after another at the
+// same volume; set under the team's screen as three columns, these six read as
+// the legend of that picture instead of one more list.
+//
+// The hairlines are the list's own background showing through 1px gaps, so the
+// number of rows has to fill the last line (six rows: 3 x 2, 2 x 3 or 1 x 6).
+// A short last line would show as a grey block.
+import type { RowCopy } from "@/i18n/page-types/shared";
+
+interface Props {
+  rows: readonly RowCopy[];
+  class?: string;
+}
+
+const { rows, class: className } = Astro.props;
+---
+
+<ol
+  class:list={[
+    "grid gap-px border-t border-border bg-border sm:grid-cols-2 lg:grid-cols-3",
+    className,
+  ]}
+>
+  {
+    rows.map((row, index) => (
+      <li class="bg-background">
+        <div class="px-5 pt-7 pb-9 sm:px-8 lg:px-12 lg:pt-9 lg:pb-12" data-reveal>
+          <span class="data-label tabular-nums" aria-hidden="true">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <h3 class="mt-4 text-title-h6 text-foreground">{row.title}</h3>
+          <p class="mt-1.5 max-w-[26rem] text-pretty text-paragraph-sm text-muted-foreground">
+            {row.description}
+          </p>
+        </div>
+      </li>
+    ))
+  }
+</ol>

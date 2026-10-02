@@ -9,6 +9,10 @@
 // for a few seconds, resets and plays again. Timings live in data attributes
 // written by the component, so copy and choreography stay in one place.
 //
+// On the product page the root carries data-kd-manual: the finished call stays
+// on screen and plays once each time the visitor presses the button, because a
+// call that starts by itself below the hero pulls the eye off the copy.
+//
 // Timeline: dial -> ring (the debtor's phone rings) -> call (answered; the
 // timer starts) -> ended. The root carries the state as attributes and CSS
 // does the rest: data-phase, data-speaker (who is talking), data-debtor and
@@ -83,6 +87,10 @@ export function initKollektorDemo(root: HTMLElement) {
   root.dataset.kdInit = "";
 
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  // Play on request (KollektorDemo's `replay`, used on /kollektor): the
+  // finished call stays on screen and the timeline runs once per press of the
+  // button, never by itself. Without the attribute nothing below changes.
+  const manual = root.dataset.kdManual !== undefined;
   const toggle = root.querySelector<HTMLButtonElement>("[data-kd-toggle]");
   const stage = root.querySelector<HTMLElement>("[data-kd-stage]") ?? root;
 
@@ -452,7 +460,10 @@ export function initKollektorDemo(root: HTMLElement) {
   let holding = false;
   let started = false;
   let visible = false;
-  let userPaused = false;
+  let userPaused = manual;
+  // Play on request: the call is showing its last frame, so the next play
+  // starts from the top.
+  let atEnd = manual;
 
   const clearHold = () => {
     if (holdTimer) window.clearTimeout(holdTimer);
@@ -466,6 +477,14 @@ export function initKollektorDemo(root: HTMLElement) {
     onUpdate: (self) => paint(self.currentTime),
     onComplete: () => {
       paint(total);
+      if (manual) {
+        // No loop: the finished call stays and the button offers it again.
+        atEnd = true;
+        userPaused = true;
+        renderToggle();
+        sync();
+        return;
+      }
       holding = true;
       holdTimer = window.setTimeout(() => {
         holdTimer = 0;
@@ -556,6 +575,12 @@ export function initKollektorDemo(root: HTMLElement) {
       return;
     }
     if (holding) return;
+    if (atEnd) {
+      atEnd = false;
+      started = true;
+      replay();
+      return;
+    }
     if (!started) {
       started = true;
       tl.play();
@@ -570,10 +595,12 @@ export function initKollektorDemo(root: HTMLElement) {
 
   const renderToggle = () => {
     if (!toggle) return;
-    toggle.setAttribute(
-      "aria-label",
-      (userPaused ? toggle.dataset.labelPlay : toggle.dataset.labelPause) ?? "",
-    );
+    const label = (userPaused ? toggle.dataset.labelPlay : toggle.dataset.labelPause) ?? "";
+    // The play-on-request button carries its label as visible text and is
+    // named by it; the round icon button has no text and needs aria-label.
+    const text = toggle.querySelector<HTMLElement>("[data-kd-toggle-text]");
+    if (text) text.textContent = label;
+    else toggle.setAttribute("aria-label", label);
     toggle.dataset.state = userPaused ? "paused" : "playing";
   };
 
@@ -588,7 +615,14 @@ export function initKollektorDemo(root: HTMLElement) {
   }
 
   root.toggleAttribute("data-kd-paused", true);
-  paint(0);
+  if (manual) {
+    // The opening state set above is the timeline's first frame; put the
+    // finished call back before the browser paints it.
+    tl.seek(total, true);
+    paint(total);
+  } else {
+    paint(0);
+  }
   root.removeAttribute("data-kd-boot");
 
   if (!("IntersectionObserver" in window)) {

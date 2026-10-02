@@ -1,0 +1,314 @@
+---
+// The picture in the hero of /hastam, and the only thing on the page that
+// plays by itself: sample calls, one after another. Each shows the same three
+// objects the steps under the hero name in words: the patient's phone, the
+// conversation, and what the call leaves on the clinic's screen.
+//
+// Several calls on purpose (a request, a reschedule, a message, a reminder):
+// one booking alone reads as "an appointment bot", and the owner banned the
+// single-example hero on hastam.ai for that reason.
+//
+// The markup is the finished state: the first call, complete. The script
+// (hero-calls.ts) only replays what is already here, so a failed script or a
+// reduced-motion visitor still sees a whole picture. Every scene sits in the
+// same grid cell, so the stage has the height of the tallest call and never
+// moves the page when the call changes.
+//
+// Text sizes inside the picture: text-paragraph-sm, text-label-xs (data-value)
+// and data-label. Nothing else.
+import { Pause, PhoneIncoming, PhoneOff, PhoneOutgoing, Play } from "lucide-react";
+import Chip from "@/components/hastam-page/Chip.astro";
+import ObjectTag from "@/components/hastam-page/ObjectTag.astro";
+import SampleTag from "@/components/product/SampleTag.astro";
+import MockShell from "@/components/ui/MockShell.astro";
+import type { Locale } from "@/i18n/config";
+import type { HastamHeroCallsCopy } from "@/i18n/page-types/hastam";
+
+interface Props {
+  locale: Locale;
+  copy: HastamHeroCallsCopy;
+}
+
+const { locale, copy } = Astro.props;
+
+// The voice meter on the handset: bars of dots, each a whole number of dots
+// tall, in the site's dot-matrix language. `rest` is the height it shows when
+// nothing plays; `peak` the height it steps to while a call is playing.
+const WAVE = [2, 4, 3, 6, 4, 7, 5, 3, 6, 4, 2, 5, 3, 2].map((rest, index) => ({
+  rest,
+  peak: Math.max(1, Math.min(7, rest + (index % 3 === 0 ? -2 : index % 3 === 1 ? 2 : 1))),
+  delay: (index * 137) % 900,
+}));
+---
+
+<div class="@container h-full">
+  <div
+    class="stage-soft flex h-full flex-col rounded-card p-4 sm:p-5"
+    data-hc-root
+    data-hc-speaker="none"
+  >
+    <div class="flex items-center justify-between gap-3">
+      <p class="data-label flex min-w-0 items-center gap-2 text-muted-foreground">
+        <span class="size-1.5 shrink-0 rounded-full bg-brand" aria-hidden="true"></span>
+        <span class="truncate">{copy.label}</span>
+      </p>
+      <div class="flex shrink-0 items-center gap-2">
+        <SampleTag locale={locale} />
+        <button
+          type="button"
+          hidden
+          data-hc-toggle
+          data-state="playing"
+          data-label-pause={copy.pause}
+          data-label-play={copy.play}
+          aria-label={copy.pause}
+          class="grid size-9 cursor-pointer place-items-center rounded-full border border-border-strong bg-background text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <span data-hc-icon="pause" aria-hidden="true" class="grid place-items-center">
+            <Pause className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
+          </span>
+          <span data-hc-icon="play" aria-hidden="true" class="grid place-items-center">
+            <Play className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <p class="sr-only">{copy.description}</p>
+
+    <div role="tablist" aria-label={copy.tabsLabel} class="mt-4 flex flex-wrap gap-1.5">
+      {
+        copy.scenes.map((scene, index) => {
+          const Icon = scene.dir === "in" ? PhoneIncoming : PhoneOutgoing;
+          return (
+            <button
+              type="button"
+              role="tab"
+              id={`hc-tab-${index}`}
+              aria-controls={`hc-scene-${index}`}
+              aria-selected={index === 0 ? "true" : "false"}
+              tabindex={index === 0 ? 0 : -1}
+              data-hc-tab
+              class="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-border-strong bg-background px-3 text-label-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand aria-selected:border-transparent aria-selected:bg-foreground aria-selected:text-background"
+            >
+              <Icon className="size-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+              {scene.tab}
+            </button>
+          );
+        })
+      }
+    </div>
+
+    <div class="mt-5 grid flex-1 content-center">
+      {
+        copy.scenes.map((scene, index) => (
+          <div
+            role="tabpanel"
+            id={`hc-scene-${index}`}
+            aria-labelledby={`hc-tab-${index}`}
+            data-hc-scene
+            data-active={index === 0 ? "" : undefined}
+            inert={index === 0 ? undefined : true}
+            class="hc-scene col-start-1 row-start-1 grid grid-rows-[auto_minmax(0,1fr)_auto] gap-4 @2xl:grid-cols-[12.5rem_minmax(0,1fr)] @2xl:grid-rows-[minmax(0,1fr)_auto] @2xl:gap-x-5"
+          >
+            {/* The conversation takes the spare height (the 1fr row), so the
+                clinic's screen sits at the same place in every call. */}
+            <div class="flex flex-col gap-2">
+              <ObjectTag step={1} label={copy.phoneLabel} />
+              {/* The patient's own handset. Nothing on it is Hastam's: the
+                  patient rings, or is rung by, the clinic's number.
+                  Below @2xl it lies flat as a strip. From @2xl it stands
+                  upright beside the conversation and gets an earpiece and an
+                  end-call key: without them the tall card was mostly blank
+                  and read as a placeholder, not as a phone. */}
+              <div class="rounded-well border border-border-strong bg-card p-1.5 shadow-card @2xl:flex-1">
+                <div class="flex h-full items-center gap-3 rounded-shell bg-background px-4 py-3 @2xl:flex-col @2xl:gap-0 @2xl:px-3 @2xl:pt-3 @2xl:pb-5 @2xl:text-center">
+                  <span
+                    class="hidden h-1 w-9 shrink-0 rounded-full bg-border-strong @2xl:block"
+                    aria-hidden="true"
+                  ></span>
+                  <div class="flex min-w-0 flex-1 items-center gap-3 @2xl:flex-col @2xl:justify-center @2xl:gap-4">
+                    <span
+                      class="data-value grid size-11 shrink-0 place-items-center rounded-full bg-muted @2xl:size-14"
+                      aria-hidden="true"
+                    >
+                      {copy.clinicInitials}
+                    </span>
+                    <div class="min-w-0 flex-1 @2xl:flex-none">
+                      <p class="data-value truncate">{copy.clinic}</p>
+                      <p class="data-label mt-1">{copy.line}</p>
+                    </div>
+                    <span class="hc-wave shrink-0" aria-hidden="true">
+                      {WAVE.map((bar) => (
+                        <i style={`--rest:${bar.rest};--peak:${bar.peak};--delay:${bar.delay}ms`} />
+                      ))}
+                    </span>
+                  </div>
+                  <span
+                    class="hidden size-10 shrink-0 place-items-center rounded-full bg-danger text-background @2xl:grid"
+                    aria-hidden="true"
+                  >
+                    <PhoneOff className="size-4" strokeWidth={2} aria-hidden="true" />
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex min-w-0 flex-col gap-2">
+              <ObjectTag step={2} label={copy.talkLabel} />
+              <ol class="flex flex-1 flex-col gap-3 rounded-card border border-border bg-background p-4">
+                {scene.turns.map((turn) => (
+                  <li data-hc-part data-who={turn.who} class="hc-part">
+                    <p
+                      class:list={[
+                        "data-label flex items-center gap-1.5",
+                        turn.who === "ai" ? "text-brand" : "text-muted-foreground",
+                      ]}
+                    >
+                      <span class="size-1.5 rounded-full bg-current" aria-hidden="true" />
+                      {copy.speakers[turn.who]}
+                    </p>
+                    <p class="mt-1 text-pretty text-paragraph-sm text-foreground">
+                      {turn.text}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            {/* The screen itself never leaves: it is the third object of the
+                picture. Only the result waits for the end of the call. */}
+            <div class="flex min-w-0 flex-col gap-2 @2xl:col-span-2">
+              <ObjectTag step={3} label={copy.screenLabel} />
+              <MockShell
+                title={scene.outcome.area}
+                meta={scene.dir === "in" ? copy.inbound : copy.outbound}
+              >
+                <div
+                  data-hc-part
+                  data-hc-outcome
+                  data-who="none"
+                  class="hc-part flex flex-wrap items-start justify-between gap-x-4 gap-y-2 px-4 py-3.5"
+                >
+                  <div class="min-w-0">
+                    <p class="data-value">{scene.patient}</p>
+                    <p class="mt-0.5 text-label-xs font-normal text-muted-foreground">
+                      {scene.outcome.meta}
+                    </p>
+                    <p class="mt-2 text-paragraph-sm text-foreground">{scene.outcome.when}</p>
+                  </div>
+                  <Chip tone={scene.outcome.tone} label={scene.outcome.status} />
+                </div>
+                <Fragment slot="footer">
+                  <span class="data-label">{scene.tab}</span>
+                  <span class="hc-action data-value inline-flex h-7 items-center rounded-full border border-border-strong px-3">
+                    {scene.outcome.action}
+                  </span>
+                </Fragment>
+              </MockShell>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</div>
+
+<script>
+  import { initHeroCalls } from "@/components/hastam-page/hero-calls";
+
+  document
+    .querySelectorAll<HTMLElement>("[data-hc-root]")
+    .forEach((root) => initHeroCalls(root));
+</script>
+
+<style is:global>
+  /* Only the picked call shows; the others keep their place in the cell, so
+     the stage is as tall as the tallest call and never jumps. */
+  [data-hc-root] .hc-scene {
+    transition:
+      opacity 320ms var(--ease-out-quint),
+      visibility 0s linear 320ms;
+  }
+
+  [data-hc-root] .hc-scene:not([data-active]) {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  [data-hc-root] .hc-scene[data-active] {
+    transition-delay: 0s;
+  }
+
+  /* While a call plays, its lines and its result wait their turn. Without
+     data-hc-playing (no script, reduced motion, a paused stage, a tab the
+     visitor picked) every part shows: the finished state is the default. */
+  [data-hc-root] .hc-part {
+    transition:
+      opacity 420ms var(--ease-out-quint),
+      translate 520ms var(--ease-out-quint);
+  }
+
+  [data-hc-root][data-hc-playing] .hc-scene[data-active] .hc-part:not([data-shown]) {
+    opacity: 0;
+    translate: 0 6px;
+  }
+
+  /* The action in the card's footer arrives with the result above it. */
+  [data-hc-root] .hc-action {
+    transition: opacity 420ms var(--ease-out-quint);
+  }
+
+  [data-hc-root][data-hc-playing]
+    .hc-scene[data-active]:not(:has([data-hc-outcome][data-shown]))
+    .hc-action {
+    opacity: 0;
+  }
+
+  /* Voice meter: 4px cells, one dot each. A bar is always a whole number of
+     dots tall, and steps between two heights rather than stretching. */
+  [data-hc-root] .hc-wave {
+    display: flex;
+    height: 28px;
+    align-items: center;
+    gap: 2px;
+    color: var(--tertiary-foreground);
+    transition: color 240ms ease;
+  }
+
+  [data-hc-root] .hc-wave i {
+    width: 4px;
+    height: calc(var(--rest) * 4px);
+    background-image: radial-gradient(circle, currentColor 1.1px, transparent 1.4px);
+    background-size: 4px 4px;
+  }
+
+  [data-hc-root][data-hc-speaker="ai"] .hc-wave {
+    color: var(--brand);
+  }
+
+  [data-hc-root][data-hc-speaker="pt"] .hc-wave {
+    color: var(--foreground);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    [data-hc-root][data-hc-playing]:not([data-hc-speaker="none"]) .hc-wave i {
+      animation: hc-wave 620ms steps(1, end) var(--delay) infinite;
+    }
+  }
+
+  @keyframes hc-wave {
+    0%,
+    100% {
+      height: calc(var(--rest) * 4px);
+    }
+    50% {
+      height: calc(var(--peak) * 4px);
+    }
+  }
+
+  [data-hc-toggle][data-state="playing"] [data-hc-icon="play"],
+  [data-hc-toggle][data-state="paused"] [data-hc-icon="pause"] {
+    display: none;
+  }
+</style>

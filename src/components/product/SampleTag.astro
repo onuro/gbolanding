@@ -1,0 +1,21 @@
+---
+// Every mock on a product page says once that its names and numbers are made
+// up. Without it a visitor can read a sample clinic or debtor as a customer.
+import type { Locale } from "@/i18n/config";
+
+interface Props {
+  locale: Locale;
+  class?: string;
+}
+
+const { locale, class: className } = Astro.props;
+---
+
+<span
+  class:list={[
+    "data-label inline-flex h-6 shrink-0 items-center rounded-full border border-border-strong px-2",
+    className,
+  ]}
+>
+  {locale === "tr" ? "Örnek veri" : "Sample data"}
+</span>

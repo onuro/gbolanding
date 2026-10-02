@@ -5,6 +5,8 @@ import type { Locale } from "@/i18n/config";
 export const routes = {
   home: { tr: "/", en: "/en" },
   about: { tr: "/about", en: "/en/about" },
+  kollektor: { tr: "/kollektor", en: "/en/kollektor" },
+  hastam: { tr: "/hastam", en: "/en/hastam" },
 } as const satisfies Record<string, Record<Locale, string>>;
 
 export type PageKey = keyof typeof routes;

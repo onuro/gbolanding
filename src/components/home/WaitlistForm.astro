@@ -72,23 +72,22 @@ const ui =
           autocomplete="email"
           inputmode="email"
           aria-describedby={errorId}
-          class="h-11 w-full rounded-full border border-border-strong bg-background py-2 pl-11 pr-4 text-paragraph-sm text-foreground shadow-card transition-colors placeholder:text-faint-foreground disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-danger"
+          class="h-12 w-full rounded-full border border-border-strong bg-background py-2 pl-11 pr-4 text-paragraph-sm text-foreground shadow-card outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-tertiary-foreground focus-visible:border-foreground focus-visible:shadow-[0_0_0_4px_color-mix(in_srgb,var(--brand)_18%,transparent)] disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-danger"
           data-email-input
         />
       </div>
 
       <p
         id={errorId}
-        class="min-h-5 px-1 pt-1.5 text-left text-caption text-danger"
+        class="min-h-5 px-1 pt-1.5 text-left text-paragraph-xs font-medium text-danger"
         role="alert"
-        aria-live="polite"
         data-form-error
       >
       </p>
 
       <button
         type="submit"
-        class="button button-primary group/submit mt-1.5 w-full"
+        class="button button-lg button-primary group/submit mt-1.5 w-full"
       >
         <span class="inline-flex items-center gap-2" data-idle-label>
           <span>{messages.finalCta.primaryCta}</span>

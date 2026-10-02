@@ -1,0 +1,83 @@
+---
+// The one section opener: eyebrow and heading on the left (7 of 12 columns),
+// one lead sentence on the right (5), bottom-aligned, split by a hairline.
+// The heading text is the default slot, so a page can pass a BlinkText island
+// with its own client directive. Anything in the "aside" slot (a button) sits
+// under the lead.
+interface Props {
+  /** Mono-caps line above the heading. Leave out for a heading-only opener. */
+  eyebrow?: string;
+  /** The one sentence beside the heading. */
+  lead: string;
+  /** Heading tag. Changing it never changes the size; headingClass does. */
+  as?: "h1" | "h2" | "h3";
+  headingId?: string;
+  /** Size and measure of the heading. */
+  headingClass?: string;
+  /**
+   * Where the scroll reveal sits (see src/scripts/reveal.ts).
+   * "cells": on the two cells. "inner": on wrappers inside the cells, so the
+   * hairlines between them never fade. "header": on the header itself.
+   */
+  reveal?: "none" | "header" | "cells" | "inner";
+  /** Makes the header its own reveal root instead of joining the section's. */
+  revealRoot?: boolean;
+  class?: string;
+}
+
+const {
+  eyebrow,
+  lead,
+  as: Heading = "h2",
+  headingId,
+  headingClass = "max-w-3xl text-title-h2",
+  reveal = "none",
+  revealRoot = false,
+  class: className,
+} = Astro.props;
+
+const on = (where: Props["reveal"]) => (reveal === where ? "" : undefined);
+const hasAside = Astro.slots.has("aside");
+---
+
+<header
+  class:list={["grid border-b border-border lg:grid-cols-12", className]}
+  data-reveal-root={revealRoot ? "" : undefined}
+  data-reveal={on("header")}
+>
+  <div
+    class="px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12 lg:py-16"
+    data-reveal={on("cells")}
+  >
+    <div data-reveal={on("inner")}>
+      {
+        eyebrow && (
+          <p class="eyebrow">
+            <span class="eyebrow-mark" aria-hidden="true" />
+            {eyebrow}
+          </p>
+        )
+      }
+      <Heading
+        id={headingId}
+        class:list={[eyebrow && "mt-5", "text-balance text-foreground", headingClass]}
+      >
+        <slot />
+      </Heading>
+    </div>
+  </div>
+  <div
+    class="flex items-end border-t border-border px-5 py-10 sm:px-8 sm:py-14 lg:col-span-5 lg:border-t-0 lg:border-l lg:px-12 lg:py-16"
+    data-reveal={on("cells")}
+  >
+    <div
+      class:list={[hasAside && "flex flex-col items-start gap-6"]}
+      data-reveal={on("inner")}
+    >
+      <p class="max-w-[34rem] text-pretty text-lead text-muted-foreground">
+        {lead}
+      </p>
+      <slot name="aside" />
+    </div>
+  </div>
+</header>

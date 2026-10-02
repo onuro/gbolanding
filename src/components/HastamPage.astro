@@ -1,0 +1,113 @@
+---
+// /hastam and /en/hastam: the parent company's page about Hastam. The product
+// has its own site (hastam.ai); this page says what it does, shows it at work
+// and links there.
+//
+// Motion: the picture in the hero is the only thing that plays by itself.
+// Every picture below shows its finished state and moves when the visitor
+// presses something (the replay button, approve or decline).
+//
+// Truth: a phone booking is a request the clinic approves; a complaint is
+// routed, never assessed; the numbers are product defaults; the clinic, the
+// people and the hours in the pictures are sample data and each picture says
+// so. See the header of messages/hastam-page.tr.ts.
+import ApprovalMock from "@/components/hastam-page/ApprovalMock.astro";
+import AttemptLadder from "@/components/hastam-page/AttemptLadder.astro";
+import CallCaps from "@/components/hastam-page/CallCaps.astro";
+import CallingHours from "@/components/hastam-page/CallingHours.astro";
+import HastamLogo from "@/components/hastam-page/HastamLogo.astro";
+import HeroCalls from "@/components/hastam-page/HeroCalls.astro";
+import HastamDemo from "@/components/home/HastamDemo.astro";
+import Chapter from "@/components/product/Chapter.astro";
+import FactCells from "@/components/product/FactCells.astro";
+import Faq from "@/components/product/Faq.astro";
+import LinkRow from "@/components/product/LinkRow.astro";
+import NumberedRows from "@/components/product/NumberedRows.astro";
+import ProductHero from "@/components/product/ProductHero.astro";
+import ProductPageShell from "@/components/product/ProductPageShell.astro";
+import SayDoTable from "@/components/product/SayDoTable.astro";
+import type { Locale } from "@/i18n/config";
+import type { Messages } from "@/i18n/types";
+
+interface Props {
+  locale: Locale;
+  messages: Messages;
+}
+
+const { locale, messages } = Astro.props;
+const page = messages.hastamPage;
+// hastam.ai serves every URL with a trailing slash; without it the link costs
+// a redirect.
+const hastamSite = locale === "tr" ? "https://hastam.ai/" : "https://hastam.ai/en/";
+---
+
+<ProductPageShell
+  locale={locale}
+  messages={messages}
+  product="hastam"
+  assurances={page.ctaAssurances}
+>
+  <ProductHero
+    copy={page.hero}
+    product="hastam"
+    secondaryHref={hastamSite}
+    secondaryExternal
+  >
+    <HastamLogo slot="logo" class="mb-7" />
+    <HeroCalls slot="visual" locale={locale} copy={page.heroCalls} />
+  </ProductHero>
+
+  {/* Wide and flush: the demo is the home page's stage, built for the full
+      frame, and brings its own gutters and its hairline strip. It plays the
+      hero's second call, a reschedule, in full: the hero's first call and the
+      approval picture below already show a new request, and a third telling
+      of the same booking made the first three screens one story. */}
+  <Chapter id="call" headingId="hastam-call-title" copy={page.call} wide flush>
+    <HastamDemo
+      locale={locale}
+      scenario={page.call.demo}
+      replayOnly
+      proof={page.call.proof}
+    />
+  </Chapter>
+
+  <Chapter id="how" headingId="hastam-heard-title" copy={page.heard}>
+    <SayDoTable
+      rows={page.heard.rows}
+      sayLabel={page.heard.sayLabel}
+      doLabel={page.heard.doLabel}
+    />
+  </Chapter>
+
+  <Chapter id="approval" headingId="hastam-approval-title" copy={page.approval}>
+    <ApprovalMock locale={locale} copy={page.approval.mock} hint={page.approval.note} />
+    <NumberedRows rows={page.approval.steps} class="mt-10" />
+  </Chapter>
+
+  <Chapter id="outbound" headingId="hastam-outbound-title" copy={page.outbound}>
+    <NumberedRows rows={page.outbound.rows} />
+    <FactCells items={page.outbound.facts} class="mt-12">
+      <AttemptLadder slot="cell-0" locale={locale} copy={page.outbound.mock.ladder} />
+      <CallingHours slot="cell-1" locale={locale} copy={page.outbound.mock.hours} />
+      <CallCaps slot="cell-2" copy={page.outbound.mock.caps} />
+    </FactCells>
+  </Chapter>
+
+  <Chapter id="rules" headingId="hastam-rules-title" copy={page.rules}>
+    <FactCells items={page.rules.items} />
+  </Chapter>
+
+  <Chapter id="faq" headingId="hastam-faq-title" copy={page.faq}>
+    <Faq items={page.faq.items} name="hastam-faq" />
+  </Chapter>
+
+  <Chapter id="gbo-vision" headingId="hastam-parent-title" copy={page.parent} flush>
+    <LinkRow
+      href={hastamSite}
+      label={page.parent.linkLabel}
+      external
+      externalHint={page.parent.externalHint}
+      class="border-t border-border"
+    />
+  </Chapter>
+</ProductPageShell>

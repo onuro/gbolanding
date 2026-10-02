@@ -19,6 +19,28 @@ export interface PageMetadata {
   siteDescription: string;
 }
 
+// Each page owns its title and description. A page missing from this table
+// would silently publish the home page's metadata under its own URL, which is
+// the duplicate-title failure the content audit exists to catch.
+const pageCopy = {
+  home: (messages) => messages.metadata,
+  about: (messages) => ({
+    title: messages.about.metaTitle,
+    description: messages.about.metaDescription,
+  }),
+  kollektor: (messages) => ({
+    title: messages.kollektorPage.metaTitle,
+    description: messages.kollektorPage.metaDescription,
+  }),
+  hastam: (messages) => ({
+    title: messages.hastamPage.metaTitle,
+    description: messages.hastamPage.metaDescription,
+  }),
+} satisfies Record<
+  PageKey,
+  (messages: Messages) => { title: string; description: string }
+>;
+
 export function buildMetadata(
   locale: Locale,
   messages: Messages,
@@ -53,19 +75,17 @@ export function buildMetadata(
         "değerleme yazılımı",
       ];
 
-  const isAbout = page === "about";
+  const { title, description } = pageCopy[page](messages);
 
   return {
-    title: isAbout ? messages.about.metaTitle : messages.metadata.title,
-    description: isAbout
-      ? messages.about.metaDescription
-      : messages.metadata.description,
+    title,
+    description,
     canonicalPath,
     alternates: { ...routes[page] },
     locale,
     keywords,
     page,
-    pageType: isAbout ? "AboutPage" : "WebPage",
+    pageType: page === "about" ? "AboutPage" : "WebPage",
     siteDescription: messages.metadata.description,
   };
 }

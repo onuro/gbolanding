@@ -1,0 +1,52 @@
+---
+// The calling window on one day: routine calls ring between 09.00 and 19.00
+// (the product default, hastam-app call-policy.ts), and a call that comes due
+// later is postponed to the next morning, not dropped. The 20.40 call is
+// sample data. Static.
+import Chip from "@/components/hastam-page/Chip.astro";
+import SampleTag from "@/components/product/SampleTag.astro";
+import type { Locale } from "@/i18n/config";
+import type { HastamOutboundMockCopy } from "@/i18n/page-types/hastam";
+
+interface Props {
+  locale: Locale;
+  copy: HastamOutboundMockCopy["hours"];
+}
+
+const { locale, copy } = Astro.props;
+
+// Share of the 24-hour track: the window opens at 09.00 and closes at 19.00;
+// the sample call comes due at 20.40.
+const pct = (hours: number) => `${((hours / 24) * 100).toFixed(2)}%`;
+const OPEN = 9;
+const CLOSE = 19;
+const DUE = 20 + 40 / 60;
+---
+
+<div class="flex min-h-[13.5rem] w-full flex-col">
+  <div class="flex items-center justify-between gap-3">
+    <span class="data-label">{copy.label}</span>
+    <SampleTag locale={locale} />
+  </div>
+  <p class="data-value mt-auto pt-4">{copy.window}</p>
+
+  <div class="relative mt-3 h-3 rounded-full border border-border-strong bg-background" aria-hidden="true">
+    <span
+      class="absolute inset-y-0 rounded-full border border-brand-line bg-brand-soft"
+      style={`left:${pct(OPEN)};width:${pct(CLOSE - OPEN)}`}
+    ></span>
+    <span
+      class="absolute top-1/2 size-2.5 rounded-full border-2 border-background bg-attention"
+      style={`left:${pct(DUE)};margin:-0.3125rem 0 0 -0.3125rem`}
+    ></span>
+  </div>
+  <div class="mt-1.5 flex justify-between" aria-hidden="true">
+    {copy.ticks.map((tick) => <span class="data-label tabular-nums">{tick}</span>)}
+  </div>
+
+  <div class="mt-4 mb-auto flex flex-wrap items-center gap-x-3 gap-y-2 rounded-tile border border-border bg-background px-3 py-2">
+    <span class="text-paragraph-sm text-foreground">{copy.due}</span>
+    <Chip tone="pending" label={copy.deferred} />
+    <span class="data-label ml-auto tabular-nums text-foreground">{copy.next}</span>
+  </div>
+</div>

@@ -1,5 +1,12 @@
 ---
-import { ArrowRight, Languages, Lock, MessageSquare, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Languages,
+  Lock,
+  MessageSquare,
+  ShieldCheck,
+} from "lucide-react";
 
 import BlinkText from "@/components/BlinkText";
 import ProductPicker from "@/components/home/cta-parts/ProductPicker.astro";
@@ -8,12 +15,43 @@ import type { Locale } from "@/i18n/config";
 import { pathFor } from "@/i18n/routes";
 import type { Messages } from "@/i18n/types";
 
+type Product = "kollektor" | "intelval" | "hastam" | "custom";
+
 interface Props {
   locale: Locale;
   messages: Messages;
+  /** Base of the lead's "source" field, so a lead says which page sent it. */
+  source?: string;
+  /** Product pill that is already picked when the page loads. */
+  defaultProduct?: Product;
+  /**
+   * Replaces the three company-wide assurances. A product page passes its own,
+   * so a Hastam visitor is not shown a line about Kollektor.
+   */
+  assurances?: readonly string[];
+  /**
+   * The statement beside the form. A product page passes its own, so it does
+   * not close on the home page's headline. Each falls back to `finalCta`.
+   */
+  title?: string;
+  description?: string;
+  /** Label of the link under the statement. It always goes to the solutions. */
+  secondaryCta?: string;
+  /** Per-product notes for the pills (see ProductPicker). */
+  productNotes?: Partial<Record<Product, string>>;
 }
 
-const { locale, messages } = Astro.props;
+const {
+  locale,
+  messages,
+  source,
+  defaultProduct,
+  assurances: pageAssurances,
+  title = messages.finalCta.title,
+  description = messages.finalCta.description,
+  secondaryCta = messages.finalCta.secondaryCta,
+  productNotes,
+} = Astro.props;
 
 // Unique per render so ids inside the card never collide if this section
 // appears more than once.
@@ -42,24 +80,28 @@ const ui =
         live: "A demo shaped to your work",
       };
 
-const assurances = [
-  { label: ui.kvkk, Icon: ShieldCheck },
-  { label: ui.languages, Icon: Languages },
-  { label: ui.live, Icon: MessageSquare },
-];
+const icons = [ShieldCheck, Languages, MessageSquare];
+const assurances = (pageAssurances ?? [ui.kvkk, ui.languages, ui.live]).map(
+  (label, index) => ({
+    label,
+    // A page's own lines are not about compliance or languages, so they all
+    // take the neutral mark rather than borrowing a meaning from the icon.
+    Icon: pageAssurances ? Check : icons[index % icons.length],
+  }),
+);
 ---
 
 <section
   id="demo"
   aria-labelledby="final-cta-heading"
-  class="scroll-mt-20 border-b border-border bg-background"
+  class="bg-background"
   data-reveal-root
 >
-  <div class="mx-auto w-full max-w-[83.75rem] border-x border-border">
+  <div class="frame border-b border-border">
     <div class="grid lg:grid-cols-12">
       {/* Statement */}
       <div class="flex flex-col lg:col-span-6" data-reveal>
-        <div class="flex-1 px-6 py-14 sm:px-8 sm:py-16 lg:px-12 lg:py-24">
+        <div class="flex-1 px-5 py-14 sm:px-8 sm:py-16 lg:px-12 lg:py-24">
           <p class="eyebrow">
             <span class="eyebrow-mark" aria-hidden="true"></span>
             {messages.finalCta.eyebrow}
@@ -68,19 +110,19 @@ const assurances = [
             id="final-cta-heading"
             class="mt-5 max-w-2xl text-balance text-title-h2 text-foreground"
           >
-            <BlinkText client:visible text={messages.finalCta.title} />
+            <BlinkText client:visible text={title} />
           </h2>
           <p
             class="mt-6 max-w-xl text-pretty text-paragraph-lg text-muted-foreground"
           >
-            {messages.finalCta.description}
+            {description}
           </p>
 
           <a
             href={solutionsHref}
             class="group mt-8 inline-flex min-h-11 w-fit items-center gap-2 text-label-sm text-foreground underline-offset-4 transition-colors hover:text-brand hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
           >
-            {messages.finalCta.secondaryCta}
+            {secondaryCta}
             <ArrowRight
               aria-hidden="true"
               focusable="false"
@@ -91,7 +133,7 @@ const assurances = [
         </div>
 
         <ul
-          class="flex flex-wrap gap-x-6 gap-y-3 border-t border-border px-6 py-5 sm:px-8 lg:px-12"
+          class="flex flex-wrap gap-x-6 gap-y-3 border-t border-border px-5 py-5 sm:px-8 lg:px-12"
           aria-label={ui.assurancesLabel}
         >
           {
@@ -110,19 +152,29 @@ const assurances = [
       </div>
 
       <div
-        class="flex flex-col justify-center border-t border-border px-6 py-14 sm:px-8 sm:py-16 lg:col-span-6 lg:border-t-0 lg:border-l lg:px-12 lg:py-24"
+        class="flex flex-col justify-center border-t border-border px-5 py-14 sm:px-8 sm:py-16 lg:col-span-6 lg:border-t-0 lg:border-l lg:px-12 lg:py-24"
         data-reveal
       >
         <div class="w-full max-w-md">
           <p class="text-title-h3 text-foreground">{ui.team}</p>
 
           <div class="mt-8">
-            <WaitlistForm locale={locale} messages={messages} idBase={idBase}>
-              <ProductPicker slot="before" locale={locale} />
+            <WaitlistForm
+              locale={locale}
+              messages={messages}
+              idBase={idBase}
+              source={source}
+            >
+              <ProductPicker
+                slot="before"
+                locale={locale}
+                defaultProduct={defaultProduct}
+                notes={productNotes}
+              />
             </WaitlistForm>
           </div>
 
-          <p class="mt-3 flex items-center gap-2 text-caption text-tertiary-foreground">
+          <p class="mt-3 flex items-center gap-2 text-paragraph-xs text-tertiary-foreground">
             <Lock className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden="true" />
             {ui.privacy}
           </p>

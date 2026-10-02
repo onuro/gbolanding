@@ -1,0 +1,26 @@
+---
+// Names one object in a picture ("The patient's phone", "Your clinic's
+// screen"). A visitor who cannot tell whose phone it is cannot read the rest.
+// With `step` it also carries the number the hero's three steps repeat.
+interface Props {
+  label: string;
+  step?: number;
+  class?: string;
+}
+
+const { label, step, class: className } = Astro.props;
+---
+
+<p class:list={["flex items-center gap-2", className]}>
+  {
+    step !== undefined && (
+      <span
+        class="data-label grid size-5 shrink-0 place-items-center rounded-full border border-border-strong tabular-nums text-foreground"
+        aria-hidden="true"
+      >
+        {step}
+      </span>
+    )
+  }
+  <span class="data-label text-muted-foreground">{label}</span>
+</p>

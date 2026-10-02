@@ -1,3 +1,6 @@
+import type { HastamPageMessages } from "@/i18n/page-types/hastam";
+import type { KollektorPageMessages } from "@/i18n/page-types/kollektor";
+
 export interface SolutionMessage {
   eyebrow: string;
   title: string;
@@ -6,7 +9,13 @@ export interface SolutionMessage {
   cta: string;
 }
 
-export interface HastamSolutionMessage extends SolutionMessage {
+/** A product that has its own page: the card also links there. */
+export interface ProductSolutionMessage extends SolutionMessage {
+  /** Label of the link to the product's page (/kollektor, /hastam). */
+  pageCta: string;
+}
+
+export interface HastamSolutionMessage extends ProductSolutionMessage {
   headline: string;
   support: string;
   imageAlt: string;
@@ -94,9 +103,13 @@ export interface Messages {
     description: string;
   };
   about: AboutMessages;
+  /** /kollektor and /hastam. Their copy lives in messages/<product>-page.*.ts. */
+  kollektorPage: KollektorPageMessages;
+  hastamPage: HastamPageMessages;
   nav: {
     solutions: string;
     kollektor: string;
+    hastam: string;
     method: string;
     about: string;
     languageLabel: string;
@@ -130,7 +143,7 @@ export interface Messages {
     description: string;
   };
   solutions: {
-    kollektor: SolutionMessage;
+    kollektor: ProductSolutionMessage;
     intelval: SolutionMessage;
     hastam: HastamSolutionMessage;
     enterprise: EnterpriseSolutionMessage;
@@ -237,10 +250,28 @@ export interface Messages {
     primaryCta: string;
     secondaryCta: string;
   };
+  /**
+   * The demo request as a product page closes with it (ProductPageShell). The
+   * home page keeps `finalCta`; a product page that reused it would end on a
+   * headline about "your next business problem" instead of the product.
+   */
+  productCta: {
+    kollektor: { title: string; description: string };
+    hastam: { title: string; description: string };
+    /** Label of the link back to the home page's list of solutions. */
+    secondaryCta: string;
+    /**
+     * Kollektor's line under the product pills on product pages. It promises
+     * only what every flow does (call, confirm, record). The home page still
+     * shows ProductPicker's own line, which also names payment plans.
+     */
+    kollektorNote: string;
+  };
   footer: {
     tagline: string;
     solutions: string;
     kollektor: string;
+    hastam: string;
     platform: string;
     method: string;
     about: string;

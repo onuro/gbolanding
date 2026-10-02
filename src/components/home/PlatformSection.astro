@@ -3,6 +3,7 @@ import BlinkText from "@/components/BlinkText";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
 import DotIllo from "@/components/illos/DotIllo.astro";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
 import type { DotIlloName } from "@/components/illos/dot-illos";
 
 interface Props {
@@ -27,30 +28,17 @@ const illos: DotIlloName[] = [
   id="platform"
   aria-labelledby="platform-heading"
   data-reveal-root
-  class="scroll-mt-20 border-b border-border bg-background"
+  class="bg-background"
 >
-  <div class="mx-auto w-full max-w-[83.75rem] border-x border-border">
-    <header data-reveal class="grid border-b border-border lg:grid-cols-12">
-      <div class="px-6 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12 lg:py-16">
-        <p class="eyebrow">
-          <span class="eyebrow-mark" aria-hidden="true"></span>
-          {messages.platform.eyebrow}
-        </p>
-        <h2
-          id="platform-heading"
-          class="mt-5 max-w-3xl text-balance text-title-h2 text-foreground"
-        >
-          <BlinkText client:visible text={messages.platform.title} />
-        </h2>
-      </div>
-      <div
-        class="flex items-end border-t border-border px-6 py-10 sm:px-8 sm:py-14 lg:col-span-5 lg:border-t-0 lg:border-l lg:px-10 lg:py-16"
-      >
-        <p class="max-w-lg text-pretty text-paragraph-md text-muted-foreground">
-          {messages.platform.description}
-        </p>
-      </div>
-    </header>
+  <div class="frame border-b border-border">
+    <SectionHeader
+      eyebrow={messages.platform.eyebrow}
+      lead={messages.platform.description}
+      headingId="platform-heading"
+      reveal="header"
+    >
+      <BlinkText client:visible text={messages.platform.title} />
+    </SectionHeader>
 
     <ul class="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
       {

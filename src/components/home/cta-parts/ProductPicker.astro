@@ -17,11 +17,21 @@ import type { Locale } from "@/i18n/config";
  * page preselect a pill before the page scrolls to the form.
  */
 
+type Product = "kollektor" | "intelval" | "hastam" | "custom";
+
 interface Props {
   locale: Locale;
+  /** Pill that is picked from first HTML. The script's sync() shows its note. */
+  defaultProduct?: Product;
+  /**
+   * Replaces a product's one-line note. A product page passes its own wording
+   * here, so the form under it cannot say more than the page above it does.
+   * Without it every note is the home page's.
+   */
+  notes?: Partial<Record<Product, string>>;
 }
 
-const { locale } = Astro.props;
+const { locale, defaultProduct, notes } = Astro.props;
 
 const ui =
   locale === "tr"
@@ -54,12 +64,14 @@ const ui =
           "We learn how your work runs, then design, connect and build the right AI tool.",
       };
 
-const options = [
-  { value: "kollektor", label: "Kollektor", note: ui.kollektor, Icon: PhoneCall },
-  { value: "intelval", label: "Intelval", note: ui.intelval, Icon: FileSearch },
-  { value: "hastam", label: "Hastam", note: ui.hastam, Icon: Stethoscope },
-  { value: "custom", label: ui.customLabel, note: ui.custom, Icon: Blocks },
-];
+const options = (
+  [
+    { value: "kollektor", label: "Kollektor", note: ui.kollektor, Icon: PhoneCall },
+    { value: "intelval", label: "Intelval", note: ui.intelval, Icon: FileSearch },
+    { value: "hastam", label: "Hastam", note: ui.hastam, Icon: Stethoscope },
+    { value: "custom", label: ui.customLabel, note: ui.custom, Icon: Blocks },
+  ] as const
+).map((option) => ({ ...option, note: notes?.[option.value] ?? option.note }));
 
 const pillClass = [
   "inline-flex select-none items-center rounded-full border border-border bg-background px-3 py-1.5 text-label-xs text-muted-foreground",
@@ -78,7 +90,7 @@ const noteClass =
     class="float-left mb-3 flex w-full flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5"
   >
     <span class="text-label-sm text-foreground">{ui.legend}</span>
-    <span class="text-caption text-tertiary-foreground">{ui.optional}</span>
+    <span class="text-paragraph-xs text-tertiary-foreground">{ui.optional}</span>
   </legend>
 
   <div class="clear-both flex flex-wrap gap-2">
@@ -89,6 +101,7 @@ const noteClass =
             type="radio"
             name="interest"
             value={value}
+            checked={value === defaultProduct}
             class="peer sr-only"
             data-cta-product
           />

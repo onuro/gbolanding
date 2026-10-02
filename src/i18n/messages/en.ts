@@ -1,4 +1,6 @@
 import type { Messages } from "@/i18n/types";
+import hastamPage from "@/i18n/messages/hastam-page.en";
+import kollektorPage from "@/i18n/messages/kollektor-page.en";
 
 const enMessages: Messages = {
   metadata: {
@@ -36,9 +38,12 @@ const enMessages: Messages = {
       products: "Kollektor, Intelval, Hastam",
     },
   },
+  kollektorPage,
+  hastamPage,
   nav: {
     solutions: "Solutions",
     kollektor: "Kollektor",
+    hastam: "Hastam",
     method: "How we work",
     about: "About",
     languageLabel: "Language",
@@ -93,6 +98,7 @@ const enMessages: Messages = {
         "$25K recovered",
       ],
       cta: "See how Kollektor works",
+      pageCta: "Go to the Kollektor page",
     },
     intelval: {
       eyebrow: "Valuation intelligence",
@@ -135,6 +141,7 @@ const enMessages: Messages = {
         },
       ],
       cta: "Schedule a Hastam demo",
+      pageCta: "Go to the Hastam page",
     },
     enterprise: {
       eyebrow: "Custom AI and software",
@@ -454,10 +461,25 @@ const enMessages: Messages = {
     primaryCta: "Schedule a demo",
     secondaryCta: "Explore solutions",
   },
+  productCta: {
+    kollektor: {
+      title: "See Kollektor in a demo.",
+      description:
+        "Tell us how your collection work runs today. We’ll show you a practical next step.",
+    },
+    hastam: {
+      title: "See Hastam in a demo.",
+      description:
+        "Tell us how your clinic handles its phone today. We’ll show you a practical next step.",
+    },
+    secondaryCta: "See the other solutions",
+    kollektorNote: "Calls the debtor, confirms the promise to pay and records it.",
+  },
   footer: {
     tagline: "AI and software, built for your business.",
     solutions: "Solutions",
     kollektor: "Kollektor",
+    hastam: "Hastam",
     platform: "Platform",
     method: "How we work",
     about: "About",

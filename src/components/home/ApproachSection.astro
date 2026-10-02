@@ -4,6 +4,7 @@ import { Blocks, Pause, Play, Plug, RefreshCw, Search } from "lucide-react";
 
 import worktableImage from "@/assets/editorial/collaborative-worktable.png";
 import BlinkText from "@/components/BlinkText";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
 import DeliveryPlanCard from "./approach-parts/DeliveryPlanCard.astro";
@@ -48,43 +49,24 @@ const ui =
 <section
   id="method"
   aria-labelledby="method-heading"
-  class="scroll-mt-20 border-b border-border bg-background"
+  class="bg-background"
   data-reveal-root
 >
-  <div class="mx-auto w-full max-w-[83.75rem] border-x border-border">
-    <header class="grid border-b border-border lg:grid-cols-12">
-      <div class="px-6 py-10 sm:px-8 sm:py-14 lg:col-span-8 lg:px-12 lg:py-16">
-        <div data-reveal>
-          <p class="eyebrow">
-            <span class="eyebrow-mark" aria-hidden="true"></span>
-            {messages.approach.eyebrow}
-          </p>
-          <h2
-            id="method-heading"
-            class="mt-5 max-w-3xl text-balance text-title-h2 text-foreground"
-          >
-            <BlinkText client:visible text={messages.approach.title} />
-          </h2>
-        </div>
-      </div>
-
-      <div
-        class="flex items-end border-t border-border px-6 py-10 sm:px-8 lg:col-span-4 lg:border-t-0 lg:border-l lg:px-10 lg:py-16"
-      >
-        <p
-          class="max-w-md text-pretty text-paragraph-md text-muted-foreground"
-          data-reveal
-        >
-          {messages.approach.description}
-        </p>
-      </div>
-    </header>
+  <div class="frame border-b border-border">
+    <SectionHeader
+      eyebrow={messages.approach.eyebrow}
+      lead={messages.approach.description}
+      headingId="method-heading"
+      reveal="inner"
+    >
+      <BlinkText client:visible text={messages.approach.title} />
+    </SectionHeader>
 
     <div class="grid grid-cols-1 lg:grid-cols-12" data-ap-root style="--ap-hold: 4500ms">
       <div class="lg:col-span-5 lg:border-r lg:border-border">
         <div class="flex h-full flex-col" data-reveal>
           <div
-            class="flex h-11 items-center justify-between gap-4 border-b border-border px-6 sm:px-8 lg:px-10"
+            class="flex h-11 items-center justify-between gap-4 border-b border-border px-5 sm:px-8 lg:px-10"
           >
             <span class="data-label">{ui.process}</span>
             <div class="flex items-center gap-3">
@@ -93,7 +75,7 @@ const ui =
               </span>
               <button
                 type="button"
-                class="grid size-7 cursor-pointer place-items-center rounded-full border border-border text-tertiary-foreground transition-colors duration-200 hover:border-border-strong hover:text-foreground"
+                class="relative grid size-7 cursor-pointer place-items-center rounded-full border border-border text-tertiary-foreground transition-colors duration-200 before:absolute before:-inset-[9px] before:content-[''] hover:border-border-strong hover:text-foreground"
                 aria-label={ui.pause}
                 title={ui.pause}
                 data-label-pause={ui.pause}
@@ -190,7 +172,7 @@ const ui =
             <div aria-hidden="true" class="ap-scrim pointer-events-none absolute inset-0 -z-10"></div>
 
             <div aria-hidden="true" class="hidden items-center justify-between gap-4 sm:flex">
-              <span class="inline-flex items-center gap-2 font-mono text-micro tracking-[0.06em] text-white/70 uppercase">
+              <span class="data-label inline-flex items-center gap-2 text-white/70">
                 <span class="size-1.5 rounded-full bg-brand"></span>
                 {ui.sample}
               </span>
@@ -491,7 +473,7 @@ const ui =
   }
 
   .ap-trigger:focus-visible::after {
-    outline: 2px solid var(--brand);
+    outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
   }
 

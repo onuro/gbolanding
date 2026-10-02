@@ -4,7 +4,7 @@
 // syllable statistics; Turkish is agglutinative, so ~2.7 syllables per word is
 // ordinary rather than hard and FK returns grades that mean nothing. The Turkish
 // instruments are Atesman (1997) and Bezirci-Yilmaz (2010), used here.
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -26,6 +26,24 @@ const TURKISH_VOWELS = new Set("aeıioöuüAEIİOÖUÜ");
 
 const read = (locale) =>
   readFileSync(join(messagesDir, `${locale}.ts`), "utf8");
+
+// Product pages keep their copy in their own files (kollektor-page.tr.ts ...).
+// They are scored together with the main file: one readability bar for the
+// whole site, so a new page cannot hide behind the home page's average.
+const pageFiles = (locale) =>
+  readdirSync(messagesDir)
+    .filter((name) => name.endsWith(`-page.${locale}.ts`))
+    .sort();
+const readPage = (name) => readFileSync(join(messagesDir, name), "utf8");
+const readAll = (locale) =>
+  [read(locale), ...pageFiles(locale).map(readPage)].join("\n");
+
+/** `metaTitle` / `metaDescription` of a product page file. */
+function pageField(source, key) {
+  return source.match(
+    new RegExp(`${key}:\\s*\\n?\\s*"((?:[^"\\\\]|\\\\.)*)"`),
+  )?.[1];
+}
 
 /** Every double-quoted literal that reads as prose rather than a token. */
 function proseStrings(source) {
@@ -132,7 +150,7 @@ console.log("Content audit\n=============\n");
 
 // ---- Turkish readability -----------------------------------------------------
 const trSource = read("tr");
-const trStrings = proseStrings(trSource);
+const trStrings = proseStrings(readAll("tr"));
 const tr = turkishScores(trStrings.join(" "));
 
 console.log("Turkish (Atesman 1997 / Bezirci-Yilmaz 2010; syllables = vowel count, exact)");
@@ -163,7 +181,7 @@ for (const r of trRanked.slice(0, 5)) {
 
 // ---- English readability -----------------------------------------------------
 const enSource = read("en");
-const enStrings = proseStrings(enSource);
+const enStrings = proseStrings(readAll("en"));
 const en = englishScores(enStrings.join(" "));
 
 console.log("\nEnglish (Flesch Reading Ease / Flesch-Kincaid; syllables heuristic, approximate)");
@@ -183,6 +201,19 @@ const pages = [
   { id: "en /en/about", title: field(enSource, "about", "metaTitle"), description: field(enSource, "about", "metaDescription") },
   { id: "tr /", title: field(trSource, "metadata", "title"), description: field(trSource, "metadata", "description") },
   { id: "tr /about", title: field(trSource, "about", "metaTitle"), description: field(trSource, "about", "metaDescription") },
+  // One row per product page file, so a new page is audited without editing
+  // this list: forgetting the row used to let its title go unchecked.
+  ...["en", "tr"].flatMap((locale) =>
+    pageFiles(locale).map((name) => {
+      const source = readPage(name);
+      const slug = name.replace(`-page.${locale}.ts`, "");
+      return {
+        id: `${locale} ${locale === "en" ? "/en" : ""}/${slug}`,
+        title: pageField(source, "metaTitle"),
+        description: pageField(source, "metaDescription"),
+      };
+    }),
+  ),
 ];
 
 console.log("\nMetadata");
@@ -197,7 +228,7 @@ for (const page of pages) {
   const tOk = page.title.length >= tMin && page.title.length <= tMax;
   const dOk = page.description.length >= dMin && page.description.length <= dMax;
   console.log(
-    `  ${page.id.padEnd(12)} title ${String(page.title.length).padStart(3)} ${tOk ? "ok " : "BAD"}   description ${String(page.description.length).padStart(3)} ${dOk ? "ok" : "BAD"}`,
+    `  ${page.id.padEnd(16)} title ${String(page.title.length).padStart(3)} ${tOk ? "ok " : "BAD"}   description ${String(page.description.length).padStart(3)} ${dOk ? "ok" : "BAD"}`,
   );
   if (!tOk) fail(`${page.id}: title is ${page.title.length} chars, want ${tMin}-${tMax}`);
   if (!dOk) fail(`${page.id}: description is ${page.description.length} chars, want ${dMin}-${dMax}`);

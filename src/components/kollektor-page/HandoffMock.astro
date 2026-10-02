@@ -1,0 +1,50 @@
+---
+// A team member's screen while Kollektor rings them: who is on the line, the
+// last two lines of the call and the button that takes it over. A still: the
+// dot beside "ringing" does not pulse, because nothing below the hero moves
+// on this page unless the visitor presses play on the sample call.
+import type { Locale } from "@/i18n/config";
+import type { KollektorPageMessages } from "@/i18n/page-types/kollektor";
+import MockWindow from "./MockWindow.astro";
+
+interface Props {
+  locale: Locale;
+  copy: KollektorPageMessages["handoff"]["mock"];
+}
+
+const { locale, copy } = Astro.props;
+---
+
+<MockWindow locale={locale} owner={copy.owner} title={copy.window} class="max-w-[26rem]">
+  <Fragment slot="meta">
+    <span class="size-1.5 shrink-0 rounded-full bg-attention" aria-hidden="true"></span>
+    <span class="truncate text-attention-ink">{copy.ringing}</span>
+  </Fragment>
+
+  <div class="px-3 pt-4 pb-3.5 @2xs:px-4">
+    <p class="text-paragraph-sm text-foreground">{copy.name}</p>
+    <p class="mt-1 data-label">{copy.meta}</p>
+
+    <ul class="mt-3.5 flex flex-col gap-2 border-t border-border pt-3.5">
+      {
+        copy.lines.map((line) => (
+          <li class="grid grid-cols-[4.75rem_minmax(0,1fr)] items-baseline gap-2">
+            <span class="data-label truncate">{line.who}</span>
+            <span class="text-paragraph-sm text-foreground">{line.text}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <div
+    class="flex items-center justify-between gap-3 border-t border-border bg-foreground/[0.02] px-3 py-2.5 @2xs:px-4"
+  >
+    <span class="min-w-0 data-label">{copy.foot}</span>
+    <span
+      class="inline-flex h-8 shrink-0 items-center rounded-full bg-foreground px-4 text-label-xs text-background"
+    >
+      {copy.take}
+    </span>
+  </div>
+</MockWindow>

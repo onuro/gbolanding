@@ -1,0 +1,57 @@
+---
+// One reminder call that nobody answers, as the product retries it: now,
+// after 10 minutes, after 4 hours, three attempts in all. Those intervals are
+// the product's defaults (hastam-app, call-types.ts); the clock times are
+// sample data. Static: it shows the finished ladder.
+import SampleTag from "@/components/product/SampleTag.astro";
+import type { Locale } from "@/i18n/config";
+import type { HastamOutboundMockCopy } from "@/i18n/page-types/hastam";
+
+interface Props {
+  locale: Locale;
+  copy: HastamOutboundMockCopy["ladder"];
+}
+
+const { locale, copy } = Astro.props;
+---
+
+<div class="flex min-h-[13.5rem] w-full flex-col">
+  <div class="flex items-center justify-between gap-3">
+    <span class="data-label">{copy.label}</span>
+    <SampleTag locale={locale} />
+  </div>
+  <ol class="mt-4 flex flex-1 flex-col justify-center gap-1.5">
+    {
+      copy.attempts.map((attempt, index) => (
+        <>
+          {index > 0 && (
+            <li class="flex items-center gap-3">
+              <span class="h-px flex-1 bg-border-strong" aria-hidden="true" />
+              <span class="data-label tabular-nums">{copy.gaps[index - 1]}</span>
+              <span class="h-px flex-1 bg-border-strong" aria-hidden="true" />
+            </li>
+          )}
+          <li class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-tile border border-border bg-background px-3 py-2">
+            <span class="flex items-baseline gap-2">
+              <span class="text-paragraph-sm whitespace-nowrap text-foreground">
+                {attempt.label}
+              </span>
+              <span class="data-label tabular-nums">{attempt.time}</span>
+            </span>
+            {/* A dot and a word, not a pill: three pills do not fit the
+                narrow cell this picture gets at tablet width. */}
+            <span
+              class:list={[
+                "flex items-center gap-1.5 text-label-xs whitespace-nowrap",
+                attempt.tone === "ok" ? "text-brand" : "text-muted-foreground",
+              ]}
+            >
+              <span class="size-1.5 rounded-full bg-current" aria-hidden="true" />
+              {attempt.result}
+            </span>
+          </li>
+        </>
+      ))
+    }
+  </ol>
+</div>

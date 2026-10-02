@@ -1,0 +1,124 @@
+---
+// Three facts side by side on hairlines. Each cell may carry a small picture of
+// the mechanism in a quiet tray (slot "cell-0", "cell-1", ...); the text sits
+// on the page under it. Titles are facts a visitor can check, never badges.
+//
+// The cells go side by side from lg only: at md a cell was about 200px, too
+// narrow for its picture. With pictures, every cell spans the same two rows
+// (tray, text), so the trays share one height and the numbers under them start
+// on one line even when one picture is taller.
+import type { RowCopy } from "@/i18n/page-types/shared";
+
+interface Props {
+  items: readonly RowCopy[];
+  class?: string;
+}
+
+const { items, class: className } = Astro.props;
+const hasPictures = items.some((_, index) => Astro.slots.has(`cell-${index}`));
+---
+
+<ul
+  class:list={[
+    "fact-cells grid gap-px border-y border-border bg-border lg:grid-cols-3",
+    className,
+  ]}
+>
+  {
+    items.map((item, index) => (
+      <li
+        class:list={[
+          "fact-cell bg-background",
+          hasPictures
+            ? "row-span-2 grid grid-rows-subgrid gap-0"
+            : "flex flex-col",
+        ]}
+      >
+        {Astro.slots.has(`cell-${index}`) && (
+          <div class="fact-tray stage-soft flex min-h-[13rem] items-center justify-center rounded-card p-5">
+            <slot name={`cell-${index}`} />
+          </div>
+        )}
+        <div
+          class:list={["fact-text py-8", hasPictures && "row-start-2"]}
+          data-reveal
+        >
+          <span class="data-label tabular-nums" aria-hidden="true">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <h3 class="mt-5 text-title-h5 text-foreground">{item.title}</h3>
+          <p class="mt-3 max-w-sm text-pretty text-paragraph-sm text-muted-foreground">
+            {item.description}
+          </p>
+        </div>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  /* The text must start where the section heading starts. Chapter says which
+     of two cases this is (data-chapter-body); the two rule sets never match
+     the same element, so neither has to out-rank the other.
+
+     Outside a chapter, and in a flush one, nothing around the cells gives a
+     gutter: they run rail to rail and take the heading's own (20 / 32 / 48). */
+  .fact-tray {
+    margin: 0.75rem 0.75rem 0;
+  }
+
+  .fact-text {
+    padding-inline: 1.25rem;
+  }
+
+  @media (width >= 40rem) {
+    .fact-text {
+      padding-inline: 2rem;
+    }
+  }
+
+  @media (width >= 64rem) {
+    :global([data-chapter-body="flush"]) .fact-text {
+      padding-inline: 3rem;
+    }
+  }
+
+  /* A padded chapter already gave the gutter. The outer edges sit flush with
+     the heading; only the hairlines between cells keep air on both sides.
+     Without this the text sat 32px to the right of the heading above it.
+     The edges are counted in threes, not first and last: six facts make two
+     rows, and the fourth starts a row just as the first does. */
+  :global([data-chapter-body="padded"]) .fact-tray {
+    margin-inline: 0;
+  }
+
+  :global([data-chapter-body="padded"]) .fact-text {
+    padding-inline: 0;
+  }
+
+  @media (width >= 64rem) {
+    :global([data-chapter-body="padded"]) .fact-tray {
+      margin-inline: 0.75rem;
+    }
+
+    :global([data-chapter-body="padded"]) .fact-text {
+      padding-inline: 2rem;
+    }
+
+    :global([data-chapter-body="padded"]) .fact-cell:nth-child(3n + 1) .fact-tray {
+      margin-left: 0;
+    }
+
+    :global([data-chapter-body="padded"]) .fact-cell:nth-child(3n + 1) .fact-text {
+      padding-left: 0;
+    }
+
+    :global([data-chapter-body="padded"]) .fact-cell:nth-child(3n) .fact-tray {
+      margin-right: 0;
+    }
+
+    :global([data-chapter-body="padded"]) .fact-cell:nth-child(3n) .fact-text {
+      padding-right: 0;
+    }
+  }
+</style>

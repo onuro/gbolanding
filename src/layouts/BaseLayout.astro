@@ -11,9 +11,11 @@ interface Props {
   metadata: PageMetadata;
   /** Page-specific JSON-LD nodes appended to the shared @graph. */
   extraSchema?: Record<string, unknown>[];
+  /** @id of the node this page is mainly about, e.g. a product. */
+  mainEntityId?: string;
 }
 
-const { locale, metadata, extraSchema = [] } = Astro.props;
+const { locale, metadata, extraSchema = [], mainEntityId } = Astro.props;
 const ogLocale = locale === "tr" ? "tr_TR" : "en_US";
 const siteOrigin = new URL(Astro.site ?? Astro.url.origin);
 const canonicalUrl = new URL(metadata.canonicalPath, siteOrigin);
@@ -45,6 +47,7 @@ const schemaGraph = buildGraph({
   title: metadata.title,
   description: metadata.description,
   pageType: metadata.pageType,
+  mainEntityId,
   extraNodes: extraSchema,
 });
 ---

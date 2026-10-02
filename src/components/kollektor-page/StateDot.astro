@@ -1,0 +1,33 @@
+---
+// State inside a mock: a dot and a word, never a coloured bar on the row's
+// edge. done = nothing to do, wait = a person has to act, off = left out.
+interface Props {
+  tone: "done" | "wait" | "off";
+  label: string;
+  class?: string;
+}
+
+const { tone, label, class: className } = Astro.props;
+
+const dot = {
+  done: "bg-brand",
+  wait: "bg-attention",
+  off: "bg-faint-foreground",
+}[tone];
+const text = {
+  done: "text-foreground",
+  wait: "text-attention-ink",
+  off: "text-tertiary-foreground",
+}[tone];
+---
+
+<span
+  class:list={[
+    "inline-flex min-w-0 items-center gap-1.5 text-label-xs",
+    text,
+    className,
+  ]}
+>
+  <span class:list={["size-1.5 shrink-0 rounded-full", dot]} aria-hidden="true"></span>
+  <span class="truncate">{label}</span>
+</span>

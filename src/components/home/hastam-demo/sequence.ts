@@ -94,6 +94,10 @@ export function initHastamDemo(root: HTMLElement) {
   root.dataset.hdInit = "";
 
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  // Replay-only (HastamDemo's `replayOnly`, used on /hastam): the finished
+  // call stays on screen and the timeline runs once per press of the button,
+  // never by itself. Without the attribute nothing below changes.
+  const manual = root.dataset.hdManual !== undefined;
   const toggle = root.querySelector<HTMLButtonElement>("[data-hd-toggle]");
   const stage = root.querySelector<HTMLElement>("[data-hd-stage]") ?? root;
 
@@ -471,7 +475,10 @@ export function initHastamDemo(root: HTMLElement) {
   let holding = false;
   let started = false;
   let visible = false;
-  let userPaused = false;
+  let userPaused = manual;
+  // Replay-only: the call is showing its last frame, so the next play starts
+  // from the top.
+  let atEnd = manual;
   // Set when the stage collapsed (its tab panel was hidden): the next run
   // starts from the top instead of resuming mid-call.
   let rewind = false;
@@ -488,6 +495,14 @@ export function initHastamDemo(root: HTMLElement) {
     onUpdate: (self) => paint(self.currentTime),
     onComplete: () => {
       paint(total);
+      if (manual) {
+        // No loop: the finished call stays and the button offers it again.
+        atEnd = true;
+        userPaused = true;
+        renderToggle();
+        sync();
+        return;
+      }
       holding = true;
       holdTimer = window.setTimeout(() => {
         holdTimer = 0;
@@ -584,6 +599,13 @@ export function initHastamDemo(root: HTMLElement) {
       return;
     }
     if (holding) return;
+    if (atEnd) {
+      atEnd = false;
+      started = true;
+      rewind = false;
+      replay();
+      return;
+    }
     if (!started) {
       started = true;
       rewind = false;
@@ -600,10 +622,12 @@ export function initHastamDemo(root: HTMLElement) {
 
   const renderToggle = () => {
     if (!toggle) return;
-    toggle.setAttribute(
-      "aria-label",
-      (userPaused ? toggle.dataset.labelPlay : toggle.dataset.labelPause) ?? "",
-    );
+    const label = (userPaused ? toggle.dataset.labelPlay : toggle.dataset.labelPause) ?? "";
+    // The replay-only button carries its label as visible text and is named
+    // by it; the round icon button has no text and needs aria-label.
+    const text = toggle.querySelector<HTMLElement>("[data-hd-toggle-text]");
+    if (text) text.textContent = label;
+    else toggle.setAttribute("aria-label", label);
     toggle.dataset.state = userPaused ? "paused" : "playing";
   };
 
@@ -618,7 +642,14 @@ export function initHastamDemo(root: HTMLElement) {
   }
 
   root.toggleAttribute("data-hd-paused", true);
-  paint(0);
+  if (manual) {
+    // The opening state set above is the timeline's starting frame; put the
+    // finished call back before the browser paints it.
+    tl.seek(total, true);
+    paint(total);
+  } else {
+    paint(0);
+  }
   root.removeAttribute("data-hd-boot");
 
   const setVisible = (next: boolean) => {

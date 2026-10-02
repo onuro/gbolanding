@@ -1,5 +1,6 @@
 import { brand } from "@/lib/brand";
-import { locales, type Locale } from "@/i18n/config";
+import { defaultLocale, locales, type Locale } from "@/i18n/config";
+import { pathFor } from "@/i18n/routes";
 import type { Messages } from "@/i18n/types";
 
 type Node = Record<string, unknown>;
@@ -88,6 +89,11 @@ export interface PageSchemaInput {
   title: string;
   description: string;
   pageType: "WebPage" | "AboutPage";
+  /**
+   * The @id of the thing this page is about, when it is not the organisation.
+   * A product page names its SoftwareApplication node here.
+   */
+  mainEntityId?: string;
   extraNodes?: Node[];
 }
 
@@ -99,6 +105,7 @@ export function buildGraph({
   title,
   description,
   pageType,
+  mainEntityId,
   extraNodes = [],
 }: PageSchemaInput) {
   const page = prune({
@@ -114,7 +121,11 @@ export function buildGraph({
     // *is* the organisation, which is the clearest claim schema.org offers that
     // a URL and an entity belong to each other.
     mainEntity:
-      pageType === "AboutPage" ? { "@id": organizationId(origin) } : undefined,
+      pageType === "AboutPage"
+        ? { "@id": organizationId(origin) }
+        : mainEntityId
+          ? { "@id": mainEntityId }
+          : undefined,
   });
 
   return {
@@ -128,39 +139,82 @@ export function buildGraph({
   };
 }
 
+export type ProductSlug = "kollektor" | "intelval" | "hastam";
+
+// Keyed on the product, not on the URL it happens to live at: the same @id is
+// used on the home page and on the product's own page, so both describe one
+// entity instead of two look-alikes.
+export const productId = (origin: URL | string, slug: ProductSlug) =>
+  new URL(`/#app-${slug}`, origin).href;
+
+/** Where each product is presented. Intelval has no page of its own yet. */
+function productPath(slug: ProductSlug, locale: Locale) {
+  if (slug === "intelval") return `${pathFor("home", locale)}#solutions`;
+  return pathFor(slug, locale);
+}
+
 /**
- * The products shown on the homepage. `solutions.enterprise` describes how the company
- * delivers work, not a piece of software, so it gets no node here.
+ * One product as a SoftwareApplication node.
  *
  * No offers/aggregateRating/review: there are no public prices and no collected
  * reviews, and inventing either is what earns a manual action. These nodes will
  * not produce a rich result -- they exist to thicken the entity graph around the
  * brand name, nothing more.
  */
-export function buildProductNodes(origin: URL, messages: Messages): Node[] {
-  const { kollektor, intelval, hastam } = messages.solutions;
+export function buildProductNode(
+  origin: URL,
+  messages: Messages,
+  slug: ProductSlug,
+  locale: Locale = defaultLocale,
+  extra: Node = {},
+): Node {
+  const solution = messages.solutions[slug];
 
-  return [
-    // The @id is keyed on the product, not on the anchor it happens to link to:
-    // Intelval lives inside the #solutions grid, so deriving the id from the
-    // anchor would name it "#app-solutions" and it would stop being a stable
-    // identifier the moment the section were renamed.
-    { solution: kollektor, slug: "kollektor", anchor: "/#kollektor" },
-    { solution: intelval, slug: "intelval", anchor: "/#solutions" },
-    { solution: hastam, slug: "hastam", anchor: "/#hastam" },
-  ].map(({ solution, slug, anchor }) =>
-    prune({
-      "@type": "SoftwareApplication",
-      "@id": new URL(`/#app-${slug}`, origin).href,
-      name: solution.title,
-      description: solution.description,
-      applicationCategory: "BusinessApplication",
-      operatingSystem: "Web",
-      url: new URL(anchor, origin).href,
-      provider: { "@id": organizationId(origin) },
-      publisher: { "@id": organizationId(origin) },
-      featureList: [...solution.highlights],
-      inLanguage: [...locales],
-    }),
+  return prune({
+    "@type": "SoftwareApplication",
+    "@id": productId(origin, slug),
+    name: solution.title,
+    description: solution.description,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: new URL(productPath(slug, locale), origin).href,
+    provider: { "@id": organizationId(origin) },
+    publisher: { "@id": organizationId(origin) },
+    featureList: [...solution.highlights],
+    inLanguage: [...locales],
+    ...extra,
+  });
+}
+
+/**
+ * The products shown on the homepage. `solutions.enterprise` describes how the company
+ * delivers work, not a piece of software, so it gets no node here.
+ */
+export function buildProductNodes(
+  origin: URL,
+  messages: Messages,
+  locale: Locale = defaultLocale,
+): Node[] {
+  return (["kollektor", "intelval", "hastam"] as const).map((slug) =>
+    buildProductNode(origin, messages, slug, locale),
   );
+}
+
+/**
+ * Mark up only the questions the page actually renders: feed this the same
+ * array the accordion maps over, never a longer or reworded list.
+ */
+export function faqPageNode(
+  canonical: URL,
+  items: readonly { question: string; answer: string }[],
+): Node {
+  return {
+    "@type": "FAQPage",
+    "@id": `${canonical.href}#faq`,
+    mainEntity: items.map(({ question, answer }) => ({
+      "@type": "Question",
+      name: question,
+      acceptedAnswer: { "@type": "Answer", text: answer },
+    })),
+  };
 }

@@ -24,10 +24,27 @@ const aboutHref = pathFor("about", locale);
 // Anchored to the home page rather than left as bare fragments: the same header
 // renders on /about, where "#solutions" would point at a section that is not on
 // the page. On the home page these still resolve to a same-page jump.
+// The two product pages only join the bar from lg: at md five cells crowd the
+// language switch. The mobile menu lists everything.
+// A label never wraps, and the cells are 8px narrower below lg: at 768 the
+// English "How we work" broke into two lines and the Turkish demo button ran
+// 1px past the frame.
 const navItems = [
   { href: `${homeHref}#solutions`, label: messages.nav.solutions },
+  {
+    href: pathFor("kollektor", locale),
+    label: messages.nav.kollektor,
+    page: "kollektor",
+    wideOnly: true,
+  },
+  {
+    href: pathFor("hastam", locale),
+    label: messages.nav.hastam,
+    page: "hastam",
+    wideOnly: true,
+  },
   { href: `${homeHref}#method`, label: messages.nav.method },
-  { href: aboutHref, label: messages.nav.about },
+  { href: aboutHref, label: messages.nav.about, page: "about" },
 ];
 ---
 
@@ -35,7 +52,7 @@ const navItems = [
   class="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl"
 >
   <div
-    class="mx-auto flex h-16 w-full max-w-[83.75rem] items-stretch border-x border-border"
+    class="frame flex h-16 items-stretch"
   >
     <a
       href={homeHref}
@@ -59,10 +76,14 @@ const navItems = [
         navItems.map((item) => (
           <a
             href={item.href}
-            class="group relative flex items-center border-r border-border px-4 text-label-sm text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:bg-foreground/[0.06] focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset lg:px-5"
+            aria-current={item.page === currentPage ? "page" : undefined}
+            class:list={[
+              "group relative items-center border-r border-border px-3 text-label-sm whitespace-nowrap text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:bg-foreground/[0.06] focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset aria-[current=page]:text-foreground lg:px-5",
+              item.wideOnly ? "hidden lg:flex" : "flex",
+            ]}
           >
             {item.label}
-            <span class="absolute inset-x-4 bottom-0 h-px origin-left scale-x-0 bg-brand transition-transform group-hover:scale-x-100 group-focus-visible:scale-x-100 lg:inset-x-5" />
+            <span class="absolute inset-x-3 bottom-0 h-px origin-left scale-x-0 bg-brand transition-transform group-hover:scale-x-100 group-focus-visible:scale-x-100 group-aria-[current=page]:scale-x-100 lg:inset-x-5" />
           </a>
         ))
       }
@@ -81,7 +102,7 @@ const navItems = [
           lang="en"
           aria-current={locale === "en" ? "page" : undefined}
           class:list={[
-            "rounded-full px-2.5 py-1.5 text-label-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+            "relative rounded-full px-2.5 py-1.5 text-label-xs outline-none transition-colors before:absolute before:-inset-x-0.5 before:-inset-y-2 before:content-[''] focus-visible:ring-2 focus-visible:ring-brand",
             locale === "en"
               ? "bg-foreground/[0.07] text-foreground"
               : "text-muted-foreground hover:text-foreground",
@@ -95,7 +116,7 @@ const navItems = [
           lang="tr"
           aria-current={locale === "tr" ? "page" : undefined}
           class:list={[
-            "rounded-full px-2.5 py-1.5 text-label-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+            "relative rounded-full px-2.5 py-1.5 text-label-xs outline-none transition-colors before:absolute before:-inset-x-0.5 before:-inset-y-2 before:content-[''] focus-visible:ring-2 focus-visible:ring-brand",
             locale === "tr"
               ? "bg-foreground/[0.07] text-foreground"
               : "text-muted-foreground hover:text-foreground",
@@ -142,7 +163,8 @@ const navItems = [
               navItems.map((item) => (
                 <a
                   href={item.href}
-                  class="border-b border-border px-5 py-4 text-label-sm text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:bg-foreground/[0.06] focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
+                  aria-current={item.page === currentPage ? "page" : undefined}
+                  class="border-b border-border px-5 py-4 text-label-sm text-muted-foreground aria-[current=page]:text-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:bg-foreground/[0.06] focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
                 >
                   {item.label}
                 </a>
@@ -164,7 +186,7 @@ const navItems = [
                 lang="en"
                 aria-current={locale === "en" ? "page" : undefined}
                 class:list={[
-                  "rounded-full px-2.5 py-1.5 text-label-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+                  "relative rounded-full px-2.5 py-1.5 text-label-xs outline-none transition-colors before:absolute before:-inset-x-0.5 before:-inset-y-2 before:content-[''] focus-visible:ring-2 focus-visible:ring-brand",
                   locale === "en"
                     ? "bg-foreground/[0.07] text-foreground"
                     : "text-muted-foreground hover:text-foreground",
@@ -178,7 +200,7 @@ const navItems = [
                 lang="tr"
                 aria-current={locale === "tr" ? "page" : undefined}
                 class:list={[
-                  "rounded-full px-2.5 py-1.5 text-label-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
+                  "relative rounded-full px-2.5 py-1.5 text-label-xs outline-none transition-colors before:absolute before:-inset-x-0.5 before:-inset-y-2 before:content-[''] focus-visible:ring-2 focus-visible:ring-brand",
                   locale === "tr"
                     ? "bg-foreground/[0.07] text-foreground"
                     : "text-muted-foreground hover:text-foreground",

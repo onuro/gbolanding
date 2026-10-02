@@ -26,13 +26,44 @@ import StatusPill from "@/components/ui/StatusPill.astro";
 import type { Locale } from "@/i18n/config";
 import { getMessages } from "@/i18n/getMessages";
 
+interface ProofItem {
+  value: string;
+  caption: string;
+}
+
 interface Props {
   locale: Locale;
   /** Inside the ProductDemos tabs: no frame of its own, and an h3 under its h2. */
   embedded?: boolean;
+  /**
+   * Replaces the three figures under the stage. Left out, the home page keeps
+   * its own row; the product page passes facts instead, so the home page's
+   * numbers are not published a second time on another URL.
+   */
+  proof?: readonly ProofItem[];
+  /**
+   * false shows one recording instead of two channels: the "L" / "R" chips go
+   * and the receipt says "recording", not "stereo recording". The product
+   * records one channel; the default keeps what the home page shows today.
+   */
+  stereo?: boolean;
+  /**
+   * Show the finished call and play it only when the visitor presses the
+   * button; the two strings are the button's label while it waits and while
+   * the call plays. A product page lets nothing below its hero start by
+   * itself: a call that plays and loops there competes with the copy. Left
+   * out, the home page keeps its self-playing loop and its round icon button.
+   */
+  replay?: { play: string; pause: string };
 }
 
-const { locale, embedded = false } = Astro.props;
+const {
+  locale,
+  embedded = false,
+  proof: pageProof,
+  stereo = true,
+  replay,
+} = Astro.props;
 const Root = embedded ? "div" : "section";
 const Heading = embedded ? "h3" : "h2";
 const messages = await getMessages(locale);
@@ -147,6 +178,7 @@ const ui = isTr
           { when: "Cuma · kalan", amount: money(6250) },
         ],
         note: "Stereo kayıt + transkript",
+        noteMono: "Kayıt + transkript",
       },
       phone: {
         caller: "•••• Hukuk Bürosu",
@@ -227,6 +259,7 @@ const ui = isTr
           { when: "Friday · balance", amount: money(6250) },
         ],
         note: "Stereo recording + transcript",
+        noteMono: "Recording + transcript",
       },
       phone: {
         caller: "•••• Law Office",
@@ -293,16 +326,22 @@ const receipt = {
   status: ui.receipt.status,
   schedule: ui.receipt.schedule,
   id: "call_1911_7f3a",
-  note: ui.receipt.note,
+  note: stereo ? ui.receipt.note : ui.receipt.noteMono,
 };
 
 const recovered = messages.industries.items[0].stats[1];
 const kvkk = messages.kollektorDeep.guardrails.items[0];
-const proof = [
+const proof: readonly ProofItem[] = pageProof ?? [
   { value: ui.capacityValue, caption: ui.capacityCaption },
   { value: recovered.value, caption: `${recovered.lead} ${recovered.rest}` },
   { value: kvkk.title, caption: ui.kvkkCaption },
 ];
+
+// Play on request: the inline boot script below still flips the root to the
+// dialling phone before paint, so a second script undoes it at once. The boot
+// script itself is left untouched, because the home page ships it as is.
+const keepFinished =
+  '(function(){var r=document.currentScript&&document.currentScript.parentElement;if(!r)return;r.removeAttribute("data-kd-boot");r.setAttribute("data-phase","ended");r.setAttribute("data-speaker","ended");r.setAttribute("data-debtor","rec");r.setAttribute("data-agent","rec");})();';
 ---
 
 <Root
@@ -317,6 +356,7 @@ const proof = [
   data-kd-connect={timing.connect}
   data-kd-end={timing.end}
   data-kd-total={timing.total}
+  data-kd-manual={replay ? "" : undefined}
 >
   <script is:inline>
     (function () {
@@ -339,7 +379,7 @@ const proof = [
         set("ended", "ended", "rec", "rec");
       }, 5000);
     })();
-  </script>
+  </script>{replay && <script is:inline set:html={keepFinished} />}
 
   <Heading id="kollektor-demo-heading" class="sr-only">{ui.heading}</Heading>
 
@@ -349,8 +389,13 @@ const proof = [
       data-kd-stage
     >
       <div class="relative mb-4 flex items-center justify-between gap-3 sm:mb-5">
+        {/* With the labelled play button the row has no room for this label on
+            a phone; the chapter heading above already names the picture. */}
         <p
-          class="inline-flex min-w-0 items-center gap-2 font-mono text-caption font-medium tracking-[0.08em] text-muted-foreground uppercase"
+          class:list={[
+            "inline-flex min-w-0 items-center gap-2 font-mono text-caption font-medium tracking-[0.08em] text-muted-foreground uppercase",
+            replay && "max-sm:hidden",
+          ]}
         >
           <span aria-hidden="true" class="size-1.5 shrink-0 rounded-full bg-brand"></span>
           <span class="truncate">{ui.stageLabel}</span>
@@ -362,22 +407,27 @@ const proof = [
             {ui.sample}
             {ui.translated && <span class="hidden md:inline"> · {ui.translated}</span>}
           </span>
+          {/* One button, two shapes. Play on request: a labelled pill that is
+              named by its text. Otherwise the home page's round icon button,
+              rendered exactly as before. */}
           <button
             type="button"
             hidden
             data-kd-toggle
-            data-state="playing"
-            data-label-pause={ui.pause}
-            data-label-play={ui.play}
-            aria-label={ui.pause}
-            class="grid size-7 shrink-0 cursor-pointer place-items-center rounded-full border border-border-strong bg-background/70 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+            data-state={replay ? "paused" : "playing"}
+            data-label-pause={replay?.pause ?? ui.pause}
+            data-label-play={replay?.play ?? ui.play}
+            aria-label={replay ? undefined : ui.pause}
+            class={replay
+              ? "button button-sm button-secondary shrink-0 cursor-pointer"
+              : "grid size-7 shrink-0 cursor-pointer place-items-center rounded-full border border-border-strong bg-background/70 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"}
           >
             <span data-kd-icon="pause" aria-hidden="true" class="grid place-items-center">
               <Pause className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
             </span>
             <span data-kd-icon="play" aria-hidden="true" class="grid place-items-center">
               <Play className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
-            </span>
+            </span>{replay && <span data-kd-toggle-text>{replay.play}</span>}
           </button>
         </div>
       </div>
@@ -458,12 +508,20 @@ const proof = [
                   <div class="flex items-center gap-3">
                     <div class="w-28 shrink-0">
                       <p class="flex items-center gap-1.5 text-caption text-foreground">
-                        <span class="grid size-4 shrink-0 place-items-center rounded-chip border border-border font-mono text-micro leading-none text-tertiary-foreground">
-                          {lane.channel}
-                        </span>
+                        {stereo && (
+                          <span class="grid size-4 shrink-0 place-items-center rounded-chip border border-border font-mono text-micro leading-none text-tertiary-foreground">
+                            {lane.channel}
+                          </span>
+                        )}
                         <span class="truncate">{lane.label}</span>
                       </p>
-                      <p class="mt-0.5 flex h-3.5 items-center pl-[1.375rem] text-micro">
+                      <p
+                        class:list={[
+                          "mt-0.5 flex h-3.5 items-center",
+                          stereo && "pl-[1.375rem]",
+                          "text-micro",
+                        ]}
+                      >
                         {lane.who === "debtor" ? (
                           <>
                             <span data-kd-dstate="off" class="text-faint-foreground">{ui.debtorState.off}</span>
@@ -544,8 +602,14 @@ const proof = [
                       </p>
                       <div
                         class:list={[
-                          "kd-rule relative mt-1 border-l-2 pl-3",
-                          line.who === "agent" ? "border-brand-line" : "border-border-strong",
+                          "kd-rule relative mt-1",
+                          // The product page (replay mode) drops the rule on the
+                          // left of each line: on a page of hairline tables it
+                          // reads as an accent bar. The speaker label already
+                          // says who is talking. The home page keeps it.
+                          !replay && "border-l-2 pl-3",
+                          !replay &&
+                            (line.who === "agent" ? "border-brand-line" : "border-border-strong"),
                         ]}
                       >
                         {line.who === "agent" ? (
@@ -567,7 +631,11 @@ const proof = [
                             </p>
                             <span
                               data-kd-partial
-                              class="kd-partial absolute top-0 left-3 flex items-center gap-1 text-paragraph-xs text-tertiary-foreground sm:max-md:text-paragraph-sm"
+                              class:list={[
+                                "kd-partial absolute top-0",
+                                replay ? "left-0" : "left-3",
+                                "flex items-center gap-1 text-paragraph-xs text-tertiary-foreground sm:max-md:text-paragraph-sm",
+                              ]}
                               style="opacity: 0"
                             >
                               <i />
@@ -778,7 +846,8 @@ const proof = [
   [data-kd-root][data-phase="ring"] [data-kd-cs="ring"],
   [data-kd-root][data-phase="call"] [data-kd-cs="call"],
   [data-kd-root][data-phase="ended"] [data-kd-cs="ended"] {
-    color: var(--brand);
+    /* The ink green: the vivid brand is 2.5:1 as small text on white. */
+    color: var(--brand-ink);
   }
 
   [data-kd-root] [data-kd-cs] .kd-cs-dot {

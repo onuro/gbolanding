@@ -1,0 +1,127 @@
+---
+// One section of a product page. The label sits on the hairline that closes the
+// section above, so the page reads as numbered chapters rather than a stack of
+// identical "eyebrow, heading, grey paragraph" headers. From xl a margin column
+// opens on the left for a short note that says how to read the section.
+//
+// The heading is plain text on purpose: a section title must never wait for a
+// script before it can be read.
+import type { ChapterCopy } from "@/i18n/page-types/shared";
+
+interface Props {
+  /** Anchor id for in-page links. */
+  id?: string;
+  /** Id of the h2, used for aria-labelledby. Must be unique on the page. */
+  headingId: string;
+  copy: ChapterCopy;
+  /** No margin column: for a picture that needs the full width. */
+  wide?: boolean;
+  /** The body brings its own padding (hairline tables, full-bleed mocks). */
+  flush?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  headingId,
+  copy,
+  wide = false,
+  flush = false,
+  class: className,
+} = Astro.props;
+const hasNote = !wide && Boolean(copy.note || copy.noteTitle);
+---
+
+<section
+  id={id}
+  aria-labelledby={headingId}
+  class:list={[
+    "chapter relative mx-auto w-full max-w-[83.75rem] border-x border-b border-border bg-background",
+    className,
+  ]}
+  data-reveal-root
+>
+  <p class="chapter-label eyebrow">
+    <span class="eyebrow-mark" aria-hidden="true"></span>
+    {copy.label}
+  </p>
+
+  <div class:list={["grid", !wide && "xl:grid-cols-12"]}>
+    {
+      !wide && (
+        <aside class="hidden border-r border-border px-12 py-20 xl:col-span-3 xl:block">
+          {hasNote && (
+            <p class="sticky top-24 max-w-[14rem] text-paragraph-xs text-tertiary-foreground">
+              {copy.noteTitle && (
+                <span class="mb-1.5 block text-label-xs text-foreground">
+                  {copy.noteTitle}
+                </span>
+              )}
+              {copy.note}
+            </p>
+          )}
+        </aside>
+      )
+    }
+
+    <div class:list={["min-w-0", !wide && "xl:col-span-9"]}>
+      <header
+        class="grid gap-5 px-5 pt-16 pb-10 sm:px-8 sm:pt-20 lg:grid-cols-12 lg:items-end lg:gap-10 lg:px-12 lg:pb-12"
+        data-reveal
+      >
+        <h2
+          id={headingId}
+          class:list={[
+            "text-balance text-title-h2 text-foreground",
+            copy.lead ? "lg:col-span-7" : "lg:col-span-9",
+          ]}
+        >
+          {copy.title}
+        </h2>
+        {
+          copy.lead && (
+            <p class="max-w-[34rem] text-pretty text-lead text-muted-foreground lg:col-span-5">
+              {copy.lead}
+            </p>
+          )
+        }
+      </header>
+
+      {/* The attribute tells a block inside whether the chapter already gave
+          it the heading's gutter (FactCells lines its text up from it). */}
+      <div
+        class:list={[!flush && "px-5 pb-16 sm:px-8 sm:pb-20 lg:px-12"]}
+        data-chapter-body={flush ? "flush" : "padded"}
+      >
+        <slot />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Centred on the section's top edge, which is the bottom rule of the section
+     above. The background cuts the hairline behind the text. */
+  .chapter-label {
+    position: absolute;
+    top: 0;
+    left: calc(1.25rem - 0.625rem);
+    z-index: 2;
+    translate: 0 -50%;
+    padding-inline: 0.625rem;
+    background: var(--background);
+    white-space: nowrap;
+  }
+
+  @media (width >= 40rem) {
+    .chapter-label {
+      left: calc(2rem - 0.625rem);
+    }
+  }
+
+  @media (width >= 64rem) {
+    .chapter-label {
+      left: calc(3rem - 0.625rem);
+    }
+  }
+</style>

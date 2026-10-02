@@ -1,0 +1,112 @@
+---
+// Your team's screen at step two of a new call group: the uploaded list as a
+// table, one row that needs a phone number and one row left out. A still: it
+// shows the finished review, nothing in it moves.
+import { Check } from "lucide-react";
+import type { Locale } from "@/i18n/config";
+import type { KollektorPageMessages } from "@/i18n/page-types/kollektor";
+import MockWindow from "./MockWindow.astro";
+import StateDot from "./StateDot.astro";
+
+interface Props {
+  locale: Locale;
+  copy: KollektorPageMessages["start"]["mock"];
+}
+
+const { locale, copy } = Astro.props;
+// The review is the step in progress: the first is done, the third waits.
+const CURRENT = 1;
+// The phone column only fits from a 32rem window; below that the name, the
+// debt and the row state stay.
+//
+// Every row is a subgrid of one table grid. Below 32rem the debt and the state
+// are only as wide as their longest value and the name is never narrower than
+// its text: with fixed widths a 360px phone cut every name to three letters
+// and a 320px one left the name column 2px wide. The tighter gap below 18rem
+// is what lets all three fit on that 320px phone.
+const table =
+  "grid grid-cols-[minmax(max-content,1fr)_auto_auto] gap-x-2 @2xs:gap-x-3 @lg:grid-cols-[minmax(0,1fr)_8.5rem_5.5rem_7.5rem] @lg:gap-x-6";
+const row = "col-span-full grid grid-cols-subgrid items-center px-3 @2xs:px-4";
+---
+
+<MockWindow locale={locale} owner={copy.owner} title={copy.window} meta={copy.file} class="max-w-[42rem]">
+  <ol class="flex items-center gap-2 border-b border-border px-3 py-3 @2xs:px-4">
+    {
+      copy.steps.map((step, index) => (
+        <>
+          {index > 0 && <li class="h-px min-w-2 flex-1 bg-border" aria-hidden="true" />}
+          <li
+            class:list={[
+              "flex shrink-0 items-center gap-2 text-label-xs",
+              index === CURRENT ? "text-foreground" : "text-tertiary-foreground",
+            ]}
+          >
+            <span
+              class:list={[
+                "data-label grid size-5 shrink-0 place-items-center rounded-full tabular-nums",
+                index < CURRENT && "bg-brand-soft text-brand",
+                index === CURRENT && "bg-foreground text-background",
+                index > CURRENT && "border border-border-strong",
+              ]}
+            >
+              {index < CURRENT ? (
+                <Check className="size-3" strokeWidth={2.5} aria-hidden="true" />
+              ) : (
+                index + 1
+              )}
+            </span>
+            <span class:list={[index !== CURRENT && "hidden @md:inline"]}>{step}</span>
+          </li>
+        </>
+      ))
+    }
+  </ol>
+
+  <div class={table}>
+    <div class:list={[row, "border-b border-border bg-foreground/[0.02] py-2"]}>
+      <span class="data-label whitespace-nowrap">{copy.columns[0]}</span>
+      <span class="hidden data-label @lg:block">{copy.columns[1]}</span>
+      <span class="data-label text-right whitespace-nowrap">{copy.columns[2]}</span>
+      <span class="data-label whitespace-nowrap">{copy.columns[3]}</span>
+    </div>
+    <ul class="col-span-full grid grid-cols-subgrid">
+      {
+        copy.rows.map((person, index) => (
+          <li class:list={[row, "py-2.5", index > 0 && "border-t border-border"]}>
+            <span
+              class:list={[
+                "truncate text-paragraph-sm",
+                person.tone === "off" ? "text-tertiary-foreground" : "text-foreground",
+              ]}
+            >
+              {person.name}
+            </span>
+            <span class="hidden truncate text-paragraph-sm text-muted-foreground tabular-nums @lg:block">
+              {person.detail}
+            </span>
+            <span
+              class:list={[
+                "text-right text-paragraph-sm whitespace-nowrap tabular-nums",
+                person.tone === "off" ? "text-tertiary-foreground" : "text-foreground",
+              ]}
+            >
+              {person.amount}
+            </span>
+            <StateDot tone={person.tone} label={person.state} class="whitespace-nowrap" />
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <div
+    class="flex items-center justify-between gap-3 border-t border-border bg-foreground/[0.02] px-3 py-2.5 @2xs:px-4"
+  >
+    <span class="min-w-0 truncate data-label">{copy.foot}</span>
+    <span
+      class="inline-flex h-7 items-center rounded-full bg-foreground px-3 text-label-xs text-background"
+    >
+      {copy.next}
+    </span>
+  </div>
+</MockWindow>

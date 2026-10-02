@@ -1,4 +1,6 @@
 import type { Messages } from "@/i18n/types";
+import hastamPage from "@/i18n/messages/hastam-page.tr";
+import kollektorPage from "@/i18n/messages/kollektor-page.tr";
 
 const trMessages: Messages = {
   metadata: {
@@ -36,9 +38,12 @@ const trMessages: Messages = {
       products: "Kollektor, Intelval, Hastam",
     },
   },
+  kollektorPage,
+  hastamPage,
   nav: {
     solutions: "Çözümler",
     kollektor: "Kollektor",
+    hastam: "Hastam",
     method: "Yaklaşım",
     about: "Hakkımızda",
     languageLabel: "Dil",
@@ -93,6 +98,7 @@ const trMessages: Messages = {
         "1,2 milyon TL tahsilat",
       ],
       cta: "Kollektor nasıl çalışır",
+      pageCta: "Kollektor sayfasına gidin",
     },
     intelval: {
       eyebrow: "Değerleme için yapay zeka",
@@ -135,6 +141,7 @@ const trMessages: Messages = {
         },
       ],
       cta: "Hastam demosu planlayın",
+      pageCta: "Hastam sayfasına gidin",
     },
     enterprise: {
       eyebrow: "Özel yapay zeka ve yazılım",
@@ -455,10 +462,25 @@ const trMessages: Messages = {
     primaryCta: "Demo talep edin",
     secondaryCta: "Çözümleri keşfet",
   },
+  productCta: {
+    kollektor: {
+      title: "Kollektor’u bir demoda görün.",
+      description:
+        "Tahsilat işinizin nasıl yürüdüğünü anlatın. Somut bir sonraki adımı birlikte belirleyelim.",
+    },
+    hastam: {
+      title: "Hastam’ı bir demoda görün.",
+      description:
+        "Kliniğinizde telefonun nasıl işlediğini anlatın. Somut bir sonraki adımı birlikte belirleyelim.",
+    },
+    secondaryCta: "Diğer çözümlere bakın",
+    kollektorNote: "Borçluyu arar, ödeme sözünü teyit eder ve kaydeder.",
+  },
   footer: {
     tagline: "İşinize göre tasarlanmış yapay zeka ve yazılım.",
     solutions: "Çözümler",
     kollektor: "Kollektor",
+    hastam: "Hastam",
     platform: "Platform",
     method: "Yaklaşım",
     about: "Hakkımızda",

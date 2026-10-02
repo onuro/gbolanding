@@ -1,0 +1,44 @@
+---
+// The full-width row link that closes a section: one label, one arrow.
+import { ArrowUpRight } from "lucide-react";
+
+interface Props {
+  href: string;
+  label: string;
+  /** Preselects a product pill in the demo form when the link is "#demo". */
+  demoProduct?: "kollektor" | "intelval" | "hastam" | "custom";
+  /** Opens another site: adds rel and says so to screen readers. */
+  external?: boolean;
+  externalHint?: string;
+  class?: string;
+}
+
+const {
+  href,
+  label,
+  demoProduct,
+  external = false,
+  externalHint,
+  class: className,
+} = Astro.props;
+---
+
+<a
+  href={href}
+  data-demo-product={demoProduct}
+  rel={external ? "noopener" : undefined}
+  class:list={[
+    "group flex min-h-14 items-center justify-between gap-4 px-5 text-label-sm text-foreground outline-none transition-colors hover:bg-foreground/[0.025] focus-visible:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:px-8 lg:px-12",
+    className,
+  ]}
+>
+  <span>
+    {label}
+    {external && externalHint && <span class="sr-only"> ({externalHint})</span>}
+  </span>
+  <ArrowUpRight
+    aria-hidden="true"
+    className="size-4 text-tertiary-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
+    strokeWidth={1.5}
+  />
+</a>

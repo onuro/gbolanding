@@ -13,6 +13,7 @@ const metadata = buildMetadata(locale, messages);
 const productSchema = buildProductNodes(
   new URL(Astro.site ?? Astro.url.origin),
   messages,
+  locale,
 );
 ---
 

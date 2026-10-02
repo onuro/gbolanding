@@ -1,0 +1,78 @@
+---
+// Questions as native <details>: they open without any script, the first one
+// starts open, and opening one closes the others (the shared `name`). Feed
+// faqPageNode() the same `items` array, so the JSON-LD can never claim a
+// question the page does not show.
+import { Plus } from "lucide-react";
+import type { FaqItemCopy } from "@/i18n/page-types/shared";
+
+interface Props {
+  items: readonly FaqItemCopy[];
+  /** Groups the items into one exclusive accordion. Unique per page. */
+  name: string;
+  class?: string;
+}
+
+const { items, name, class: className } = Astro.props;
+---
+
+<div class:list={["border-b border-border-strong", className]}>
+  {
+    items.map((item, index) => (
+      <details
+        class="faq-item group border-t border-border-strong"
+        name={name}
+        open={index === 0}
+      >
+        <summary class="flex cursor-pointer list-none items-center gap-5 py-6 outline-none [&::-webkit-details-marker]:hidden">
+          <span class="data-label hidden w-9 shrink-0 tabular-nums sm:block" aria-hidden="true">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <h3 class="flex-1 text-balance text-title-h6 text-foreground transition-colors duration-200 group-hover:text-brand sm:text-title-h5">
+            {item.question}
+          </h3>
+          <span
+            class="grid size-9 shrink-0 place-items-center rounded-full border border-border-strong text-foreground transition-[rotate,background-color,color,border-color] duration-300 ease-out-quint group-open:rotate-45 group-open:border-transparent group-open:bg-foreground group-open:text-background"
+            aria-hidden="true"
+          >
+            <Plus className="size-4" strokeWidth={1.5} />
+          </span>
+        </summary>
+        <p class="max-w-[42rem] pb-7 text-pretty text-paragraph-md text-muted-foreground sm:pl-14">
+          {item.answer}
+        </p>
+      </details>
+    ))
+  }
+</div>
+
+<style>
+  /* The ink ring every other control uses. The brand green was 2.5:1 on the
+     light theme's white. */
+  .faq-item summary:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
+  }
+
+  /* Animates the panel where the browser can size `auto`; elsewhere it opens
+     at once, which is the native behaviour and loses nothing. */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (interpolate-size: allow-keywords) {
+      .faq-item {
+        interpolate-size: allow-keywords;
+      }
+
+      .faq-item::details-content {
+        height: 0;
+        overflow: clip;
+        transition:
+          height 420ms var(--ease-out-quint),
+          content-visibility 420ms allow-discrete;
+      }
+
+      .faq-item[open]::details-content {
+        height: auto;
+      }
+    }
+  }
+</style>

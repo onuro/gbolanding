@@ -1,0 +1,41 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import KollektorPage from "@/components/KollektorPage.astro";
+import { getMessages } from "@/i18n/getMessages";
+import { buildMetadata } from "@/i18n/metadata";
+import { buildProductNode, faqPageNode, productId } from "@/lib/schema";
+
+export const prerender = true;
+
+const locale = "en" as const;
+const messages = await getMessages(locale);
+const metadata = buildMetadata(locale, messages, "kollektor");
+const origin = new URL(Astro.site ?? Astro.url.origin);
+const canonical = new URL(metadata.canonicalPath, origin);
+// The product is this page's subject. Its node is described with this page's
+// own copy, not the home card's: the home description carries call volumes and
+// a collected amount that this page deliberately leaves out, and structured
+// data must never say more than the page a visitor can read. The FAQ node is
+// fed the same array the accordion renders, for the same reason.
+const page = messages.kollektorPage;
+const schema = [
+  buildProductNode(origin, messages, "kollektor", locale, {
+    description: page.metaDescription,
+    featureList: [...page.hero.chips],
+    // Kollektor speaks Turkish on calls, whichever language the page is in.
+    inLanguage: ["tr"],
+  }),
+  ...(messages.kollektorPage.faq.items.length > 0
+    ? [faqPageNode(canonical, messages.kollektorPage.faq.items)]
+    : []),
+];
+---
+
+<BaseLayout
+  locale={locale}
+  metadata={metadata}
+  extraSchema={schema}
+  mainEntityId={productId(origin, "kollektor")}
+>
+  <KollektorPage locale={locale} messages={messages} />
+</BaseLayout>

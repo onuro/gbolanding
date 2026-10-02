@@ -1,0 +1,139 @@
+---
+// The hero picture: one call, three named objects. The photo is the debtor on
+// the phone, the two captions are the sentence Kollektor says and the answer
+// it waits for, and the card is what lands on the team's screen. The numbers
+// match the three steps ProductHero prints under it.
+//
+// It is a still on purpose. The scripted call in the next section is the one
+// thing on this page that moves, and only when the visitor presses play, so no
+// video runs here.
+import { Image } from "astro:assets";
+import { Check } from "lucide-react";
+import callStill from "@/assets/editorial/kollektor-human-conversation-particles-original-2x.png";
+import SampleTag from "@/components/product/SampleTag.astro";
+import type { Locale } from "@/i18n/config";
+import type { KollektorPageMessages } from "@/i18n/page-types/kollektor";
+
+interface Props {
+  locale: Locale;
+  copy: KollektorPageMessages["heroPicture"];
+}
+
+const { locale, copy } = Astro.props;
+const [phoneLabel, voiceLabel, screenLabel] = copy.labels;
+
+const tag =
+  "inline-flex h-7 w-fit max-w-full items-center gap-2 rounded-full border border-border bg-background py-1 pr-3 pl-1 text-label-xs text-foreground";
+const disc =
+  "data-label grid size-5 shrink-0 place-items-center rounded-full bg-foreground tabular-nums text-background";
+---
+
+{/* Below sm the captions and the card stack under each other, so the gap is
+    what keeps the face in the photo clear of them. */}
+<figure
+  class="relative isolate flex h-full flex-col justify-between gap-60 overflow-hidden rounded-well bg-muted p-3 sm:min-h-[34rem] sm:gap-16 sm:p-5 lg:min-h-[38rem]"
+>
+  <div class="absolute inset-0 -z-10" aria-hidden="true">
+    {/* The crop keeps the woman and her phone in frame at every width; the
+        right half of the photo is only wall. */}
+    <Image
+      src={callStill}
+      alt=""
+      width={1536}
+      widths={[480, 768, 1120, 1536]}
+      sizes="(min-width: 84rem) 49rem, (min-width: 64rem) 58vw, 100vw"
+      format="webp"
+      quality={72}
+      loading="eager"
+      decoding="async"
+      class="absolute inset-0 h-full w-full object-cover object-[30%_18%]"
+    />
+    <span class="absolute inset-0 bg-black/10"></span>
+    <span
+      class="absolute inset-x-0 bottom-0 h-3/4 bg-linear-to-t from-black/70 via-black/30 to-transparent"
+    ></span>
+  </div>
+
+  {/* One tag for the whole picture: the captions and the card are all made up. */}
+  <div aria-hidden="true" class="flex items-start justify-between gap-3">
+    <p class={tag}>
+      <span class={disc}>1</span>
+      <span class="truncate">{phoneLabel}</span>
+    </p>
+    <SampleTag locale={locale} class="h-7 border-border bg-background" />
+  </div>
+
+  <div
+    aria-hidden="true"
+    class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,18rem)] sm:items-end"
+  >
+    <div class="flex flex-col items-start gap-2">
+      <p class={tag}>
+        <span class={disc}>2</span>
+        <span class="truncate">{voiceLabel}</span>
+      </p>
+      <p
+        class="max-w-[19rem] rounded-card rounded-bl-chip border border-border bg-background px-3.5 py-2.5"
+      >
+        <span class="data-label block">{copy.agent.who}</span>
+        <span class="mt-1 block text-paragraph-sm text-foreground">
+          {copy.agent.text}
+        </span>
+      </p>
+      <p
+        class="ml-6 max-w-[19rem] rounded-card rounded-bl-chip border border-border bg-background px-3.5 py-2.5"
+      >
+        <span class="data-label block">{copy.debtor.who}</span>
+        <span class="mt-1 block text-paragraph-sm text-foreground">
+          {copy.debtor.text}
+        </span>
+      </p>
+      {
+        copy.translated && (
+          <p class="data-label rounded-full bg-background px-2 py-0.5">
+            {copy.translated}
+          </p>
+        )
+      }
+    </div>
+
+    <div class="flex flex-col items-start gap-2">
+      <p class={tag}>
+        <span class={disc}>3</span>
+        <span class="truncate">{screenLabel}</span>
+      </p>
+      <div class="w-full rounded-card border border-border bg-background shadow-float">
+        <p
+          class="flex min-w-0 items-center gap-2 border-b border-border px-3.5 py-2.5 text-label-xs text-foreground"
+        >
+          <span
+            class="grid size-4 shrink-0 place-items-center rounded-full bg-brand text-brand-foreground"
+          >
+            <Check className="size-2.5" strokeWidth={3} aria-hidden="true" />
+          </span>
+          <span class="truncate">{copy.cardTitle}</span>
+        </p>
+        <dl class="px-3.5 py-1.5">
+          {
+            copy.cardRows.map((row, index) => (
+              <div
+                class:list={[
+                  "flex items-baseline justify-between gap-3 py-1.5",
+                  index > 0 && "border-t border-border",
+                ]}
+              >
+                <dt class="data-label">{row.label}</dt>
+                <dd class="text-paragraph-sm text-foreground tabular-nums">
+                  {row.value}
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
+        <p class="data-label border-t border-border px-3.5 py-2">{copy.cardFoot}</p>
+      </div>
+    </div>
+  </div>
+
+  <figcaption class="sr-only">{copy.summary}</figcaption>
+</figure>

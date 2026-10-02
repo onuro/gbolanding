@@ -1,0 +1,47 @@
+---
+// The frame every product page shares: skip link, header, one <main>, the demo
+// request and the footer. The header's demo button is a bare "#demo", so a page
+// without FinalCta would ship a dead button; rendering it here makes that
+// impossible to forget.
+import FinalCta from "@/components/home/FinalCta.astro";
+import SiteFooter from "@/components/home/SiteFooter.astro";
+import SiteHeader from "@/components/home/SiteHeader.astro";
+import type { Locale } from "@/i18n/config";
+import type { Messages } from "@/i18n/types";
+
+interface Props {
+  locale: Locale;
+  messages: Messages;
+  product: "kollektor" | "hastam";
+  /** The page's own three lines under the demo request. */
+  assurances: readonly string[];
+}
+
+const { locale, messages, product, assurances } = Astro.props;
+// The page closes on its own product, not on the home page's headline.
+const cta = messages.productCta;
+const skipLink = locale === "tr" ? "Ana içeriğe geç" : "Skip to content";
+---
+
+<a class="skip-link" href="#main-content">{skipLink}</a>
+
+<div class="min-h-screen bg-background">
+  <SiteHeader locale={locale} messages={messages} />
+
+  <main id="main-content" tabindex="-1">
+    <slot />
+    <FinalCta
+      locale={locale}
+      messages={messages}
+      source={`${product}-page`}
+      defaultProduct={product}
+      assurances={assurances}
+      title={cta[product].title}
+      description={cta[product].description}
+      secondaryCta={cta.secondaryCta}
+      productNotes={{ kollektor: cta.kollektorNote }}
+    />
+  </main>
+
+  <SiteFooter locale={locale} messages={messages} />
+</div>

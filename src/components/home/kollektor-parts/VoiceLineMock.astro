@@ -289,8 +289,8 @@ const bars = Array.from({ length: 48 }, (_, i) => {
 
   .k-v-step {
     transition:
-      opacity 450ms cubic-bezier(0.22, 1, 0.36, 1),
-      translate 550ms cubic-bezier(0.22, 1, 0.36, 1);
+      opacity 450ms var(--ease-out-quint),
+      translate 550ms var(--ease-out-quint);
   }
 
   [data-armed] .k-v-step:not(.is-on) {

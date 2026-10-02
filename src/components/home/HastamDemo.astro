@@ -26,16 +26,34 @@
 import { Check, Pause, Play, ShieldCheck } from "lucide-react";
 import BookingReceipt from "@/components/home/hastam-demo/BookingReceipt.astro";
 import HastamPhone from "@/components/home/hastam-demo/HastamPhone.astro";
+import SampleTag from "@/components/product/SampleTag.astro";
 import MockShell from "@/components/ui/MockShell.astro";
 import StatusPill from "@/components/ui/StatusPill.astro";
 import type { Locale } from "@/i18n/config";
 import { getMessages } from "@/i18n/getMessages";
+import type { HastamDemoScenario } from "@/i18n/page-types/hastam";
 
 interface Props {
   locale: Locale;
+  /**
+   * Another call than the one below. /hastam passes its own: the knee-pain
+   * booking is banned on that page, and it words the request the way the
+   * product does ("I have taken your request", never "created"). The schedule
+   * stays the same, so the nine lines keep the same speakers and word budgets.
+   * Left out, the home page renders exactly what it rendered before the prop.
+   */
+  scenario?: HastamDemoScenario;
+  /**
+   * Show the finished call and play it only when the visitor presses the
+   * button. A product page lets one picture play by itself, and that is its
+   * hero; a second self-playing call below it competes with the copy.
+   */
+  replayOnly?: boolean;
+  /** Replaces the three proof cells under the stage; `false` leaves them out. */
+  proof?: readonly { value: string; caption: string }[] | false;
 }
 
-const { locale } = Astro.props;
+const { locale, scenario, replayOnly = false, proof: proofOverride } = Astro.props;
 const messages = await getMessages(locale);
 const isTr = locale === "tr";
 
@@ -89,10 +107,10 @@ const endClock = clock(timing.end - timing.connect);
 // The site's other Hastam mock (solutions-mocks/HastamBookingCard.astro) tells
 // the same story: knee pain for three weeks, orthopaedics, Thursday 09:30 /
 // 10:15 / 14:00, the patient picks 10:15, request R-2207.
-const SLOTS = ["09:30", "10:15", "14:00"];
-const CHOSEN = "10:15";
+const SLOTS: readonly string[] = scenario?.slots ?? ["09:30", "10:15", "14:00"];
+const CHOSEN = scenario?.chosen ?? "10:15";
 
-const ui = isTr
+const base = isTr
   ? {
       heading: "Hastam bir hasta aramasını nasıl karşılar",
       description:
@@ -257,6 +275,52 @@ const ui = isTr
       approvalCaption: "each chosen appointment waits for the clinic's approval",
     };
 
+// A scenario swaps the story (clinic, complaint, lines, request) and keeps
+// every label the product's own screens use. Its first rail card is the
+// complaint in the patient's words, not a triage verdict: Hastam routes a
+// complaint, it does not assess one.
+const ui = scenario
+  ? {
+      ...base,
+      heading: scenario.heading,
+      description: scenario.description,
+      stageLabel: scenario.stageLabel,
+      pause: scenario.pause,
+      play: scenario.replay,
+      callMetaPhone: scenario.callerPhone,
+      lanes: { ...base.lanes, agent: scenario.agentName },
+      speakers: { ...base.speakers, agent: scenario.agentName },
+      lines: scenario.lines as readonly string[],
+      triage: {
+        title: scenario.complaint.title,
+        screening: scenario.complaint.listening,
+        clear: scenario.complaint.noted,
+        gate: scenario.complaint.before,
+        open: scenario.complaint.after,
+      },
+      steps: [
+        { ...scenario.steps[0], pending: "" },
+        { title: scenario.steps[1].title, detail: "", pending: "" },
+        scenario.steps[2],
+      ],
+      receipt: {
+        label: scenario.receipt.label,
+        when: scenario.receipt.when,
+        status: scenario.receipt.status,
+        rows: scenario.receipt.rows,
+        note: scenario.receipt.note,
+      },
+      phone: {
+        ...base.phone,
+        clinic: scenario.phone.clinic,
+        number: scenario.phone.line,
+      },
+    }
+  : base;
+// The home call's card reports a screening result and wears a shield; a
+// scenario's card only notes what was said.
+const GateIcon = scenario ? Check : ShieldCheck;
+
 // Phases, in order. The call-state row and every data-hd-when list use them.
 const PHASES = ["dial", "ring", "call", "ended"] as const;
 
@@ -304,7 +368,7 @@ const lanes = [
 
 const receipt = {
   ...ui.receipt,
-  id: "R-2207",
+  id: scenario?.receipt.id ?? "R-2207",
 };
 
 // Proof cells: the healthcare industry card's two stats, plus the approval
@@ -313,11 +377,20 @@ const receipt = {
 // caption is worded to wrap like KollektorDemo's third caption, so the strip
 // (and the page below it) keeps its height when the tabs switch.
 const [specialty, times] = messages.industries.items[3].stats;
-const proof = [
-  { value: specialty.value, caption: `${specialty.lead} ${specialty.rest}` },
-  { value: times.value, caption: `${times.lead} ${times.rest}` },
-  { value: ui.approvalValue, caption: ui.approvalCaption },
-];
+const proof =
+  proofOverride === undefined
+    ? [
+        { value: specialty.value, caption: `${specialty.lead} ${specialty.rest}` },
+        { value: times.value, caption: `${times.lead} ${times.rest}` },
+        { value: ui.approvalValue, caption: ui.approvalCaption },
+      ]
+    : proofOverride;
+
+// Replay-only: the inline boot script below still flips the root to the
+// dialling phone before paint, so a second script undoes it at once. The boot
+// script itself is left untouched, because the home page ships it as is.
+const keepFinished =
+  '(function(){var r=document.currentScript&&document.currentScript.parentElement;if(!r)return;r.removeAttribute("data-hd-boot");r.setAttribute("data-hd-phase","ended");r.setAttribute("data-hd-speaker","ended");r.setAttribute("data-hd-patient","rec");r.setAttribute("data-hd-agent","rec");})();';
 ---
 
 <div
@@ -330,6 +403,7 @@ const proof = [
   data-hd-connect={timing.connect}
   data-hd-end={timing.end}
   data-hd-total={timing.total}
+  data-hd-manual={replayOnly ? "" : undefined}
 >
   <script is:inline>
     (function () {
@@ -353,6 +427,7 @@ const proof = [
       }, 5000);
     })();
   </script>
+  {replayOnly && <script is:inline set:html={keepFinished} />}
 
   <h3 id="hastam-demo-heading" class="sr-only">{ui.heading}</h3>
 
@@ -362,36 +437,74 @@ const proof = [
       data-hd-stage
     >
       <div class="relative mb-4 flex items-center justify-between gap-3 sm:mb-5">
+        {/* With the labelled replay button the row has no room for this label
+            on a phone; the chapter heading above already names the picture. */}
         <p
-          class="inline-flex min-w-0 items-center gap-2 font-mono text-caption font-medium tracking-[0.08em] text-muted-foreground uppercase"
+          class:list={[
+            "inline-flex min-w-0 items-center gap-2 font-mono text-caption font-medium tracking-[0.08em] text-muted-foreground uppercase",
+            replayOnly && "max-sm:hidden",
+          ]}
         >
           <span aria-hidden="true" class="size-1.5 shrink-0 rounded-full bg-brand"></span>
           <span class="truncate">{ui.stageLabel}</span>
         </p>
         <div class="flex min-w-0 items-center gap-3">
-          <span
-            class="hidden truncate font-mono text-caption tracking-[0.08em] text-tertiary-foreground uppercase sm:inline"
-          >
-            {ui.sample}
-            {ui.translated && <span class="hidden md:inline"> · {ui.translated}</span>}
-          </span>
-          <button
-            type="button"
-            hidden
-            data-hd-toggle
-            data-state="playing"
-            data-label-pause={ui.pause}
-            data-label-play={ui.play}
-            aria-label={ui.pause}
-            class="grid size-7 shrink-0 cursor-pointer place-items-center rounded-full border border-border-strong bg-background/70 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
-          >
-            <span data-hd-icon="pause" aria-hidden="true" class="grid place-items-center">
-              <Pause className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
-            </span>
-            <span data-hd-icon="play" aria-hidden="true" class="grid place-items-center">
-              <Play className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
-            </span>
-          </button>
+          {
+            scenario ? (
+              <>
+                {ui.translated && (
+                  <span class="data-label hidden truncate lg:inline">{ui.translated}</span>
+                )}
+                <SampleTag locale={locale} />
+              </>
+            ) : (
+              <span
+                class="hidden truncate font-mono text-caption tracking-[0.08em] text-tertiary-foreground uppercase sm:inline"
+              >
+                {ui.sample}
+                {ui.translated && <span class="hidden md:inline"> · {ui.translated}</span>}
+              </span>
+            )
+          }
+          {
+            replayOnly ? (
+              <button
+                type="button"
+                hidden
+                data-hd-toggle
+                data-state="paused"
+                data-label-pause={ui.pause}
+                data-label-play={ui.play}
+                class="button button-sm button-secondary shrink-0 cursor-pointer"
+              >
+                <span data-hd-icon="pause" aria-hidden="true" class="grid place-items-center">
+                  <Pause className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
+                </span>
+                <span data-hd-icon="play" aria-hidden="true" class="grid place-items-center">
+                  <Play className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
+                </span>
+                <span data-hd-toggle-text>{ui.play}</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                hidden
+                data-hd-toggle
+                data-state="playing"
+                data-label-pause={ui.pause}
+                data-label-play={ui.play}
+                aria-label={ui.pause}
+                class="grid size-7 shrink-0 cursor-pointer place-items-center rounded-full border border-border-strong bg-background/70 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+              >
+                <span data-hd-icon="pause" aria-hidden="true" class="grid place-items-center">
+                  <Pause className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
+                </span>
+                <span data-hd-icon="play" aria-hidden="true" class="grid place-items-center">
+                  <Play className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
+                </span>
+              </button>
+            )
+          }
         </div>
       </div>
 
@@ -467,19 +580,30 @@ const proof = [
               }
             </div>
 
-            {/* Two channels: patient left, assistant right. */}
+            {/* Two channels: patient left, assistant right. A scenario drops
+                the L and R badges and keeps the two speaker meters: the
+                product records one mixed audio file per call, and the badges
+                claim a two-channel recording. */}
             <div class="flex shrink-0 flex-col gap-2 border-b border-border px-4 py-3 sm:px-5">
               {
                 lanes.map((lane) => (
                   <div class="flex items-center gap-3">
                     <div class="w-28 shrink-0">
                       <p class="flex items-center gap-1.5 text-caption text-foreground">
-                        <span class="grid size-4 shrink-0 place-items-center rounded-chip border border-border font-mono text-micro leading-none text-tertiary-foreground">
-                          {lane.channel}
-                        </span>
+                        {!scenario && (
+                          <span class="grid size-4 shrink-0 place-items-center rounded-chip border border-border font-mono text-micro leading-none text-tertiary-foreground">
+                            {lane.channel}
+                          </span>
+                        )}
                         <span class="truncate">{lane.label}</span>
                       </p>
-                      <p class="mt-0.5 flex h-3.5 items-center pl-[1.375rem] text-micro">
+                      <p
+                        class:list={[
+                          "mt-0.5 flex h-3.5 items-center",
+                          !scenario && "pl-[1.375rem]",
+                          "text-micro",
+                        ]}
+                      >
                         {lane.who === "patient" ? (
                           <>
                             <span data-hd-pstate="off" class="text-faint-foreground">{ui.patientState.off}</span>
@@ -558,10 +682,15 @@ const proof = [
                           {line.stamp}
                         </span>
                       </p>
+                      {/* A scenario drops the rule on the left of each line: on a
+                          product page a coloured left bar reads as a template,
+                          and the speaker label already says who talks. */}
                       <div
                         class:list={[
-                          "hd-rule relative mt-1 border-l-2 pl-3",
-                          line.who === "agent" ? "border-brand-line" : "border-border-strong",
+                          "hd-rule relative mt-1",
+                          !scenario && "border-l-2 pl-3",
+                          !scenario &&
+                            (line.who === "agent" ? "border-brand-line" : "border-border-strong"),
                         ]}
                       >
                         {line.who === "agent" ? (
@@ -583,7 +712,11 @@ const proof = [
                             </p>
                             <span
                               data-hd-partial
-                              class="hd-partial absolute top-0 left-3 flex items-center gap-1 text-paragraph-sm text-tertiary-foreground sm:max-md:text-paragraph-md"
+                              class:list={[
+                                "hd-partial absolute top-0",
+                                scenario ? "left-0" : "left-3",
+                                "flex items-center gap-1 text-paragraph-sm text-tertiary-foreground sm:max-md:text-paragraph-md",
+                              ]}
                               style="opacity: 0"
                             >
                               <i />
@@ -648,13 +781,19 @@ const proof = [
                       data-hd-gate
                       class="col-start-1 row-start-1 inline-flex h-5 items-center gap-1 rounded-full border border-brand-line bg-brand-soft px-2 text-micro font-medium whitespace-nowrap text-brand"
                     >
-                      <ShieldCheck className="size-3" strokeWidth={2} aria-hidden="true" />
+                      <GateIcon className="size-3" strokeWidth={2} aria-hidden="true" />
                       {ui.triage.clear}
                     </span>
                   </span>
                 </div>
                 <div class="mt-1.5 grid text-caption">
-                  <p data-hd-screening class="col-start-1 row-start-1 text-attention-ink">
+                  <p
+                    data-hd-screening
+                    class:list={[
+                      "col-start-1 row-start-1",
+                      scenario ? "text-muted-foreground" : "text-attention-ink",
+                    ]}
+                  >
                     {ui.triage.gate}
                   </p>
                   <p
@@ -761,24 +900,28 @@ const proof = [
     </div>
   </div>
 
-  <dl data-reveal-root class="grid border-t border-border sm:grid-cols-3">
-    {
-      proof.map((item, index) => (
-        <div
-          data-reveal
-          class:list={[
-            "flex flex-col gap-1.5 px-6 py-6 sm:px-8 sm:py-8",
-            index > 0 && "border-t border-border sm:border-t-0 sm:border-l",
-          ]}
-        >
-          <dt class="order-2 max-w-xs text-paragraph-sm text-muted-foreground">
-            {item.caption}
-          </dt>
-          <dd class="order-1 text-title-h4 text-foreground tabular-nums">{item.value}</dd>
-        </div>
-      ))
-    }
-  </dl>
+  {
+    proof && (
+      <dl data-reveal-root class="grid border-t border-border sm:grid-cols-3">
+        {
+          proof.map((item, index) => (
+            <div
+              data-reveal
+              class:list={[
+                "flex flex-col gap-1.5 px-6 py-6 sm:px-8 sm:py-8",
+                index > 0 && "border-t border-border sm:border-t-0 sm:border-l",
+              ]}
+            >
+              <dt class="order-2 max-w-xs text-paragraph-sm text-muted-foreground">
+                {item.caption}
+              </dt>
+              <dd class="order-1 text-title-h4 text-foreground tabular-nums">{item.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    )
+  }
 </div>
 
 <script>
@@ -819,7 +962,8 @@ const proof = [
   [data-hd-root][data-hd-phase="ring"] [data-hd-cs="ring"],
   [data-hd-root][data-hd-phase="call"] [data-hd-cs="call"],
   [data-hd-root][data-hd-phase="ended"] [data-hd-cs="ended"] {
-    color: var(--brand);
+    /* The ink green: the vivid brand is 2.5:1 as small text on white. */
+    color: var(--brand-ink);
   }
 
   [data-hd-root] [data-hd-cs] .hd-cs-dot {

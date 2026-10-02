@@ -1,0 +1,58 @@
+---
+// A recording drawn in the site's dot-matrix manner: bars built from dots on
+// one 3px grid, worked out at build time. It is a still picture of a finished
+// recording, so it never moves. Colour comes from the text colour.
+interface Props {
+  /** Number of bars. */
+  bars?: number;
+  /** Rows of dots in the tallest bar. */
+  rows?: number;
+  /** Changes the shape, so two waves on one page do not look copied. */
+  seed?: number;
+  class?: string;
+}
+
+const { bars = 40, rows = 8, seed = 1, class: className } = Astro.props;
+
+const shape = Array.from({ length: bars }, (_, i) => {
+  const level =
+    24 + Math.abs(Math.sin((i + seed) * 1.7) * 48 + Math.sin((i + seed) * 0.6) * 26);
+  const n = Math.min(rows, Math.max(1, Math.round((level / 100) * rows)));
+  return { n, offset: Math.floor((rows - n) / 2) };
+});
+---
+
+<span
+  class:list={["dot-wave", className]}
+  style={`--rows:${rows}`}
+  aria-hidden="true"
+>
+  {shape.map((bar) => <i style={`--n:${bar.n};--o:${bar.offset}`} />)}
+</span>
+
+<style>
+  .dot-wave {
+    --cell: 3px;
+    display: flex;
+    min-width: 0;
+    height: calc(var(--rows) * var(--cell));
+    align-items: flex-start;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+
+  /* Each bar is a whole number of cells and starts on a row of the shared
+     grid, so the dots line up across the strip. */
+  .dot-wave i {
+    flex: none;
+    width: var(--cell);
+    height: calc(var(--n) * var(--cell));
+    margin-top: calc(var(--o) * var(--cell));
+    background: radial-gradient(
+        circle at 1px 1px,
+        currentColor 0.8px,
+        transparent 1.1px
+      )
+      0 0 / var(--cell) var(--cell);
+  }
+</style>

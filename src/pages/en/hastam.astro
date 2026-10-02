@@ -1,0 +1,42 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import HastamPage from "@/components/HastamPage.astro";
+import { getMessages } from "@/i18n/getMessages";
+import { buildMetadata } from "@/i18n/metadata";
+import { buildProductNode, faqPageNode, productId } from "@/lib/schema";
+
+export const prerender = true;
+
+const locale = "en" as const;
+const messages = await getMessages(locale);
+const metadata = buildMetadata(locale, messages, "hastam");
+const origin = new URL(Astro.site ?? Astro.url.origin);
+const canonical = new URL(metadata.canonicalPath, origin);
+// The product is this page's subject. Its node is described with this page's
+// own copy, not the home card's: the home description says Hastam "assesses"
+// a complaint, which this page rules out, and structured data must never say
+// more than the page a visitor can read. sameAs ties the node to the product's
+// own site, which already names GBO Vision as its parent. The FAQ node is fed
+// the same array the accordion renders.
+const page = messages.hastamPage;
+const schema = [
+  buildProductNode(origin, messages, "hastam", locale, {
+    name: "Hastam",
+    description: page.metaDescription,
+    featureList: page.heard.rows.map((row) => row.title),
+    sameAs: ["https://hastam.ai/en/"],
+  }),
+  ...(messages.hastamPage.faq.items.length > 0
+    ? [faqPageNode(canonical, messages.hastamPage.faq.items)]
+    : []),
+];
+---
+
+<BaseLayout
+  locale={locale}
+  metadata={metadata}
+  extraSchema={schema}
+  mainEntityId={productId(origin, "hastam")}
+>
+  <HastamPage locale={locale} messages={messages} />
+</BaseLayout>

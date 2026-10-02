@@ -1,0 +1,31 @@
+---
+// The real Hastam mark (the stethoscope holding the cross), copied unchanged
+// from hastam-site/src/assets/brand/mark.svg. Its tube is near-black, so it
+// stands on a white disc, as it does on hastam.ai: that keeps the file's own
+// colours in both of this site's themes. Never redraw it and never show the
+// cross on its own.
+import Mark from "@/assets/product/hastam-mark.svg";
+
+interface Props {
+  /** Diameter of the disc, in rem. The mark takes 55% of it. */
+  size?: number;
+  /** Decorative next to a visible "Hastam"; named when it stands alone. */
+  label?: string;
+  class?: string;
+}
+
+const { size = 3.5, label, class: className } = Astro.props;
+---
+
+<span
+  role={label ? "img" : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : "true"}
+  class:list={[
+    "inline-grid shrink-0 place-items-center rounded-full border border-border bg-white shadow-card",
+    className,
+  ]}
+  style={`width:${size}rem;height:${size}rem`}
+>
+  <Mark width="55%" height="55%" aria-hidden="true" focusable="false" />
+</span>

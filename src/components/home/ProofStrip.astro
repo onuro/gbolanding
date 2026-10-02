@@ -37,7 +37,7 @@ const ui =
 
 <section
   aria-labelledby="proof-strip-label"
-  class="frame-cross mx-auto w-full max-w-[83.75rem] border-x border-b border-border"
+  class="frame frame-cross border-b border-border"
   data-reveal-root
   data-proof-rail
 >
@@ -51,9 +51,9 @@ const ui =
       >
         <p
           id="proof-strip-label"
-          class="flex items-start gap-2 text-label-xs text-muted-foreground"
+          class="eyebrow items-start"
         >
-          <span class="eyebrow-mark mt-1.5" aria-hidden="true"></span>
+          <span class="eyebrow-mark mt-[5px]" aria-hidden="true"></span>
           {messages.proofStrip.label}
         </p>
         <p class="sr-only">{ui.flow}</p>
@@ -64,7 +64,7 @@ const ui =
           </span>
           <button
             type="button"
-            class="ps-toggle inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-card text-tertiary-foreground shadow-card transition-colors duration-200 hover:border-border-strong hover:text-foreground"
+            class="ps-toggle relative inline-flex size-6 shrink-0 before:absolute before:-inset-[11px] before:content-[''] items-center justify-center rounded-full border border-border bg-card text-tertiary-foreground shadow-card transition-colors duration-200 hover:border-border-strong hover:text-foreground"
             aria-label={ui.pause}
             aria-pressed="false"
             title={ui.pause}
@@ -369,22 +369,23 @@ const ui =
     }
   }
 
-  /* Lit icon box is a solid zinc chip. The number and chevron stay brand. */
+  /* Lit icon box is an ink chip, like every other "this one" mark on the
+     page. The number and chevron stay brand, in the value that reads as text. */
   .ps-cell[data-active] .ps-tile {
-    border-color: oklch(0.32 0.006 286);
-    background-color: oklch(0.21 0.006 286);
+    border-color: var(--foreground);
+    background-color: var(--foreground);
     background-image: none;
-    color: oklch(0.985 0.002 286);
+    color: var(--background);
     box-shadow: var(--shadow-card-value);
   }
 
   .ps-cell[data-active] .ps-num {
-    color: var(--brand);
+    color: var(--brand-ink);
   }
 
   .ps-cell[data-active] .ps-chev {
     border-color: var(--brand-line);
-    color: var(--brand);
+    color: var(--brand-ink);
   }
 
   .ps-dot {

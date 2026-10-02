@@ -1,0 +1,245 @@
+---
+// "The decision stays with the clinic", as something the visitor can press.
+// On the left the clinic's calendar holds one appointment request taken by
+// phone; on the right is the patient's phone. Approve or decline, and the
+// phone shows what Hastam does next: a confirmation call after an approval, a
+// call at once with another time offered after a decline.
+//
+// Every state is in the markup and CSS shows the one that matches
+// data-ap-state, so no sentence is assembled in script. It opens on "awaiting
+// approval": that is the real resting state of a phone request, and it is the
+// whole point of the section. Nothing here moves until a button is pressed.
+// The buttons stay hidden until the script runs, so a visitor without it sees
+// the waiting request rather than buttons that do nothing.
+//
+// Text sizes inside the picture: text-paragraph-sm, text-label-xs (data-value)
+// and data-label.
+import Chip from "@/components/hastam-page/Chip.astro";
+import ObjectTag from "@/components/hastam-page/ObjectTag.astro";
+import SampleTag from "@/components/product/SampleTag.astro";
+import MockShell from "@/components/ui/MockShell.astro";
+import type { Locale } from "@/i18n/config";
+import type { HastamApprovalMockCopy } from "@/i18n/page-types/hastam";
+
+interface Props {
+  locale: Locale;
+  copy: HastamApprovalMockCopy;
+  /**
+   * One line that says the two buttons work. The chapter's margin note says
+   * it from xl; below xl that note is hidden, and other pictures on the page
+   * carry look-alike pills that do nothing, so nothing told the visitor these
+   * ones do.
+   */
+  hint?: string;
+  class?: string;
+}
+
+const { locale, copy, hint, class: className } = Astro.props;
+const row = "grid grid-cols-[3rem_minmax(0,1fr)] items-center gap-3 px-4 py-3";
+---
+
+<div class:list={["@container", className]} data-reveal>
+  <div
+    class="stage-soft rounded-card p-4 sm:p-6"
+    data-ap-root
+    data-ap-state="pending"
+  >
+    <div class="flex items-center justify-between gap-3">
+      <p class="data-label flex min-w-0 items-center gap-2 text-muted-foreground">
+        <span class="size-1.5 shrink-0 rounded-full bg-brand" aria-hidden="true"></span>
+        <span class="truncate">{copy.label}</span>
+      </p>
+      <SampleTag locale={locale} />
+    </div>
+
+    {/* Hidden until the script shows the buttons it talks about. */}
+    {
+      hint && (
+        <p
+          hidden
+          data-ap-hint
+          class="mt-3 text-pretty text-paragraph-sm text-muted-foreground xl:hidden"
+        >
+          {hint}
+        </p>
+      )
+    }
+
+    {/* The phone's column is fixed and narrow: as wide as the calendar's
+        neighbour it was a landscape card, and close to half of it was blank. */}
+    <div class="mt-5 grid gap-5 @3xl:grid-cols-[minmax(0,1fr)_17rem] @3xl:gap-6">
+      <div class="flex min-w-0 flex-col gap-2">
+        <ObjectTag label={copy.screenLabel} />
+        <MockShell title={copy.calendarTitle} meta={copy.calendarMeta}>
+          <ol class="divide-y divide-border">
+            {
+              copy.booked.map((slot) => (
+                <li class={row}>
+                  <span class="data-label tabular-nums">{slot.time}</span>
+                  <span class="min-w-0">
+                    <span class="data-value block truncate">{slot.name}</span>
+                    <span class="block text-label-xs font-normal text-muted-foreground">
+                      {slot.kind}
+                    </span>
+                  </span>
+                </li>
+              ))
+            }
+            {/* On a phone the chip drops under the name: beside it, the name
+                is cut to a few letters. */}
+            <li class="grid grid-cols-[3rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 bg-foreground/[0.035] px-4 py-3 @md:grid-cols-[3rem_minmax(0,1fr)_auto]">
+              <span class="data-label tabular-nums text-foreground">{copy.request.time}</span>
+              <span class="min-w-0">
+                <span class="data-value block truncate">{copy.request.name}</span>
+                <span class="block text-label-xs font-normal text-muted-foreground">
+                  {copy.request.meta}
+                </span>
+              </span>
+              <span class="col-start-2 @md:col-start-3">
+                <span data-ap-when="pending" class="inline-flex">
+                  <Chip tone="pending" label={copy.status.pending} />
+                </span>
+                <span data-ap-when="approved" class="inline-flex">
+                  <Chip tone="ok" label={copy.status.approved} />
+                </span>
+                <span data-ap-when="declined" class="inline-flex">
+                  <Chip tone="info" label={copy.status.declined} />
+                </span>
+              </span>
+            </li>
+            <li class:list={[row, "diagonal-hatch"]}>
+              <span class="data-label tabular-nums">{copy.lunch.time}</span>
+              <span class="text-label-xs font-normal text-muted-foreground">
+                {copy.lunch.label}
+              </span>
+            </li>
+          </ol>
+          <Fragment slot="footer">
+            <span class="data-label hidden min-w-0 truncate @md:inline">
+              {copy.request.name} · {copy.request.time}
+            </span>
+            <span hidden data-ap-controls class="flex flex-1 items-center justify-end gap-2">
+              <button
+                type="button"
+                data-ap-when="pending"
+                data-ap-set="declined"
+                class="button button-sm button-secondary cursor-pointer"
+              >
+                {copy.decline}
+              </button>
+              <button
+                type="button"
+                data-ap-when="pending"
+                data-ap-set="approved"
+                data-ap-focus="approve"
+                class="button button-sm button-ink cursor-pointer"
+              >
+                {copy.approve}
+              </button>
+              <button
+                type="button"
+                data-ap-when="approved declined"
+                data-ap-set="pending"
+                data-ap-focus="undo"
+                class="button button-sm button-secondary cursor-pointer"
+              >
+                {copy.undo}
+              </button>
+            </span>
+          </Fragment>
+        </MockShell>
+      </div>
+
+      <div class="flex min-w-0 flex-col gap-2">
+        <ObjectTag label={copy.phoneLabel} />
+        {/* The patient's handset. It names the clinic, not Hastam: the call
+            comes from the clinic's own line. */}
+        <div class="flex-1 rounded-well border border-border-strong bg-card p-1.5 shadow-card">
+          <div class="flex h-full flex-col gap-4 rounded-shell bg-background p-4 @3xl:pt-3">
+            <span
+              class="hidden h-1 w-9 shrink-0 self-center rounded-full bg-border-strong @3xl:block"
+              aria-hidden="true"
+            ></span>
+            <div class="flex items-center gap-3">
+              <span
+                class="data-value grid size-11 shrink-0 place-items-center rounded-full bg-muted"
+                aria-hidden="true"
+              >
+                {copy.clinicInitials}
+              </span>
+              <p class="data-value min-w-0 truncate">{copy.clinic}</p>
+            </div>
+
+            {/* Announced when the visitor decides, so the result of a button
+                press is not only a visual change. */}
+            <div aria-live="polite" class="flex flex-1 flex-col justify-center">
+              <div data-ap-when="pending" class="ap-state flex flex-col items-start gap-2.5">
+                <Chip tone="info" label={copy.call.pending.chip} />
+                <p class="text-paragraph-sm text-muted-foreground">{copy.call.pending.text}</p>
+              </div>
+              <div data-ap-when="approved" class="ap-state flex flex-col items-start gap-2.5">
+                <Chip tone="ok" label={copy.call.approved.chip} />
+                <p class="text-paragraph-sm text-foreground">{copy.call.approved.said}</p>
+                <p class="data-label">{copy.call.approved.result}</p>
+              </div>
+              <div data-ap-when="declined" class="ap-state flex flex-col items-start gap-2.5">
+                <Chip tone="pending" label={copy.call.declined.chip} />
+                <p class="text-paragraph-sm text-foreground">{copy.call.declined.text}</p>
+                <p class="text-paragraph-sm text-muted-foreground">
+                  {copy.call.declined.result}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-ap-root]").forEach((root) => {
+    const controls = root.querySelector<HTMLElement>("[data-ap-controls]");
+    if (!controls) return;
+    controls.hidden = false;
+    const hint = root.querySelector<HTMLElement>("[data-ap-hint]");
+    if (hint) hint.hidden = false;
+
+    root.querySelectorAll<HTMLButtonElement>("[data-ap-set]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const state = button.dataset.apSet ?? "pending";
+        root.dataset.apState = state;
+        // Lets the new state fade in; absent at load, so nothing moves before
+        // the first press.
+        root.setAttribute("data-ap-touched", "");
+        // The pressed button has just been hidden: move focus to the one that
+        // replaced it, or keyboard users are dropped at the top of the page.
+        const next = state === "pending" ? "approve" : "undo";
+        root.querySelector<HTMLElement>(`[data-ap-focus="${next}"]`)?.focus();
+      });
+    });
+  });
+</script>
+
+<style is:global>
+  /* An element with data-ap-when shows only in the states it lists, and keeps
+     its own display value when it shows. */
+  [data-ap-root][data-ap-state="pending"] [data-ap-when]:not([data-ap-when~="pending"]),
+  [data-ap-root][data-ap-state="approved"] [data-ap-when]:not([data-ap-when~="approved"]),
+  [data-ap-root][data-ap-state="declined"] [data-ap-when]:not([data-ap-when~="declined"]) {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    [data-ap-root][data-ap-touched] .ap-state {
+      animation: ap-in 420ms var(--ease-out-quint) both;
+    }
+  }
+
+  @keyframes ap-in {
+    from {
+      opacity: 0;
+      translate: 0 6px;
+    }
+  }
+</style>
