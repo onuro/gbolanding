@@ -4,18 +4,16 @@
    operating system, so a class can never disagree with the tokens. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* One variable file carries every weight (100-900), cut down to Latin and
+   Turkish, so headings can sit between the two static cuts the site used
+   before (400, 500). The static Regular stays as a second source: if the
+   variable file ever fails to load, the page keeps its typeface. */
 @font-face {
   font-family: "TT Firs Neue";
-  src: url("/fonts/tt-firs-neue/TTFirsNeue-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "TT Firs Neue";
-  src: url("/fonts/tt-firs-neue/TTFirsNeue-Medium.woff2") format("woff2");
-  font-weight: 500;
+  src:
+    url("/fonts/tt-firs-neue/TTFirsNeue-Variable.woff2") format("woff2"),
+    url("/fonts/tt-firs-neue/TTFirsNeue-Regular.woff2") format("woff2");
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
@@ -39,29 +37,40 @@
 :root {
   color-scheme: dark;
 
-  --background: oklch(0.125 0.008 160);
-  --foreground: oklch(0.965 0.005 160);
+  /* Zinc neutrals in both themes, with green reserved for the accent. */
+  --background: #09090b;
+  --foreground: #fafafa;
 
-  --card: oklch(0.16 0.009 160);
+  /* Surfaces climb in lightness: the page, the soft well a visual sits on,
+     the product surface raised off it. */
+  --card: #1f1f23;
   --card-foreground: var(--foreground);
-  --surface-raised: oklch(0.185 0.011 160);
-  --surface-hover: oklch(0.205 0.014 160);
-  --well: oklch(0.2 0.008 160);
-  --well-dot: rgb(255 255 255 / 10%);
+  --surface-raised: #18181b;
+  --surface-hover: #27272a;
+  --well: #121215;
+  --well-dot: rgb(250 250 250 / 8%);
 
-  --muted: oklch(0.205 0.01 160);
-  --muted-foreground: oklch(0.72 0.012 160);
-  --tertiary-foreground: oklch(0.6 0.012 160);
-  --faint-foreground: oklch(0.49 0.01 160);
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
+  --tertiary-foreground: #909099;
+  --faint-foreground: #62626c;
 
-  --border: oklch(0.92 0.008 160 / 12%);
-  --border-strong: oklch(0.92 0.008 160 / 18%);
-  --input: oklch(0.92 0.008 160 / 16%);
+  --border: rgb(250 250 250 / 10%);
+  --border-strong: rgb(250 250 250 / 17%);
+  --input: rgb(250 250 250 / 16%);
+
+  /* Pills: one ink fill, one quiet surface. */
+  --button-ink: #fafafa;
+  --button-ink-hover: #d4d4d8;
+  --button-ink-foreground: #09090b;
+  --button-quiet: rgb(250 250 250 / 6%);
+  --button-quiet-hover: rgb(250 250 250 / 11%);
+  --shadow-pill: 0 0 0 1px rgb(250 250 250 / 14%);
 
   --brand: #05dd87;
   --brand-display: var(--brand);
   --brand-hover: #29e89c;
-  --brand-foreground: oklch(0.12 0.018 160);
+  --brand-foreground: #09090b;
   /* Brand as text. Same green on the dark page (11.3:1); the light theme
      swaps in a deeper one, because the vivid fill fails as small text. */
   --brand-ink: var(--brand);
@@ -69,13 +78,36 @@
   --focus-ring: var(--brand);
   --brand-soft: rgb(5 221 135 / 10%);
   --brand-line: rgb(5 221 135 / 28%);
+  /* Green as a fill that carries text. The vivid green here; the light theme
+     swaps in a deeper one, because white on the vivid fill is 2.5:1. */
+  --brand-solid: var(--brand);
   /* Status ladder: neutral is structure, brand is the system running, attention
-     is waiting on a person, danger is a failure. Nothing else earns a hue. */
-  --attention: #f86238;
-  --attention-ink: #f86238;
-  --attention-soft: rgb(248 98 56 / 14%);
-  --attention-line: rgb(248 98 56 / 34%);
+     is waiting on a person, danger is a failure. Nothing else earns a hue.
+     Attention is amber: the tomato it replaced (#f86238, ink #ff8660) sat next
+     to danger and read as a failure. */
+  --attention: #f08a2e;
+  --attention-ink: #ffa24d;
+  --attention-soft: rgb(240 138 46 / 14%);
+  --attention-line: rgb(240 138 46 / 34%);
   --danger: #ff6b6b;
+
+  /* The header menu panel. The light values are elevenlabs.io's own, measured
+     on 2026-10-02; these are their dark counterparts: the same eight shadows
+     with the hairline ring turned light, on the raised dark surface. */
+  --menu-surface: var(--card);
+  --menu-divider: rgb(250 250 250 / 7%);
+  --menu-muted: var(--muted-foreground);
+  --menu-shadow:
+    0 10px 20px 1px rgb(0 0 0 / 28%), 0 48px 48px -24px rgb(0 0 0 / 30%),
+    0 24px 24px -12px rgb(0 0 0 / 30%), 0 12px 12px -6px rgb(0 0 0 / 28%),
+    0 6px 6px -3px rgb(0 0 0 / 26%), 0 3px 3px -1.5px rgb(0 0 0 / 24%),
+    0 1px 1px -0.5px rgb(0 0 0 / 24%), 0 0 0 1px rgb(250 250 250 / 9%);
+
+  /* The noise gradient a product window floats on (stage-atmos): the
+     gradient, the colour shown until it loads, and how strong the grain is. */
+  --atmos-image: url("../assets/editorial/atmosphere-dusk.webp");
+  --atmos-base: #04301f;
+  --atmos-grain: 0.5;
 
   --page-backdrop:
     radial-gradient(circle at 50% -10%, rgb(5 221 135 / 8%), transparent 34rem),
@@ -99,9 +131,15 @@
   --logo-filter: none;
 
   --nav-height: 4rem;
-  --shell-max: 83.75rem;
+  /* The frame. Narrower than the viewport on a laptop, so the page has margin
+     to breathe in; every section hangs between these two rails. */
+  --shell-max: 76.5rem;
   --page-gutter: clamp(1.25rem, 3vw, 2.5rem);
-  --section-space: clamp(4.75rem, 9vw, 8rem);
+  --section-space: clamp(5rem, 9vw, 8.5rem);
+  /* Air above a section heading and under it, and the inset of a cell. */
+  --head-top: clamp(4rem, 8.5vw, 7.5rem);
+  --head-bottom: clamp(2rem, 3.2vw, 2.75rem);
+  --cell-pad: clamp(1.25rem, 3.4vw, 3rem);
   --panel-padding: clamp(1.25rem, 2.6vw, 2rem);
   --grid-gap: 0.375rem;
   --radius-panel: 1.25rem;
@@ -111,24 +149,34 @@
 html[data-theme="light"] {
   color-scheme: light;
 
-  --background: #ffffff;
-  --foreground: oklch(0.19 0.016 160);
+  /* Zinc ground and soft surfaces, with white product windows. */
+  --background: #fafafa;
+  --foreground: #09090b;
 
-  --card: oklch(0.995 0.003 155);
+  --card: #ffffff;
   --card-foreground: var(--foreground);
-  --surface-raised: oklch(0.955 0.008 155);
-  --surface-hover: oklch(0.93 0.011 155);
-  --well: oklch(0.968 0.006 155);
-  --well-dot: rgb(24 24 27 / 9%);
+  --surface-raised: #f4f4f5;
+  --surface-hover: #e4e4e7;
+  --well: #f4f4f5;
+  --well-dot: rgb(9 9 11 / 9%);
 
-  --muted: oklch(0.935 0.008 155);
-  --muted-foreground: oklch(0.43 0.018 160);
-  --tertiary-foreground: oklch(0.54 0.016 160);
-  --faint-foreground: oklch(0.72 0.012 160);
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --tertiary-foreground: #6b6b75;
+  --faint-foreground: #a1a1aa;
 
-  --border: oklch(0.2 0.015 160 / 10%);
-  --border-strong: oklch(0.2 0.015 160 / 23%);
-  --input: oklch(0.2 0.015 160 / 20%);
+  --border: rgb(9 9 11 / 8%);
+  --border-strong: rgb(9 9 11 / 15%);
+  --input: rgb(9 9 11 / 18%);
+
+  --button-ink: #09090b;
+  --button-ink-hover: #3f3f46;
+  --button-ink-foreground: #ffffff;
+  --button-quiet: #ffffff;
+  --button-quiet-hover: #fafafa;
+  --shadow-pill:
+    0 0 1px rgb(0 0 0 / 40%), 0 1px 1px rgb(0 0 0 / 4%),
+    0 2px 4px rgb(0 0 0 / 4%);
 
   --brand: #10b981;
   --brand-display: var(--brand);
@@ -142,28 +190,46 @@ html[data-theme="light"] {
   --focus-ring: var(--foreground);
   --brand-soft: rgb(16 185 129 / 10%);
   --brand-line: rgb(16 185 129 / 32%);
-  /* Tomato, from the Fountible palette. Fills use the vivid tone; text uses
-     a deeper one so small labels stay above 4.5:1 on white. */
-  --attention: #f05023;
-  --attention-ink: #c93d15;
-  --attention-soft: rgb(240 80 35 / 10%);
-  --attention-line: rgb(240 80 35 / 32%);
+  /* White text on a green fill: 5.5:1 here, 2.5:1 on the vivid green. */
+  --brand-solid: #047857;
+  /* Amber: waiting on a person, not a failure. It replaced the Fountible
+     tomato (#f05023, ink #b53410), which read as an error beside the green.
+     Fills use the vivid tone; text a deeper one, 5.5:1 on its own soft fill. */
+  --attention: #dd6b12;
+  --attention-ink: #9a4a08;
+  --attention-soft: rgb(221 107 18 / 11%);
+  --attention-line: rgb(221 107 18 / 32%);
   --danger: #c73535;
 
+  /* White menu panel, zinc hairlines and labels, with seven soft shadows. */
+  --menu-surface: #ffffff;
+  --menu-divider: #f4f4f5;
+  --menu-muted: #71717a;
+  --menu-shadow:
+    0 10px 20px 1px rgb(0 0 0 / 4%), 0 48px 48px -24px rgb(0 0 0 / 2%),
+    0 24px 24px -12px rgb(0 0 0 / 4%), 0 12px 12px -6px rgb(0 0 0 / 4%),
+    0 6px 6px -3px rgb(0 0 0 / 6%), 0 3px 3px -1.5px rgb(0 0 0 / 6%),
+    0 1px 1px -0.5px rgb(0 0 0 / 6%), 0 0 0 1px rgb(0 0 0 / 6%);
+
+  --atmos-image: url("../assets/editorial/atmosphere-evergreen.webp");
+  --atmos-base: #4f5f55;
+  --atmos-grain: 0.85;
+
   --page-backdrop: linear-gradient(var(--background), var(--background));
-  --surface-sheen: rgb(0 48 28 / 2.5%);
-  --grid-line-faint: rgb(0 48 28 / 4%);
-  --grid-line-subtle: rgb(0 48 28 / 7%);
-  --grid-line-strong: rgb(0 48 28 / 11%);
-  --dot-grid-color: rgb(0 48 28 / 11%);
-  --hatch-line: rgb(0 48 28 / 13%);
-  --control-surface: rgb(0 48 28 / 3%);
-  --scroll-thumb: rgb(0 48 28 / 22%);
-  --panel-shadow: rgb(20 52 37 / 16%);
+  --surface-sheen: rgb(39 39 42 / 2%);
+  --grid-line-faint: rgb(39 39 42 / 4%);
+  --grid-line-subtle: rgb(39 39 42 / 6%);
+  --grid-line-strong: rgb(39 39 42 / 10%);
+  --dot-grid-color: rgb(39 39 42 / 10%);
+  --hatch-line: rgb(39 39 42 / 7%);
+  --control-surface: rgb(39 39 42 / 3%);
+  --scroll-thumb: rgb(39 39 42 / 22%);
+  --panel-shadow: rgb(9 9 11 / 12%);
+  /* Almost no shadow: a product surface lifts off a soft card by a hair. */
   --shadow-card-value:
-    0 1px 2px rgb(15 30 22 / 5%), 0 8px 24px -12px rgb(15 30 22 / 12%);
+    0 1px 1px rgb(9 9 11 / 4%), 0 2px 4px rgb(9 9 11 / 4%);
   --shadow-float-value:
-    0 2px 4px rgb(15 30 22 / 4%), 0 24px 48px -20px rgb(15 30 22 / 18%);
+    0 1px 2px rgb(9 9 11 / 5%), 0 16px 40px -18px rgb(9 9 11 / 18%);
   --brand-gradient-end: #10b981;
   --logo-filter: invert(1);
 }
@@ -197,6 +263,7 @@ html[data-theme="light"] {
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-soft: var(--brand-soft);
   --color-brand-line: var(--brand-line);
+  --color-brand-solid: var(--brand-solid);
   --color-attention: var(--attention);
   --color-attention-ink: var(--attention-ink);
   --color-attention-soft: var(--attention-soft);
@@ -216,50 +283,60 @@ html[data-theme="light"] {
   --shadow-float: var(--shadow-float-value);
 }
 
-/* One scale for the whole site. Headings shrink and loosen as they get smaller;
-   anything below 11px is off the scale on purpose. */
+/* One scale for the whole site. Display type is regular weight and quiet:
+   the size carries the hierarchy, so nothing above body text is bold. (Light,
+   300, was tried on 2026-10-02 and the owner found it too thin in this face.)
+   Headings shrink and loosen as they get smaller; anything below 11px is off
+   the scale on purpose. */
 @theme {
-  --text-display: clamp(2.625rem, 5.2vw, 4rem);
-  --text-display--line-height: 1.02;
+  --text-display: clamp(2.375rem, 4.1vw, 3.375rem);
+  --text-display--line-height: 1.06;
   --text-display--letter-spacing: -0.03em;
-  --text-display--font-weight: 500;
+  --text-display--font-weight: 400;
 
-  --text-title-h2: clamp(2rem, 3.6vw, 2.75rem);
-  --text-title-h2--line-height: 1.08;
+  /* The h1 of a product page: it shares its row with a picture, so it is a
+     step under the home page's display. */
+  --text-title-h1: clamp(2.125rem, 3.5vw, 2.875rem);
+  --text-title-h1--line-height: 1.08;
+  --text-title-h1--letter-spacing: -0.028em;
+  --text-title-h1--font-weight: 400;
+
+  --text-title-h2: clamp(1.875rem, 3.1vw, 2.5rem);
+  --text-title-h2--line-height: 1.12;
   --text-title-h2--letter-spacing: -0.024em;
-  --text-title-h2--font-weight: 500;
+  --text-title-h2--font-weight: 400;
 
-  --text-title-h3: clamp(1.625rem, 2.4vw, 2rem);
-  --text-title-h3--line-height: 1.15;
+  --text-title-h3: clamp(1.5rem, 2.2vw, 1.875rem);
+  --text-title-h3--line-height: 1.18;
   --text-title-h3--letter-spacing: -0.02em;
-  --text-title-h3--font-weight: 500;
+  --text-title-h3--font-weight: 400;
 
-  --text-title-h4: 1.5rem;
-  --text-title-h4--line-height: 1.25;
-  --text-title-h4--letter-spacing: -0.02em;
-  --text-title-h4--font-weight: 500;
+  --text-title-h4: 1.375rem;
+  --text-title-h4--line-height: 1.27;
+  --text-title-h4--letter-spacing: -0.015em;
+  --text-title-h4--font-weight: 450;
 
-  --text-title-h5: 1.25rem;
-  --text-title-h5--line-height: 1.3;
-  --text-title-h5--letter-spacing: -0.015em;
-  --text-title-h5--font-weight: 500;
+  --text-title-h5: 1.125rem;
+  --text-title-h5--line-height: 1.35;
+  --text-title-h5--letter-spacing: -0.01em;
+  --text-title-h5--font-weight: 450;
 
-  --text-title-h6: 1.0625rem;
-  --text-title-h6--line-height: 1.35;
-  --text-title-h6--letter-spacing: -0.01em;
+  --text-title-h6: 1rem;
+  --text-title-h6--line-height: 1.4;
+  --text-title-h6--letter-spacing: -0.005em;
   --text-title-h6--font-weight: 500;
 
-  /* The one sentence beside a section heading. Larger and tighter than body
-     copy, so a header reads as heading plus statement, not heading plus text. */
-  --text-lead: clamp(1.0625rem, 1.35vw, 1.25rem);
+  /* The one sentence beside a section heading: body size, full ink, so a
+     header reads as heading plus statement. */
+  --text-lead: clamp(1rem, 1.25vw, 1.125rem);
   --text-lead--line-height: 1.5;
 
-  --text-paragraph-lg: 1.125rem;
-  --text-paragraph-lg--line-height: 1.65;
+  --text-paragraph-lg: 1.0625rem;
+  --text-paragraph-lg--line-height: 1.6;
   --text-paragraph-md: 1rem;
-  --text-paragraph-md--line-height: 1.65;
+  --text-paragraph-md--line-height: 1.6;
   --text-paragraph-sm: 0.875rem;
-  --text-paragraph-sm--line-height: 1.6;
+  --text-paragraph-sm--line-height: 1.55;
   --text-paragraph-xs: 0.8125rem;
   --text-paragraph-xs--line-height: 1.5;
 
@@ -303,10 +380,10 @@ html[data-theme="light"] {
   overflow: hidden;
   border-radius: var(--radius-well);
   background:
-    radial-gradient(115% 90% at 100% -5%, oklch(0.42 0.006 286 / 0.45), transparent 58%),
-    radial-gradient(90% 80% at -5% 105%, oklch(0.28 0.005 286 / 0.4), transparent 62%),
-    radial-gradient(70% 60% at 28% 18%, oklch(0.72 0.004 286 / 0.08), transparent 70%),
-    linear-gradient(155deg, oklch(0.2 0.004 286), oklch(0.12 0.003 286));
+    radial-gradient(115% 90% at 100% -5%, oklch(0.42 0.008 286 / 0.45), transparent 58%),
+    radial-gradient(90% 80% at -5% 105%, oklch(0.28 0.006 286 / 0.4), transparent 62%),
+    radial-gradient(70% 60% at 28% 18%, oklch(0.72 0.005 286 / 0.08), transparent 70%),
+    linear-gradient(155deg, oklch(0.2 0.005 286), oklch(0.12 0.004 286));
 
   &::before {
     position: absolute;
@@ -359,6 +436,40 @@ html[data-theme="light"] {
   }
 }
 
+/* The same job as stage-soft, with atmosphere: a noise gradient behind the
+   product window. Colour on this site lives in media, and this is the media.
+   Peach over evergreen in the light theme, emerald on black in the dark one
+   (stock images, see docs/editorial-imagery.md). */
+@utility stage-atmos {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--atmos-base) var(--atmos-image) center / cover no-repeat;
+
+  /* The grain is its own layer: a 256px tile of black and white specks,
+     repeated. The gradient file stays tiny (it is only a blur) and the grain
+     stays sharp at any card size. */
+  &::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    content: "";
+    background: url("../assets/editorial/atmosphere-grain.png") 0 0 / 256px 256px;
+    /* A speck is a whole pixel on a 1x screen, so the grain is turned down
+       there to weigh the same as on a dense one. */
+    opacity: calc(var(--atmos-grain) * 0.7);
+
+    /* One speck per device pixel. At full size on a 2x screen each speck
+       covered four pixels and read as dots, not grain (the owner,
+       2026-10-02), so the tile is drawn at half size there. */
+    @media (min-resolution: 1.5dppx) {
+      background-size: 128px 128px;
+      opacity: var(--atmos-grain);
+    }
+  }
+}
+
 /* Row values inside mock UI. Mono stays for IDs and timestamps only. */
 @utility data-value {
   font-family: var(--font-sans);
@@ -380,33 +491,85 @@ html[data-theme="light"] {
   color: var(--foreground);
 }
 
-/* Small rings where a section's bottom edge meets the page rails. */
+/* A row separator inside a block: 1px dots on a 6px pitch. Solid hairlines are
+   the frame and the cells; dotted ones are rows of a list. */
+@utility rule-dotted {
+  background-image: linear-gradient(
+    to right,
+    var(--border-strong) 1px,
+    transparent 1px
+  );
+  background-size: 6px 1px;
+  background-repeat: repeat-x;
+  background-position: left top;
+}
+
+/* The same rule on the bottom edge: closes a dotted list. */
+@utility rule-dotted-b {
+  background-image: linear-gradient(
+    to right,
+    var(--border-strong) 1px,
+    transparent 1px
+  );
+  background-size: 6px 1px;
+  background-repeat: repeat-x;
+  background-position: left bottom;
+}
+
+/* The soft zinc card that visuals and forms sit on. Fill only, never an
+   outline: the page frame already draws enough lines (the owner, 2026-10-02). */
+@utility soft-card {
+  border-radius: var(--radius-well);
+  background: var(--well);
+}
+
+/* A chapter's closing rule. The section's own bottom hairline runs between the
+   rails; this carries it on to both edges of the window, and marks the two
+   places where it crosses the rails with a dot. The frame then reads as one
+   drawn sheet: two rails down the page, a rule across it per chapter. */
 @utility frame-cross {
   position: relative;
 
-  &::before,
-  &::after {
+  /* The rule outside the frame: a window-wide line with a hole the width of
+     the frame, so it never doubles the hairline that is already there. */
+  &::before {
     position: absolute;
-    bottom: -4px;
-    z-index: 5;
-    width: 7px;
-    height: 7px;
-    border: 1px solid var(--border-strong);
-    border-radius: 999px;
-    background: var(--background);
+    bottom: -1px;
+    left: 50%;
+    z-index: 4;
+    width: 100vw;
+    height: 1px;
+    translate: -50% 0;
+    background: linear-gradient(
+      to right,
+      var(--border) calc(50% - var(--shell-max) / 2),
+      transparent calc(50% - var(--shell-max) / 2),
+      transparent calc(50% + var(--shell-max) / 2),
+      var(--border) calc(50% + var(--shell-max) / 2)
+    );
     pointer-events: none;
     content: "";
   }
 
-  &::before {
-    left: -4px;
-  }
-
+  /* The two crossings. */
   &::after {
-    right: -4px;
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    left: -2px;
+    z-index: 5;
+    height: 3px;
+    background:
+      radial-gradient(circle at 1.5px 1.5px, var(--foreground) 1.5px, transparent 1.75px)
+        left / 3px 3px no-repeat,
+      radial-gradient(circle at 1.5px 1.5px, var(--foreground) 1.5px, transparent 1.75px)
+        right / 3px 3px no-repeat;
+    opacity: 0.5;
+    pointer-events: none;
+    content: "";
   }
 
-  @media (width < 84rem) {
+  @media (width < 78rem) {
     &::before,
     &::after {
       display: none;
@@ -414,16 +577,17 @@ html[data-theme="light"] {
   }
 }
 
+/* The line above a heading: small, grey, sentence case. It names the chapter
+   and gets out of the way. */
 @utility eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+  letter-spacing: 0;
   color: var(--muted-foreground);
 }
 
@@ -435,13 +599,14 @@ html[data-theme="light"] {
   background: var(--brand);
 }
 
-/* Readouts inside mock product UI: table headers, units, counters. */
+/* Readouts inside mock product UI: table headers, units, counters. Small
+   sentence-case sans; mono is kept for IDs and timestamps only. */
 @utility data-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-micro);
   line-height: var(--text-micro--line-height);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--tertiary-foreground);
 }
 
@@ -624,92 +789,80 @@ html[data-theme="light"] {
   color: transparent;
 }
 
+/* Pills. Two kinds only: ink (the one thing to do) and quiet (everything
+   else). Colour stays out of buttons; it lives in pictures and status. */
 @utility button {
   display: inline-flex;
-  height: 2.75rem;
+  height: 2.5rem;
   flex: none;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: 999px;
-  padding-inline: 1.25rem;
-  font-size: var(--text-label-sm);
-  line-height: var(--text-label-sm--line-height);
-  font-weight: 500;
+  padding-inline: 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+  font-weight: 400;
   white-space: nowrap;
-  outline: none;
   transition:
-    background-color 180ms var(--ease-out-quint),
-    border-color 180ms var(--ease-out-quint),
-    color 180ms var(--ease-out-quint),
-    box-shadow 180ms var(--ease-out-quint),
-    scale 180ms var(--ease-out-quint);
+    background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    scale 150ms cubic-bezier(0.4, 0, 0.2, 1);
 
   &:active {
-    scale: 0.97;
-  }
-
-  &:focus-visible {
-    box-shadow:
-      0 0 0 2px var(--background),
-      0 0 0 4px var(--focus-ring);
+    scale: 0.98;
   }
 }
 
 @utility button-lg {
-  height: 3rem;
-  padding-inline: 1.5rem;
-  font-size: 0.9375rem;
+  height: 2.75rem;
+  padding-inline: 1.25rem;
+  font-size: 1rem;
 }
 
 @utility button-sm {
-  height: 2.5rem;
-  padding-inline: 1rem;
+  height: 2.25rem;
+  padding-inline: 0.875rem;
+  font-size: 0.875rem;
 }
 
 @utility button-primary {
-  background: var(--brand);
-  color: var(--brand-foreground);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 22%),
-    0 1px 2px rgb(0 0 0 / 12%),
-    0 10px 24px -12px color-mix(in srgb, var(--brand) 60%, transparent);
+  background: var(--button-ink);
+  color: var(--button-ink-foreground);
 
   &:hover {
-    background: var(--brand-hover);
-  }
-
-  /* The base focus ring would drop the depth; keep both. */
-  &:focus-visible {
-    box-shadow:
-      0 0 0 2px var(--background),
-      0 0 0 4px var(--focus-ring),
-      0 10px 24px -12px color-mix(in srgb, var(--brand) 60%, transparent);
+    background: var(--button-ink-hover);
   }
 }
 
 @utility button-ink {
-  background: var(--foreground);
-  color: var(--background);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 14%),
-    0 1px 2px rgb(0 0 0 / 16%);
+  background: var(--button-ink);
+  color: var(--button-ink-foreground);
 
   &:hover {
-    background: color-mix(in oklch, var(--foreground) 88%, var(--background));
+    background: var(--button-ink-hover);
+  }
+}
+
+/* The brand fill, for the rare control that is itself a live status. */
+@utility button-brand {
+  background: var(--brand);
+  color: var(--brand-foreground);
+
+  &:hover {
+    background: var(--brand-hover);
   }
 }
 
 @utility button-secondary {
-  border-color: var(--border-strong);
-  background: var(--card);
+  background: var(--button-quiet);
   color: var(--foreground);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+  box-shadow: var(--shadow-pill);
 
   &:hover {
-    border-color: color-mix(in oklch, var(--foreground) 28%, transparent);
-    background: var(--surface-raised);
+    background: var(--button-quiet-hover);
   }
 }
 

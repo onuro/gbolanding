@@ -117,17 +117,34 @@ const gridY = [PAD_Y, H / 2, H - PAD_Y];
           }
         </g>
         <path d={area} fill="url(#approach-usage-fill)"></path>
-        <path
-          d={line}
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.75"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          vector-effect="non-scaling-stroke"
-          data-ap-draw
-        ></path>
       </svg>
+      {/* The line has a layer of its own so a clip can reveal it left to
+          right: ApproachSection animates --ap-reveal from 100% to 0%. With no
+          script it is 0% and the whole line shows. The clip reaches 4px past
+          the box on the other three sides so the stroke is never trimmed. */}
+      <div
+        class="absolute inset-0"
+        style="clip-path: inset(-4px var(--ap-reveal, 0%) -4px -4px);"
+        data-ap-draw
+      >
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          preserveAspectRatio="none"
+          class="absolute inset-0 size-full overflow-visible text-brand"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            d={line}
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            vector-effect="non-scaling-stroke"
+          ></path>
+        </svg>
+      </div>
       <span
         class="absolute size-2 rounded-full bg-brand ring-[3px] ring-brand-soft"
         style={`left: calc(${endLeft}% - 0.25rem); top: calc(${endTop}% - 0.25rem);`}

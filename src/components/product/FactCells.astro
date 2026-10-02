@@ -1,5 +1,5 @@
 ---
-// Three facts side by side on hairlines. Each cell may carry a small picture of
+// Three facts side by side, separated by space. Each cell may carry a small picture of
 // the mechanism in a quiet tray (slot "cell-0", "cell-1", ...); the text sits
 // on the page under it. Titles are facts a visitor can check, never badges.
 //
@@ -20,7 +20,7 @@ const hasPictures = items.some((_, index) => Astro.slots.has(`cell-${index}`));
 
 <ul
   class:list={[
-    "fact-cells grid gap-px border-y border-border bg-border lg:grid-cols-3",
+    "fact-cells grid lg:grid-cols-3",
     className,
   ]}
 >
@@ -28,7 +28,7 @@ const hasPictures = items.some((_, index) => Astro.slots.has(`cell-${index}`));
     items.map((item, index) => (
       <li
         class:list={[
-          "fact-cell bg-background",
+          "fact-cell",
           hasPictures
             ? "row-span-2 grid grid-rows-subgrid gap-0"
             : "flex flex-col",
@@ -84,7 +84,7 @@ const hasPictures = items.some((_, index) => Astro.slots.has(`cell-${index}`));
   }
 
   /* A padded chapter already gave the gutter. The outer edges sit flush with
-     the heading; only the hairlines between cells keep air on both sides.
+     the heading; only the gaps between cells keep air on both sides.
      Without this the text sat 32px to the right of the heading above it.
      The edges are counted in threes, not first and last: six facts make two
      rows, and the fourth starts a row just as the first does. */

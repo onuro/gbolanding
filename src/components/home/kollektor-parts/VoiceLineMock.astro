@@ -58,9 +58,11 @@ const bars = Array.from({ length: 48 }, (_, i) => {
 });
 ---
 
-<KollektorStage label={ui.sr} fixed>
+<KollektorStage label={ui.sr} fixed fade>
   <div class="w-full max-w-[26rem]" data-k-voice data-speaker="agent">
     <MockShell
+      flushBottom
+      titleClass="text-label-md"
       title={ui.title}
       meta={ui.meta}
       status={{ tone: "live", label: ui.status }}
@@ -99,7 +101,7 @@ const bars = Array.from({ length: 48 }, (_, i) => {
           data-at="12"
         >
           <span
-            class="grid size-5 shrink-0 place-items-center rounded-full border border-border bg-card text-brand"
+            class="grid size-5 shrink-0 place-items-center rounded-full bg-brand-soft text-brand"
           >
             <Check className="size-3" strokeWidth={2.25} />
           </span>
@@ -120,12 +122,12 @@ const bars = Array.from({ length: 48 }, (_, i) => {
           data-at="21"
         >
           <span
-            class="grid size-6 shrink-0 place-items-center rounded-full bg-brand text-brand-foreground"
+            class="grid size-6 shrink-0 place-items-center rounded-full bg-brand-solid text-brand-foreground"
           >
             <AudioLines className="size-3.5" strokeWidth={1.75} />
           </span>
           <p
-            class="max-w-[82%] rounded-tile rounded-bl-chip border border-brand-line bg-brand-soft px-3 py-2 text-paragraph-xs text-foreground"
+            class="max-w-[82%] rounded-tile rounded-bl-chip bg-brand-soft px-3 py-2 text-paragraph-xs text-foreground"
           >
             {ui.agentLine}
           </p>
@@ -138,7 +140,7 @@ const bars = Array.from({ length: 48 }, (_, i) => {
           data-at="34"
         >
           <span
-            class="grid size-6 shrink-0 place-items-center rounded-full border border-border bg-muted text-muted-foreground"
+            class="grid size-6 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground"
           >
             <Phone className="size-3" strokeWidth={1.75} />
           </span>
@@ -150,13 +152,13 @@ const bars = Array.from({ length: 48 }, (_, i) => {
         </li>
 
         <li
-          class="k-v-step flex items-center gap-3 rounded-tile border border-brand-line bg-card px-3 py-2.5 shadow-card"
+          class="k-v-step flex items-center gap-3 rounded-tile bg-brand-soft px-3 py-2.5"
           data-kv-step
           data-kv-by="agent"
           data-at="41"
         >
           <span
-            class="grid size-6 shrink-0 place-items-center rounded-full bg-brand text-brand-foreground"
+            class="grid size-6 shrink-0 place-items-center rounded-full bg-brand-solid text-brand-foreground"
           >
             <Check className="size-3.5" strokeWidth={2.25} />
           </span>
@@ -164,7 +166,7 @@ const bars = Array.from({ length: 48 }, (_, i) => {
             <span class="block text-label-xs text-foreground">
               {ui.promise}
             </span>
-            <span class="block text-micro text-tertiary-foreground">
+            <span class="block text-micro text-muted-foreground">
               {ui.due} <span class="font-mono">{ui.dueTime}</span>
             </span>
           </span>

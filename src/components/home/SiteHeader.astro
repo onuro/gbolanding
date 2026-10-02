@@ -1,5 +1,8 @@
 ---
-import { ArrowRight, Menu } from "lucide-react";
+import { Image } from "astro:assets";
+import { ArrowRight, ChevronDown, Menu, Phone, Stethoscope } from "lucide-react";
+import hastamShot from "@/assets/editorial/menu-hastam.jpg";
+import kollektorShot from "@/assets/editorial/menu-kollektor.jpg";
 import ThemeToggle from "@/components/home/ThemeToggle.astro";
 import type { Locale } from "@/i18n/config";
 import { pageKeys, pathFor, routes } from "@/i18n/routes";
@@ -21,42 +24,74 @@ const primaryNavigationLabel =
   locale === "tr" ? "Ana menü" : "Primary navigation";
 const menuLabel = locale === "tr" ? "Menü" : "Menu";
 const aboutHref = pathFor("about", locale);
-// Anchored to the home page rather than left as bare fragments: the same header
-// renders on /about, where "#solutions" would point at a section that is not on
-// the page. On the home page these still resolve to a same-page jump.
-// The two product pages only join the bar from lg: at md five cells crowd the
-// language switch. The mobile menu lists everything.
-// A label never wraps, and the cells are 8px narrower below lg: at 768 the
-// English "How we work" broke into two lines and the Turkish demo button ran
-// 1px past the frame.
-const navItems = [
-  { href: `${homeHref}#solutions`, label: messages.nav.solutions },
+const products = [
   {
     href: pathFor("kollektor", locale),
     label: messages.nav.kollektor,
-    page: "kollektor",
-    wideOnly: true,
+    page: "kollektor" as const,
+    note:
+      locale === "tr"
+        ? "Borçluları arar, ödeme sözünü kaydeder."
+        : "Calls debtors and records the promise to pay.",
+    Icon: Phone,
+    shot: kollektorShot,
+    caption: messages.solutions.kollektor.eyebrow,
   },
   {
     href: pathFor("hastam", locale),
     label: messages.nav.hastam,
-    page: "hastam",
-    wideOnly: true,
+    page: "hastam" as const,
+    note:
+      locale === "tr"
+        ? "Şikâyeti dinler, uygun hekime saat önerir."
+        : "Listens, then offers a time with the right doctor.",
+    Icon: Stethoscope,
+    shot: hastamShot,
+    caption: messages.solutions.hastam.eyebrow,
   },
+];
+const productsOpen = products.some((item) => item.page === currentPage);
+const productsLabel = locale === "tr" ? "Ürünler" : "Products";
+const allSolutionsLabel = locale === "tr" ? "Tüm çözümler" : "All solutions";
+// The picture the menu opens on: the product page being read, else the first
+// product. Pointing at a row, or tabbing to it, swaps the picture.
+const defaultShot = Math.max(
+  0,
+  products.findIndex((item) => item.page === currentPage),
+);
+// Anchored to the home page rather than left as bare fragments: the same header
+// renders on /about, where "#solutions" would point at a section that is not on
+// the page. On the home page these still resolve to a same-page jump.
+// Product pages live in the Ürünler menu. The mobile list still names each one.
+// A label never wraps, and the links are tighter below lg: at 768 the English
+// "How we work" broke into two lines and the Turkish demo button ran 1px past
+// the frame.
+const linkClass =
+  "flex h-9 items-center rounded-full px-2.5 text-[0.875rem] leading-5 whitespace-nowrap text-foreground/75 outline-none transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand aria-[current=page]:bg-foreground/[0.05] aria-[current=page]:text-foreground lg:px-3.5";
+const navItems = [
+  { href: `${homeHref}#solutions`, label: messages.nav.solutions },
   { href: `${homeHref}#method`, label: messages.nav.method },
   { href: aboutHref, label: messages.nav.about, page: "about" },
 ];
+const mobileItems = [
+  navItems[0],
+  ...products.map(({ href, label, page }) => ({ href, label, page })),
+  navItems[1],
+  navItems[2],
+];
 ---
 
+{/* A plain bar: the mark, the links as text, the controls as pills. No cells,
+    so the rails of the page frame are the only lines that cross it. */}
 <header
-  class="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl"
+  class="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-xl"
 >
   <div
-    class="frame flex h-16 items-stretch"
+    class="frame flex h-16 items-center gap-1 px-3 sm:px-5 lg:gap-2 lg:px-9"
   >
     <a
       href={homeHref}
-      class="flex min-w-0 items-center border-r border-border px-4 outline-none transition-colors hover:bg-foreground/[0.035] focus-visible:bg-foreground/[0.06] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:px-6"
+      class="mr-2 flex min-w-0 shrink-0 items-center rounded-full px-2 py-1 outline-none focus-visible:ring-2 focus-visible:ring-brand lg:mr-5"
       aria-label="GBO Vision"
     >
       <img
@@ -64,37 +99,138 @@ const navItems = [
         alt=""
         width="1993"
         height="852"
-        class="site-logo h-10 w-auto select-none"
+        class="site-logo h-9 w-auto select-none"
       />
     </a>
 
     <nav
       aria-label={primaryNavigationLabel}
-      class="hidden items-stretch md:flex"
+      class="hidden items-center md:flex"
     >
+      <details class="group/products relative" data-products>
+        <summary
+          class:list={[
+            linkClass,
+            "cursor-pointer gap-1 list-none group-open/products:bg-foreground/[0.05] group-open/products:text-foreground [&::-webkit-details-marker]:hidden",
+          ]}
+          aria-current={productsOpen ? "page" : undefined}
+        >
+          {messages.nav.solutions}
+          <ChevronDown
+            aria-hidden="true"
+            className="size-3.5 transition-transform duration-200 group-open/products:rotate-180"
+            strokeWidth={1.75}
+          />
+        </summary>
+        {/* The panel is styled after the Products menu on elevenlabs.io, measured
+            on 2026-10-02: a white sheet with a 24px radius, their stack of soft
+            shadows over a hairline ring, 10px under the button; a 282px list
+            column with the label 28px down and 18px of padding on the other
+            sides; a 1px divider; a 13px grey label; 17px medium links that dim
+            when pointed at, and a 15px one under a hairline; 8px corners
+            inside (rounded-lg is 16px in this theme, hence the literal). Their rows are
+            bare text in their own font; ours keep the icon, the one-line
+            description and, from lg, the picture column. */}
+        <div class="absolute left-0 top-full z-50 pt-2.5">
+          <div
+            class="products-panel grid w-[17.625rem] overflow-hidden rounded-3xl bg-(--menu-surface) shadow-(--menu-shadow) lg:w-[40rem] lg:grid-cols-[17.625rem_minmax(0,1fr)]"
+          >
+            <div class="flex min-w-0 flex-col px-[1.125rem] pt-6 pb-[1.125rem]">
+              <p class="px-2.5 text-[0.8125rem] leading-[1.125rem] font-medium text-(color:--menu-muted)">
+                {productsLabel}
+              </p>
+              <ul class="mt-4 flex flex-col">
+                {
+                  products.map(({ href, label, page, note, Icon }, index) => (
+                    <li>
+                      <a
+                        href={href}
+                        data-products-item={index}
+                        aria-current={page === currentPage ? "page" : undefined}
+                        class="group/item flex items-start gap-3 rounded-[0.75rem] px-2.5 py-2.5 outline-none transition-colors hover:bg-foreground/[0.04] focus-visible:bg-foreground/[0.04] focus-visible:ring-2 focus-visible:ring-brand aria-[current=page]:bg-foreground/[0.04]"
+                      >
+                        <span class="mt-0.5 grid size-9 shrink-0 place-items-center rounded-full bg-foreground/[0.06] text-foreground transition-colors group-hover/item:bg-foreground group-hover/item:text-background group-focus-visible/item:bg-foreground group-focus-visible/item:text-background">
+                          <Icon className="size-4" strokeWidth={1.5} aria-hidden="true" />
+                        </span>
+                        <span class="min-w-0 flex-1">
+                          <span class="block text-[1.0625rem] leading-[1.5625rem] font-medium text-foreground">
+                            {label}
+                          </span>
+                          <span class="mt-0.5 block text-pretty text-[0.875rem] leading-[1.3125rem] text-(color:--menu-muted)">
+                            {note}
+                          </span>
+                        </span>
+                      </a>
+                    </li>
+                  ))
+                }
+              </ul>
+              <span aria-hidden="true" class="mx-2.5 my-4 block h-px shrink-0 bg-(--menu-divider)"></span>
+              <a
+                href={navItems[0].href}
+                class="rounded-[0.5rem] px-2.5 py-1.5 text-[0.9375rem] leading-[1.375rem] font-medium text-foreground outline-none transition-colors hover:text-(color:--menu-muted) focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                {allSolutionsLabel}
+              </a>
+            </div>
+
+            {/* Decorative: each picture repeats what its row already says. */}
+            <div
+              class="hidden border-l border-(color:--menu-divider) p-[1.125rem] lg:block"
+              aria-hidden="true"
+            >
+              <div class="relative h-full min-h-64 overflow-hidden rounded-[0.875rem] bg-muted">
+                {
+                  products.map(({ shot, caption }, index) => (
+                    <figure
+                      data-products-shot={index}
+                      class:list={[
+                        "products-shot absolute inset-0",
+                        index === defaultShot && "is-default",
+                      ]}
+                    >
+                      <Image
+                        src={shot}
+                        alt=""
+                        width={644}
+                        widths={[322, 644, 966]}
+                        sizes="20.125rem"
+                        format="webp"
+                        quality={72}
+                        loading="lazy"
+                        decoding="async"
+                        class="size-full object-cover"
+                      />
+                      <figcaption class="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/65 via-black/25 to-transparent px-3.5 pt-12 pb-3 text-[0.8125rem] leading-[1.125rem] font-medium text-white">
+                        {caption}
+                      </figcaption>
+                    </figure>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
       {
-        navItems.map((item) => (
+        navItems.slice(1).map((item) => (
           <a
             href={item.href}
             aria-current={item.page === currentPage ? "page" : undefined}
-            class:list={[
-              "group relative items-center border-r border-border px-3 text-label-sm whitespace-nowrap text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:bg-foreground/[0.06] focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset aria-[current=page]:text-foreground lg:px-5",
-              item.wideOnly ? "hidden lg:flex" : "flex",
-            ]}
+            class={linkClass}
           >
             {item.label}
-            <span class="absolute inset-x-3 bottom-0 h-px origin-left scale-x-0 bg-brand transition-transform group-hover:scale-x-100 group-focus-visible:scale-x-100 group-aria-[current=page]:scale-x-100 lg:inset-x-5" />
           </a>
         ))
       }
     </nav>
 
-    <div class="ml-auto flex items-stretch">
+    <div class="ml-auto flex items-center gap-1 lg:gap-2">
       <ThemeToggle locale={locale} />
 
       <nav
         aria-label={messages.nav.languageLabel}
-        class="hidden items-center gap-1 border-l border-border px-3 md:flex"
+        class="hidden items-center gap-0.5 md:flex"
       >
         <a
           href={pathFor(currentPage, "en")}
@@ -126,10 +262,10 @@ const navItems = [
         </a>
       </nav>
 
-      <div class="flex items-center border-l border-border px-2 sm:px-3">
+      <div class="flex items-center pl-1">
       <a
         href="#demo"
-        class="button button-sm button-ink group px-3 sm:px-4"
+        class="button button-sm button-ink group px-3 sm:px-3.5"
       >
         <span class="sr-only sm:not-sr-only">{messages.nav.scheduleDemo}</span>
         <ArrowRight
@@ -141,11 +277,11 @@ const navItems = [
       </div>
 
       <details
-        class="group relative border-l border-border md:hidden"
+        class="group relative md:hidden"
         data-mobile-menu
       >
         <summary
-          class="flex h-full w-12 cursor-pointer list-none items-center justify-center text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset [&::-webkit-details-marker]:hidden"
+          class="flex size-9 cursor-pointer list-none items-center justify-center rounded-full text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand [&::-webkit-details-marker]:hidden"
         >
           <span class="sr-only">{menuLabel}</span>
           <Menu
@@ -156,15 +292,15 @@ const navItems = [
         </summary>
 
         <div
-          class="panel-shadow absolute right-0 top-full mt-2 w-64 overflow-hidden rounded-2xl border border-border bg-background"
+          class="panel-shadow absolute right-0 top-full mt-3 w-64 overflow-hidden rounded-[20px] bg-card"
         >
           <nav aria-label={primaryNavigationLabel} class="flex flex-col">
             {
-              navItems.map((item) => (
+              mobileItems.map((item) => (
                 <a
                   href={item.href}
                   aria-current={item.page === currentPage ? "page" : undefined}
-                  class="border-b border-border px-5 py-4 text-label-sm text-muted-foreground aria-[current=page]:text-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:bg-foreground/[0.06] focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
+                  class="border-b border-border px-5 py-3.5 text-[0.9375rem] leading-6 text-foreground/80 aria-[current=page]:text-foreground outline-none transition-colors hover:bg-foreground/[0.04] hover:text-foreground focus-visible:bg-foreground/[0.06] focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
                 >
                   {item.label}
                 </a>
@@ -225,4 +361,98 @@ const navItems = [
       mobileMenu.open = false;
     }
   });
+
+  document.querySelectorAll<HTMLDetailsElement>("[data-products]").forEach((menu) => {
+    let closeTimer = 0;
+    menu.addEventListener("mouseenter", () => {
+      window.clearTimeout(closeTimer);
+      menu.open = true;
+    });
+    menu.addEventListener("mouseleave", () => {
+      closeTimer = window.setTimeout(() => {
+        menu.open = false;
+      }, 250);
+    });
+
+    // The picture follows the row under the pointer or the focus, and goes
+    // back to the default one when neither is on a row.
+    const shots = [...menu.querySelectorAll<HTMLElement>("[data-products-shot]")];
+    const show = (index: number | null) => {
+      shots.forEach((shot, i) => shot.classList.toggle("is-on", i === index));
+    };
+    menu.querySelectorAll<HTMLElement>("[data-products-item]").forEach((item) => {
+      const index = Number(item.dataset.productsItem);
+      item.addEventListener("pointerenter", () => show(index));
+      item.addEventListener("focus", () => show(index));
+      item.addEventListener("pointerleave", () => show(null));
+      item.addEventListener("blur", () => show(null));
+    });
+
+    // Escape closes the menu and hands focus back to its button. Focus moving
+    // out of the menu closes it too, unless the pointer is still on it.
+    menu.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || !menu.open) return;
+      menu.open = false;
+      menu.querySelector("summary")?.focus();
+    });
+    menu.addEventListener("focusout", (event) => {
+      const next = event.relatedTarget;
+      if (next instanceof Node && menu.contains(next)) return;
+      if (!menu.matches(":hover")) menu.open = false;
+    });
+
+    // The pictures are lazy, so a phone, where this menu is never drawn, never
+    // asks for them. On a wide screen they are fetched once the page is idle,
+    // so the first opening shows a picture and not an empty card.
+    const warm = () => {
+      if (!window.matchMedia("(min-width: 64rem)").matches) return;
+      menu.querySelectorAll("img").forEach((img) => {
+        img.loading = "eager";
+      });
+    };
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(warm, { timeout: 3000 });
+    } else {
+      setTimeout(warm, 1500);
+    }
+  });
 </script>
+
+<style>
+  [data-products][open] .products-panel {
+    animation: products-in 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  @keyframes products-in {
+    from {
+      opacity: 0;
+      translate: 0 -6px;
+    }
+  }
+
+  /* The default picture stays underneath; the one for the pointed row fades
+     in over it. */
+  .products-shot {
+    opacity: 0;
+    transition: opacity 260ms ease;
+  }
+
+  .products-shot.is-default {
+    opacity: 1;
+  }
+
+  .products-shot.is-on {
+    z-index: 1;
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-products][open] .products-panel {
+      animation: none;
+    }
+
+    .products-shot {
+      transition: none;
+    }
+  }
+</style>

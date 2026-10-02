@@ -11,6 +11,8 @@
 // routed, never assessed; the numbers are product defaults; the clinic, the
 // people and the hours in the pictures are sample data and each picture says
 // so. See the header of messages/hastam-page.tr.ts.
+import { Image } from "astro:assets";
+import receptionPhoto from "@/assets/editorial/hastam-clinic-reception.jpg";
 import ApprovalMock from "@/components/hastam-page/ApprovalMock.astro";
 import AttemptLadder from "@/components/hastam-page/AttemptLadder.astro";
 import CallCaps from "@/components/hastam-page/CallCaps.astro";
@@ -72,10 +74,29 @@ const hastamSite = locale === "tr" ? "https://hastam.ai/" : "https://hastam.ai/e
   </Chapter>
 
   <Chapter id="how" headingId="hastam-heard-title" copy={page.heard}>
+    {/* The page's one photograph: a reception desk at rest, under the
+        chapter that says the assistant speaks like one. Illustrative and
+        decorative, so the alt is empty (docs/editorial-imagery.md). The
+        position keeps the telephone in the shallow crop. */}
+    <div class="overflow-hidden rounded-card bg-muted" data-reveal>
+      <Image
+        src={receptionPhoto}
+        alt=""
+        width={1120}
+        widths={[480, 768, 1120, 1680]}
+        sizes="(min-width: 84rem) 57rem, (min-width: 64rem) 85vw, 100vw"
+        format="webp"
+        quality={72}
+        loading="lazy"
+        decoding="async"
+        class="aspect-[3/2] w-full object-cover object-[50%_72%] sm:aspect-[21/9]"
+      />
+    </div>
     <SayDoTable
       rows={page.heard.rows}
       sayLabel={page.heard.sayLabel}
       doLabel={page.heard.doLabel}
+      class="mt-10 lg:mt-12"
     />
   </Chapter>
 
@@ -107,7 +128,6 @@ const hastamSite = locale === "tr" ? "https://hastam.ai/" : "https://hastam.ai/e
       label={page.parent.linkLabel}
       external
       externalHint={page.parent.externalHint}
-      class="border-t border-border"
     />
   </Chapter>
 </ProductPageShell>

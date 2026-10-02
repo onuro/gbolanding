@@ -1,5 +1,5 @@
 ---
-// The full-width row link that closes a section: one label, one arrow.
+// The link that closes a section: one quiet pill, one arrow.
 import { ArrowUpRight } from "lucide-react";
 
 interface Props {
@@ -23,22 +23,21 @@ const {
 } = Astro.props;
 ---
 
-<a
-  href={href}
-  data-demo-product={demoProduct}
-  rel={external ? "noopener" : undefined}
-  class:list={[
-    "group flex min-h-14 items-center justify-between gap-4 px-5 text-label-sm text-foreground outline-none transition-colors hover:bg-foreground/[0.025] focus-visible:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset sm:px-8 lg:px-12",
-    className,
-  ]}
->
-  <span>
-    {label}
-    {external && externalHint && <span class="sr-only"> ({externalHint})</span>}
-  </span>
-  <ArrowUpRight
-    aria-hidden="true"
-    className="size-4 text-tertiary-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand"
-    strokeWidth={1.5}
-  />
-</a>
+<div class:list={["flex flex-wrap items-center gap-2 px-5 pt-2 pb-10 sm:px-8 sm:pb-14 lg:px-12", className]}>
+  <a
+    href={href}
+    data-demo-product={demoProduct}
+    rel={external ? "noopener" : undefined}
+    class="button button-sm button-secondary group"
+  >
+    <span>
+      {label}
+      {external && externalHint && <span class="sr-only"> ({externalHint})</span>}
+    </span>
+    <ArrowUpRight
+      aria-hidden="true"
+      className="size-3.5 text-tertiary-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+      strokeWidth={1.5}
+    />
+  </a>
+</div>

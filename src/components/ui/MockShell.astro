@@ -9,9 +9,21 @@ interface Props {
   bodyClass?: string;
   /** One surface. Skips the padded outer frame and the inner border. */
   bare?: boolean;
+  /** Square bottom edge, for a mock that sits on the well. */
+  flushBottom?: boolean;
+  titleClass?: string;
 }
 
-const { title, meta, status, class: className, bodyClass, bare = false } = Astro.props;
+const {
+  title,
+  meta,
+  status,
+  class: className,
+  bodyClass,
+  bare = false,
+  flushBottom = false,
+  titleClass = "text-label-xs",
+} = Astro.props;
 const hasHeader = Boolean(title || meta || status);
 const hasFooter = Astro.slots.has("footer");
 ---
@@ -20,17 +32,26 @@ const hasFooter = Astro.slots.has("footer");
   class:list={[
     bare
       ? "overflow-hidden rounded-card bg-background shadow-float"
-      : "rounded-shell border border-border bg-card p-1 shadow-float",
+      : flushBottom
+        ? "overflow-hidden rounded-t-shell bg-card p-1 pb-0 shadow-float"
+        : "rounded-shell bg-card p-1 shadow-float",
     className,
   ]}
 >
-  <div class:list={[!bare && "overflow-hidden rounded-card border border-border bg-background"]}>
+  <div
+    class:list={[
+      !bare &&
+        (flushBottom
+          ? "overflow-hidden rounded-t-card bg-card"
+          : "overflow-hidden rounded-card bg-card"),
+    ]}
+  >
     {
       hasHeader && (
         <div class="flex min-h-11 items-center justify-between gap-3 border-b border-border px-4 py-2.5">
           <div class="min-w-0">
             {title && (
-              <p class="truncate text-label-xs text-foreground">{title}</p>
+              <p class:list={["truncate text-foreground", titleClass]}>{title}</p>
             )}
             {meta && (
               <p class="mt-0.5 truncate text-micro text-tertiary-foreground">

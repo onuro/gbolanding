@@ -5,16 +5,18 @@
  * the one sentence screen readers get instead.
  *
  * `fixed` pins the well height from md up so side-by-side cells line up.
- * `fade` lets a long mock (a list) run off the bottom edge into the surface.
+ * `fade` rests a short mock on the bottom edge. `seat` does the same
+ * without taking the mock out of flow, so a tall card is not clipped.
  */
 interface Props {
   label: string;
   fixed?: boolean;
   fade?: boolean;
+  seat?: boolean;
   class?: string;
 }
 
-const { label, fixed = false, fade = false, class: className } = Astro.props;
+const { label, fixed = false, fade = false, seat = false, class: className } = Astro.props;
 ---
 
 <div
@@ -27,11 +29,11 @@ const { label, fixed = false, fade = false, class: className } = Astro.props;
   <div
     aria-hidden="true"
     class:list={[
-      "flex justify-center px-3 py-8 sm:px-8",
-      fixed
-        ? "md:absolute md:inset-0 md:items-start md:px-5 md:pb-0 md:pt-8 lg:px-8"
-        : "h-full items-center sm:py-10",
-      fixed && fade && "k-stage-fade",
+      "flex justify-center px-3 sm:px-8",
+      fade && "py-8 md:absolute md:inset-0 md:items-end md:px-5 md:py-0 lg:px-8",
+      seat && "h-full items-end pt-8 pb-0 sm:pt-10",
+      !fade && !seat && fixed && "py-8 md:absolute md:inset-0 md:items-start md:px-5 md:pb-0 md:pt-8 lg:px-8",
+      !fade && !seat && !fixed && "h-full items-center py-8 sm:py-10",
     ]}
   >
     <slot />
@@ -39,14 +41,3 @@ const { label, fixed = false, fade = false, class: className } = Astro.props;
   <p class="sr-only">{label}</p>
 </div>
 
-<style>
-  @media (width >= 48rem) {
-    .k-stage-fade {
-      mask-image: linear-gradient(
-        to bottom,
-        black calc(100% - 2.75rem),
-        transparent
-      );
-    }
-  }
-</style>

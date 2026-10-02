@@ -52,21 +52,22 @@ const ui =
   class="bg-background"
   data-reveal-root
 >
-  <div class="frame border-b border-border">
+  <div class="frame frame-cross border-b border-border">
     <SectionHeader
       eyebrow={messages.approach.eyebrow}
       lead={messages.approach.description}
       headingId="method-heading"
       reveal="inner"
+      rule={false}
     >
       <BlinkText client:visible text={messages.approach.title} />
     </SectionHeader>
 
     <div class="grid grid-cols-1 lg:grid-cols-12" data-ap-root style="--ap-hold: 4500ms">
-      <div class="lg:col-span-5 lg:border-r lg:border-border">
+      <div class="lg:col-span-5">
         <div class="flex h-full flex-col" data-reveal>
           <div
-            class="flex h-11 items-center justify-between gap-4 border-b border-border px-5 sm:px-8 lg:px-10"
+            class="flex h-11 items-center justify-between gap-4 px-5 sm:px-8 lg:px-12"
           >
             <span class="data-label">{ui.process}</span>
             <div class="flex items-center gap-3">
@@ -75,7 +76,7 @@ const ui =
               </span>
               <button
                 type="button"
-                class="relative grid size-7 cursor-pointer place-items-center rounded-full border border-border text-tertiary-foreground transition-colors duration-200 before:absolute before:-inset-[9px] before:content-[''] hover:border-border-strong hover:text-foreground"
+                class="relative grid size-7 cursor-pointer place-items-center rounded-full bg-foreground/[0.05] text-tertiary-foreground transition-colors duration-200 before:absolute before:-inset-[9px] before:content-[''] hover:bg-foreground/[0.09] hover:text-foreground"
                 aria-label={ui.pause}
                 title={ui.pause}
                 data-label-pause={ui.pause}
@@ -94,7 +95,7 @@ const ui =
           </div>
 
           <ol
-            class="flex flex-col gap-1 p-3 sm:p-4 lg:p-5"
+            class="flex flex-col gap-1 p-3 sm:p-4 lg:px-7 lg:py-3"
             role="list"
             data-ap-list
             data-ap-hover
@@ -102,11 +103,11 @@ const ui =
             {
               steps.map((step, index) => (
                 <li
-                  class="ap-step group relative grid grid-cols-[2rem_minmax(0,1fr)] gap-x-4 rounded-tile border border-transparent px-4 py-4 transition-[background-color,border-color,box-shadow] duration-300 ease-out-quint data-[active]:border-border data-[active]:bg-card data-[active]:shadow-card sm:px-5 sm:py-5"
+                  class="ap-step group relative grid grid-cols-[2rem_minmax(0,1fr)] gap-x-4 rounded-tile px-4 py-4 transition-[background-color] duration-300 ease-out-quint data-[active]:bg-well sm:px-5 sm:py-5"
                   data-ap-step
                   data-active={index === 0 ? "" : undefined}
                 >
-                  <span class="flex size-8 items-center justify-center rounded-full border border-border bg-background data-label tabular-nums transition-colors duration-300 group-data-[active]:border-foreground group-data-[active]:bg-foreground group-data-[active]:text-background">
+                  <span class="flex size-8 items-center justify-center rounded-full bg-foreground/[0.06] data-label text-muted-foreground tabular-nums transition-colors duration-300 group-data-[active]:bg-foreground group-data-[active]:text-background">
                     {step.number}
                   </span>
                   <h3 class="flex min-h-8 items-center text-title-h5 text-muted-foreground transition-colors duration-300 group-hover:text-foreground group-data-[active]:text-foreground">
@@ -135,7 +136,7 @@ const ui =
           </ol>
 
           <p
-            class="mt-auto hidden h-11 items-center border-t border-border px-10 text-paragraph-xs text-tertiary-foreground lg:flex"
+            class="mt-auto hidden h-11 items-center px-12 text-paragraph-xs text-tertiary-foreground lg:flex"
           >
             {ui.navHint}
           </p>
@@ -143,9 +144,9 @@ const ui =
       </div>
 
       <div
-        class="order-first border-b border-border lg:order-none lg:col-span-7 lg:border-b-0"
+        class="order-first lg:order-none lg:col-span-7"
       >
-        <div class="h-full p-3 sm:p-5 lg:p-6" data-reveal>
+        <div class="h-full p-3" data-reveal>
           <figure
             id="method-stage"
             class="stage flex h-[20rem] flex-col p-3 sm:h-[26rem] sm:p-6 lg:h-full lg:min-h-[32rem] lg:p-8"
@@ -238,9 +239,7 @@ const ui =
 </section>
 
 <script>
-  import { animate, createDrawable, stagger, utils } from "animejs";
-
-  type Drawable = ReturnType<typeof createDrawable>;
+  import { animate, stagger, utils } from "animejs";
 
   // The active row's progress bar is a CSS animation lasting --ap-hold; its
   // animationend is what advances the list, so pausing the bar in CSS pauses
@@ -270,7 +269,6 @@ const ui =
     let visible = false;
     let hovered = false;
     let focused = false;
-    const drawables = new Map<HTMLElement, Drawable>();
 
     const itemsOf = (slide: HTMLElement) =>
       slide.querySelectorAll<HTMLElement>("[data-ap-item], [data-ap-dot]");
@@ -290,14 +288,17 @@ const ui =
         });
       }
 
-      const line = slide.querySelector<SVGPathElement>("[data-ap-draw]");
+      // The line is revealed by a clip that opens left to right. It used to
+      // be drawn with a dash offset, which broke on this chart: the chart is
+      // stretched sideways to the card's width but not in height, the dash
+      // pattern was sized for the average of the two, and it ran out before
+      // the end of the line, so a second piece started drawing near the end.
+      const line = slide.querySelector<HTMLElement>("[data-ap-draw]");
       if (line) {
-        const drawable = drawables.get(slide) ?? createDrawable(line, 0, 1);
-        drawables.set(slide, drawable);
-        // Start empty now, so the finished line never shows during the delay.
-        utils.set(drawable, { draw: "0 0" });
-        animate(drawable, {
-          draw: ["0 0", "0 1"],
+        // Start hidden now, so the finished line never shows during the delay.
+        utils.set(line, { "--ap-reveal": "100%" });
+        animate(line, {
+          "--ap-reveal": ["100%", "0%"],
           duration: 1000,
           delay: 180,
           ease: "inOutCubic",
@@ -316,7 +317,9 @@ const ui =
       slides.forEach((slide) => {
         utils.set(itemsOf(slide), { opacity: 1, translateY: 0, scale: 1 });
       });
-      drawables.forEach((drawable) => utils.set(drawable, { draw: "0 1" }));
+      utils.set(root.querySelectorAll<HTMLElement>("[data-ap-draw]"), {
+        "--ap-reveal": "0%",
+      });
     };
 
     const render = () => {

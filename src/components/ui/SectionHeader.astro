@@ -1,11 +1,12 @@
 ---
 // The one section opener: eyebrow and heading on the left (7 of 12 columns),
-// one lead sentence on the right (5), bottom-aligned, split by a hairline.
+// one lead sentence on the right (5), which starts level with the heading's
+// first line. Open, with air above: a hairline closes it, nothing divides it.
 // The heading text is the default slot, so a page can pass a BlinkText island
 // with its own client directive. Anything in the "aside" slot (a button) sits
 // under the lead.
 interface Props {
-  /** Mono-caps line above the heading. Leave out for a heading-only opener. */
+  /** Small grey line above the heading. Leave out for a heading-only opener. */
   eyebrow?: string;
   /** The one sentence beside the heading. */
   lead: string;
@@ -22,6 +23,11 @@ interface Props {
   reveal?: "none" | "header" | "cells" | "inner";
   /** Makes the header its own reveal root instead of joining the section's. */
   revealRoot?: boolean;
+  /**
+   * The hairline under the header. On for a grid of cells, which needs a top
+   * edge; off when cards or free content follow, where space is enough.
+   */
+  rule?: boolean;
   class?: string;
 }
 
@@ -30,9 +36,10 @@ const {
   lead,
   as: Heading = "h2",
   headingId,
-  headingClass = "max-w-3xl text-title-h2",
+  headingClass = "max-w-[36rem] text-title-h2",
   reveal = "none",
   revealRoot = false,
+  rule = true,
   class: className,
 } = Astro.props;
 
@@ -41,14 +48,15 @@ const hasAside = Astro.slots.has("aside");
 ---
 
 <header
-  class:list={["grid border-b border-border lg:grid-cols-12", className]}
+  class:list={[
+    "grid gap-y-5 px-5 pt-(--head-top) pb-(--head-bottom) sm:px-8 lg:grid-cols-12 lg:gap-x-12 lg:px-12",
+    rule && "border-b border-border",
+    className,
+  ]}
   data-reveal-root={revealRoot ? "" : undefined}
   data-reveal={on("header")}
 >
-  <div
-    class="px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12 lg:py-16"
-    data-reveal={on("cells")}
-  >
+  <div class="lg:col-span-7" data-reveal={on("cells")}>
     <div data-reveal={on("inner")}>
       {
         eyebrow && (
@@ -60,21 +68,23 @@ const hasAside = Astro.slots.has("aside");
       }
       <Heading
         id={headingId}
-        class:list={[eyebrow && "mt-5", "text-balance text-foreground", headingClass]}
+        class:list={[eyebrow && "mt-4", "text-balance text-foreground", headingClass]}
       >
         <slot />
       </Heading>
     </div>
   </div>
+  {/* The lead starts on the heading's first line: an eyebrow is 20px tall and
+      sits 16px above the heading, so the lead drops by the same 36px. */}
   <div
-    class="flex items-end border-t border-border px-5 py-10 sm:px-8 sm:py-14 lg:col-span-5 lg:border-t-0 lg:border-l lg:px-12 lg:py-16"
+    class:list={["lg:col-span-5", eyebrow ? "lg:pt-[2.375rem]" : "lg:pt-0.5"]}
     data-reveal={on("cells")}
   >
     <div
       class:list={[hasAside && "flex flex-col items-start gap-6"]}
       data-reveal={on("inner")}
     >
-      <p class="max-w-[34rem] text-pretty text-lead text-muted-foreground">
+      <p class="max-w-[30rem] text-pretty text-lead text-foreground/85">
         {lead}
       </p>
       <slot name="aside" />

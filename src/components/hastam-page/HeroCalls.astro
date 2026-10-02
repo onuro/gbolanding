@@ -62,7 +62,7 @@ const WAVE = [2, 4, 3, 6, 4, 7, 5, 3, 6, 4, 2, 5, 3, 2].map((rest, index) => ({
           data-label-pause={copy.pause}
           data-label-play={copy.play}
           aria-label={copy.pause}
-          class="grid size-9 cursor-pointer place-items-center rounded-full border border-border-strong bg-background text-muted-foreground transition-colors hover:text-foreground"
+          class="grid size-9 cursor-pointer place-items-center rounded-full bg-card text-muted-foreground transition-colors hover:text-foreground"
         >
           <span data-hc-icon="pause" aria-hidden="true" class="grid place-items-center">
             <Pause className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
@@ -89,7 +89,7 @@ const WAVE = [2, 4, 3, 6, 4, 7, 5, 3, 6, 4, 2, 5, 3, 2].map((rest, index) => ({
               aria-selected={index === 0 ? "true" : "false"}
               tabindex={index === 0 ? 0 : -1}
               data-hc-tab
-              class="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-border-strong bg-background px-3 text-label-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand aria-selected:border-transparent aria-selected:bg-foreground aria-selected:text-background"
+              class="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full bg-card px-3 text-label-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand aria-selected:bg-foreground aria-selected:text-background"
             >
               <Icon className="size-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
               {scene.tab}
@@ -121,7 +121,7 @@ const WAVE = [2, 4, 3, 6, 4, 7, 5, 3, 6, 4, 2, 5, 3, 2].map((rest, index) => ({
                   upright beside the conversation and gets an earpiece and an
                   end-call key: without them the tall card was mostly blank
                   and read as a placeholder, not as a phone. */}
-              <div class="rounded-well border border-border-strong bg-card p-1.5 shadow-card @2xl:flex-1">
+              <div class="rounded-well bg-card p-1.5 shadow-card @2xl:flex-1">
                 <div class="flex h-full items-center gap-3 rounded-shell bg-background px-4 py-3 @2xl:flex-col @2xl:gap-0 @2xl:px-3 @2xl:pt-3 @2xl:pb-5 @2xl:text-center">
                   <span
                     class="hidden h-1 w-9 shrink-0 rounded-full bg-border-strong @2xl:block"
@@ -156,7 +156,7 @@ const WAVE = [2, 4, 3, 6, 4, 7, 5, 3, 6, 4, 2, 5, 3, 2].map((rest, index) => ({
 
             <div class="flex min-w-0 flex-col gap-2">
               <ObjectTag step={2} label={copy.talkLabel} />
-              <ol class="flex flex-1 flex-col gap-3 rounded-card border border-border bg-background p-4">
+              <ol class="flex flex-1 flex-col gap-3 rounded-card bg-card p-4">
                 {scene.turns.map((turn) => (
                   <li data-hc-part data-who={turn.who} class="hc-part">
                     <p
@@ -201,7 +201,7 @@ const WAVE = [2, 4, 3, 6, 4, 7, 5, 3, 6, 4, 2, 5, 3, 2].map((rest, index) => ({
                 </div>
                 <Fragment slot="footer">
                   <span class="data-label">{scene.tab}</span>
-                  <span class="hc-action data-value inline-flex h-7 items-center rounded-full border border-border-strong px-3">
+                  <span class="hc-action data-value inline-flex h-7 items-center rounded-full bg-foreground/[0.06] px-3">
                     {scene.outcome.action}
                   </span>
                 </Fragment>

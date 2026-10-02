@@ -53,11 +53,11 @@ const ui =
     <input type="hidden" name="source" value={source} data-source-base={source} />
 
     <div class:list={[hasLead && "mt-6"]}>
-      <label class="block text-label-sm text-foreground" for={inputId}>
+      <label class="block text-[0.9375rem] leading-6 font-medium text-foreground" for={inputId}>
         {messages.signup.placeholder}
       </label>
 
-      <div class="group relative mt-3" data-input-shell>
+      <div class="group relative mt-2.5" data-input-shell>
         <Mail
           aria-hidden="true"
           strokeWidth={1.5}
@@ -72,7 +72,7 @@ const ui =
           autocomplete="email"
           inputmode="email"
           aria-describedby={errorId}
-          class="h-12 w-full rounded-full border border-border-strong bg-background py-2 pl-11 pr-4 text-paragraph-sm text-foreground shadow-card outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-tertiary-foreground focus-visible:border-foreground focus-visible:shadow-[0_0_0_4px_color-mix(in_srgb,var(--brand)_18%,transparent)] disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-danger"
+          class="h-11 w-full rounded-[0.625rem] border border-input bg-card py-2 pl-11 pr-4 text-[0.9375rem] leading-6 text-foreground outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-tertiary-foreground focus-visible:border-foreground focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--foreground)_10%,transparent)] disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-danger"
           data-email-input
         />
       </div>
@@ -106,14 +106,14 @@ const ui =
   </form>
 
   <div
-    class="hidden min-h-64 w-full flex-col items-center justify-center gap-4 rounded-tile border border-brand-line bg-brand-soft px-6 py-8 text-center outline-none"
+    class="hidden min-h-64 w-full flex-col items-center justify-center gap-4 rounded-card bg-card px-6 py-8 text-center outline-none"
     role="status"
     aria-live="polite"
     tabindex="-1"
     data-form-success
   >
     <span
-      class="grid size-11 shrink-0 place-items-center rounded-full border border-brand-line bg-background text-brand"
+      class="grid size-11 shrink-0 place-items-center rounded-full bg-brand-soft text-brand"
     >
       <CheckCircle2 aria-hidden="true" strokeWidth={1.5} className="size-5" />
     </span>

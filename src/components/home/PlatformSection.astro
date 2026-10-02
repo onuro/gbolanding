@@ -30,12 +30,13 @@ const illos: DotIlloName[] = [
   data-reveal-root
   class="bg-background"
 >
-  <div class="frame border-b border-border">
+  <div class="frame frame-cross border-b border-border">
     <SectionHeader
       eyebrow={messages.platform.eyebrow}
       lead={messages.platform.description}
       headingId="platform-heading"
       reveal="header"
+      class="pt-16!"
     >
       <BlinkText client:visible text={messages.platform.title} />
     </SectionHeader>

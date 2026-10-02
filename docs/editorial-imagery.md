@@ -314,3 +314,88 @@ Lighting/mood: Warm afternoon sunlight through a tall window, long clean shadows
 Color palette: Warm ivory, pale oak, charcoal, understated deep green, natural skin. Muted but not grey.
 Constraints: No faces, no readable text, no branding, no logos, no watermark, no post-it wall, no futuristic UI, no holograms, no neon, no blue tech imagery. No artificial team portrait. Not a website screenshot.
 ```
+
+## Added 2026-10-02 with Magnific
+
+Made through the owner's Magnific account during the ElevenLabs-based restyle: the two backdrops are stock images, the two photographs were generated. The generated originals stay in the Magnific library (Personal project); the repo holds the delivery copies. Same rule as above for the photographs: illustrative scenes, not photographs of the GBO team, offices, or clients, with no people in them.
+
+### atmosphere backdrops
+
+The noise gradient behind a product window: `stage-atmos` in `src/styles/global.css`. Two layers:
+
+- The gradient: `--atmos-image`, `src/assets/editorial/atmosphere-evergreen.webp` in the light theme (peach over deep evergreen) and `atmosphere-dusk.webp` in the dark theme (emerald on black). 1280 px wide, WebP quality 86, 12 KB and 9 KB. They are the stock images below with their grain blurred away, so the files hold only the gradient.
+- The grain: `src/assets/editorial/atmosphere-grain.png`, a 256 × 256 tile of black and white specks (gaussian, sigma 42, strength in the alpha channel), repeated over the gradient. It is drawn at one speck per device pixel: 256 px on a 1x screen, 128 px from 1.5x up. `--atmos-grain` sets its strength per theme. The tile was made with sharp, not downloaded.
+
+Both gradients are CSS backgrounds, so Astro's Image component does not touch them: keep them small.
+
+Stock sources, licensed through the owner's Magnific account on 2026-10-02 (premium items; the 19 MB and 8 MB originals are not in the repo):
+
+- Light: "Abstract background featuring grainy texture with soft between dark green and peach", by pasivejurney. https://www.magnific.com/premium-photo/abstract-background-featuring-grainy-texture-with-soft-dark-green-peach_432379897.htm
+- Dark: "Dark green blue grainy gradient background black backdrop noise texture effect webpage header wide". https://www.magnific.com/premium-photo/dark-green-blue-grainy-gradient-background-black-backdrop-noise-texture-effect-webpage-header-wide_137081945.htm
+
+A first set of three backdrops was generated with Recraft V4.1 and rejected by the owner the same day: they came out as textured glass ("plastic-y"), not as a noise gradient. Do not go back to generated backdrops; pick a stock noise gradient or build one from blurred colour and this grain tile.
+
+### about
+
+Source: `src/assets/editorial/about-studio-worktable.jpg` (3024 × 1296, JPEG quality 92 from the PNG original).
+
+The banner under the About page title. Model: Seedream 5 Pro, 21:9, two variants; the other one showed a maker's mark on the laptop lid and was dropped.
+
+```text
+Use case: photorealistic-natural
+Asset type: wide editorial photograph for the About page of a premium enterprise AI agency website.
+Primary request: A quiet, beautifully art-directed studio workspace at rest, with no one in it. A long warm pale limestone worktable runs across the frame; on it a closed graphite laptop, a small neat stack of unmarked ivory paper cards, a mechanical pencil and one deep green glass tumbler. Behind the table a tall window at the left and a deep evergreen glass partition; one slender olive tree in a plain stone pot at the far right. The subject is calm, careful professional work.
+Style/medium: Photorealistic architectural editorial photography, tactile natural material texture, sophisticated magazine quality, quietly cinematic. Real-world detail, not a 3D render.
+Composition/framing: Very wide landscape. The table is a strong horizontal across the lower third; the laptop and cards sit inside the middle 60 percent of the width so the picture survives a narrower crop. Low three-quarter camera angle, generous calm negative space on the wall above. Full-bleed photograph only.
+Lighting/mood: Warm late-afternoon sun raking across the stone from the window at left, long clean diagonal shadows, deep forest green in the shadows, calm and intelligent.
+Color palette: Warm ivory stone, pale oak, graphite, deep evergreen glass, gentle amber sunlight. Muted but not grey.
+Constraints: No people, no faces, no hands, no text, no labels, no logo, no watermark, no UI, no lit screens, no robots, no neon, no blue holograms. Not a website screenshot.
+```
+
+### hastam reception
+
+Source: `src/assets/editorial/hastam-clinic-reception.jpg` (2496 × 1664, JPEG quality 92 from the PNG original).
+
+The photograph in the Hastam page's "how" chapter, whose title says the assistant speaks like a reception. The image uses `object-position: 50% 72%` so the telephone stays in the 21:9 crop. Model: Seedream 5 Pro, 3:2, two variants; the other one had readable digits and a maker's label on the telephone.
+
+```text
+Use case: photorealistic-natural
+Asset type: editorial photograph for the page of Hastam, an AI voice receptionist that answers a clinic's telephone, on a premium enterprise AI website.
+Primary request: A beautifully art-directed still life of a small private clinic's reception desk at rest, with no one behind it. A warm pale limestone counter; on it a slim matte graphite desk telephone with its handset resting in the cradle, the clear main subject; beside it an open paper appointment diary with blank unmarked pages and a pen, and a small green plant in a plain ceramic pot. Behind, softly out of focus, a deep evergreen glass partition and two empty pale upholstered waiting chairs.
+Style/medium: Photorealistic architectural editorial photography, tactile natural material texture, sophisticated magazine quality, quietly cinematic. Real-world detail, not a 3D render.
+Composition/framing: Landscape 3:2. The telephone is centered in the middle 50 percent of the frame so it survives a shallow wide website crop. Low three-quarter camera angle, enough breathing room. Full-bleed photograph only.
+Lighting/mood: Early morning sun raking across the stone from a window at left, long soft shadows, deep forest green shadows, calm and reassuring.
+Color palette: Warm ivory stone, graphite, deep evergreen glass, gentle amber sunlight.
+Constraints: No people, no faces, no hands, no text, no readable writing, no labels, no logo, no red cross, no medical symbols, no watermark, no screens, no UI, no robots, no neon, no blue holograms. Not a website screenshot.
+```
+
+### menu photos
+
+Sources: `src/assets/editorial/menu-kollektor.jpg` and `menu-hastam.jpg` (1280 × 720, JPEG quality 92 from the PNG originals).
+
+The picture column of the products menu in `SiteHeader.astro`: one photograph per product, shown about 288 px wide and cropped from the centre, swapped as the pointer moves between the rows. Generated on 2026-10-02 with GPT Image 2.5 (Sunburst) through the owner's ElevenLabs account, at the owner's suggestion; 16:9, 1K, quality high, two variants each. The people are generated and depict no one. The originals are in the ElevenLabs flow "BlEJnZU8lkdTXnD0zOWD".
+
+```text
+Intended use: a small contextual photograph inside a website navigation menu for Kollektor, an AI voice agent that phones people about an overdue payment. It is shown about 300 px wide and cropped to 4:3 from the centre, so the subject must sit inside the middle 60 percent of the frame and read clearly at small size.
+
+Scene: a quiet contemporary living room in late-afternoon light. Behind the subject a deep evergreen painted wall, softly out of focus, with the edge of a pale linen armchair and one small plant, both blurred.
+
+Subject: a man in his late thirties with short dark hair and a trimmed beard, wearing a plain cream knit sweater, seen from the chest up in three-quarter profile, holding a slim black smartphone to his ear with his right hand. He is in the middle of a phone conversation: listening, calm and attentive, lips closed, looking slightly off camera. He is a person taking a call at home, not a call-centre employee.
+
+Key details: natural skin texture, believable hand anatomy on the phone, shallow depth of field like an 85 mm lens at f/2, warm window light from the left with a soft shadow on the far side of the face. Palette of warm ivory, graphite and deep evergreen with a little amber sunlight.
+
+Constraints: photorealistic editorial photograph, not an illustration and not a 3D render. One person only. No text, no logo, no watermark, no readable screen, no headset, no microphone, no money, no documents, no distress, no smile at the camera.
+```
+
+```text
+Intended use: a small contextual photograph inside a website navigation menu for Hastam, an AI voice receptionist that answers a clinic's telephone and books appointments with the right doctor. It is shown about 300 px wide and cropped to 4:3 from the centre, so the subject must sit inside the middle 60 percent of the frame and read clearly at small size.
+
+Scene: the reception of a small modern private clinic in soft morning light. A pale limestone counter in the foreground; behind, softly out of focus, a deep evergreen glass partition and one green plant.
+
+Subject: a doctor in her forties with dark hair tied back, wearing a white coat over a sage-green blouse, a stethoscope around her neck, seen from the waist up in three-quarter view. She stands at the counter and writes in an open paper appointment diary with a pen, looking down at the page, calm and focused with a faint relaxed expression.
+
+Key details: natural skin texture, believable hands, the pages of the diary blank and unmarked, shallow depth of field like an 85 mm lens at f/2, soft window light from the left. Palette of warm ivory stone, white, sage and deep evergreen with a little amber sunlight.
+
+Constraints: photorealistic editorial photograph, not an illustration and not a 3D render. One person only. No text, no readable writing, no logo, no red cross, no medical symbols, no name badge, no screens, no watermark.
+```
+

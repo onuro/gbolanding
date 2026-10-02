@@ -164,7 +164,7 @@ const trMessages: Messages = {
         {
           number: "02",
           title: "Plan",
-          summary: "Kod yazılmadan önceki plan.",
+          summary: "Yazılım öncesi plan.",
           description:
             "Ürün stratejisi, kullanıcı yolculukları ve kapsam; tüm ekibin tartışabileceği bir dille yazılır. Neyin neden kurulacağı, kimse editörü açmadan önce ortak kararla netleşir.",
           deliverables: [

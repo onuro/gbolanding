@@ -36,7 +36,7 @@ const hasNote = !wide && Boolean(copy.note || copy.noteTitle);
   id={id}
   aria-labelledby={headingId}
   class:list={[
-    "chapter relative mx-auto w-full max-w-[83.75rem] border-x border-b border-border bg-background",
+    "chapter relative mx-auto w-full max-w-(--shell-max) frame-cross border-x border-b border-border bg-background",
     className,
   ]}
   data-reveal-root
@@ -49,7 +49,7 @@ const hasNote = !wide && Boolean(copy.note || copy.noteTitle);
   <div class:list={["grid", !wide && "xl:grid-cols-12"]}>
     {
       !wide && (
-        <aside class="hidden border-r border-border px-12 py-20 xl:col-span-3 xl:block">
+        <aside class="hidden px-12 pt-16 pb-20 xl:col-span-3 xl:block">
           {hasNote && (
             <p class="sticky top-24 max-w-[14rem] text-paragraph-xs text-tertiary-foreground">
               {copy.noteTitle && (
@@ -66,7 +66,7 @@ const hasNote = !wide && Boolean(copy.note || copy.noteTitle);
 
     <div class:list={["min-w-0", !wide && "xl:col-span-9"]}>
       <header
-        class="grid gap-5 px-5 pt-16 pb-10 sm:px-8 sm:pt-20 lg:grid-cols-12 lg:items-end lg:gap-10 lg:px-12 lg:pb-12"
+        class="grid gap-5 px-5 pt-16 pb-(--head-bottom) sm:px-8 lg:grid-cols-12 lg:gap-10 lg:px-12"
         data-reveal
       >
         <h2
@@ -80,7 +80,7 @@ const hasNote = !wide && Boolean(copy.note || copy.noteTitle);
         </h2>
         {
           copy.lead && (
-            <p class="max-w-[34rem] text-pretty text-lead text-muted-foreground lg:col-span-5">
+            <p class="max-w-[30rem] text-pretty text-lead text-foreground/85 lg:col-span-5 lg:pt-1">
               {copy.lead}
             </p>
           )

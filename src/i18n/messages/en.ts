@@ -164,7 +164,7 @@ const enMessages: Messages = {
         {
           number: "02",
           title: "Blueprint",
-          summary: "The plan, before a line of code.",
+          summary: "The plan before the software.",
           description:
             "Product strategy, user journeys, and scope written in language your whole team can argue with. Everyone agrees on what gets built and why it matters before anyone opens an editor.",
           deliverables: [

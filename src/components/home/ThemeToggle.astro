@@ -16,7 +16,7 @@ const darkLabel =
 
 <button
   type="button"
-  class="theme-toggle flex w-12 shrink-0 cursor-pointer items-center justify-center border-l border-border text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.035] hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
+  class="theme-toggle flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand"
   aria-label={lightLabel}
   title={lightLabel}
   data-theme-toggle
@@ -52,7 +52,7 @@ const darkLabel =
     root.classList.toggle("dark", theme === "dark");
 
     if (meta) {
-      meta.content = theme === "light" ? "#ffffff" : "#0b0e0c";
+      meta.content = theme === "light" ? "#fafafa" : "#09090b";
     }
 
     const favicon = document.querySelector<HTMLLinkElement>("[data-favicon]");

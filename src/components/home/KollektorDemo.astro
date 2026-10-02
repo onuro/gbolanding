@@ -346,7 +346,7 @@ const keepFinished =
 
 <Root
   aria-labelledby={embedded ? undefined : "kollektor-demo-heading"}
-  class={embedded ? undefined : "mx-auto w-full max-w-[83.75rem] border-x border-b border-border"}
+  class={embedded ? undefined : "mx-auto w-full max-w-(--shell-max) frame-cross border-x border-b border-border"}
   data-kd-root
   data-phase="ended"
   data-speaker="ended"
@@ -383,7 +383,7 @@ const keepFinished =
 
   <Heading id="kollektor-demo-heading" class="sr-only">{ui.heading}</Heading>
 
-  <div class="pt-2 sm:pt-3">
+  <div class="pt-6">
     <div
       class="stage stage-dots px-4 pt-8 sm:px-6 sm:pt-12"
       data-kd-stage
@@ -393,7 +393,7 @@ const keepFinished =
             a phone; the chapter heading above already names the picture. */}
         <p
           class:list={[
-            "inline-flex min-w-0 items-center gap-2 font-mono text-caption font-medium tracking-[0.08em] text-muted-foreground uppercase",
+            "inline-flex min-w-0 items-center gap-2 text-[0.8125rem] leading-5 text-muted-foreground",
             replay && "max-sm:hidden",
           ]}
         >
@@ -402,7 +402,7 @@ const keepFinished =
         </p>
         <div class="flex min-w-0 items-center gap-3">
           <span
-            class="hidden truncate font-mono text-caption tracking-[0.08em] text-tertiary-foreground uppercase sm:inline"
+            class="hidden truncate text-[0.8125rem] leading-5 text-tertiary-foreground sm:inline"
           >
             {ui.sample}
             {ui.translated && <span class="hidden md:inline"> · {ui.translated}</span>}
@@ -420,7 +420,7 @@ const keepFinished =
             aria-label={replay ? undefined : ui.pause}
             class={replay
               ? "button button-sm button-secondary shrink-0 cursor-pointer"
-              : "grid size-7 shrink-0 cursor-pointer place-items-center rounded-full border border-border-strong bg-background/70 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"}
+              : "grid size-7 shrink-0 cursor-pointer place-items-center rounded-full bg-foreground/[0.06] text-muted-foreground transition-colors hover:bg-foreground/[0.1] hover:text-foreground"}
           >
             <span data-kd-icon="pause" aria-hidden="true" class="grid place-items-center">
               <Pause className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
@@ -467,7 +467,7 @@ const keepFinished =
                 </span>
                 <span
                   data-kd-when="call"
-                  class="inline-flex h-5 shrink-0 items-center gap-1.5 rounded-full border border-brand-line bg-brand-soft px-2 text-micro font-medium whitespace-nowrap text-brand"
+                  class="inline-flex h-5 shrink-0 items-center gap-1.5 rounded-full bg-brand-soft px-2 text-micro font-medium whitespace-nowrap text-brand"
                 >
                   <span class="relative flex size-1.5">
                     <span class="absolute inline-flex size-full rounded-full bg-current opacity-60 motion-safe:animate-ping"></span>
@@ -509,7 +509,7 @@ const keepFinished =
                     <div class="w-28 shrink-0">
                       <p class="flex items-center gap-1.5 text-caption text-foreground">
                         {stereo && (
-                          <span class="grid size-4 shrink-0 place-items-center rounded-chip border border-border font-mono text-micro leading-none text-tertiary-foreground">
+                          <span class="grid size-4 shrink-0 place-items-center rounded-chip bg-foreground/[0.06] font-mono text-micro leading-none text-tertiary-foreground">
                             {lane.channel}
                           </span>
                         )}
@@ -590,7 +590,7 @@ const keepFinished =
                       <p class="flex items-baseline gap-2 text-micro">
                         <span
                           class:list={[
-                            "font-medium tracking-[0.06em] uppercase",
+                            "font-medium",
                             line.who === "agent" ? "text-brand" : "text-foreground",
                           ]}
                         >
@@ -685,7 +685,7 @@ const keepFinished =
               <div
                 data-kd-identity
                 data-kd-at={timing.steps[0].done}
-                class="rounded-tile border border-border bg-background px-3 py-2.5"
+                class="rounded-tile bg-card px-3 py-2.5 shadow-card"
               >
                 <div class="flex items-center justify-between gap-2">
                   <span class="data-label">{ui.identity.title}</span>
@@ -696,7 +696,7 @@ const keepFinished =
                     <span
                       data-kd-verified
                       data-kd-gate
-                      class="col-start-1 row-start-1 inline-flex h-5 items-center gap-1 rounded-full border border-brand-line bg-brand-soft px-2 text-micro font-medium whitespace-nowrap text-brand"
+                      class="col-start-1 row-start-1 inline-flex h-5 items-center gap-1 rounded-full bg-brand-soft px-2 text-micro font-medium whitespace-nowrap text-brand"
                     >
                       <ShieldCheck className="size-3" strokeWidth={2} aria-hidden="true" />
                       {ui.identity.verified}
@@ -725,7 +725,7 @@ const keepFinished =
                       data-kd-gate
                       data-kd-at={step.at}
                       data-kd-done={step.done}
-                      class="flex gap-2.5 rounded-tile border border-border bg-background px-3 py-2.5"
+                      class="flex gap-2.5 rounded-tile bg-card px-3 py-2.5 shadow-card"
                     >
                       <span class="relative mt-px flex size-4 shrink-0 items-center justify-center">
                         <span

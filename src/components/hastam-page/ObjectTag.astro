@@ -15,7 +15,7 @@ const { label, step, class: className } = Astro.props;
   {
     step !== undefined && (
       <span
-        class="data-label grid size-5 shrink-0 place-items-center rounded-full border border-border-strong tabular-nums text-foreground"
+        class="data-label grid size-5 shrink-0 place-items-center rounded-full bg-foreground/[0.08] tabular-nums text-foreground"
         aria-hidden="true"
       >
         {step}

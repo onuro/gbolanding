@@ -12,10 +12,10 @@ interface Props {
 const { rows, class: className } = Astro.props;
 ---
 
-<ol class:list={["border-b border-border-strong", className]}>
+<ol class:list={["border-b border-border", className]}>
   {
     rows.map((row, index) => (
-      <li class="border-t border-border-strong">
+      <li class="border-t border-border">
         <div
           class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-3 py-5 sm:grid-cols-[3.5rem_minmax(0,1fr)]"
           data-reveal

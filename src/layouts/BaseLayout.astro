@@ -57,7 +57,7 @@ const schemaGraph = buildGraph({
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0b0e0c" />
+    <meta name="theme-color" content="#09090b" />
     <meta name="color-scheme" content="dark light" />
     <script is:inline>
       (() => {
@@ -84,7 +84,7 @@ const schemaGraph = buildGraph({
             .querySelector('meta[name="theme-color"]')
             ?.setAttribute(
               "content",
-              theme === "light" ? "#ffffff" : "#0b0e0c",
+              theme === "light" ? "#fafafa" : "#09090b",
             );
           document
             .querySelector("[data-favicon]")
@@ -99,14 +99,7 @@ const schemaGraph = buildGraph({
     </script>
     <link
       rel="preload"
-      href="/fonts/tt-firs-neue/TTFirsNeue-Medium.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/tt-firs-neue/TTFirsNeue-Regular.woff2"
+      href="/fonts/tt-firs-neue/TTFirsNeue-Variable.woff2"
       as="font"
       type="font/woff2"
       crossorigin

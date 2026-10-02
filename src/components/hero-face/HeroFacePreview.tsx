@@ -63,8 +63,8 @@ const FACE_UI_CSS = `
   .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button::after { content: attr(aria-label); }
   .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button::after,
   .orb-well[data-face-preview] div.z-20.bottom-6 > button.group > span:first-child {
-    font-family: var(--font-mono, ui-monospace, monospace); font-size: 11px; font-weight: 500;
-    letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: rgb(12 14 18);
+    font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif); font-size: 14px; font-weight: 400;
+    letter-spacing: 0; white-space: nowrap; color: rgb(9 9 11);
   }
   /* in a call: the end-call pill (label, then a dark stop disc tucked in its right end) takes the idle pill's place,
      easing in as it appears; status and errors sit above it */

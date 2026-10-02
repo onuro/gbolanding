@@ -1298,6 +1298,8 @@ PRESETS['woman-cine-glow'] = {
   ...OWNER_TUNE_0926C,
   ...OWNER_TUNE_0926D,
   ...OWNER_TUNE_0927,
+  // The owner's tuning link (2026-10-02): fewer, larger dots at the default grid density.
+  gridDiv: 69,
   // the intro (after the owner's stock reference, 2026-09-26; times on a 3.5 s timeline, scaled by the length)
   intro: [3.5, 0.35, 0.6, 1.2], introShape: [1.0, 0.35, 2, 1],
 };

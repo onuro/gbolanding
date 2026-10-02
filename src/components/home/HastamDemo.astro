@@ -431,7 +431,7 @@ const keepFinished =
 
   <h3 id="hastam-demo-heading" class="sr-only">{ui.heading}</h3>
 
-  <div class="pt-2 sm:pt-3">
+  <div class="pt-6">
     <div
       class="stage stage-dots px-4 sm:px-6"
       data-hd-stage
@@ -441,7 +441,7 @@ const keepFinished =
             on a phone; the chapter heading above already names the picture. */}
         <p
           class:list={[
-            "inline-flex min-w-0 items-center gap-2 font-mono text-caption font-medium tracking-[0.08em] text-muted-foreground uppercase",
+            "inline-flex min-w-0 items-center gap-2 text-[0.8125rem] leading-5 text-muted-foreground",
             replayOnly && "max-sm:hidden",
           ]}
         >
@@ -459,7 +459,7 @@ const keepFinished =
               </>
             ) : (
               <span
-                class="hidden truncate font-mono text-caption tracking-[0.08em] text-tertiary-foreground uppercase sm:inline"
+                class="hidden truncate text-[0.8125rem] leading-5 text-tertiary-foreground sm:inline"
               >
                 {ui.sample}
                 {ui.translated && <span class="hidden md:inline"> · {ui.translated}</span>}
@@ -494,7 +494,7 @@ const keepFinished =
                 data-label-pause={ui.pause}
                 data-label-play={ui.play}
                 aria-label={ui.pause}
-                class="grid size-7 shrink-0 cursor-pointer place-items-center rounded-full border border-border-strong bg-background/70 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+                class="grid size-7 shrink-0 cursor-pointer place-items-center rounded-full bg-foreground/[0.06] text-muted-foreground transition-colors hover:bg-foreground/[0.1] hover:text-foreground"
               >
                 <span data-hd-icon="pause" aria-hidden="true" class="grid place-items-center">
                   <Pause className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
@@ -546,7 +546,7 @@ const keepFinished =
                 </span>
                 <span
                   data-hd-when="call"
-                  class="inline-flex h-5 shrink-0 items-center gap-1.5 rounded-full border border-brand-line bg-brand-soft px-2 text-micro font-medium whitespace-nowrap text-brand"
+                  class="inline-flex h-5 shrink-0 items-center gap-1.5 rounded-full bg-brand-soft px-2 text-micro font-medium whitespace-nowrap text-brand"
                 >
                   <span class="relative flex size-1.5">
                     <span class="absolute inline-flex size-full rounded-full bg-current opacity-60 motion-safe:animate-ping"></span>
@@ -591,7 +591,7 @@ const keepFinished =
                     <div class="w-28 shrink-0">
                       <p class="flex items-center gap-1.5 text-caption text-foreground">
                         {!scenario && (
-                          <span class="grid size-4 shrink-0 place-items-center rounded-chip border border-border font-mono text-micro leading-none text-tertiary-foreground">
+                          <span class="grid size-4 shrink-0 place-items-center rounded-chip bg-foreground/[0.06] font-mono text-micro leading-none text-tertiary-foreground">
                             {lane.channel}
                           </span>
                         )}
@@ -672,7 +672,7 @@ const keepFinished =
                       <p class="flex items-baseline gap-2 text-micro">
                         <span
                           class:list={[
-                            "font-medium tracking-[0.06em] uppercase",
+                            "font-medium",
                             line.who === "agent" ? "text-brand" : "text-foreground",
                           ]}
                         >
@@ -768,7 +768,7 @@ const keepFinished =
               <div
                 data-hd-triage
                 data-hd-at={timing.triage}
-                class="rounded-tile border border-border bg-background px-3 py-2.5"
+                class="rounded-tile bg-card px-3 py-2.5 shadow-card"
               >
                 <div class="flex items-center justify-between gap-2">
                   <span class="data-label">{ui.triage.title}</span>
@@ -779,7 +779,7 @@ const keepFinished =
                     <span
                       data-hd-clear
                       data-hd-gate
-                      class="col-start-1 row-start-1 inline-flex h-5 items-center gap-1 rounded-full border border-brand-line bg-brand-soft px-2 text-micro font-medium whitespace-nowrap text-brand"
+                      class="col-start-1 row-start-1 inline-flex h-5 items-center gap-1 rounded-full bg-brand-soft px-2 text-micro font-medium whitespace-nowrap text-brand"
                     >
                       <GateIcon className="size-3" strokeWidth={2} aria-hidden="true" />
                       {ui.triage.clear}
@@ -814,7 +814,7 @@ const keepFinished =
                       data-hd-gate
                       data-hd-at={step.at}
                       data-hd-done={step.done}
-                      class="flex gap-2.5 rounded-tile border border-border bg-background px-3 py-2.5"
+                      class="flex gap-2.5 rounded-tile bg-card px-3 py-2.5 shadow-card"
                     >
                       <span class="relative mt-px flex size-4 shrink-0 items-center justify-center">
                         <span
@@ -849,7 +849,7 @@ const keepFinished =
                             {step.slots.map((time) => (
                               <span
                                 data-hd-slot
-                                class="relative flex h-5 min-w-0 items-center justify-center rounded-full border border-border bg-background text-micro font-medium text-foreground tabular-nums"
+                                class="relative flex h-5 min-w-0 items-center justify-center rounded-full bg-foreground/[0.06] text-micro font-medium text-foreground tabular-nums"
                               >
                                 {time}
                                 {time === CHOSEN && (

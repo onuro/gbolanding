@@ -13,14 +13,14 @@ interface Props {
   bodyClass?: string;
 }
 
-// A phase artefact floating on the quiet dotted well. The window is decorative
+// A phase artefact floating on a field of colour. The window is decorative
 // (aria-hidden) and carries the data-seq hooks that EnterprisePhases animates.
 // Every visual passes a footer; it is forwarded to MockShell as-is.
 const { title, meta, status, description, bodyClass } = Astro.props;
 ---
 
 <div
-  class="stage-soft flex h-full min-h-[21rem] items-center justify-center rounded-well px-3 py-8 sm:min-h-[27rem] sm:px-10 sm:py-12 lg:px-8 xl:px-14"
+  class="stage-atmos flex h-full min-h-[21rem] items-center justify-center rounded-well px-3 py-8 sm:min-h-[27rem] sm:px-10 sm:py-10 lg:px-8 xl:px-14"
 >
   <p class="sr-only">{description}</p>
   <div class="w-full max-w-[34rem]" aria-hidden="true" data-seq-mock>

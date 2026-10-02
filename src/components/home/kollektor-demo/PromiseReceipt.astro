@@ -21,11 +21,11 @@ const { label, amount, status, schedule, id, note, class: className } = Astro.pr
 
 <div
   class:list={[
-    "rounded-card border border-border bg-card p-1 shadow-card",
+    "rounded-card bg-card p-1 shadow-card",
     className,
   ]}
 >
-  <div class="rounded-tile border border-border bg-background px-4 pt-3.5 pb-3.5">
+  <div class="rounded-tile px-4 pt-3.5 pb-3.5">
     <div class="flex items-center justify-between gap-3">
       <p class="data-label">{label}</p>
       <StatusPill tone="done" label={status} />

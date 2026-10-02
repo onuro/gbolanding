@@ -1,4 +1,6 @@
 ---
+import { Image } from "astro:assets";
+import studioPhoto from "@/assets/editorial/about-studio-worktable.jpg";
 import BlinkText from "@/components/BlinkText";
 import FinalCta from "@/components/home/FinalCta.astro";
 import SiteFooter from "@/components/home/SiteFooter.astro";
@@ -66,7 +68,7 @@ const products = [
 
   <main id="main-content" tabindex="-1">
     <section
-      class="frame border-b border-border"
+      class="frame frame-cross border-b border-border"
       aria-labelledby="about-title"
     >
       {/* The display size, as on the home and product pages. At the default
@@ -77,12 +79,35 @@ const products = [
         lead={about.lead}
         headingId="about-title"
         headingClass="max-w-3xl text-display"
+        rule={false}
+        class="pt-16!"
       >
         <BlinkText client:idle priority text={about.title} />
       </SectionHeader>
 
-      <div class="grid grid-cols-1 gap-px bg-border lg:grid-cols-12">
-        <div class="bg-background px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12">
+      {/* The page's one picture, and what closes the header instead of a
+          hairline. An illustrative studio scene, not the GBO office, and
+          decorative, so the alt is empty (docs/editorial-imagery.md). */}
+      <div class="px-3 pb-3">
+        <div class="overflow-hidden rounded-well bg-muted">
+          <Image
+            src={studioPhoto}
+            alt=""
+            width={1200}
+            widths={[480, 768, 1200, 1800, 2400]}
+            sizes="(min-width: 78rem) 75rem, 100vw"
+            format="webp"
+            quality={72}
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            class="aspect-[3/2] w-full object-cover sm:aspect-[21/9]"
+          />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12">
+        <div class="px-5 py-10 sm:px-8 sm:py-14 lg:col-span-7 lg:px-12">
           <h2 class="max-w-2xl text-title-h3">
             <BlinkText client:visible text={about.bodyTitle} />
           </h2>
@@ -97,7 +122,7 @@ const products = [
           </div>
         </div>
 
-        <div class="bg-background px-5 py-10 sm:px-8 sm:py-14 lg:col-span-5 lg:px-12">
+        <div class="px-5 pb-12 sm:px-8 sm:py-14 lg:col-span-5 lg:px-12">
           <h2 class="text-label-sm text-tertiary-foreground">
             {about.factsTitle}
           </h2>
@@ -131,13 +156,14 @@ const products = [
     </section>
 
     <section
-      class="frame border-b border-border"
+      class="frame frame-cross border-b border-border"
       aria-labelledby="about-products-title"
     >
       <SectionHeader
         lead={about.productsIntro}
         headingId="about-products-title"
         headingClass="max-w-2xl text-title-h2"
+        class="pt-16!"
       >
         <BlinkText client:visible text={about.productsTitle} />
       </SectionHeader>
@@ -157,7 +183,7 @@ const products = [
               </p>
               <ul class="mt-6 flex flex-wrap gap-2">
                 {product.highlights.map((highlight) => (
-                  <li class="rounded-full border border-border px-3 py-1 text-label-xs text-muted-foreground">
+                  <li class="rounded-full bg-foreground/[0.05] px-3 py-1 text-label-xs text-muted-foreground">
                     {highlight}
                   </li>
                 ))}
@@ -166,7 +192,7 @@ const products = [
                 <div class="mt-auto pt-6">
                   <a
                     href={page.href}
-                    class="group inline-flex min-h-11 w-fit items-center gap-2 text-label-sm text-foreground underline-offset-4 transition-colors hover:text-brand hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
+                    class="button button-sm button-secondary group w-fit"
                   >
                     {page.label}
                     <ArrowRight

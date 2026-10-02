@@ -1,6 +1,7 @@
 ---
 // Questions as native <details>: they open without any script, the first one
-// starts open, and opening one closes the others (the shared `name`). Feed
+// starts open, and opening one closes the others (the shared `name`). Rows are
+// split by dotted rules, the quiet separator for lists inside a section. Feed
 // faqPageNode() the same `items` array, so the JSON-LD can never claim a
 // question the page does not show.
 import { Plus } from "lucide-react";
@@ -16,29 +17,29 @@ interface Props {
 const { items, name, class: className } = Astro.props;
 ---
 
-<div class:list={["border-b border-border-strong", className]}>
+<div class:list={["rule-dotted-b", className]}>
   {
     items.map((item, index) => (
       <details
-        class="faq-item group border-t border-border-strong"
+        class="faq-item group rule-dotted"
         name={name}
         open={index === 0}
       >
-        <summary class="flex cursor-pointer list-none items-center gap-5 py-6 outline-none [&::-webkit-details-marker]:hidden">
+        <summary class="flex cursor-pointer list-none items-center gap-5 py-5 outline-none [&::-webkit-details-marker]:hidden">
           <span class="data-label hidden w-9 shrink-0 tabular-nums sm:block" aria-hidden="true">
             {String(index + 1).padStart(2, "0")}
           </span>
-          <h3 class="flex-1 text-balance text-title-h6 text-foreground transition-colors duration-200 group-hover:text-brand sm:text-title-h5">
+          <h3 class="flex-1 text-balance text-paragraph-lg text-foreground">
             {item.question}
           </h3>
           <span
-            class="grid size-9 shrink-0 place-items-center rounded-full border border-border-strong text-foreground transition-[rotate,background-color,color,border-color] duration-300 ease-out-quint group-open:rotate-45 group-open:border-transparent group-open:bg-foreground group-open:text-background"
+            class="grid size-6 shrink-0 place-items-center text-tertiary-foreground transition-[rotate,color] duration-300 ease-out-quint group-hover:text-foreground group-open:rotate-45 group-open:text-foreground"
             aria-hidden="true"
           >
-            <Plus className="size-4" strokeWidth={1.5} />
+            <Plus className="size-[1.125rem]" strokeWidth={1.5} />
           </span>
         </summary>
-        <p class="max-w-[42rem] pb-7 text-pretty text-paragraph-md text-muted-foreground sm:pl-14">
+        <p class="max-w-[40rem] pb-6 text-pretty text-paragraph-md text-muted-foreground sm:pl-14">
           {item.answer}
         </p>
       </details>

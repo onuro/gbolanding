@@ -14,7 +14,7 @@ interface Props {
 }
 
 const { locale, kind, copy } = Astro.props;
-const card = "w-full max-w-[19rem] rounded-card border border-border bg-background";
+const card = "w-full max-w-[19rem] rounded-card bg-card";
 const summary = { log: copy.logSummary, keep: copy.keepSummary, role: copy.roleSummary }[kind];
 ---
 
@@ -66,7 +66,7 @@ const summary = { log: copy.logSummary, keep: copy.keepSummary, role: copy.roleS
         </div>
         <ul class="mt-3.5 flex flex-wrap gap-1.5 border-t border-border pt-3.5">
           {copy.keepItems.map((item) => (
-            <li class="rounded-full border border-border px-2.5 py-0.5 text-label-xs text-muted-foreground">
+            <li class="rounded-full bg-foreground/[0.05] px-2.5 py-0.5 text-label-xs text-muted-foreground">
               {item}
             </li>
           ))}
@@ -99,7 +99,7 @@ const summary = { log: copy.logSummary, keep: copy.keepSummary, role: copy.roleS
                       <Check className="size-2.5" strokeWidth={3} aria-hidden="true" />
                     </span>
                   ) : (
-                    <span class="grid size-4 place-items-center rounded-full border border-border-strong text-tertiary-foreground">
+                    <span class="grid size-4 place-items-center rounded-full bg-foreground/[0.08] text-tertiary-foreground">
                       <Minus className="size-2.5" strokeWidth={2.5} aria-hidden="true" />
                     </span>
                   )}

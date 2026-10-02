@@ -13,15 +13,15 @@ interface Props {
 const { tone = "info", label, class: className } = Astro.props;
 
 const toneClass = {
-  pending: "border-attention-line bg-attention-soft text-attention-ink",
-  ok: "border-brand-line bg-brand-soft text-brand",
-  info: "border-border-strong bg-transparent text-muted-foreground",
+  pending: "bg-attention-soft text-attention-ink",
+  ok: "bg-brand-soft text-brand",
+  info: "bg-foreground/[0.06] text-muted-foreground",
 }[tone];
 ---
 
 <span
   class:list={[
-    "data-label inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full border px-2 whitespace-nowrap",
+    "data-label inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full px-2 whitespace-nowrap",
     toneClass,
     className,
   ]}

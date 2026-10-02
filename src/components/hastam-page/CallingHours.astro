@@ -30,9 +30,9 @@ const DUE = 20 + 40 / 60;
   </div>
   <p class="data-value mt-auto pt-4">{copy.window}</p>
 
-  <div class="relative mt-3 h-3 rounded-full border border-border-strong bg-background" aria-hidden="true">
+  <div class="relative mt-3 h-3 rounded-full bg-foreground/[0.08]" aria-hidden="true">
     <span
-      class="absolute inset-y-0 rounded-full border border-brand-line bg-brand-soft"
+      class="absolute inset-y-0 rounded-full bg-brand/40"
       style={`left:${pct(OPEN)};width:${pct(CLOSE - OPEN)}`}
     ></span>
     <span
@@ -44,7 +44,7 @@ const DUE = 20 + 40 / 60;
     {copy.ticks.map((tick) => <span class="data-label tabular-nums">{tick}</span>)}
   </div>
 
-  <div class="mt-4 mb-auto flex flex-wrap items-center gap-x-3 gap-y-2 rounded-tile border border-border bg-background px-3 py-2">
+  <div class="mt-4 mb-auto flex flex-wrap items-center gap-x-3 gap-y-2 rounded-tile bg-card px-3 py-2">
     <span class="text-paragraph-sm text-foreground">{copy.due}</span>
     <Chip tone="pending" label={copy.deferred} />
     <span class="data-label ml-auto tabular-nums text-foreground">{copy.next}</span>

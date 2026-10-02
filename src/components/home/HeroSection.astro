@@ -18,12 +18,12 @@ const { locale, messages } = Astro.props;
 ---
 
 <section
-  class="mx-auto w-full max-w-[83.75rem] border-x border-b border-border"
+  class="mx-auto w-full max-w-(--shell-max) frame-cross border-x border-b border-border"
   aria-labelledby="hero-title"
 >
   <div class="grid grid-cols-1 xl:grid-cols-12">
     <div
-      class="relative flex min-h-[34rem] flex-col justify-between overflow-hidden border-b border-border px-5 py-8 sm:min-h-[40rem] sm:px-8 sm:py-10 lg:px-12 lg:py-12 xl:col-span-7 xl:min-h-[43rem] xl:border-b-0"
+      class="relative flex min-h-[34rem] flex-col justify-between overflow-hidden px-5 py-8 sm:min-h-[40rem] sm:px-8 sm:py-10 lg:px-12 lg:py-12 xl:col-span-7 xl:min-h-[43rem]"
     >
       <div class="relative flex items-start justify-between gap-6">
         <p class="eyebrow">
@@ -67,7 +67,7 @@ const { locale, messages } = Astro.props;
         </h1>
       </div>
 
-      <div class="relative mt-14 border-t border-border pt-7">
+      <div class="relative mt-10">
         <p
           class="w-full max-w-xl text-pretty text-paragraph-md text-muted-foreground sm:text-paragraph-lg"
         >
@@ -108,7 +108,7 @@ const { locale, messages } = Astro.props;
     </div>
 
     <div
-      class="p-3 xl:col-span-5 xl:flex xl:min-h-[43rem] xl:border-l xl:border-border"
+      class="p-3 xl:col-span-5 xl:flex xl:min-h-[43rem]"
     >
       <div
         class="orb-well @container relative flex min-h-[34rem] w-full flex-1 items-center justify-center overflow-hidden rounded-[24px] sm:min-h-[38rem]"
@@ -172,18 +172,25 @@ const { locale, messages } = Astro.props;
      hollow label, and play button on the dark palette so they don't invert
      to ink-on-ink when the page is light. */
   .orb-well {
-    background: oklch(0.125 0.008 160);
-    --background: oklch(0.125 0.008 160);
-    --color-background: oklch(0.125 0.008 160);
-    --foreground: oklch(0.965 0.005 160);
-    --color-foreground: oklch(0.965 0.005 160);
-    --card: oklch(0.16 0.009 160);
-    --color-card: oklch(0.16 0.009 160);
-    --muted: oklch(0.205 0.01 160);
-    --color-muted: oklch(0.205 0.01 160);
-    --border: oklch(0.92 0.008 160 / 12%);
-    --color-border: oklch(0.92 0.008 160 / 12%);
+    background: #09090b;
+    --background: #09090b;
+    --color-background: var(--background);
+    --foreground: #fafafa;
+    --color-foreground: var(--foreground);
+    --card: #18181b;
+    --color-card: var(--card);
+    --muted: #27272a;
+    --color-muted: var(--muted);
+    --border: rgb(250 250 250 / 12%);
+    --color-border: var(--border);
     --dot-grid-color: rgb(255 255 255 / 9%);
+  }
+  /* Let the face's screen-blended canvas merge with the dark page, while
+     retaining the dark well when the surrounding page is light. */
+  html:not([data-theme="light"]) .orb-well[data-face-preview] {
+    --background: inherit;
+    --color-background: var(--background);
+    background: var(--background);
   }
   /* the face: the orb stays hidden under it, and the voice UI until the face has styled it */
   .orb-well[data-face-preview] > div.z-10 { visibility: hidden; }

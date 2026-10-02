@@ -75,7 +75,7 @@ const chosen = 1;
 
     <div data-seq style="--i: 1" class="flex flex-wrap items-center gap-2">
       <span
-        class="inline-flex h-6 items-center rounded-chip border border-border px-2 text-caption text-muted-foreground"
+        class="inline-flex h-6 items-center rounded-chip bg-foreground/[0.05] px-2 text-caption text-muted-foreground"
       >
         {ui.complaint}
       </span>
@@ -85,7 +85,7 @@ const chosen = 1;
         aria-hidden="true"
       />
       <span
-        class="inline-flex h-6 items-center rounded-chip border border-brand-line bg-brand-soft px-2 text-caption font-medium text-brand"
+        class="inline-flex h-6 items-center rounded-chip bg-brand-soft px-2 text-caption font-medium text-brand"
       >
         {ui.specialty}
       </span>
@@ -98,10 +98,10 @@ const chosen = 1;
           ui.slots.map((slot, index) => (
             <span
               class:list={[
-                "flex h-8 items-center justify-center gap-1 rounded-chip border text-label-xs tabular-nums",
+                "flex h-8 items-center justify-center gap-1 rounded-chip text-label-xs tabular-nums",
                 index === chosen
-                  ? "border-brand bg-brand-soft text-foreground"
-                  : "border-border text-muted-foreground",
+                  ? "bg-brand-soft text-foreground"
+                  : "bg-foreground/[0.045] text-muted-foreground",
               ]}
             >
               {index === chosen && (
@@ -117,7 +117,7 @@ const chosen = 1;
     <div
       data-seq
       style="--i: 3"
-      class="flex items-center justify-between gap-3 rounded-tile border border-attention-line bg-attention-soft p-3"
+      class="flex items-center justify-between gap-3 rounded-tile bg-attention-soft p-3"
     >
       <div class="min-w-0">
         <p class="text-micro text-attention-ink">{ui.choiceLabel}</p>
@@ -149,7 +149,7 @@ const chosen = 1;
     data-seq
     data-seq-pop
     style="--i: 4"
-    class="absolute -bottom-5 right-5 hidden h-8 items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card px-3 text-caption text-foreground shadow-float sm:flex"
+    class="absolute -bottom-5 right-5 hidden h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-card px-3 text-caption text-foreground shadow-float sm:flex"
   >
     <CalendarCheck className="size-3.5 text-brand" strokeWidth={1.75} aria-hidden="true" />
     {ui.chip}

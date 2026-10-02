@@ -46,7 +46,7 @@ const row = "col-span-full grid grid-cols-subgrid items-center px-3 @2xs:px-4";
                 "data-label grid size-5 shrink-0 place-items-center rounded-full tabular-nums",
                 index < CURRENT && "bg-brand-soft text-brand",
                 index === CURRENT && "bg-foreground text-background",
-                index > CURRENT && "border border-border-strong",
+                index > CURRENT && "bg-foreground/[0.07]",
               ]}
             >
               {index < CURRENT ? (

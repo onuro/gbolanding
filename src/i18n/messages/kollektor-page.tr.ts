@@ -14,7 +14,7 @@ const kollektorPage: KollektorPageMessages = {
     lead: "Borçluyu Türkçe arar. Net bir ödeme günü alır. Sözü yüksek sesle teyit eder, sonra kaydeder. Ekibiniz her aramayı canlı izler.",
     chips: ["Aramalar Türkçe", "Kayıt ve transkript", "Ekibiniz hattı devralabilir"],
     primaryCta: "Demo talep edin",
-    secondaryCta: "Örnek aramayı izleyin",
+    secondaryCta: "Arama örneği",
     steps: [
       {
         title: "Kollektor borçluyu arar.",

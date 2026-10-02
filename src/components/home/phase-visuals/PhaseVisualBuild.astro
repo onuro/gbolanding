@@ -146,10 +146,8 @@ const checks = copy.checks.map((check, index) => ({
         <div
           data-seq
           class:list={[
-            "flex min-w-0 items-center justify-between gap-3 rounded-tile border px-3 py-2 sm:block sm:py-2.5",
-            check.live
-              ? "border-brand-line bg-brand-soft"
-              : "border-border bg-foreground/[0.02]",
+            "flex min-w-0 items-center justify-between gap-3 rounded-tile px-3 py-2 sm:block sm:py-2.5",
+            check.live ? "bg-brand-soft" : "bg-foreground/[0.035]",
           ]}
         >
           <p

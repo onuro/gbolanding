@@ -43,7 +43,7 @@ const ui =
 >
   <div class="grid lg:grid-cols-[repeat(24,minmax(0,1fr))]">
     <div
-      class="diagonal-hatch flex border-b border-border p-2 lg:col-span-4 lg:border-b-0"
+      class="diagonal-hatch flex p-2 lg:col-span-4"
       data-reveal
     >
       <div
@@ -64,7 +64,7 @@ const ui =
           </span>
           <button
             type="button"
-            class="ps-toggle relative inline-flex size-6 shrink-0 before:absolute before:-inset-[11px] before:content-[''] items-center justify-center rounded-full border border-border bg-card text-tertiary-foreground shadow-card transition-colors duration-200 hover:border-border-strong hover:text-foreground"
+            class="ps-toggle relative inline-flex size-6 shrink-0 before:absolute before:-inset-[11px] before:content-[''] items-center justify-center rounded-full bg-foreground/[0.05] text-tertiary-foreground transition-colors duration-200 hover:bg-foreground/[0.09] hover:text-foreground"
             aria-label={ui.pause}
             aria-pressed="false"
             title={ui.pause}
@@ -83,7 +83,7 @@ const ui =
     </div>
 
     <ol
-      class="grid grid-cols-2 lg:col-span-20 lg:grid-cols-4 lg:border-l lg:border-border"
+      class="grid grid-cols-2 lg:col-span-20 lg:grid-cols-4"
       role="list"
       data-ps-rail
     >
@@ -96,9 +96,6 @@ const ui =
             <li
               class:list={[
                 "ps-cell flex flex-col px-4 py-4 sm:px-6 sm:py-5 lg:py-3.5 lg:pr-0 lg:pl-6",
-                index % 2 === 1 && "border-l border-border",
-                index > 1 && "border-t border-border lg:border-t-0",
-                index > 0 && "lg:border-l",
               ]}
               data-reveal
               data-ps-cell
@@ -111,7 +108,7 @@ const ui =
                   </span>
                 ) : (
                   <span class="absolute top-1/2 -left-6 hidden h-px w-6 -translate-y-1/2 bg-border lg:block">
-                    <span class="ps-chev absolute top-1/2 left-0 flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background text-faint-foreground">
+                    <span class="ps-chev absolute top-1/2 left-0 flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-background text-faint-foreground">
                       <ChevronRight
                         className="size-3"
                         strokeWidth={1.75}
@@ -122,7 +119,7 @@ const ui =
                 )}
 
                 <span
-                  class="ps-tile relative flex size-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-card"
+                  class="ps-tile relative flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
                   data-ps-tile
                 >
                   <Icon
@@ -357,13 +354,8 @@ const ui =
       box-shadow 450ms var(--ease-out-quint);
   }
 
-  .ps-tile {
-    box-shadow: var(--shadow-card-value);
-  }
-
   @media (hover: hover) {
     .ps-cell:hover .ps-tile {
-      border-color: var(--border-strong);
       background-image: linear-gradient(var(--brand-soft), var(--brand-soft));
       color: var(--foreground);
     }
@@ -372,11 +364,9 @@ const ui =
   /* Lit icon box is an ink chip, like every other "this one" mark on the
      page. The number and chevron stay brand, in the value that reads as text. */
   .ps-cell[data-active] .ps-tile {
-    border-color: var(--foreground);
     background-color: var(--foreground);
     background-image: none;
     color: var(--background);
-    box-shadow: var(--shadow-card-value);
   }
 
   .ps-cell[data-active] .ps-num {
@@ -384,7 +374,6 @@ const ui =
   }
 
   .ps-cell[data-active] .ps-chev {
-    border-color: var(--brand-line);
     color: var(--brand-ink);
   }
 
