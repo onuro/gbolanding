@@ -51,7 +51,7 @@ const { locale, product } = Astro.props;
             <p class="mb-3 text-label-sm text-tertiary-foreground">
               {product.eyebrow}
             </p>
-            <h3 id="hastam-title" class="text-title-h3">
+            <h3 id="hastam-title" class="text-title-h2">
               {product.title}
             </h3>
           </div>
@@ -74,41 +74,40 @@ const { locale, product } = Astro.props;
 
   <ol class="grid border-t border-border md:grid-cols-3">
     {product.steps.map((step, index) => (
-      <li class:list={[
-        "px-5 py-7 sm:px-8 sm:py-8",
-        index < product.steps.length - 1 && "border-b border-border md:border-r md:border-b-0",
-      ]}>
-        <div class="mb-5" aria-hidden="true">
-          <span class="data-label tabular-nums">
-            {String(index + 1).padStart(2, "0")}
-          </span>
+      <li class="p-3">
+        <div class="h-full rounded-tile bg-card p-3 shadow-card sm:p-5">
+          <div class="mb-5" aria-hidden="true">
+            <span class="data-label tabular-nums">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+          </div>
+          <h4 class="text-title-h6">{step.title}</h4>
+          <p class="mt-3 max-w-sm text-paragraph-sm text-muted-foreground">
+            {step.description}
+          </p>
         </div>
-        <h4 class="text-title-h6">{step.title}</h4>
-        <p class="mt-3 max-w-sm text-paragraph-sm text-muted-foreground">
-          {step.description}
-        </p>
       </li>
     ))}
   </ol>
 
   {/* The demo request, and beside it the way to Hastam's own page. */}
-  <div class="relative flex flex-wrap items-center gap-2 px-5 pt-2 pb-8 sm:px-8 sm:pb-10 lg:px-12">
-    <a href="#demo" data-demo-product="hastam" class="button button-sm button-secondary group/row">
+  <div class="relative flex flex-wrap items-center gap-1.5 px-3 pt-2 pb-5">
+    <a href="#demo" data-demo-product="hastam" class="button button-sm button-primary group/row sm:rounded-r-[4px]">
       {product.cta}
       <ArrowUpRight
         aria-hidden="true"
-        className="size-3.5 shrink-0 text-tertiary-foreground transition-transform group-hover/row:translate-x-0.5 group-hover/row:-translate-y-0.5"
+        className="size-3.5 shrink-0 text-current transition-transform group-hover/row:translate-x-0.5 group-hover/row:-translate-y-0.5"
         strokeWidth={1.5}
       />
     </a>
     <a
       href={pathFor("hastam", locale)}
-      class="button button-sm button-secondary group/row"
+      class="button button-sm button-primary group/row sm:rounded-l-[4px]"
     >
       {product.pageCta}
       <ArrowUpRight
         aria-hidden="true"
-        className="size-3.5 shrink-0 text-tertiary-foreground transition-transform group-hover/row:translate-x-0.5 group-hover/row:-translate-y-0.5"
+        className="size-3.5 shrink-0 text-current transition-transform group-hover/row:translate-x-0.5 group-hover/row:-translate-y-0.5"
         strokeWidth={1.5}
       />
     </a>

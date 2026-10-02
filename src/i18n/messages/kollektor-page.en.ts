@@ -33,7 +33,7 @@ const kollektorPage: KollektorPageMessages = {
   },
   heroPicture: {
     summary:
-      "Sample picture. The debtor’s phone rings. Kollektor says the day and the amount, and the debtor says yes. The promise to pay shows on your team’s screen.",
+      "Sample call. The debtor’s phone rings. Kollektor says the day and the amount, and the debtor says yes. The promise to pay shows on your team’s screen.",
     labels: ["The debtor’s phone", "Kollektor’s voice", "Your team’s screen"],
     agent: { who: "Kollektor", text: "8,400 lira on Friday. Is that firm?" },
     debtor: { who: "Debtor", text: "Yes, it’s firm." },
@@ -118,12 +118,12 @@ const kollektorPage: KollektorPageMessages = {
   },
   onCall: {
     label: "On the call",
-    title: "The debtor says this. Kollektor does that.",
-    lead: "Each row starts with a thing a debtor says. Next to it is what Kollektor does.",
-    noteTitle: "How to read it",
-    note: "Left: what the debtor says. Right: what Kollektor does.",
-    sayLabel: "What the debtor says",
-    doLabel: "What Kollektor does",
+    title: "How does Kollektor handle the call?",
+    lead: "It adapts to the customer’s reply. It confirms a payment date, plans a call back or transfers the call to your team.",
+    noteTitle: "Example situations",
+    note: "The customer’s reply and Kollektor’s next step.",
+    sayLabel: "Customer’s reply",
+    doLabel: "Kollektor’s next step",
     rows: [
       {
         say: "“How much do I owe?”",

@@ -4,10 +4,8 @@
 // call, what the team sees, when a person steps in, the rules, the data, who
 // it is for, and the questions. ProductPageShell adds the demo request.
 //
-// Nothing on this page starts by itself. The sample call (KollektorDemo) shows
-// its finished state and plays once each time the visitor presses its button;
-// every other picture is a still. A call that played and looped below the hero
-// pulled the eye off the copy around it.
+// The sample call starts when it enters view, using the same playback controls
+// and reduced-motion handling as the home page demo.
 import { Image } from "astro:assets";
 import headsetPhoto from "@/assets/editorial/kollektor-voice-workspace.png";
 import kollektorLogo from "@/assets/product/kollektor-logo.svg";
@@ -85,7 +83,6 @@ const anchor = "scroll-mt-20";
       embedded
       proof={page.call.proof}
       stereo={false}
-      replay={{ play: page.call.play, pause: page.call.pause }}
     />
   </Chapter>
 

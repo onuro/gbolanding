@@ -35,6 +35,8 @@ import type { HastamDemoScenario } from "@/i18n/page-types/hastam";
 
 interface Props {
   locale: Locale;
+  /** Inside the ProductDemos tabs: align the label 32px below the selector. */
+  embedded?: boolean;
   /**
    * Another call than the one below. /hastam passes its own: the knee-pain
    * booking is banned on that page, and it words the request the way the
@@ -53,7 +55,7 @@ interface Props {
   proof?: readonly { value: string; caption: string }[] | false;
 }
 
-const { locale, scenario, replayOnly = false, proof: proofOverride } = Astro.props;
+const { locale, scenario, embedded = false, replayOnly = false, proof: proofOverride } = Astro.props;
 const messages = await getMessages(locale);
 const isTr = locale === "tr";
 
@@ -431,7 +433,7 @@ const keepFinished =
 
   <h3 id="hastam-demo-heading" class="sr-only">{ui.heading}</h3>
 
-  <div class="pt-6">
+  <div class:list={[embedded ? "pt-8" : "pt-6"]}>
     <div
       class="stage stage-dots px-4 sm:px-6"
       data-hd-stage
@@ -902,24 +904,29 @@ const keepFinished =
 
   {
     proof && (
-      <dl data-reveal-root class="grid border-t border-border sm:grid-cols-3">
+      <div data-reveal-root class="grid border-t border-border sm:grid-cols-3">
         {
           proof.map((item, index) => (
             <div
               data-reveal
               class:list={[
-                "flex flex-col gap-1.5 px-6 py-6 sm:px-8 sm:py-8",
+                embedded ? "p-3" : "px-6 py-6 sm:px-8 sm:py-8",
                 index > 0 && "border-t border-border sm:border-t-0 sm:border-l",
               ]}
             >
-              <dt class="order-2 max-w-xs text-paragraph-sm text-muted-foreground">
-                {item.caption}
-              </dt>
-              <dd class="order-1 text-title-h4 text-foreground tabular-nums">{item.value}</dd>
+              <dl class:list={[
+                "flex h-full flex-col gap-1.5",
+                embedded && "rounded-tile bg-card p-3 shadow-card sm:p-5",
+              ]}>
+                <dt class="order-2 max-w-xs text-paragraph-sm text-muted-foreground">
+                  {item.caption}
+                </dt>
+                <dd class="order-1 text-title-h4 text-foreground tabular-nums">{item.value}</dd>
+              </dl>
             </div>
           ))
         }
-      </dl>
+      </div>
     )
   }
 </div>

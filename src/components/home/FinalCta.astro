@@ -151,15 +151,20 @@ const assurances = (pageAssurances ?? [ui.kvkk, ui.languages, ui.live]).map(
         </ul>
       </div>
 
-      {/* The form is an object on the page: one soft card, white fields. */}
+      {/* Match the product cards: a soft shell around an inset content panel. */}
       <div
         class="flex flex-col justify-center p-3 sm:p-4 lg:col-span-6 lg:py-6 lg:pr-6 lg:pl-0"
         data-reveal
       >
-        <div class="soft-card w-full px-5 py-8 sm:px-10 sm:py-12 lg:px-12 lg:py-14">
-          <p class="text-title-h3 text-foreground">{ui.team}</p>
+        <div class="soft-card w-full p-2 pt-6 sm:pt-8">
+          <div class="flex items-center gap-3 px-3 sm:px-6">
+            <span class="grid size-11 shrink-0 place-items-center rounded-full bg-background text-muted-foreground">
+              <MessageSquare className="size-5" strokeWidth={1.5} aria-hidden="true" />
+            </span>
+            <p class="text-title-h3 text-foreground">{ui.team}</p>
+          </div>
 
-          <div class="mt-7">
+          <div class="mt-6 rounded-card bg-background px-4 py-5 sm:p-6">
             <WaitlistForm
               locale={locale}
               messages={messages}
@@ -173,12 +178,11 @@ const assurances = (pageAssurances ?? [ui.kvkk, ui.languages, ui.live]).map(
                 notes={productNotes}
               />
             </WaitlistForm>
+            <p class="mt-4 flex items-center gap-2 text-paragraph-xs text-tertiary-foreground">
+              <Lock className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden="true" />
+              {ui.privacy}
+            </p>
           </div>
-
-          <p class="mt-4 flex items-center gap-2 text-paragraph-xs text-tertiary-foreground">
-            <Lock className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden="true" />
-            {ui.privacy}
-          </p>
         </div>
       </div>
     </div>

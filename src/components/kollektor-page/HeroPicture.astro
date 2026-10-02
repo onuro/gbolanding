@@ -1,14 +1,12 @@
 ---
-// The hero picture: one call, three named objects. The photo is the debtor on
+// The hero video: one call, three named objects. The video is the customer on
 // the phone, the two captions are the sentence Kollektor says and the answer
 // it waits for, and the card is what lands on the team's screen. The numbers
 // match the three steps ProductHero prints under it.
 //
-// It is a still on purpose. The scripted call in the next section is the one
-// thing on this page that moves, and only when the visitor presses play, so no
-// video runs here.
-import { Image } from "astro:assets";
+// Reuse the home-page video, with its still fallback and motion/data preferences.
 import { Check } from "lucide-react";
+import ProductVideo from "@/components/home/ProductVideo.astro";
 import callStill from "@/assets/editorial/kollektor-human-conversation-particles-original-2x.png";
 import SampleTag from "@/components/product/SampleTag.astro";
 import type { Locale } from "@/i18n/config";
@@ -36,17 +34,16 @@ const disc =
   <div class="absolute inset-0 -z-10" aria-hidden="true">
     {/* The crop keeps the woman and her phone in frame at every width; the
         right half of the photo is only wall. */}
-    <Image
-      src={callStill}
-      alt=""
-      width={1536}
+    <ProductVideo
+      image={callStill}
       widths={[480, 768, 1120, 1536]}
       sizes="(min-width: 84rem) 49rem, (min-width: 64rem) 58vw, 100vw"
-      format="webp"
-      quality={72}
-      loading="eager"
-      decoding="async"
-      class="absolute inset-0 h-full w-full object-cover object-[30%_18%]"
+      position="30% 18%"
+      imageLoading="eager"
+      sources={[
+        { src: "/media/kollektor-human-conversation-1280.webm", type: "video/webm" },
+        { src: "/media/kollektor-human-conversation-1280.mp4", type: "video/mp4" },
+      ]}
     />
     <span class="absolute inset-0 bg-black/10"></span>
     <span

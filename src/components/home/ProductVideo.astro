@@ -9,9 +9,10 @@ interface Props {
   sizes: string;
   position: string;
   label?: string;
+  imageLoading?: "eager" | "lazy";
 }
 
-const { image, sources, widths, sizes, position, label } = Astro.props;
+const { image, sources, widths, sizes, position, label, imageLoading = "lazy" } = Astro.props;
 ---
 
 <product-video class="absolute inset-0 block" style={`--media-position: ${position}`}>
@@ -24,7 +25,7 @@ const { image, sources, widths, sizes, position, label } = Astro.props;
     sizes={sizes}
     format="webp"
     quality={72}
-    loading="lazy"
+    loading={imageLoading}
     decoding="async"
     class="absolute inset-0 h-full w-full object-cover"
   />

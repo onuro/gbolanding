@@ -11,7 +11,7 @@
 // The script follows the real product (../kollektor): the agent waits for the
 // pick-up, calls on behalf of a law office, gives the recording notice, checks
 // the last four digits of the T.C. kimlik number before any debt detail,
-// states one legal consequence, proposes a concrete split, locks the promise
+// proposes a concrete split, locks the promise
 // only after an explicit "kesin", and never thanks or comforts.
 import {
   Check,
@@ -145,11 +145,11 @@ const ui = isTr
         "İyi günler, •••• Hukuk Bürosu adına arıyorum. Görüşme kayıt altına alınıyor. TC kimliğinizin son dört hanesi?",
         "4821.",
         "12.500 lira borcunuzun vadesi 14 gün önce geçti. Bugün kapatacak mısınız?",
-        "Bugün hepsi olmaz, maaş cuma. Nasıl yapalım?",
-        "Ödenmezse avukatlık ücreti eklenir. Yarısı bugün, kalanı en geç cuma.",
-        "Tamam.",
+        "Bugün hepsini toplayamıyorum.",
+        "Yarısı bugün, kalanı en geç cuma şeklinde yapabilir misiniz?",
+        "Tamam, o şekilde ayarlayayım.",
         "Bugün 6.250 lira, kalanı cuma. Kesin mi?",
-        "Evet, kesin.",
+        "Evet, kesin ödeyeceğim.",
         "Sözünüzü kaydettim. Ödemeyi yaptıktan sonra bu numaradan bizi arayın. İyi günler.",
       ],
       closed: "Görüşme kapandı",
@@ -226,11 +226,11 @@ const ui = isTr
         "Good day, calling on behalf of •••• Law Office. This call is being recorded. The last four digits of your ID number?",
         "4821.",
         "Your 12,500 lira debt went past due 14 days ago. Will you settle it today?",
-        "Not all of it today, I get paid Friday. How do we do this?",
-        "If it stays unpaid, attorney's fees are added. Half today, the rest by Friday at the latest.",
-        "Okay.",
+        "I can't get the full amount together today.",
+        "Could you pay half today and the rest by Friday at the latest?",
+        "Okay, I'll arrange it that way.",
         "6,250 lira today, the rest Friday. Is that firm?",
-        "Yes, it's firm.",
+        "Yes, I'll definitely pay.",
         "I've recorded your promise. Once you've paid, call us back on this number. Good day.",
       ],
       closed: "Call ended",
@@ -383,9 +383,9 @@ const keepFinished =
 
   <Heading id="kollektor-demo-heading" class="sr-only">{ui.heading}</Heading>
 
-  <div class="pt-6">
+  <div class:list={[embedded ? "pt-8" : "pt-6"]}>
     <div
-      class="stage stage-dots px-4 pt-8 sm:px-6 sm:pt-12"
+      class:list={["stage stage-dots px-4 sm:px-6", !embedded && "pt-8 sm:pt-12"]}
       data-kd-stage
     >
       <div class="relative mb-4 flex items-center justify-between gap-3 sm:mb-5">

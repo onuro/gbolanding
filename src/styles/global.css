@@ -283,48 +283,46 @@ html[data-theme="light"] {
   --shadow-float: var(--shadow-float-value);
 }
 
-/* One scale for the whole site. Display type is regular weight and quiet:
-   the size carries the hierarchy, so nothing above body text is bold. (Light,
-   300, was tried on 2026-10-02 and the owner found it too thin in this face.)
-   Headings shrink and loosen as they get smaller; anything below 11px is off
-   the scale on purpose. */
+/* One heading scale for the whole site, with medium display type and
+   progressively stronger small headings. Headings shrink and loosen as they
+   get smaller; anything below 11px is off the scale on purpose. */
 @theme {
   --text-display: clamp(2.375rem, 4.1vw, 3.375rem);
   --text-display--line-height: 1.06;
   --text-display--letter-spacing: -0.03em;
-  --text-display--font-weight: 400;
+  --text-display--font-weight: 500;
 
   /* The h1 of a product page: it shares its row with a picture, so it is a
      step under the home page's display. */
   --text-title-h1: clamp(2.125rem, 3.5vw, 2.875rem);
   --text-title-h1--line-height: 1.08;
   --text-title-h1--letter-spacing: -0.028em;
-  --text-title-h1--font-weight: 400;
+  --text-title-h1--font-weight: 500;
 
   --text-title-h2: clamp(1.875rem, 3.1vw, 2.5rem);
   --text-title-h2--line-height: 1.12;
   --text-title-h2--letter-spacing: -0.024em;
-  --text-title-h2--font-weight: 400;
+  --text-title-h2--font-weight: 500;
 
   --text-title-h3: clamp(1.5rem, 2.2vw, 1.875rem);
   --text-title-h3--line-height: 1.18;
   --text-title-h3--letter-spacing: -0.02em;
-  --text-title-h3--font-weight: 400;
+  --text-title-h3--font-weight: 500;
 
   --text-title-h4: 1.375rem;
   --text-title-h4--line-height: 1.27;
   --text-title-h4--letter-spacing: -0.015em;
-  --text-title-h4--font-weight: 450;
+  --text-title-h4--font-weight: 550;
 
   --text-title-h5: 1.125rem;
   --text-title-h5--line-height: 1.35;
   --text-title-h5--letter-spacing: -0.01em;
-  --text-title-h5--font-weight: 450;
+  --text-title-h5--font-weight: 550;
 
   --text-title-h6: 1rem;
   --text-title-h6--line-height: 1.4;
   --text-title-h6--letter-spacing: -0.005em;
-  --text-title-h6--font-weight: 500;
+  --text-title-h6--font-weight: 600;
 
   /* The one sentence beside a section heading: body size, full ink, so a
      header reads as heading plus statement. */

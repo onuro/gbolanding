@@ -10,14 +10,14 @@ const kollektorPage: KollektorPageMessages = {
     "Kollektor, GBO Vision’ın (gbovision.com) sesli yapay zeka tahsilat asistanıdır. Borçluyu Türkçe arar, ödeme sözünü teyit eder ve kaydeder.",
   hero: {
     eyebrow: "Hukuk büroları ve tahsilat ekipleri için",
-    title: "Kollektor borçluyu arar, ödeme sözünü kaydeder.",
-    lead: "Borçluyu Türkçe arar. Net bir ödeme günü alır. Sözü yüksek sesle teyit eder, sonra kaydeder. Ekibiniz her aramayı canlı izler.",
-    chips: ["Aramalar Türkçe", "Kayıt ve transkript", "Ekibiniz hattı devralabilir"],
+    title: "Kollektor müşteriyi arar, ödeme sözünü kaydeder.",
+    lead: "Borçlu müşteriyi arar. Net bir ödeme günü alır. Sözü yüksek sesle teyit eder, sonra kaydeder. Ekibiniz her aramayı canlı izler.",
+    chips: ["Kayıt ve transkript", "Ekibiniz hattı devralabilir"],
     primaryCta: "Demo talep edin",
     secondaryCta: "Arama örneği",
     steps: [
       {
-        title: "Kollektor borçluyu arar.",
+        title: "Kollektor borç müşterisini arar.",
         description:
           "Listenizdeki kişiyi Türkçe arar. Borçluya uygulama ya da bağlantı gerekmez.",
       },
@@ -34,7 +34,7 @@ const kollektorPage: KollektorPageMessages = {
   },
   heroPicture: {
     summary:
-      "Örnek resim. Borçlunun telefonu çalar. Kollektor günü ve tutarı söyler, borçlu onaylar. Ödeme sözü ekibinizin ekranına düşer.",
+      "Örnek görüşme. Borçlunun telefonu çalar. Kollektor günü ve tutarı söyler, borçlu onaylar. Ödeme sözü ekibinizin ekranına düşer.",
     labels: ["Borçlunun telefonu", "Kollektor’un sesi", "Ekibinizin ekranı"],
     agent: { who: "Kollektor", text: "Cuma günü 8.400 lira. Kesin mi?" },
     debtor: { who: "Borçlu", text: "Evet, kesin." },
@@ -50,9 +50,9 @@ const kollektorPage: KollektorPageMessages = {
   call: {
     label: "Örnek arama",
     title: "Bir aramayı baştan sona izleyin.",
-    lead: "İki ekran var: borçlunun telefonu ve ekibinizin ekranı.",
+    lead: "Müşteri konuşur. Siz ekranda izlersiniz.",
     caption:
-      "Bu örnekte kimlik sorusu ve iki parçalı ödeme açıktır. İkisi de akış ayarıdır, her aramada olmaz.",
+      "Bu örnekte kimlik sorusu ve iki parçalı ödeme açıktır. Senaryoyu siz belirlersiniz.",
     play: "Aramayı oynat",
     pause: "Aramayı duraklat",
     proof: [
@@ -116,12 +116,12 @@ const kollektorPage: KollektorPageMessages = {
   },
   onCall: {
     label: "Görüşmede",
-    title: "Borçlu bunu der. Kollektor bunu yapar.",
-    lead: "Her satır borçlunun bir sözüyle başlar. Yanında Kollektor’un yaptığı yazar.",
-    noteTitle: "Nasıl okunur",
-    note: "Solda borçlunun sözü, sağda Kollektor’un yaptığı.",
-    sayLabel: "Borçlu ne der",
-    doLabel: "Kollektor ne yapar",
+    title: "Kollektor görüşmeyi nasıl yönetir?",
+    lead: "Müşterinin yanıtına göre ilerler. Ödeme gününü netleştirir, geri arama planlar veya görüşmeyi ekibinize aktarır.",
+    noteTitle: "Örnek durumlar",
+    note: "Müşterinin yanıtı ve Kollektor’un izlediği adım.",
+    sayLabel: "Müşterinin yanıtı",
+    doLabel: "Kollektor’un adımı",
     rows: [
       {
         say: "“Borcum ne kadar?”",
