@@ -522,7 +522,7 @@ const rays = Array.from({ length: RAY_COUNT }, (_, i) => ({
     background: rgb(255 255 255 / 80%);
   }
 
-  /* Live caption: the tail of the current line, two lines at most. */
+  /* Live caption grows with the current utterance. */
   .kd-cap {
     width: calc(100% - 2.6em);
     flex: none;
@@ -536,11 +536,13 @@ const rays = Array.from({ length: RAY_COUNT }, (_, i) => ({
     transition: opacity 240ms ease;
   }
 
-  /* Exactly two lines. The sequence keeps it scrolled to the end, so the
+  /* The sequence keeps it scrolled to the end, so the
      newest words stay in view and older ones scroll out of the top. */
   .kd-cap-window {
-    height: 2.8em;
+    height: 1.4em;
+    max-height: 8.4em;
     overflow: hidden;
+    transition: height 240ms ease;
   }
 
   .kd-cap[data-who="none"] {
@@ -657,6 +659,10 @@ const rays = Array.from({ length: RAY_COUNT }, (_, i) => ({
 
     .kd-cap {
       margin-top: 1.1em;
+    }
+
+    .kd-cap-window {
+      max-height: 5.6em;
     }
   }
 

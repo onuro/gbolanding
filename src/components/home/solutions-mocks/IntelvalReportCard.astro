@@ -1,5 +1,6 @@
 ---
 import MockShell from "@/components/ui/MockShell.astro";
+import { Sparkles } from "lucide-react";
 import StatusPill from "@/components/ui/StatusPill.astro";
 import type { Locale } from "@/i18n/config";
 import {
@@ -46,6 +47,10 @@ const concludedAt = positionOnRange(valuation.concluded);
   <p class="sr-only">{ui.summary}</p>
   <div aria-hidden="true">
     <MockShell bare title={ui.title} meta={property.place} bodyClass="px-4 pb-1 pt-3.5">
+      <span slot="header-end" class="inline-flex shrink-0 items-center gap-1 rounded-full bg-brand-soft px-2 py-1 text-micro text-brand">
+        <Sparkles className="size-3" strokeWidth={1.5} aria-hidden="true" />
+        {locale === "tr" ? "AI analizi" : "AI analysis"}
+      </span>
       <div class="mb-3.5 flex gap-2">
         {
           [property.rooms, property.area, property.floor].map((fact) => (
@@ -101,7 +106,6 @@ const concludedAt = positionOnRange(valuation.concluded);
               class="flex h-8 items-center gap-3 border-b border-border last:border-b-0"
               data-sm-part="row"
             >
-              <span class="data-label w-8 shrink-0">{method.key}</span>
               <span class="min-w-0 flex-1 truncate text-paragraph-xs text-muted-foreground">
                 {method.label}
               </span>

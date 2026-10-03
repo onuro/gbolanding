@@ -11,9 +11,9 @@ const hastamPage: HastamPageMessages = {
     "Hastam is the AI assistant that answers your clinic's phone. It talks to the patient, takes the appointment request and shows it to you. A GBO Vision company.",
   hero: {
     eyebrow: "For polyclinics and medical centres",
-    title: "Hastam answers your clinic’s phone.",
-    lead: "Hastam is the AI receptionist that answers the phone 24/7. It talks with the caller, takes the appointment request and puts it on your screen. Approval stays with you.",
-    chips: ["No app", "No keypad menu", "The patient just calls"],
+    title: "A voice AI assistant for your clinic.",
+    lead: "Hastam AI answers patient calls 24/7 and speaks naturally, like a person. It listens to the patient, takes their appointment request and records it in your clinic’s dashboard. The doctor or clinic approves the appointment before it is confirmed.",
+    chips: ["No app", "No keypad menu", "Request appointments by phone"],
     primaryCta: "Request a demo",
     secondaryCta: "The hastam.ai site",
     steps: [
@@ -22,8 +22,8 @@ const hastamPage: HastamPageMessages = {
         description: "The number they already know. No app, no keypad menu.",
       },
       {
-        title: "AI picks up and talks.",
-        description: "It listens, then finds the right doctor and a free time.",
+        title: "It talks naturally with the patient.",
+        description: "It listens to the patient’s needs and offers suitable doctors and appointment times.",
       },
       {
         title: "The result lands on your screen.",
@@ -221,7 +221,7 @@ const hastamPage: HastamPageMessages = {
   call: {
     label: "A sample call",
     title: "Watch one call from start to finish.",
-    lead: "You see two screens: the patient’s phone and your clinic’s screen. Press play to watch the call.",
+    lead: "Watch how Hastam AI talks with a patient and records their appointment request in your clinic’s dashboard.",
     demo: {
       heading: "How Hastam handles a call to reschedule",
       description:
@@ -276,16 +276,16 @@ const hastamPage: HastamPageMessages = {
     },
     proof: [
       {
-        value: "Recording notice",
-        caption: "said in the greeting, and the time is noted",
+        value: "Appointment request",
+        caption: "The patient’s chosen day, time and doctor are recorded.",
       },
       {
         value: "Checked again",
         caption: "the time is looked at again just before the request is written",
       },
       {
-        value: "Clinic approval",
-        caption: "the appointment is not final until you approve it",
+        value: "Doctor or clinic approval",
+        caption: "The appointment is confirmed once the doctor or clinic approves it.",
       },
     ],
   },

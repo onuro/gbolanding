@@ -42,7 +42,7 @@ const visualCopy =
         case: "Dosya",
         live: "Canlı",
         callsToday: "Bugünkü arama",
-        recovered: "Toplam tahsilat",
+        recovered: "Eylül 2026 tahsilatı",
         connectRate: "Ulaşma oranı",
         callState: "Durum",
         amount: "Tutar",
@@ -52,11 +52,11 @@ const visualCopy =
         settled: "Tahsil edildi",
         escalated: "Ekibe devredildi",
         // Converted at the TCMB rate for 11 Aug 2026, 47,7364 ₺/$.
-        recoveredTotal: "₺1,2M",
+        recoveredTotal: "₺2,6M+",
         amounts: ["₺48.200", "₺12.750", "₺31.400", "₺7.900"],
         analysis: "Konut",
         concluded: "Tahmini değer",
-        valueRange: "₺ milyon",
+        valueRange: "milyon TL",
         low: "Alt",
         high: "Üst",
         weight: "Ağırlık",
@@ -67,7 +67,7 @@ const visualCopy =
         case: "Case",
         live: "Live",
         callsToday: "Calls today",
-        recovered: "Recovered",
+        recovered: "September 2026 recovered",
         connectRate: "Connect rate",
         callState: "State",
         amount: "Amount",
@@ -76,11 +76,11 @@ const visualCopy =
         callback: "Call back",
         settled: "Settled",
         escalated: "To your team",
-        recoveredTotal: "$25K",
+        recoveredTotal: "TRY 2.6M+",
         amounts: ["$1,010", "$267", "$658", "$166"],
         analysis: "Home",
         concluded: "Estimated value",
-        valueRange: "₺ million",
+        valueRange: "million TRY",
         low: "Low",
         high: "High",
         weight: "Weight",
@@ -125,7 +125,7 @@ const caseRows = [
 
 const caseStats = [
   { value: "4 812", label: visualCopy.callsToday },
-  { value: "68%", label: visualCopy.connectRate },
+  { value: "58%", label: visualCopy.connectRate },
   { value: visualCopy.recoveredTotal, label: visualCopy.recovered },
 ];
 
@@ -468,6 +468,7 @@ const concludedAt = positionOnRange(valuation.concluded);
               class="mt-2 text-3xl font-medium tabular-nums leading-none tracking-[-0.03em] text-brand sm:text-4xl"
             >
               {formatValue(locale, valuation.concluded)}
+              <span class="ml-2 inline-block text-label-sm tracking-normal text-muted-foreground">{visualCopy.valueRange}</span>
             </p>
 
             <div class="mt-5">
@@ -506,7 +507,7 @@ const concludedAt = positionOnRange(valuation.concluded);
                 >
                   <div class="flex items-baseline justify-between gap-2">
                     <span class="data-label">
-                      {method.key}
+                      {method.label}
                     </span>
                     <span class="text-micro tabular-nums text-tertiary-foreground">
                       {formatPercent(locale, method.weight)}
@@ -521,9 +522,6 @@ const concludedAt = positionOnRange(valuation.concluded);
                       style={`width: ${method.weight * 2}%;`}
                     />
                   </span>
-                  <p class="data-label mt-2">
-                    {method.label}
-                  </p>
                 </div>
               ))
             }

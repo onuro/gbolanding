@@ -16,9 +16,9 @@ const hastamPage: HastamPageMessages = {
     "Hastam, kliniğinizin telefonunu açan yapay zeka asistanıdır. Hastayla konuşur, randevu talebini alır ve ekranınıza yazar. Bir GBO Vision şirketidir.",
   hero: {
     eyebrow: "Poliklinikler ve tıp merkezleri için",
-    title: "Hastam kliniğinizin telefonunu açar.",
-    lead: "Hastam, telefonu 7/24 açan yapay zeka sekreterdir. Arayan hastayla konuşur, randevu talebini alır ve ekranınıza yazar. Onay sizde kalır.",
-    chips: ["Uygulama yok", "Tuşlama menüsü yok", "Hasta yalnızca arar"],
+    title: "Kliniğiniz için sesli yapay zeka asistanı.",
+    lead: "Hastam AI, hasta aramalarını 7/24 karşılar ve insan gibi doğal konuşur. Hastayı dinler, randevu talebini alır ve kliniğinizin paneline kaydeder. Randevu, hekim veya kliniğin onayıyla kesinleşir.",
+    chips: ["Uygulama yok", "Tuşlama menüsü yok", "Telefonla randevu talebi"],
     primaryCta: "Demo isteyin",
     secondaryCta: "hastam.ai sitesi",
     steps: [
@@ -27,8 +27,8 @@ const hastamPage: HastamPageMessages = {
         description: "Bildiği numarayı arar. Uygulama yok, tuşlama yok.",
       },
       {
-        title: "Yapay zeka açar ve konuşur.",
-        description: "Derdini dinler, uygun hekimi ve saati bulur.",
+        title: "Hastayla doğal bir diyalog kurar.",
+        description: "Hastanın ihtiyacını dinler, uygun hekim ve randevu saatlerini sunar.",
       },
       {
         title: "Sonuç ekranınıza düşer.",
@@ -223,7 +223,7 @@ const hastamPage: HastamPageMessages = {
   call: {
     label: "Örnek bir görüşme",
     title: "Bir aramayı baştan sona izleyin.",
-    lead: "İki ekran var: hastanın telefonu ve kliniğinizin ekranı. Görüşmeyi oynatın.",
+    lead: "Hastam AI’ın hastayla nasıl konuştuğunu ve randevu talebini kliniğinizin paneline nasıl kaydettiğini izleyin.",
     demo: {
       heading: "Hastam bir erteleme aramasını nasıl karşılar",
       description:
@@ -278,16 +278,16 @@ const hastamPage: HastamPageMessages = {
     },
     proof: [
       {
-        value: "Kayıt bildirimi",
-        caption: "selamlamada söylenir, saati not edilir",
+        value: "Randevu kaydı",
+        caption: "Hastanın seçtiği gün, saat ve hekim bilgisi kaydedilir.",
       },
       {
         value: "Yeniden kontrol",
         caption: "saate, talep yazılmadan hemen önce bir kez daha bakılır",
       },
       {
-        value: "Klinik onayı",
-        caption: "siz onaylayana kadar randevu kesinleşmez",
+        value: "Hekim veya klinik onayı",
+        caption: "Randevu, hekim veya kliniğin onayıyla kesinleşir.",
       },
     ],
   },
@@ -314,9 +314,9 @@ const hastamPage: HastamPageMessages = {
       },
       {
         say: "“İki gündür kulağım ağrıyor.”",
-        title: "Şikâyeti bölüme yönlendirir.",
+        title: "Şikayeti bölüme yönlendirir.",
         description:
-          "Hasta bölüm adını bilmek zorunda değildir. Şikâyetini söyler, asistan doğru bölümü ve hekimi bulur.",
+          "Hasta bölüm adını bilmek zorunda değildir. Şikayetini söyler, asistan doğru bölümü ve hekimi bulur.",
       },
       {
         say: "“Tahlil sonucumu soracaktım.”",
@@ -487,7 +487,7 @@ const hastamPage: HastamPageMessages = {
       {
         title: "Teşhis koymaz, tıbbi tavsiye vermez.",
         description:
-          "Şikâyeti doğru bölüme yönlendirir. Reçete yazmaz ya da yenilemez.",
+          "Şikayeti doğru bölüme yönlendirir. Reçete yazmaz ya da yenilemez.",
       },
       {
         title: "Acil durumda önce 112 der.",

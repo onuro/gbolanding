@@ -89,13 +89,13 @@ const enMessages: Messages = {
   },
   solutions: {
     kollektor: {
-      eyebrow: "Voice AI for debt collection",
+      eyebrow: "AI that collects payments",
       title: "Kollektor",
       description:
-        "Kollektor is a voice assistant that phones debt customers on behalf of law firms and asset-receivable portfolios. It runs up to 10,000 calls a day, works out a payment plan, and has recovered $25K so far.",
+        "Kollektor is an AI assistant that holds natural, human-like conversations with customers. It calls on behalf of law firms and creditors to discuss payment plans. It handles up to 10,000 calls a day and recovered over TRY 2.6 million for law firms in September 2026.",
       highlights: [
         "10,000 calls a day",
-        "$25K recovered",
+        "Over TRY 2.6 million recovered in September 2026",
       ],
       cta: "See how Kollektor works",
       pageCta: "Go to the Kollektor page",
@@ -104,20 +104,20 @@ const enMessages: Messages = {
       eyebrow: "Valuation intelligence",
       title: "Intelval",
       description:
-        "Intelval analyzes comparable-property and appraisal reports for valuation firms, and produces expert-level reports.",
+        "Intelval reads comparable sales and appraisal reports for valuation firms. It analyzes the value of homes, land and commercial properties, then produces expert-level reports.",
       highlights: [
-        "Business value",
+        "Land value",
         "Real estate value",
         "Clear reports",
       ],
       cta: "Schedule an Intelval demo",
     },
     hastam: {
-      eyebrow: "Voice AI for clinics",
+      eyebrow: "Voice AI for hospitals and clinics",
       title: "Hastam AI",
       headline: "From patient concern to the right doctor.",
       description:
-        "Hastam assesses a patient’s concerns and guides them to a doctor in the right specialty. It checks doctors’ current schedules and offers times that work for the patient. Their chosen appointment goes to the clinic for approval.",
+        "Hastam AI assesses a patient’s concerns and guides them to a doctor in the right specialty. It checks doctors’ current schedules and offers times that work for the patient. Their chosen appointment goes to the clinic for approval.",
       support:
         "Patients just call. Your team follows calls, patient records, and dictated clinical notes in one dashboard.",
       imageAlt: "A doctor listening attentively to a patient in a sunlit clinic",
@@ -141,18 +141,18 @@ const enMessages: Messages = {
         },
       ],
       cta: "Schedule a Hastam demo",
-      pageCta: "Go to the Hastam page",
+      pageCta: "Learn more",
     },
     enterprise: {
       eyebrow: "Custom AI and software",
       title: "Built for your business.",
       description:
-        "No generic SaaS. From analysis to build, we design around your work, data, and goals.",
+        "We develop custom software and AI solutions around your workflows, data and goals.",
       phases: [
         {
           number: "01",
           title: "Analyze",
-          summary: "Where the work waits, and what it costs.",
+          summary: "We identify problems in your workflow and what they cost.",
           description:
             "We sit with the people who do the work and follow one job from start to finish: where it waits, who it gets handed to, and where someone retypes the data. Then we write down what each delay costs you — hours lost, revenue missed, mistakes made — and start with the one that costs the most.",
           deliverables: [
@@ -215,7 +215,7 @@ const enMessages: Messages = {
         imageAlt: "A bank adviser reviewing a financial document at a branch desk",
         stats: [
           { value: "10K+", lead: "calls", rest: "a day" },
-          { value: "$25K", lead: "recovered", rest: "so far" },
+          { value: "TRY 2.6M+", lead: "recovered", rest: "in September 2026" },
         ],
       },
       {
@@ -247,8 +247,8 @@ const enMessages: Messages = {
           "Hastam assesses the patient’s concern, guides them to a suitable doctor, and offers appointments from current schedules.",
         imageAlt: "A doctor holding a tablet in an outpatient clinic corridor",
         stats: [
-          { value: "Right", lead: "specialty", rest: "and doctor" },
-          { value: "Open", lead: "appointment", rest: "times" },
+          { value: "Specialty matching", lead: "Selects the right", rest: "specialty and doctor" },
+          { value: "Appointment scheduling", lead: "The day and time", rest: "are selected" },
         ],
       },
     ],
@@ -257,13 +257,13 @@ const enMessages: Messages = {
     eyebrow: "Product · Kollektor",
     title: "A collector on the phone. A live desk for your team.",
     description:
-      "Kollektor collects banks' and institutions' asset receivables by phone. It asks for payment, structures a plan with the debtor, and takes the payments that come in. The whole process runs through an AI voice agent. Your team sees the recovery.",
+      "Kollektor collects banks' and institutions' asset receivables by phone. It requests payment, structures a plan with the customer who owes the debt, and takes the payments that come in. The whole process runs through an AI voice agent. Your team sees the recovery.",
     pipelineLabel: "From list to recovery",
     pipeline: [
       {
         number: "01",
         title: "Import",
-        description: "Debtor and receivable lists are pulled from the daily pool. Call jobs start.",
+        description: "Customers with outstanding debts and their account details are added to the daily call list. Calls begin.",
       },
       {
         number: "02",

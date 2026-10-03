@@ -89,13 +89,13 @@ const trMessages: Messages = {
   },
   solutions: {
     kollektor: {
-      eyebrow: "Sesli yapay zeka ile tahsilat",
+      eyebrow: "Tahsilat yapabilen AI",
       title: "Kollektor",
       description:
-        "Kollektor, hukuk büroları ve varlık alacakları adına borç müşterilerini telefonla arar. Bir yapay zeka asistanıdır. Günde 10.000'e kadar görüşme yapar. Ödeme planını konuşur. Bugüne kadar 1,2 milyon TL tahsilat sağladı.",
+        "Kollektor, müşterilerle insan gibi doğal diyaloglar kuran bir yapay zeka asistanıdır. Hukuk büroları ve alacak sahipleri adına arar, ödeme planını konuşur. Günde 10.000'e kadar görüşme yapar. Eylül 2026'da hukuk büroları için 2,6 milyon TL'den fazla tahsilat sağladı.",
       highlights: [
         "Günde 10.000 arama",
-        "1,2 milyon TL tahsilat",
+        "Eylül 2026'da 2,6 milyon TL'den fazla tahsilat",
       ],
       cta: "Kollektor nasıl çalışır",
       pageCta: "Kollektor sayfasına gidin",
@@ -104,36 +104,36 @@ const trMessages: Messages = {
       eyebrow: "Değerleme için yapay zeka",
       title: "Intelval",
       description:
-        "Intelval, değerleme firmaları için emsal ve ekspertiz raporlarını okur. Gayrimenkul ve şirket değerini analiz eder. Sonra uzman düzeyinde bir rapor yazar.",
+        "Intelval, değerleme firmaları için emsal ve ekspertiz raporlarını okur. Konut, arsa ve ticari gayrimenkullerin değerini analiz eder. Sonra uzman düzeyinde bir rapor yazar.",
       highlights: [
-        "İşletme değeri",
+        "Arsa değeri",
         "Gayrimenkul değeri",
         "Açık raporlar",
       ],
       cta: "Intelval demosu planlayın",
     },
     hastam: {
-      eyebrow: "Klinikler için sesli yapay zeka",
+      eyebrow: "Hastane ve klinikler için sesli yapay zeka",
       title: "Hastam AI",
-      headline: "Şikâyetten doğru hekime.",
+      headline: "Şikayetten doğru hekime.",
       description:
-        "Hastam, hastanın şikâyetini değerlendirir ve uygun branştaki hekime yönlendirir. Hekimlerin güncel takvimlerine bakar, hastaya uyan gün ve saatleri sunar. Hasta seçimini yapar; randevu talebi kliniğin onayına gider.",
+        "Hastam AI, hastanın şikayetini değerlendirir ve uygun branştaki hekime yönlendirir. Hekimlerin güncel takvimlerine bakar, hastaya uyan gün ve saatleri sunar. Hasta seçimini yapar; randevu talebi kliniğin onayına gider.",
       support:
         "Hasta yalnızca telefon eder. Ekibiniz aramaları, hasta kayıtlarını ve sesli klinik notları tek panelden takip eder.",
       imageAlt: "Aydınlık bir klinikte hastasını dikkatle dinleyen bir hekim",
       highlights: [
-        "Şikâyeti anlar",
+        "Şikayeti anlar",
         "Uygun hekimi bulur",
         "Takvime göre planlar",
       ],
       steps: [
         {
-          title: "Şikâyeti anlar",
-          description: "Hastayı dinler, anlattığı şikâyeti ve neye ihtiyaç duyduğunu değerlendirir.",
+          title: "Şikayeti anlar",
+          description: "Hastayı dinler, anlattığı şikayeti ve neye ihtiyaç duyduğunu değerlendirir.",
         },
         {
           title: "Uygun hekimi bulur",
-          description: "Şikâyeti kliniğin branşlarıyla eşleştirir. İlgili hekimlere yönlendirir.",
+          description: "Şikayeti kliniğin branşlarıyla eşleştirir. İlgili hekimlere yönlendirir.",
         },
         {
           title: "Takvime göre planlar",
@@ -141,18 +141,18 @@ const trMessages: Messages = {
         },
       ],
       cta: "Hastam demosu planlayın",
-      pageCta: "Hastam sayfasına gidin",
+      pageCta: "Detaylı bilgi",
     },
     enterprise: {
       eyebrow: "Özel yapay zeka ve yazılım",
       title: "İşinize göre tasarlandı.",
       description:
-        "Hazır paket bir SaaS değil. Analizden inşaya, iş akışınıza, verinize ve hedeflerinize göre ilerleriz.",
+        "İş akışınızı, verilerinizi ve hedeflerinizi temel alarak size özel yazılım ve yapay zeka çözümleri geliştiririz.",
       phases: [
         {
           number: "01",
           title: "Analiz",
-          summary: "İşin nerede beklediği, size neye mal olduğu.",
+          summary: "İş akışındaki aksaklıkları ve bunların maliyetini belirleriz.",
           description:
             "İşi yapan ekiple oturur, bir işi başından sonuna kadar izleriz. Nerede bekliyor, kim kime devrediyor, veri nerede elle giriliyor. Sonra her tıkanmanın size ne kaybettirdiğini yazarız: kaç saat, ne kadar ciro, kaç hata. En çok kaybettirenden başlarız.",
           deliverables: [
@@ -215,7 +215,7 @@ const trMessages: Messages = {
         imageAlt: "Banka şubesinde masasında bir finans belgesini inceleyen danışman",
         stats: [
           { value: "10.000+", lead: "günlük", rest: "arama" },
-          { value: "₺1,2M", lead: "bugüne kadarki", rest: "tahsilat" },
+          { value: "₺2,6M+", lead: "Eylül 2026", rest: "tahsilatı" },
         ],
       },
       {
@@ -244,11 +244,11 @@ const trMessages: Messages = {
         title: "Sağlık",
         badge: "Hastam ile hasta yönlendirme",
         description:
-          "Hastam, hastanın şikâyetini değerlendirir. Uygun hekime yönlendirir ve güncel takvimden randevu saatleri sunar.",
+          "Hastam, hastanın şikayetini değerlendirir. Uygun hekime yönlendirir ve güncel takvimden randevu saatleri sunar.",
         imageAlt: "Klinik koridorunda elinde tablet tutan bir hekim",
         stats: [
-          { value: "Doğru", lead: "branş", rest: "ve hekim" },
-          { value: "Uygun", lead: "gün", rest: "ve saat" },
+          { value: "Analitik branş seçimi", lead: "Doğru branş", rest: "ve hekim seçer" },
+          { value: "Randevu oluşturma", lead: "Gün ve saat", rest: "belirlenir" },
         ],
       },
     ],
@@ -257,13 +257,13 @@ const trMessages: Messages = {
     eyebrow: "Ürün · Kollektor",
     title: "Telefonda tahsildar. Ekranda canlı operasyon.",
     description:
-      "Kollektor, banka ve kurumların varlık alacaklarını telefonla tahsil eder. Ödeme ister. Borçluyla ödeme planı kurar. Gelen ödemeleri alır. Tüm süreç yapay zeka ses ajanı ile işler. Ekibiniz tahsilatı görür.",
+      "Kollektor, banka ve kurumların varlık alacaklarını telefonla tahsil eder. Ödeme talep eder. Borçlu müşteriyle ödeme planı kurar. Gelen ödemeleri alır. Tüm süreç yapay zeka ses ajanı ile işler. Ekibiniz tahsilatı görür.",
     pipelineLabel: "Listeden tahsilata",
     pipeline: [
       {
         number: "01",
         title: "Liste",
-        description: "Borçlu ve alacak listesi günlük havuzdan işleme alınır. Arama görevleri başlar.",
+        description: "Borçlu müşteriler ve alacak bilgileri günlük arama listesine alınır. Aramalar başlatılır.",
       },
       {
         number: "02",

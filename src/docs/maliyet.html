@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Türkiye'de barındırılan sesli yapay zekâ altyapısı — H100 / H200 / GB200 maliyet modeli (Eylül 2026)</title>
+<title>Türkiye'de barındırılan sesli yapay zeka altyapısı — H100 / H200 / GB200 maliyet modeli (Eylül 2026)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -138,7 +138,7 @@ table.capex input[type="number"]{font:inherit;font-size:14px;width:120px;padding
 
 <header>
   <p class="meta">GBO Vision — dahili maliyet raporu ve müşteri fiyatlandırma modeli, GPU sınıfına göre. Hazırlanma tarihi: 15 Eylül 2026. Fiyatlar %20 KDV hariçtir. USD/TRY kuru girdilerden ayarlanır (14 Eylül 2026 piyasa ortası ≈ 48,5).</p>
-  <h1>Türkiye'de barındırılan sesli yapay zekâ altyapısı: H100, H200 ve GB200 için maliyet modeli</h1>
+  <h1>Türkiye'de barındırılan sesli yapay zeka altyapısı: H100, H200 ve GB200 için maliyet modeli</h1>
   <p class="scope">Kapsam: Kişisel verinin her baytını Türkiye içinde tutan, tek kiracılı bir üretim yığını — İstanbul'daki Tier III bir veri merkezinde GPU üzerinde vLLM ile sunulan Gemma 4 31B, Türkçe TTS için on-premise Cartesia Sonic, STT için self-hosted Whisper ve orkestrasyon, veritabanı ve kayıtlar için bir CPU sunucusu. Üç GPU sınıfı yan yana: H100 (temel üretim), H200 (tek kartta daha fazla bellek ve pay), GB200 / B200 (Blackwell — Türkiye'de kiralanamıyor, yalnızca satın alma yolu var). Herhangi bir girdiyi değiştirin; sayfadaki tüm rakamlar yeniden hesaplanır.</p>
 </header>
 
@@ -203,7 +203,7 @@ table.capex input[type="number"]{font:inherit;font-size:14px;width:120px;padding
     <div class="field"><label for="i-setupfee">Sağlayıcı kurulum ücretleri (USD)</label><input id="i-setupfee" type="number" min="0" step="50" value="500"></div>
 
     <div class="field group"><span>Fiyatlandırma</span></div>
-    <div class="field"><label for="i-margin">Brüt kâr marjı (%)<small>Müşteri fiyatının kâr olan payı</small></label><input id="i-margin" type="number" min="0" max="80" step="1" value="40"></div>
+    <div class="field"><label for="i-margin">Brüt kar marjı (%)<small>Müşteri fiyatının kar olan payı</small></label><input id="i-margin" type="number" min="0" max="80" step="1" value="40"></div>
     <div class="field"><label for="i-annual">Yıllık peşin ödeme indirimi (%)<small>Sağlayıcılarınız 12 ay peşinde %10–15 indirim veriyor</small></label><input id="i-annual" type="number" min="0" max="40" step="1" value="10"></div>
     <div class="field"><label for="i-fx">USD/TRY</label><input id="i-fx" type="number" min="1" step="0.1" value="48.5"></div>
     <p class="note">GPU satırları bu sayfadaki en belirsiz rakamlardır — kanıt sütununa bakın ve müşteriye bir şey göndermeden önce üç teklif alın. Eşzamanlı çağrı sayıları ölçüm değil, tahmindir.</p>
@@ -267,7 +267,7 @@ table.capex input[type="number"]{font:inherit;font-size:14px;width:120px;padding
 <ul>
   <li><strong>H100 — Turkticaret.net</strong> (Tier III) H100 NVL için MIG dilimleri listeliyor: kartın %3,57'si aylık 260 $ (kampanya; liste 520 $), %14,28'i aylık 780 $ (liste 1.560 $); tam kart "bize ulaşın". Doğrusal ölçeklendiğinde kampanyalı dilimler tam kart için kabaca 5.500–7.300 $/ay ima ediyor; dilim fiyatlaması prim taşıdığından bunu tavan sayın. <strong>KEYDAL</strong>'ın 2026 rehberi tahsisli GPU sunucuları aylık 60.000 TL'den (≈ 1.240 $) başlatıyor ve yerli sağlayıcıları Avrupa'nın %20–40 üzerinde konumlandırıyor. Uluslararası uzman bulut medyanı 3,38 $/sa (AIMultiple, 25 Ağustos 2026) ≈ 2.470 $/ay.</li>
   <li><strong>H200 — Turkticaret</strong> H200 paketlerini H100'ün 1,15–1,5 katı fiyatlıyor ("H200 Extreme = Enterprise × 1,5"). Uluslararası tek H200 2,60–6,31 $/sa (1.900–4.600 $/ay); üzerine yerel prim. Hopper stoklarının 2026 Q3'e kadar tükendiği bildiriliyor, H200 zaman zaman B200'ün de üzerinde işlem görüyor.</li>
-  <li><strong>GB200 / B200 — Türkiye'de kiralık yok.</strong> Uluslararası GB200 NVL72 bulutta 4 GPU'lu instance olarak 10,50 $/GPU-sa (CoreWeave) ile 16–18+ $ (Oracle, hyperscaler) arasında; kapasite büyük ölçüde hyperscaler'lara tahsisli ve "büyük oranda satılmış". Türkiye'de tek yol satın alma: 8 GPU'lu HGX B200 sunucu 390–500 bin $, GB200 NVL72 rack 2–3 M$ ve 120–130 kW sıvı soğutma. Tek kiracılı bir ürün için Blackwell istiyorsanız, Türkiye'de satın alınabilir en makul Blackwell hâlâ RTX PRO 6000 Blackwell Server (96 GB, ~16.000 $).</li>
+  <li><strong>GB200 / B200 — Türkiye'de kiralık yok.</strong> Uluslararası GB200 NVL72 bulutta 4 GPU'lu instance olarak 10,50 $/GPU-sa (CoreWeave) ile 16–18+ $ (Oracle, hyperscaler) arasında; kapasite büyük ölçüde hyperscaler'lara tahsisli ve "büyük oranda satılmış". Türkiye'de tek yol satın alma: 8 GPU'lu HGX B200 sunucu 390–500 bin $, GB200 NVL72 rack 2–3 M$ ve 120–130 kW sıvı soğutma. Tek kiracılı bir ürün için Blackwell istiyorsanız, Türkiye'de satın alınabilir en makul Blackwell hala RTX PRO 6000 Blackwell Server (96 GB, ~16.000 $).</li>
 </ul>
 
 <h2>Satın al ve barındır (colocation) — üç sınıf için</h2>
@@ -334,7 +334,7 @@ table.capex input[type="number"]{font:inherit;font-size:14px;width:120px;padding
 </div>
 
 <h3>Uyum durumu, açıkça</h3>
-<p>KVKK verinin Türkiye'de kalmasını zorunlu kılmaz. 9. madde değişikliğinin 1 Haziran 2024'te yürürlüğe girmesinden bu yana kişisel veri; bir yeterlilik kararıyla, uygun güvencelerle — Kurul'un standart sözleşmeleri (imzadan itibaren beş iş günü içinde Kurul'a bildirilmesi gerekir), bağlayıcı şirket kuralları veya yazılı taahhütnameler — ya da sayılan istisnai hâllerde yurt dışına aktarılabilir. Bu rapor için incelenen kaynaklarda herhangi bir ülke için verilmiş bir yeterlilik kararından söz edilmiyor; güncel liste için kvkk.gov.tr'ye bakın. Pratikte tüm hattı yurt içinde tutmak aktarım sorusunu ve beş günlük bildirim yükünü tamamen ortadan kaldırır; regüle alıcıların (hukuk büroları, finans, telekom) RFP'lerine yazdığı da budur. Sattığınız değer bu. Bu yüzden yurt dışında kiralanan bir GB200 instance'ı — ne kadar güçlü olursa olsun — bu teklifin parçası olamaz.</p>
+<p>KVKK verinin Türkiye'de kalmasını zorunlu kılmaz. 9. madde değişikliğinin 1 Haziran 2024'te yürürlüğe girmesinden bu yana kişisel veri; bir yeterlilik kararıyla, uygun güvencelerle — Kurul'un standart sözleşmeleri (imzadan itibaren beş iş günü içinde Kurul'a bildirilmesi gerekir), bağlayıcı şirket kuralları veya yazılı taahhütnameler — ya da sayılan istisnai hallerde yurt dışına aktarılabilir. Bu rapor için incelenen kaynaklarda herhangi bir ülke için verilmiş bir yeterlilik kararından söz edilmiyor; güncel liste için kvkk.gov.tr'ye bakın. Pratikte tüm hattı yurt içinde tutmak aktarım sorusunu ve beş günlük bildirim yükünü tamamen ortadan kaldırır; regüle alıcıların (hukuk büroları, finans, telekom) RFP'lerine yazdığı da budur. Sattığınız değer bu. Bu yüzden yurt dışında kiralanan bir GB200 instance'ı — ne kadar güçlü olursa olsun — bu teklifin parçası olamaz.</p>
 <p>GDPR yalnızca müşteri AB'de yerleşik kişilerin verisini işliyorsa geçerlidir. Öyleyse Türkiye GDPR açısından üçüncü ülkedir (Türkiye için AB yeterlilik kararı yok) ve Türkiye'de barındırma tek başına GDPR'ı karşılamaz — SCC'ler ters yönde işler. Teklifte bir cümleye değer, fazlasına değil.</p>
 
 <h3>Cartesia: üç kurulum yolu, vaade uyan tek yol</h3>
@@ -366,7 +366,7 @@ table.capex input[type="number"]{font:inherit;font-size:14px;width:120px;padding
 
 <h2>Teklife doğrudan yapıştırılabilir</h2>
 <div class="proposal" id="proposal">
-  <h2>Egemen sesli yapay zekâ platformu — tamamen Türkiye'de barındırılır (<span id="p-tier">H100</span>)</h2>
+  <h2>Egemen sesli yapay zeka platformu — tamamen Türkiye'de barındırılır (<span id="p-tier">H100</span>)</h2>
   <div class="price">
     <div><div class="n" id="p-month">—</div><div class="l">aylık</div></div>
     <div><div class="n" id="p-year">—</div><div class="l">yıllık, peşin (%<span id="p-disc">10</span> indirim)</div></div>
@@ -537,7 +537,7 @@ table.capex input[type="number"]{font:inherit;font-size:14px;width:120px;padding
       {k:'Fiyat tamponu', v:r.bufferAmt, c:'var(--seg4)'},
       {k:'Cartesia lisansı (yer tutucu)', v:r.cartesia, c:'var(--seg5)'},
       {k:'Operasyon iş gücü', v:r.labor, c:'var(--seg6)'},
-      {k:'Kâr marjınız', v:r.profit, c:'var(--margin)'}
+      {k:'Kar marjınız', v:r.profit, c:'var(--margin)'}
     ];
     const ledger = $('ledger'); ledger.innerHTML = '';
     const legend = $('legend'); legend.innerHTML = '';
@@ -552,12 +552,12 @@ table.capex input[type="number"]{font:inherit;font-size:14px;width:120px;padding
       li.innerHTML = '<span class="sw" style="background:' + s.c + '"></span>' + s.k + ' ' + money(s.v) + ' (' + pct(share) + ')';
       legend.appendChild(li);
     });
-    ledger.setAttribute('aria-label', T.name + ' — aylık müşteri fiyatı ' + money(r.client) + '; kâr marjı ' + money(r.profit));
+    ledger.setAttribute('aria-label', T.name + ' — aylık müşteri fiyatı ' + money(r.client) + '; kar marjı ' + money(r.profit));
 
     $('f-internal').textContent = money(r.internal);
     $('f-internal-s').textContent = money(r.internal, other()) + ' · yıllık ' + money(r.internalYear);
     $('f-client').textContent = money(r.client);
-    $('f-client-s').textContent = money(r.client, other()) + ' · ' + pct(r.margin*100) + ' marjda kâr ' + money(r.profit);
+    $('f-client-s').textContent = money(r.client, other()) + ' · ' + pct(r.margin*100) + ' marjda kar ' + money(r.profit);
     $('f-annual').textContent = money(r.clientYearPrepaid);
     $('f-annual-s').textContent = money(r.clientYearPrepaid, other()) + ' · aylık faturalandırılırsa ' + money(r.clientYearList);
     $('f-percall').textContent = money(r.perCall);
@@ -596,9 +596,9 @@ table.capex input[type="number"]{font:inherit;font-size:14px;width:120px;padding
       '<div>Dahili maliyet, 12 ay</div><div>' + money(r.internalYear) + '</div>' +
       '<div>Müşteri fiyatı, aylık faturalı × 12</div><div>' + money(r.clientYearList) + '</div>' +
       '<div>Müşteri fiyatı, peşin (' + pct(r.annualDisc*100) + ' indirim)</div><div>' + money(r.clientYearPrepaid) + '</div>' +
-      '<div class="h">Peşin fiyatta kâr</div><div class="h">' + money(r.profitYearPrepaid) + '</div>' +
+      '<div class="h">Peşin fiyatta kar</div><div class="h">' + money(r.profitYearPrepaid) + '</div>' +
       '<div>İndirim sonrası efektif marj</div><div>' + pct(effMargin*100) + '</div>' +
-      '<div>Aylık faturalandırmada kâr</div><div>' + money(r.profit*12) + '</div>';
+      '<div>Aylık faturalandırmada kar</div><div>' + money(r.profit*12) + '</div>';
 
     ['h100','h200','b200'].forEach(k => {
       $('x-' + k + '-landed').textContent = money(cx[k].landed);

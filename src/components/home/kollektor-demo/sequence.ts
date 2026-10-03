@@ -151,6 +151,20 @@ export function initKollektorDemo(root: HTMLElement) {
   const capWho = cap?.querySelector<HTMLElement>("[data-kd-cap-who]") ?? null;
   const capText = cap?.querySelector<HTMLElement>("[data-kd-cap-text]") ?? null;
   const capWindow = cap?.querySelector<HTMLElement>("[data-kd-cap-window]") ?? null;
+  const capContent = capWindow?.querySelector<HTMLElement>("p") ?? null;
+  const fitCaption = () => {
+    if (!capWindow || !capContent) return;
+    const style = getComputedStyle(capWindow);
+    const minimum = Number.parseFloat(style.lineHeight) || 0;
+    const maximum = Number.parseFloat(style.maxHeight) || Infinity;
+    capWindow.style.height = `${Math.min(maximum, Math.max(minimum, capContent.offsetHeight))}px`;
+    capWindow.scrollTop = capWindow.scrollHeight;
+  };
+  if (capWindow && capContent && "ResizeObserver" in window) {
+    const captionResize = new ResizeObserver(fitCaption);
+    captionResize.observe(capContent);
+    capWindow.addEventListener("transitionend", fitCaption);
+  }
 
   // ── Transcript window ────────────────────────────────────────────────────
   //
@@ -331,8 +345,8 @@ export function initKollektorDemo(root: HTMLElement) {
     cap.dataset.who = who;
     if (capWho) capWho.textContent = label;
     if (capText) capText.textContent = text;
-    // Top-aligned while it fits, the tail once it wraps past two lines.
-    if (capWindow) capWindow.scrollTop = capWindow.scrollHeight;
+    // Grow to fit, then follow the newest words once the available space fills.
+    fitCaption();
   };
 
   const last = { phase: "", speaker: "", debtor: "", agent: "", second: -1, count: -1 };

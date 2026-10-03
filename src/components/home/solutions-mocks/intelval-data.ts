@@ -20,7 +20,7 @@ const METHODS = [
 type MethodKey = (typeof METHODS)[number]["key"];
 
 const LABELS: Record<Locale, Record<MethodKey, string>> = {
-  tr: { EMS: "Emsal satışlar", MLY: "Yeniden inşa", GLR: "Kira geliri" },
+  tr: { EMS: "Emsal satışlar", MLY: "İnşa maliyeti", GLR: "Kira geliri" },
   en: { EMS: "Comparable sales", MLY: "Rebuild cost", GLR: "Rental income" },
 };
 
