@@ -211,6 +211,8 @@ export interface Messages {
     eyebrow: string;
     title: string;
     description: string;
+    /** The word before each drawing's number, as in "Fig 0.1". */
+    figure: string;
     capabilities: [
       CapabilityMessage,
       CapabilityMessage,

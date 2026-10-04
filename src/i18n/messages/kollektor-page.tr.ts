@@ -36,7 +36,7 @@ const kollektorPage: KollektorPageMessages = {
     summary:
       "Örnek görüşme. Borçlunun telefonu çalar. Kollektor günü ve tutarı söyler, borçlu onaylar. Ödeme sözü ekibinizin ekranına düşer.",
     labels: ["Borçlunun telefonu", "Kollektor’un sesi", "Ekibinizin ekranı"],
-    agent: { who: "Kollektor", text: "Cuma günü 8.400 lira. Kesin mi?" },
+    agent: { who: "Kollektor", text: "Cuma günü 8.400 TL ödeme yapacaksınız, değil mi?" },
     debtor: { who: "Borçlu", text: "Evet, kesin." },
     translated: "",
     cardTitle: "Ödeme sözü kaydedildi",
@@ -50,13 +50,13 @@ const kollektorPage: KollektorPageMessages = {
   call: {
     label: "Örnek arama",
     title: "Bir aramayı baştan sona izleyin.",
-    lead: "Müşteri konuşur. Siz ekranda izlersiniz.",
+    lead: "Kollektor, borçlu müşteriyle tahsilat görüşmesi yapar. Siz görüşmeyi ekrandan canlı takip edersiniz.",
     caption:
       "Bu örnekte kimlik sorusu ve iki parçalı ödeme açıktır. Senaryoyu siz belirlersiniz.",
     play: "Aramayı oynat",
     pause: "Aramayı duraklat",
     proof: [
-      { value: "Türkçe", caption: "Aramalar Türkçe yapılır." },
+      { value: "İnsan gibi konuşan AI", caption: "Borçlu müşteriyle doğal bir tahsilat görüşmesi yürütür." },
       {
         value: "Önce teyit",
         caption: "Görüşmede söz, borçlu açıkça onay verince kaydedilir.",
@@ -70,14 +70,14 @@ const kollektorPage: KollektorPageMessages = {
   start: {
     label: "Başlangıç",
     title: "Listenizden ilk aramaya dört adım.",
-    lead: "Excel listenizi yüklersiniz. Gerisini ekrandan yönetirsiniz.",
+    lead: "Müşteri bilgilerini CSV veya Excel dosyasıyla yükleyebilir ya da elle girebilirsiniz. Arama kampanyasını kendiniz oluşturup yönetirsiniz.",
     noteTitle: "Ekranınızda",
     note: "Resim ikinci adımı gösterir. Satırları tek tek görürsünüz.",
     rows: [
       {
-        title: "Listeyi yüklersiniz.",
+        title: "Müşteri bilgilerini eklersiniz.",
         description:
-          "Excel dosyanızı yüklersiniz. Dosya, verdiğimiz şablona uymalıdır.",
+          "Müşteri bilgilerini CSV veya Excel dosyasından yükleyebilir ya da tek tek elle girebilirsiniz.",
       },
       {
         title: "Satırlara bakarsınız.",
@@ -90,9 +90,9 @@ const kollektorPage: KollektorPageMessages = {
           "Arama saatini, günlük limiti ve tekrar aralığını seçersiniz.",
       },
       {
-        title: "Grup hazır olur.",
+        title: "Kampanyayı oluşturursunuz.",
         description:
-          "Otomatik aramayı kurulumda birlikte açarız. Grubu istediğiniz an durdurursunuz.",
+          "Arama kurallarını belirleyip kampanyayı kendiniz oluşturur, başlatır veya durdurursunuz.",
       },
     ],
     mock: {
@@ -169,7 +169,7 @@ const kollektorPage: KollektorPageMessages = {
   team: {
     label: "Ekranınız",
     title: "Ekibiniz her görüşmeyi ekranda görür.",
-    lead: "Borçlu yalnızca bir telefon görüşmesi duyar. Uygulama, portal ya da bağlantı yoktur.",
+    lead: "Borçlu müşteri yalnızca telefonla görüşür. Görüşme, bir çağrı merkezi araması gibi ilerler.",
     note: "Resim, bugünkü aramaları ve seçili olanı gösterir.",
     rows: [
       {
@@ -227,7 +227,7 @@ const kollektorPage: KollektorPageMessages = {
       recording: "Ses kaydı",
       duration: "02:41",
       lines: [
-        { who: "Kollektor", text: "Cuma günü 8.400 lira. Kesin mi?" },
+        { who: "Kollektor", text: "Cuma günü 8.400 TL ödeme yapacaksınız, değil mi?" },
         { who: "Borçlu", text: "Evet, kesin." },
       ],
     },
@@ -366,7 +366,7 @@ const kollektorPage: KollektorPageMessages = {
     title: "Hukuk büroları ve tahsilat ekipleri için yapıldı.",
     lead: "Kredi, kredi kartı ve fatura alacağı takip eden ekipler içindir.",
     noteTitle: "Bilgi",
-    note: "Borçlu yalnızca bir telefon görüşmesi duyar.",
+    note: "Borçlu müşteriyle görüşme, çağrı merkezi araması gibi ilerler.",
     imageAlt: "Masada duran bir kulaklık",
     rows: [
       {
@@ -403,9 +403,9 @@ const kollektorPage: KollektorPageMessages = {
           "Ödeme almaz. SMS ya da ödeme bağlantısı göndermez. Paranın gelip gelmediğine kendisi bakmaz. Gelen ödemeyi ekibiniz işler.",
       },
       {
-        question: "Listeyi nasıl yüklerim?",
+        question: "Müşteri bilgilerini nasıl eklerim?",
         answer:
-          "Excel dosyası yüklersiniz. Dosya, verdiğimiz şablona uymalıdır. Başka sistemlere hazır bir bağlantı yoktur.",
+          "Müşteri bilgilerini CSV veya Excel dosyasıyla yükleyebilir ya da elle girebilirsiniz. Ardından arama kampanyasını kendiniz oluşturabilirsiniz.",
       },
       {
         question: "Bir görüşmeyi biz alabilir miyiz?",

@@ -2,9 +2,10 @@
 import BlinkText from "@/components/BlinkText";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
-import DotIllo from "@/components/illos/DotIllo.astro";
+import IsoFigure from "@/components/illos/IsoFigure.astro";
+import ScopeFigure from "@/components/illos/ScopeFigure.astro";
 import SectionHeader from "@/components/ui/SectionHeader.astro";
-import type { DotIlloName } from "@/components/illos/dot-illos";
+import type { IsoFigureName } from "@/components/illos/iso-figures";
 
 interface Props {
   locale: Locale;
@@ -13,9 +14,10 @@ interface Props {
 
 const { messages } = Astro.props;
 
-// Indexed to messages.platform.capabilities.
-const illos: DotIlloName[] = [
-  "analysis",
+// Indexed to messages.platform.capabilities. The first, the scope, has its
+// own component; the rest are scenes in iso-figures.ts.
+const figures: ("scope" | IsoFigureName)[] = [
+  "scope",
   "design",
   "automation",
   "integration",
@@ -44,28 +46,29 @@ const illos: DotIlloName[] = [
     <ul class="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
       {
         messages.platform.capabilities.map((capability, index) => {
-          const illo = illos[index];
+          const figure = figures[index];
 
           return (
             <li class="group bg-background p-3">
               {/* The cell keeps its background while its content fades up, so
                   the hairline grid never shows through as a grey block.
                   Text leads in the DOM so a screen reader meets the heading
-                  first; the visual is moved above it on screen. */}
+                  first; the figure is moved above it on screen. */}
               <div data-reveal class="flex h-full flex-col overflow-hidden rounded-tile bg-card shadow-card">
-                <div class="px-4 pb-6 pt-5 sm:px-5 sm:pb-7 sm:pt-6">
+                <div class="px-4 pb-6 pt-1 sm:px-5 sm:pb-7">
                   <h3 class="text-title-h5 text-foreground">{capability.title}</h3>
                   <p class="mt-2 max-w-sm text-pretty text-paragraph-sm text-muted-foreground sm:text-paragraph-md">
                     {capability.description}
                   </p>
                 </div>
-                {illo && (
-                  <div
-                    class="order-first flex h-64 items-center justify-center overflow-hidden"
-                    aria-hidden="true"
-                  >
-                    <div class="w-[82%] max-w-[22rem] text-foreground transition-transform duration-700 ease-out group-hover:scale-[1.04]">
-                      <DotIllo name={illo} boot />
+                {figure && (
+                  <div class="relative order-first flex h-72 items-center justify-center" aria-hidden="true">
+                    {/* Numbered like a figure in a spec, the way Linear labels its drawings. */}
+                    <span class="absolute left-4 top-4 font-mono text-[0.6875rem] leading-none uppercase tracking-[0.06em] text-faint-foreground sm:left-5 sm:top-5">
+                      {messages.platform.figure} 0.{index + 1}
+                    </span>
+                    <div class="w-[86%] max-w-[23rem] text-foreground">
+                      {figure === "scope" ? <ScopeFigure boot /> : <IsoFigure name={figure} boot />}
                     </div>
                   </div>
                 )}

@@ -117,7 +117,7 @@ const enMessages: Messages = {
       title: "Hastam AI",
       headline: "From patient concern to the right doctor.",
       description:
-        "Hastam AI assesses a patient’s concerns and guides them to a doctor in the right specialty. It checks doctors’ current schedules and offers times that work for the patient. Their chosen appointment goes to the clinic for approval.",
+        "Hastam AI works as an appointment assistant, assesses a patient’s concerns and guides them to a doctor in the right specialty. It checks doctors’ current schedules and offers times that work for the patient. Their chosen appointment goes to the clinic for approval.",
       support:
         "Patients just call. Your team follows calls, patient records, and dictated clinical notes in one dashboard.",
       imageAlt: "A doctor listening attentively to a patient in a sunlit clinic",
@@ -375,6 +375,7 @@ const enMessages: Messages = {
     title: "From insight to working AI.",
     description:
       "We learn how your business works. Then we design, connect, and build the right AI tool.",
+    figure: "Fig",
     capabilities: [
       {
         title: "Business discovery",

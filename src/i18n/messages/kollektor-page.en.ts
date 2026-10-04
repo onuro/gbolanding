@@ -35,7 +35,7 @@ const kollektorPage: KollektorPageMessages = {
     summary:
       "Sample call. The debtor’s phone rings. Kollektor says the day and the amount, and the debtor says yes. The promise to pay shows on your team’s screen.",
     labels: ["The debtor’s phone", "Kollektor’s voice", "Your team’s screen"],
-    agent: { who: "Kollektor", text: "8,400 lira on Friday. Is that firm?" },
+    agent: { who: "Kollektor", text: "You'll pay 8,400 TL on Friday, correct?" },
     debtor: { who: "Debtor", text: "Yes, it’s firm." },
     translated: "Translated from Turkish",
     cardTitle: "Promise to pay saved",
@@ -49,15 +49,15 @@ const kollektorPage: KollektorPageMessages = {
   call: {
     label: "Sample call",
     title: "Watch one call from start to finish.",
-    lead: "You see two screens: the debtor’s phone and your team’s screen.",
+    lead: "Kollektor speaks with the customer about payment. You follow the conversation live on your screen.",
     caption:
       "This sample has an ID question and a split payment. Both are settings of a call flow, not part of every call.",
     play: "Play the call",
     pause: "Pause the call",
     proof: [
       {
-        value: "Turkish",
-        caption: "Calls are made in Turkish. The lines you read here are translated.",
+        value: "Human-like AI",
+        caption: "It has a natural conversation with the customer about payment.",
       },
       {
         value: "Yes first",
@@ -72,14 +72,14 @@ const kollektorPage: KollektorPageMessages = {
   start: {
     label: "Getting started",
     title: "Four steps from your list to the first call.",
-    lead: "You upload your Excel list. You run the rest from the screen.",
+    lead: "Upload customer details from a CSV or Excel file, or enter them manually. Create and manage the calling campaign yourself.",
     noteTitle: "On your screen",
     note: "The picture shows step two. You see each row.",
     rows: [
       {
-        title: "You upload the list.",
+        title: "You add customer details.",
         description:
-          "You upload your Excel file. It has to follow the template we give you.",
+          "Upload customer details from a CSV or Excel file, or enter them one by one.",
       },
       {
         title: "You check the rows.",
@@ -92,9 +92,9 @@ const kollektorPage: KollektorPageMessages = {
           "You pick the calling hours, the daily limit and the time between tries.",
       },
       {
-        title: "The group is ready.",
+        title: "You create the campaign.",
         description:
-          "We switch on automatic dialling together during setup. You can stop the group at any time.",
+          "Set the calling rules, then create, start or stop the campaign yourself.",
       },
     ],
     mock: {
@@ -172,7 +172,7 @@ const kollektorPage: KollektorPageMessages = {
   team: {
     label: "Your screen",
     title: "Your team sees every call on screen.",
-    lead: "The debtor only hears a phone call. There is no app, no portal and no link.",
+    lead: "The customer speaks only by phone. The conversation proceeds like a regular call centre call.",
     note: "The picture shows today’s calls and the one you picked.",
     rows: [
       {
@@ -230,7 +230,7 @@ const kollektorPage: KollektorPageMessages = {
       recording: "Recording",
       duration: "02:41",
       lines: [
-        { who: "Kollektor", text: "8,400 lira on Friday. Is that firm?" },
+        { who: "Kollektor", text: "You'll pay 8,400 TL on Friday, correct?" },
         { who: "Debtor", text: "Yes, it’s firm." },
       ],
     },
@@ -369,7 +369,7 @@ const kollektorPage: KollektorPageMessages = {
     title: "Built for law offices and collection teams.",
     lead: "It is for teams that follow up loan, credit card and invoice debts.",
     noteTitle: "Note",
-    note: "The debtor only hears a phone call.",
+    note: "The call with the customer works like a regular call centre call.",
     imageAlt: "A headset on a desk",
     rows: [
       {
@@ -405,9 +405,9 @@ const kollektorPage: KollektorPageMessages = {
           "It does not take payments. It sends no SMS and no payment link. It does not check if the money came in. Your team records the payment.",
       },
       {
-        question: "How do I upload a list?",
+        question: "How do I add customer details?",
         answer:
-          "You upload an Excel file. It has to follow the template we give you. There is no ready link to other systems.",
+          "Upload customer details from a CSV or Excel file, or enter them manually. Then create the calling campaign yourself.",
       },
       {
         question: "Can we take over a call?",

@@ -1,0 +1,544 @@
+---
+// The platform figures: isometric scenes worked out at build time
+// (iso-figures.ts) and drawn as hairlines in the manner of Linear's figure
+// plates, with our dots kept for what is alive: the lit face's halftone,
+// packets, loaders. Each group is one object; solid objects carry an occluder
+// in the card colour, so a group can move and still hide what stands behind
+// it. The moves are CSS keyframes fed by custom properties, plus one tiny
+// observer script that plays a figure only while it is on screen.
+import type { Point } from "./dot-matrix";
+import { dotsPath, face, num, polyPath, type Group, type Mark, type Motion } from "./iso";
+import { DOT, LINE, PITCH, isoFigures, type IsoFigureName } from "./iso-figures";
+
+interface Props {
+  name: IsoFigureName;
+  /** Marks power on when the nearest data-reveal parent reveals. */
+  boot?: boolean;
+  class?: string;
+}
+
+const { name, boot = false, class: className } = Astro.props;
+
+const CENTER: Point = [240, 180];
+const figure = isoFigures[name]();
+
+const markPoints = (m: Mark): Point[] => (m.kind === "face" ? m.corners : m.points);
+// Orbit riders are drawn at their orbit's centre for the purpose of framing.
+const pointsOf = (g: Group): Point[] => [
+  ...(g.orbit ? [g.orbit.center] : g.marks.flatMap(markPoints)),
+  ...(g.leds ?? []).flatMap((l) => l.points),
+];
+const everyPoint = figure.groups.flatMap(pointsOf);
+
+// Scenes are drawn wherever their geometry falls; each is centred on its
+// bounding box, a touch low, since the figure's label sits top left.
+const xs = everyPoint.map((p) => p[0]);
+const ys = everyPoint.map((p) => p[1]);
+const shift: Point = [
+  CENTER[0] - (Math.min(...xs) + Math.max(...xs)) / 2,
+  CENTER[1] + 6 - (Math.min(...ys) + Math.max(...ys)) / 2,
+];
+// The figure powers on as a wave from its centre, measured before the shift.
+const origin: Point = [CENTER[0] - shift[0], CENTER[1] - shift[1]];
+const reach = Math.max(1, ...everyPoint.map(([x, y]) => Math.hypot(x - origin[0], y - origin[1])));
+const STEPS = 8;
+const stepAt = ([x, y]: Point) =>
+  Math.min(STEPS - 1, Math.floor((Math.hypot(x - origin[0], y - origin[1]) / reach) * STEPS));
+const centroid = (points: Point[]): Point => [
+  points.reduce((s, p) => s + p[0], 0) / points.length,
+  points.reduce((s, p) => s + p[1], 0) / points.length,
+];
+
+const px = (v: number) => `${num(v)}px`;
+
+interface Item {
+  cls: string;
+  d: string;
+  step: number;
+  /** Stroke width, when it differs from the hairline. */
+  width?: number;
+}
+
+/** Items sharing a class, weight and power-on step become one path. */
+function merge(items: Item[]): Item[] {
+  const byKey = new Map<string, Item>();
+  for (const item of items) {
+    const key = `${item.cls}|${item.width ?? ""}|${item.step}`;
+    const found = byKey.get(key);
+    byKey.set(key, found ? { ...found, d: found.d + item.d } : item);
+  }
+  return [...byKey.values()];
+}
+
+/**
+ * A group's marks: shaded and lit faces, then inner edges, then outlines,
+ * then dots. A lit face carries a halftone of dots over its wash.
+ */
+function itemsOf(g: Group): Item[] {
+  if (g.orbit) {
+    const tone = g.marks[0]?.tone ?? "ink";
+    return [{ cls: `dot-${tone}`, d: "M0 0h0", step: stepAt(g.orbit.center), width: DOT }];
+  }
+  const fills: Item[] = [];
+  const inner: Item[] = [];
+  const lines: Item[] = [];
+  const dots: Item[] = [];
+  for (const m of g.marks) {
+    const step = stepAt(centroid(markPoints(m)));
+    if (m.kind === "face") {
+      fills.push({ cls: `fc fc-${m.tone}`, d: polyPath(m.corners, true), step });
+      if (m.tone === "accent") {
+        dots.push({ cls: "dot-accent", d: dotsPath(face(m.corners, PITCH, m.keep)), step, width: DOT });
+      }
+    } else if (m.kind === "line") {
+      const cls = ["ln", `ln-${m.tone}`, m.inner && "ln-inner", m.dash && "ln-dash"].filter(Boolean).join(" ");
+      const item = { cls, d: polyPath(m.points, m.closed), step, width: m.weight ? LINE * m.weight : undefined };
+      (m.inner ? inner : lines).push(item);
+    } else {
+      dots.push({ cls: `dot-${m.tone}`, d: dotsPath(m.points), step, width: DOT });
+    }
+  }
+  return [...merge(fills), ...merge(inner), ...merge(lines), ...merge(dots)];
+}
+
+/** A LED grid's dots, one path per delay slot. */
+function slotsOf(points: Point[], order: number[]) {
+  const bySlot = new Map<number, Point[]>();
+  points.forEach((p, i) => {
+    const slot = Math.round(order[i] * 1000) / 1000;
+    bySlot.set(slot, [...(bySlot.get(slot) ?? []), p]);
+  });
+  return [...bySlot.entries()].map(([i, pts]) => ({ i, d: dotsPath(pts), step: stepAt(pts[0]) }));
+}
+
+const motionStyle = (m: Motion) =>
+  [
+    `--dur:${m.duration}ms`,
+    m.delay ? `--delay:${m.delay}ms` : "",
+    ...Object.entries(m.vars ?? {}).map(([k, v]) => `--${k}:${px(v)}`),
+  ]
+    .filter(Boolean)
+    .join(";");
+
+const groups = figure.groups.map((g, n) => ({
+  clipId: g.clip ? `iso-${name}-floor-${n}` : undefined,
+  clip: g.clip ? polyPath(g.clip, true) : undefined,
+  motion: g.motion,
+  fade: g.fade,
+  orbit: g.orbit && {
+    at: `translate(${num(g.orbit.center[0])} ${num(g.orbit.center[1])}) scale(1 .5)`,
+    arm: `translate(${num(g.orbit.rx)} 0)`,
+    style: `--dur:${g.orbit.duration}ms;--a0:${
+      Math.round((((-g.orbit.delay % g.orbit.duration) + g.orbit.duration) % g.orbit.duration) / g.orbit.duration * 3600) / 10
+    }deg`,
+    strength: g.orbit.strength,
+  },
+  occluders: (g.occluders ?? []).map((o) => polyPath(o, true)),
+  items: itemsOf(g),
+  leds: (g.leds ?? []).map((l) => ({
+    style: `--step:${l.step}ms;--cycle:${l.cycle}ms`,
+    slots: slotsOf(l.points, l.order),
+  })),
+}));
+const dotWidth = +DOT.toFixed(2);
+---
+
+<svg
+  viewBox="0 0 480 360"
+  fill="none"
+  stroke="currentColor"
+  stroke-width={LINE}
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class:list={["iso-fig", boot && "iso-fig-boot", className]}
+  data-figure={name}
+  aria-hidden="true"
+  focusable="false"
+>
+  {
+    groups.some((g) => g.clipId) && (
+      <defs>
+        {groups
+          .filter((g) => g.clipId)
+          .map((g) => (
+            <clipPath id={g.clipId}>
+              <path d={g.clip} />
+            </clipPath>
+          ))}
+      </defs>
+    )
+  }
+  <g transform={`translate(${num(shift[0])} ${num(shift[1])})`}>
+    {
+      groups.map((g) =>
+        g.orbit ? (
+          <g transform={g.orbit.at}>
+            <g class="iso-spin" style={g.orbit.style}>
+              <g transform={g.orbit.arm}>
+                <g class="iso-spin-dot" style={g.orbit.style} opacity={g.orbit.strength < 1 ? g.orbit.strength : undefined}>
+                  {g.items.map((item) => (
+                    <path class={item.cls} style={`--step:${item.step}`} stroke-width={item.width && +item.width.toFixed(2)} d={item.d} />
+                  ))}
+                </g>
+              </g>
+            </g>
+          </g>
+        ) : (
+          <g clip-path={g.clipId ? `url(#${g.clipId})` : undefined}>
+            <g
+              class:list={[g.motion && `iso-anim iso-${g.motion.name}`]}
+              style={[g.motion && motionStyle(g.motion), g.fade && `--fade:${g.fade}`].filter(Boolean).join(";") || undefined}
+            >
+              {g.occluders.map((d) => (
+                <path class="iso-occ" d={d} />
+              ))}
+              {g.items.map((item) => (
+                <path class={item.cls} style={`--step:${item.step}`} stroke-width={item.width && +item.width.toFixed(2)} d={item.d} />
+              ))}
+              {g.leds.map((l) => (
+                <g class="iso-led" style={l.style} stroke-width={dotWidth}>
+                  {l.slots.map((slot) => (
+                    <path style={`--i:${slot.i};--step:${slot.step}`} d={slot.d} />
+                  ))}
+                </g>
+              ))}
+            </g>
+          </g>
+        ),
+      )
+    }
+  </g>
+</svg>
+
+<script>
+  // Plays a figure only while it is on screen; off screen its moves hold.
+  const figures = document.querySelectorAll<SVGSVGElement>("svg.iso-fig");
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) entry.target.toggleAttribute("data-live", entry.isIntersecting);
+      },
+      { rootMargin: "80px 0px" },
+    );
+    figures.forEach((figure) => observer.observe(figure));
+  } else {
+    figures.forEach((figure) => figure.setAttribute("data-live", ""));
+  }
+</script>
+
+<style is:global>
+  svg.iso-fig {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* Solid objects are painted in the card's own colour, so they hide what
+     stands behind them and nothing else. */
+  svg.iso-fig .iso-occ {
+    fill: var(--card);
+    stroke: none;
+  }
+
+  svg.iso-fig .iso-led {
+    stroke-opacity: 0.3;
+  }
+
+  /* The orange is held back: the lit face's dots, the wash under them and the
+     packets follow one strength, 0.7 (the owner's pick, 2026-10-04). A
+     packet's tail keeps its own fade on top. Fine dots on the dark card sink
+     to brown in the vivid amber, so the dark theme uses its brighter amber. */
+  svg.iso-fig {
+    --iso-accent: var(--attention);
+    --iso-on: 0.7;
+    --iso-wash: calc(var(--iso-on) * 0.13);
+  }
+
+  .dark svg.iso-fig {
+    --iso-accent: var(--attention-ink);
+  }
+
+  svg.iso-fig .dot-accent,
+  svg.iso-fig .ln-accent {
+    stroke: var(--iso-accent);
+    stroke-opacity: calc(var(--iso-on) * var(--fade, 1));
+  }
+
+  svg.iso-fig .fc-accent {
+    fill: var(--iso-accent);
+    fill-opacity: var(--iso-wash);
+  }
+
+  /* Hairlines, Linear's way on our ground: outlines in ink, the edges inside
+     an object softer, structure dim, guides as a row of dots. Faces carry a
+     whisper of shade, and the lit face a wash of the accent under its dots. */
+  svg.iso-fig .ln-ink {
+    stroke-opacity: 0.88;
+  }
+
+  svg.iso-fig .ln-ink.ln-inner {
+    stroke-opacity: 0.38;
+  }
+
+  svg.iso-fig .ln-dim {
+    stroke-opacity: 0.3;
+  }
+
+  svg.iso-fig .ln-dim.ln-inner {
+    stroke-opacity: 0.18;
+  }
+
+  svg.iso-fig .ln-dash {
+    stroke-dasharray: 0.01 3.6;
+    stroke-width: 1.7;
+  }
+
+  svg.iso-fig .fc {
+    stroke: none;
+  }
+
+  svg.iso-fig .fc-dim {
+    fill: currentColor;
+    fill-opacity: 0.045;
+  }
+
+  /* A rider on an orbit: the arm turns about the orbit's centre, the dot
+     turns back and unsquashes, so it stays round. At rest each rider keeps
+     its own place on the loop. */
+  svg.iso-fig .iso-spin {
+    transform: rotate(var(--a0));
+  }
+
+  svg.iso-fig .iso-spin-dot {
+    transform: rotate(calc(var(--a0) * -1)) scale(1, 2);
+  }
+
+  /* Only a reveal that plays powers the panel on, as a wave from the centre;
+     a card already on screen at load never changes state. */
+  @media (prefers-reduced-motion: no-preference) {
+    html.reveal-ready [data-reveal]:not([data-revealed]) svg.iso-fig-boot path:not(.iso-occ) {
+      opacity: 0;
+    }
+
+    html.reveal-ready [data-revealed] svg.iso-fig-boot path:not(.iso-occ) {
+      transition: opacity 260ms ease-out;
+      transition-delay: calc(var(--reveal-delay, 0ms) + 240ms + var(--step, 0) * 70ms);
+    }
+
+    svg.iso-fig .iso-anim {
+      animation-duration: var(--dur);
+      animation-delay: var(--delay, 0ms);
+      animation-iteration-count: infinite;
+      animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+      animation-fill-mode: backwards;
+      animation-play-state: paused;
+    }
+
+    svg.iso-fig .iso-place {
+      animation-name: iso-place;
+    }
+
+    svg.iso-fig .iso-guide {
+      animation-name: iso-guide;
+    }
+
+    svg.iso-fig .iso-travel {
+      animation-name: iso-travel;
+      animation-timing-function: linear;
+    }
+
+    svg.iso-fig .iso-deliver {
+      animation-name: iso-deliver;
+    }
+
+    svg.iso-fig .iso-press {
+      animation-name: iso-press;
+    }
+
+    svg.iso-fig .iso-rise {
+      animation-name: iso-rise;
+      animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    svg.iso-fig .iso-spin {
+      animation: iso-spin var(--dur) linear infinite paused;
+    }
+
+    svg.iso-fig .iso-spin-dot {
+      animation: iso-spin-dot var(--dur) linear infinite paused;
+    }
+
+    svg.iso-fig .iso-led path {
+      animation: iso-led var(--cycle) linear calc(var(--i) * var(--step)) infinite paused;
+    }
+
+    svg.iso-fig[data-live] .iso-anim,
+    svg.iso-fig[data-live] .iso-spin,
+    svg.iso-fig[data-live] .iso-spin-dot,
+    svg.iso-fig[data-live] .iso-led path {
+      animation-play-state: running;
+    }
+  }
+
+  /* The component: held up, set down with a small settle, lifted again. */
+  @keyframes iso-place {
+    0%,
+    10% {
+      transform: translateY(0);
+    }
+
+    28% {
+      transform: translateY(var(--drop));
+    }
+
+    31% {
+      transform: translateY(calc(var(--drop) - 3px));
+    }
+
+    34%,
+    62% {
+      transform: translateY(var(--drop));
+    }
+
+    82%,
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes iso-guide {
+    0%,
+    10% {
+      opacity: 1;
+    }
+
+    22%,
+    68% {
+      opacity: 0;
+    }
+
+    80%,
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes iso-travel {
+    0% {
+      transform: translate(0, 0);
+      opacity: 0;
+    }
+
+    12%,
+    86% {
+      opacity: 1;
+    }
+
+    100% {
+      transform: translate(var(--tx), var(--ty));
+      opacity: 0;
+    }
+  }
+
+  /* A proposal leaves the pile, crosses the floor and goes under the key; a
+     fresh one settles on the pile while the key is down. */
+  @keyframes iso-deliver {
+    0%,
+    12% {
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+
+    30% {
+      transform: translate(var(--ax), var(--ay));
+    }
+
+    56% {
+      transform: translate(var(--bx), var(--by));
+      opacity: 1;
+    }
+
+    58% {
+      transform: translate(var(--bx), var(--by));
+      opacity: 0;
+    }
+
+    59%,
+    80% {
+      transform: translate(0, 0);
+      opacity: 0;
+    }
+
+    94%,
+    100% {
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes iso-press {
+    0%,
+    50% {
+      transform: translateY(0);
+    }
+
+    55%,
+    66% {
+      transform: translateY(var(--press));
+    }
+
+    74%,
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  /* A release rises out of the floor, stands, and sinks back. */
+  @keyframes iso-rise {
+    0% {
+      transform: translateY(var(--sink));
+    }
+
+    16%,
+    74% {
+      transform: translateY(0);
+    }
+
+    90%,
+    100% {
+      transform: translateY(var(--sink));
+    }
+  }
+
+  @keyframes iso-spin {
+    from {
+      transform: rotate(var(--a0));
+    }
+
+    to {
+      transform: rotate(calc(var(--a0) + 360deg));
+    }
+  }
+
+  @keyframes iso-spin-dot {
+    from {
+      transform: rotate(calc(var(--a0) * -1)) scale(1, 2);
+    }
+
+    to {
+      transform: rotate(calc(var(--a0) * -1 - 360deg)) scale(1, 2);
+    }
+  }
+
+  @keyframes iso-led {
+    0% {
+      stroke-opacity: 1;
+    }
+
+    50%,
+    100% {
+      stroke-opacity: 0.3;
+    }
+  }
+</style>

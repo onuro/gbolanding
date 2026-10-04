@@ -117,7 +117,9 @@ const trMessages: Messages = {
       title: "Hastam AI",
       headline: "Şikayetten doğru hekime.",
       description:
-        "Hastam AI, hastanın şikayetini değerlendirir ve uygun branştaki hekime yönlendirir. Hekimlerin güncel takvimlerine bakar, hastaya uyan gün ve saatleri sunar. Hasta seçimini yapar; randevu talebi kliniğin onayına gider.",
+        "Hastam AI, randevu asistanı olarak çalışır, hastanın şikayetini değerlendirir ve uygun branştaki hekime yönlendirir. " +
+        "Hekimlerin güncel takvimlerine bakar ve hastaya uyan gün ve saatleri sunar. " +
+        "Hasta seçimini yapar; randevu talebi kliniğin onayına gider.",
       support:
         "Hasta yalnızca telefon eder. Ekibiniz aramaları, hasta kayıtlarını ve sesli klinik notları tek panelden takip eder.",
       imageAlt: "Aydınlık bir klinikte hastasını dikkatle dinleyen bir hekim",
@@ -375,6 +377,7 @@ const trMessages: Messages = {
     title: "Analizden gerçek çözüme.",
     description:
       "İşinizin nasıl çalıştığını anlarız. Sonra doğru yapay zeka aracını tasarlar, bağlar ve geliştiririz.",
+    figure: "Şekil",
     capabilities: [
       {
         title: "İş analizi",

@@ -1,0 +1,559 @@
+---
+// Şekil 0.1, discovery: a plate of processes and a scope that studies it. The
+// scope glides over the plate on a curve, slowing to look at three processes,
+// and its light lifts the tiles it passes over out of the dark. At the fourth
+// it finds the one worth fixing: the pool of light turns to the accent, a
+// ripple runs out across the plate, the tile rises into the beam and readings
+// climb the beam to the lens. Then it moves on and the loop starts again.
+//
+// Drawn by hand rather than from marks (iso-figures.ts) because the light
+// needs masks and gradients and the path is a generated curve; it shares the
+// projection, the hairline classes and the play-on-screen observer with
+// IsoFigure.astro, which the same section always renders.
+import type { Point } from "./dot-matrix";
+import { box, dotsPath, face, num, polyPath, project } from "./iso";
+import { DOT, LINE, PITCH } from "./iso-figures";
+
+interface Props {
+  /** Marks power on when the nearest data-reveal parent reveals. */
+  boot?: boolean;
+  class?: string;
+}
+
+const { boot = false, class: className } = Astro.props;
+
+const K = 1.3;
+const P = project({ ox: 240, oy: 180, k: K });
+/** One sweep and one find, in milliseconds. */
+const DURATION = 9600;
+
+// The plate, with a viewfinder's corners in ink.
+const S = 136;
+const plate = box(P, [-S / 2, -S / 2, 0], [S, S, 10]);
+const [, t1, t2, t3] = plate.top;
+const [, , b1, b2, b3] = plate.silhouette;
+const toward = (a: Point, b: Point, len: number): Point => {
+  const d = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+  return [a[0] + ((b[0] - a[0]) * len) / d, a[1] + ((b[1] - a[1]) * len) / d];
+};
+const BRACKET = 26 * K;
+const brackets = plate.top.flatMap((a, i): [Point, Point][] => {
+  const b = plate.top[(i + 1) % 4];
+  return [
+    [a, toward(a, b, BRACKET)],
+    [b, toward(b, a, BRACKET)],
+  ];
+});
+
+// A 4×4 floor of processes; the third along, second down is the find.
+const TILE = 24;
+const STEP = 31;
+const start = -(STEP * 3 + TILE) / 2;
+const flat = (x0: number, y0: number, x1: number, y1: number, z: number) => [
+  P([x0, y0, z]),
+  P([x1, y0, z]),
+  P([x1, y1, z]),
+  P([x0, y1, z]),
+];
+const tiles = [0, 1, 2, 3].flatMap((i) =>
+  [0, 1, 2, 3].map((j) => flat(start + i * STEP, start + j * STEP, start + i * STEP + TILE, start + j * STEP + TILE, 10)),
+);
+const centre = (i: number, j: number) => P([start + i * STEP + TILE / 2, start + j * STEP + TILE / 2, 10]);
+const [fx, fy] = [start + 2 * STEP, start + STEP];
+const found = box(P, [fx, fy, 10], [TILE, TILE, 9]);
+// Its floor corners, right to left: b1, b2 (nearest), b3.
+const floor = found.silhouette.slice(2, 5);
+const home = centre(2, 1);
+
+// The scope: a flat circle of radius R projects to an ellipse √2·R·K wide on
+// each side and half as tall. Its pool of light lies on the plate below.
+const LENS_Z = 100;
+const lens = P([fx + TILE / 2, fy + TILE / 2, LENS_Z]);
+const RX = Math.SQRT2 * 32 * K;
+const PX = Math.SQRT2 * 20 * K;
+
+// The scope stops over three processes, then the find. Each move eases on a
+// curve through all four (a closed Catmull-Rom spline), so it never travels
+// in a straight line; the stops are offsets from the find, where it rests.
+const stops: Point[] = [centre(0, 3), centre(3, 3), centre(3, 0), home].map(([x, y]) => [x - home[0], y - home[1]]);
+const dwell = [
+  [0, 0.07],
+  [0.2, 0.27],
+  [0.4, 0.47],
+  [0.58, 0.88],
+];
+const catmull = (p0: Point, p1: Point, p2: Point, p3: Point, t: number): Point =>
+  [0, 1].map(
+    (i) =>
+      0.5 *
+      (2 * p1[i] +
+        (p2[i] - p0[i]) * t +
+        (2 * p0[i] - 5 * p1[i] + 4 * p2[i] - p3[i]) * t * t +
+        (3 * p1[i] - p0[i] - 3 * p2[i] + p3[i]) * t * t * t),
+  ) as unknown as Point;
+const ease = (u: number) => (u < 0.5 ? 4 * u * u * u : 1 - (-2 * u + 2) ** 3 / 2);
+const at = (i: number) => stops[(i + 4) % 4];
+const frames: [number, Point][] = [];
+dwell.forEach(([d0, d1], i) => {
+  frames.push([d0, at(i)], [d1, at(i)]);
+  const end = i === 3 ? 1 : dwell[i + 1][0];
+  for (let k = 1; k <= 12; k++) {
+    frames.push([d1 + ((end - d1) * k) / 12, catmull(at(i - 1), at(i), at(i + 1), at(i + 2), ease(k / 12))]);
+  }
+});
+const pct = (t: number) => `${Math.round(t * 10000) / 100}%`;
+const pathKeyframes = `@keyframes scope-path{${frames
+  .map(([t, [x, y]]) => `${pct(t)}{transform:translate(${num(x)}px,${num(y)}px)}`)
+  .join("")}}`;
+
+// While it looks, the scope focuses (its inner ring draws in) and its pool
+// brightens; on the move it eases off again.
+const looking = (t: number) =>
+  Math.max(
+    ...dwell.map(([d0, d1]) => {
+      const rise = Math.min(1, Math.max(0, (t - d0) / 0.025));
+      const fall = Math.min(1, Math.max(0, (d1 + 0.02 - t) / 0.025));
+      return Math.min(rise, fall);
+    }),
+  );
+const samples = Array.from({ length: 101 }, (_, i) => i / 100);
+const sampled = (name: string, value: (t: number) => string) =>
+  `@keyframes ${name}{${samples.map((t) => `${pct(t)}{${value(t)}}`).join("")}}`;
+const keyframes = [
+  pathKeyframes,
+  sampled("scope-focus", (t) => `transform:scale(${(1 - 0.24 * looking(t)).toFixed(3)})`),
+  sampled("scope-glow", (t) => `opacity:${(0.5 + 0.5 * looking(t)).toFixed(3)}`),
+].join("");
+
+// Framed on the plate and the scope at rest, a touch low under the label.
+const box2 = [...plate.silhouette, [lens[0] - RX, lens[1] - RX / 2] as Point, [lens[0] + RX, lens[1]] as Point];
+const xs = box2.map((p) => p[0]);
+const ys = box2.map((p) => p[1]);
+const shift: Point = [240 - (Math.min(...xs) + Math.max(...xs)) / 2, 186 - (Math.min(...ys) + Math.max(...ys)) / 2];
+const origin: Point = [240 - shift[0], 180 - shift[1]];
+const reach = Math.max(...box2.map(([x, y]) => Math.hypot(x - origin[0], y - origin[1])));
+const stepAt = (points: Point[]) => {
+  const cx = points.reduce((s, p) => s + p[0], 0) / points.length;
+  const cy = points.reduce((s, p) => s + p[1], 0) / points.length;
+  return Math.min(7, Math.floor((Math.hypot(cx - origin[0], cy - origin[1]) / reach) * 8));
+};
+
+const segments = (pairs: [Point, Point][]) => pairs.map(([a, b]) => polyPath([a, b])).join("");
+const ellipse = ([cx, cy]: Point, rx: number, ry = rx / 2) =>
+  `M${num(cx - rx)} ${num(cy)}A${num(rx)} ${num(ry)} 0 1 0 ${num(cx + rx)} ${num(cy)}A${num(rx)} ${num(ry)} 0 1 0 ${num(cx - rx)} ${num(cy)}Z`;
+const circle = (r: number) => ellipse([0, 0], r, r);
+
+const tilesPath = tiles.map((t) => polyPath(t, true)).join("");
+const beamH = home[1] - lens[1];
+const ri = RX * 0.56;
+---
+
+<style is:inline set:html={keyframes}></style>
+<svg
+  viewBox="0 0 480 360"
+  fill="none"
+  stroke="currentColor"
+  stroke-width={LINE}
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class:list={["iso-fig scope-fig", boot && "iso-fig-boot", className]}
+  data-figure="analysis"
+  style={`--dur:${DURATION}ms`}
+  aria-hidden="true"
+  focusable="false"
+>
+  <defs>
+    <clipPath id="scope-top">
+      <path d={polyPath(plate.top, true)} />
+    </clipPath>
+    {/* Above the find's front floor edges: what sinks below them is under the plate. */}
+    <clipPath id="scope-floor">
+      <path
+        d={polyPath(
+          [
+            [floor[2][0] - 2, floor[2][1] + 0.6],
+            [floor[1][0], floor[1][1] + 0.6],
+            [floor[0][0] + 2, floor[0][1] + 0.6],
+            [floor[0][0] + 2, floor[0][1] - 300],
+            [floor[2][0] - 2, floor[2][1] - 300],
+          ],
+          true,
+        )}
+      />
+    </clipPath>
+    <radialGradient id="scope-pool">
+      <stop offset="0" stop-color="currentColor" stop-opacity="0.16" />
+      <stop offset="1" stop-color="currentColor" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="scope-pool-lit">
+      <stop offset="0" style="stop-color:var(--iso-accent)" stop-opacity="0.3" />
+      <stop offset="1" style="stop-color:var(--iso-accent)" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="scope-spot">
+      <stop offset="0.35" stop-color="#fff" />
+      <stop offset="1" stop-color="#fff" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="scope-cone" gradientUnits="userSpaceOnUse" x1="0" y1={num(lens[1])} x2="0" y2={num(home[1])}>
+      <stop offset="0" stop-color="currentColor" stop-opacity="0.1" />
+      <stop offset="1" stop-color="currentColor" stop-opacity="0.015" />
+    </linearGradient>
+    {/* The scope's light: the tiles it passes over show through in ink. */}
+    <mask id="scope-light" maskUnits="userSpaceOnUse" x="-120" y="-120" width="720" height="600">
+      <g class="scope-path">
+        <path d={ellipse(home, PX * 2.1)} fill="url(#scope-spot)" stroke="none" />
+      </g>
+    </mask>
+  </defs>
+
+  <g transform={`translate(${num(shift[0])} ${num(shift[1])})`}>
+    <path class="iso-occ" d={polyPath(plate.silhouette, true)} />
+
+    {/* The pool of light on the plate, which turns to the accent at the find. */}
+    <g clip-path="url(#scope-top)">
+      <g class="scope-path">
+        <path class="scope-glow" style="--step:3" d={ellipse(home, PX * 1.3)} fill="url(#scope-pool)" stroke="none" />
+        <path class="scope-pool-lit" style="--step:3" d={ellipse(home, PX * 1.3)} fill="url(#scope-pool-lit)" stroke="none" />
+      </g>
+    </g>
+
+    <path class="ln ln-dim" style={`--step:${stepAt(plate.top)}`} d={polyPath(plate.top, true)} />
+    <path class="ln ln-ink" style="--step:5" d={segments(brackets)} />
+    <path
+      class="ln ln-dim"
+      style="--step:6"
+      d={segments([
+        [t1, b1],
+        [t2, b2],
+        [t3, b3],
+        [b1, b2],
+        [b3, b2],
+      ])}
+    />
+    <path class="ln ln-dim" style="--step:2" d={tilesPath} />
+    <path class="ln ln-ink" style="--step:2" d={tilesPath} mask="url(#scope-light)" />
+
+    {/* Ripples from the find, lying flat on the plate. */}
+    <g transform={`translate(${num(home[0])} ${num(home[1])}) scale(1 .5)`}>
+      {
+        [0, 1].map((n) => (
+          <path
+            class="scope-ripple"
+            style={`--delay:${n * 520}ms;--step:7`}
+            d={circle(PX * 0.95)}
+            vector-effect="non-scaling-stroke"
+            stroke-width="0.9"
+          />
+        ))
+      }
+    </g>
+
+    {/* The beam, under the find so the rising tile stands in it. */}
+    <g class="scope-path">
+      <g class="scope-bob">
+        {/* The cone hangs from the lens's front rim (its lower half-ellipse). */}
+        <path
+          style="--step:4"
+          d={`M${num(lens[0] - RX)} ${num(lens[1])}A${num(RX)} ${num(RX / 2)} 0 0 0 ${num(lens[0] + RX)} ${num(lens[1])}L${num(home[0] + PX)} ${num(home[1])}L${num(home[0] - PX)} ${num(home[1])}Z`}
+          fill="url(#scope-cone)"
+          stroke="none"
+        />
+        <path
+          class="ln ln-dim"
+          style="--step:4"
+          d={segments([
+            [
+              [lens[0] - RX, lens[1]],
+              [home[0] - PX, home[1]],
+            ],
+            [
+              [lens[0] + RX, lens[1]],
+              [home[0] + PX, home[1]],
+            ],
+          ])}
+        />
+        <path class="ln ln-dim ln-dash" style="--step:4" d={polyPath([[lens[0], lens[1] + 6], [home[0], home[1] - 4]])} />
+        {
+          [0, 1, 2].map((n) => (
+            <g class="scope-reading" style={`--delay:${-n * 520}ms;--climb:${num(-(beamH - 14))}px`}>
+              <path class="scope-hot" stroke-width={+DOT.toFixed(2)} d={dotsPath([home])} />
+            </g>
+          ))
+        }
+      </g>
+    </g>
+
+    {/* The find: until the scope reaches it, it lies flush in the plate like
+        any other process; then it rises out of the floor, lit, into the beam. */}
+    <g clip-path="url(#scope-floor)">
+      <g class="scope-find" style={`--sink:${num(9 * K + 1.5)}px;--rise:-6px`}>
+        <path class="iso-occ" d={polyPath(found.silhouette, true)} />
+        <path class="fc fc-accent" style="--step:5" d={polyPath(found.top, true)} />
+        <path class="fc fc-dim" style="--step:5" d={polyPath(found.right, true)} />
+        <path class="ln ln-ink ln-inner" style="--step:5" d={segments(found.inner)} />
+        <path class="ln ln-ink" style="--step:5" d={polyPath(found.silhouette, true)} />
+        <path class="dot-accent" style="--step:6" stroke-width={+DOT.toFixed(2)} d={dotsPath(face(found.top, PITCH))} />
+      </g>
+    </g>
+
+    {/* The scope. Its reticle turns in the lens's own plane. */}
+    <g class="scope-path">
+      <g class="scope-bob">
+        <g transform={`translate(${num(lens[0])} ${num(lens[1])})`}>
+          <path class="ln ln-ink" style="--step:7" d={ellipse([0, 0], RX)} />
+          <path class="ln ln-dim scope-focus" style="--step:7" d={ellipse([0, 0], ri)} />
+          <path
+            class="ln ln-dim scope-focus"
+            style="--step:7"
+            d={segments([
+              [
+                [-ri * 0.86, 0],
+                [ri * 0.86, 0],
+              ],
+              [
+                [0, -ri * 0.43],
+                [0, ri * 0.43],
+              ],
+            ])}
+          />
+          <g transform="scale(1 .5)">
+            <g class="scope-reticle">
+              <path
+                class="ln ln-ink"
+                style="--step:7"
+                vector-effect="non-scaling-stroke"
+                stroke-width="0.9"
+                d={[0, 90, 180, 270]
+                  .map((deg) => {
+                    const a = (deg * Math.PI) / 180;
+                    return polyPath([
+                      [Math.cos(a) * RX * 0.8, Math.sin(a) * RX * 0.8],
+                      [Math.cos(a) * RX * 0.93, Math.sin(a) * RX * 0.93],
+                    ]);
+                  })
+                  .join("")}
+              />
+              <path
+                class="ln ln-dim"
+                style="--step:7"
+                vector-effect="non-scaling-stroke"
+                stroke-width="0.9"
+                d={[45, 135, 225, 315]
+                  .map((deg) => {
+                    const a = (deg * Math.PI) / 180;
+                    return polyPath([
+                      [Math.cos(a) * RX * 0.86, Math.sin(a) * RX * 0.86],
+                      [Math.cos(a) * RX * 0.93, Math.sin(a) * RX * 0.93],
+                    ]);
+                  })
+                  .join("")}
+              />
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
+
+<style is:global>
+  /* At rest (and for anyone who asks for less motion) the scope stands over
+     the find, lit, with no readings or ripples in flight. */
+  svg.scope-fig .scope-reading,
+  svg.scope-fig .scope-ripple {
+    opacity: 0;
+  }
+
+  svg.scope-fig .scope-hot {
+    stroke-opacity: 0.55;
+  }
+
+  svg.scope-fig .scope-ripple {
+    stroke: var(--iso-accent);
+  }
+
+  svg.scope-fig .scope-glow {
+    opacity: 0.6;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    svg.scope-fig .scope-path {
+      animation: scope-path var(--dur) linear infinite paused;
+    }
+
+    svg.scope-fig .scope-bob {
+      animation: scope-bob 3400ms ease-in-out infinite paused;
+    }
+
+    svg.scope-fig .scope-focus {
+      animation: scope-focus var(--dur) linear infinite paused;
+    }
+
+    svg.scope-fig .scope-glow {
+      animation: scope-glow var(--dur) linear infinite paused;
+    }
+
+    svg.scope-fig .scope-pool-lit {
+      animation: scope-pool-lit var(--dur) linear infinite paused;
+    }
+
+    svg.scope-fig .scope-reticle {
+      animation: scope-spin 16s linear infinite paused;
+    }
+
+    svg.scope-fig .scope-reading {
+      animation: scope-climb 1560ms linear var(--delay) infinite paused;
+    }
+
+    svg.scope-fig .scope-hot {
+      animation: scope-hot var(--dur) linear infinite paused;
+    }
+
+    svg.scope-fig .scope-ripple {
+      animation: scope-ripple var(--dur) cubic-bezier(0.2, 0.7, 0.3, 1) var(--delay) infinite paused;
+    }
+
+    svg.scope-fig .scope-find {
+      animation: scope-find var(--dur) cubic-bezier(0.65, 0, 0.35, 1) infinite paused;
+    }
+
+    svg.scope-fig[data-live] :is(
+        .scope-path,
+        .scope-bob,
+        .scope-focus,
+        .scope-glow,
+        .scope-pool-lit,
+        .scope-reticle,
+        .scope-reading,
+        .scope-hot,
+        .scope-ripple,
+        .scope-find
+      ) {
+      animation-play-state: running;
+    }
+  }
+
+  /* The scope floats: it never quite holds still in the air. */
+  @keyframes scope-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-3px);
+    }
+  }
+
+  @keyframes scope-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Readings climb the beam to the lens. */
+  @keyframes scope-climb {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+
+    18%,
+    78% {
+      opacity: 1;
+    }
+
+    100% {
+      transform: translateY(var(--climb));
+      opacity: 0;
+    }
+  }
+
+  /* The find, as one timeline: the scope arrives at 58%, leaves at 88%. */
+  @keyframes scope-pool-lit {
+    0%,
+    58% {
+      opacity: 0;
+    }
+
+    64%,
+    86% {
+      opacity: 1;
+    }
+
+    93%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes scope-hot {
+    0%,
+    58% {
+      stroke: currentColor;
+      stroke-opacity: 0.55;
+    }
+
+    63%,
+    86% {
+      stroke: var(--iso-accent);
+      stroke-opacity: var(--iso-on);
+    }
+
+    92%,
+    100% {
+      stroke: currentColor;
+      stroke-opacity: 0.55;
+    }
+  }
+
+  @keyframes scope-ripple {
+    0%,
+    60% {
+      transform: scale(0.35);
+      opacity: 0;
+    }
+
+    61% {
+      transform: scale(0.4);
+      opacity: 0.9;
+    }
+
+    80%,
+    100% {
+      transform: scale(1.9);
+      opacity: 0;
+    }
+  }
+
+  /* Sunk below the floor and out of sight until the scope arrives; then out
+     of the plate and a little above it, and back down as the scope leaves. */
+  @keyframes scope-find {
+    0%,
+    59% {
+      transform: translateY(var(--sink));
+      opacity: 0;
+    }
+
+    61% {
+      transform: translateY(var(--sink));
+      opacity: 1;
+    }
+
+    68%,
+    84% {
+      transform: translateY(var(--rise));
+      opacity: 1;
+    }
+
+    91% {
+      transform: translateY(var(--sink));
+      opacity: 1;
+    }
+
+    93%,
+    100% {
+      transform: translateY(var(--sink));
+      opacity: 0;
+    }
+  }
+</style>
