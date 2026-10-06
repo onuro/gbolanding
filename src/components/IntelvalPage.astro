@@ -1,0 +1,179 @@
+---
+// The Intelval product page. One valuation file, top to bottom: what Intelval
+// reads, what it takes from the site visit, how it reaches a value, the draft
+// it writes, the checks it runs, the valuer who signs, the phone line, who it
+// is for, what it never does, and the questions. ProductPageShell adds the
+// demo request.
+//
+// Truth: Intelval drafts and checks; the licensed valuer who inspected the
+// property reviews, edits and signs. Every picture shows the same invented
+// file (intelval-page/sample-file.ts) and says once that it is sample data.
+// See the header of i18n/page-types/intelval.ts.
+import { Image } from "astro:assets";
+import { ChartNoAxesCombined } from "lucide-react";
+import architecturePhoto from "@/assets/editorial/intelval-architecture.png";
+import KollektorStage from "@/components/home/kollektor-parts/KollektorStage.astro";
+import ChecksMock from "@/components/intelval-page/ChecksMock.astro";
+import CompsMock from "@/components/intelval-page/CompsMock.astro";
+import DeedMock from "@/components/intelval-page/DeedMock.astro";
+import FieldNoteMock from "@/components/intelval-page/FieldNoteMock.astro";
+import HeroReport from "@/components/intelval-page/HeroReport.astro";
+import ReportMock from "@/components/intelval-page/ReportMock.astro";
+import { fill } from "@/components/intelval-page/sample-file";
+import StepRows from "@/components/kollektor-page/StepRows.astro";
+import Chapter from "@/components/product/Chapter.astro";
+import FactCells from "@/components/product/FactCells.astro";
+import Faq from "@/components/product/Faq.astro";
+import NumberedRows from "@/components/product/NumberedRows.astro";
+import ProductHero from "@/components/product/ProductHero.astro";
+import ProductPageShell from "@/components/product/ProductPageShell.astro";
+import SayDoTable from "@/components/product/SayDoTable.astro";
+import type { Locale } from "@/i18n/config";
+import type { Messages } from "@/i18n/types";
+
+interface Props {
+  locale: Locale;
+  messages: Messages;
+}
+
+const { locale, messages } = Astro.props;
+const page = messages.intelvalPage;
+// Clears the sticky header when a link jumps to a section.
+const anchor = "scroll-mt-20";
+// Beside a picture taller than its rows, the rows ride down with it, at the
+// offset the chapter's margin note uses, rather than leaving the column empty.
+const rideAlong = "lg:sticky lg:top-24";
+// A picture's screen-reader label names the sample's counts by token, like
+// the picture itself, so the two cannot disagree.
+const label = (text: string) => fill(locale, text);
+---
+
+<ProductPageShell
+  locale={locale}
+  messages={messages}
+  product="intelval"
+  assurances={page.ctaAssurances}
+>
+  <ProductHero copy={page.hero} product="intelval" secondaryHref="#reads">
+    {/* Intelval has no logo file: the mark is the home card's icon tile. */}
+    <span
+      slot="logo"
+      class="mb-7 flex size-11 items-center justify-center rounded-full bg-foreground/[0.045] text-foreground/70"
+      aria-hidden="true"
+    >
+      <ChartNoAxesCombined className="size-5" strokeWidth={1.5} />
+    </span>
+    <HeroReport slot="visual" locale={locale} copy={page.heroPicture} />
+  </ProductHero>
+
+  <Chapter id="reads" headingId="intelval-reads-title" copy={page.reads} class={anchor}>
+    <div data-reveal>
+      <KollektorStage label={label(page.reads.mock.label)}>
+        <DeedMock locale={locale} copy={page.reads.mock} />
+      </KollektorStage>
+    </div>
+    <SayDoTable
+      rows={page.reads.rows}
+      sayLabel={page.reads.sayLabel}
+      doLabel={page.reads.doLabel}
+      class="mt-10 lg:mt-12"
+    />
+  </Chapter>
+
+  <Chapter id="field" headingId="intelval-field-title" copy={page.field} class={anchor}>
+    <div class="grid gap-10 lg:grid-cols-2 lg:items-start lg:gap-12">
+      <div data-reveal>
+        <KollektorStage label={label(page.field.mock.label)}>
+          <FieldNoteMock locale={locale} copy={page.field.mock} />
+        </KollektorStage>
+      </div>
+      <StepRows rows={page.field.rows} class={rideAlong} />
+    </div>
+  </Chapter>
+
+  {/* Wide: the comparables table is the product's core and needs the full
+      frame for its columns. A wide chapter has no margin column, so the note
+      is printed under the picture. */}
+  <Chapter
+    id="value"
+    headingId="intelval-value-title"
+    copy={page.value}
+    class={anchor}
+    wide
+    flush
+  >
+    <div class="px-5 pb-10 sm:px-8 lg:px-12 lg:pb-12" data-reveal>
+      <KollektorStage label={label(page.value.mock.label)}>
+        <CompsMock locale={locale} copy={page.value.mock} />
+      </KollektorStage>
+      <p class="mt-3 pl-1 text-paragraph-xs text-tertiary-foreground">{page.value.mock.note}</p>
+    </div>
+    <div class="px-5 pb-16 sm:px-8 sm:pb-20 lg:px-12">
+      <NumberedRows rows={page.value.rows} />
+    </div>
+  </Chapter>
+
+  <Chapter id="writes" headingId="intelval-writes-title" copy={page.writes} class={anchor}>
+    <div class="grid gap-10 lg:grid-cols-2 lg:items-start lg:gap-12">
+      <div data-reveal>
+        <KollektorStage label={label(page.writes.mock.label)}>
+          <ReportMock locale={locale} copy={page.writes.mock} />
+        </KollektorStage>
+      </div>
+      <StepRows rows={page.writes.rows} class={rideAlong} />
+    </div>
+  </Chapter>
+
+  <Chapter id="checks" headingId="intelval-checks-title" copy={page.checks} class={anchor}>
+    <div data-reveal>
+      <KollektorStage label={label(page.checks.mock.label)}>
+        <ChecksMock locale={locale} copy={page.checks.mock} />
+      </KollektorStage>
+    </div>
+    <NumberedRows rows={page.checks.rows} class="mt-10 lg:mt-12" />
+  </Chapter>
+
+  <Chapter id="signoff" headingId="intelval-signoff-title" copy={page.signoff} class={anchor}>
+    <NumberedRows rows={page.signoff.steps} />
+  </Chapter>
+
+  <Chapter id="phone" headingId="intelval-phone-title" copy={page.phone} class={anchor}>
+    <SayDoTable
+      rows={page.phone.rows}
+      sayLabel={page.phone.sayLabel}
+      doLabel={page.phone.doLabel}
+    />
+  </Chapter>
+
+  <Chapter
+    id="audience"
+    headingId="intelval-audience-title"
+    copy={page.audience}
+    class={anchor}
+  >
+    {/* The home card's photograph, under the chapter that names who uses it. */}
+    <div class="overflow-hidden rounded-card bg-muted" data-reveal>
+      <Image
+        src={architecturePhoto}
+        alt={page.audience.imageAlt}
+        width={1120}
+        widths={[480, 768, 1120]}
+        sizes="(min-width: 84rem) 57rem, (min-width: 64rem) 85vw, 100vw"
+        format="webp"
+        quality={72}
+        loading="lazy"
+        decoding="async"
+        class="aspect-[3/2] w-full object-cover sm:aspect-[21/9]"
+      />
+    </div>
+    <NumberedRows rows={page.audience.rows} class="mt-10 lg:mt-12" />
+  </Chapter>
+
+  <Chapter id="rules" headingId="intelval-rules-title" copy={page.rules} class={anchor}>
+    <FactCells items={page.rules.items} />
+  </Chapter>
+
+  <Chapter id="faq" headingId="intelval-faq-title" copy={page.faq} class={anchor}>
+    <Faq items={page.faq.items} name="intelval-faq" />
+  </Chapter>
+</ProductPageShell>

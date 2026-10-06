@@ -47,18 +47,11 @@ const facts: Fact[] = [
     : null,
 ].filter((fact): fact is Fact => fact !== null);
 
-// Kollektor and Hastam have their own pages; Intelval does not yet.
-const products = [
-  {
-    product: solutions.kollektor,
-    page: { href: pathFor("kollektor", locale), label: solutions.kollektor.pageCta },
-  },
-  { product: solutions.intelval, page: undefined },
-  {
-    product: solutions.hastam,
-    page: { href: pathFor("hastam", locale), label: solutions.hastam.pageCta },
-  },
-];
+// Each product has its own page, and its row links there.
+const products = (["kollektor", "intelval", "hastam"] as const).map((slug) => ({
+  product: solutions[slug],
+  page: { href: pathFor(slug, locale), label: solutions[slug].pageCta },
+}));
 ---
 
 <a class="skip-link" href="#main-content">{skipLink}</a>
@@ -188,22 +181,20 @@ const products = [
                   </li>
                 ))}
               </ul>
-              {page && (
-                <div class="mt-auto pt-6">
-                  <a
-                    href={page.href}
-                    class="button button-sm button-secondary group w-fit"
-                  >
-                    {page.label}
-                    <ArrowRight
-                      aria-hidden="true"
-                      focusable="false"
-                      className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                      strokeWidth={1.5}
-                    />
-                  </a>
-                </div>
-              )}
+              <div class="mt-auto pt-6">
+                <a
+                  href={page.href}
+                  class="button button-sm button-secondary group w-fit"
+                >
+                  {page.label}
+                  <ArrowRight
+                    aria-hidden="true"
+                    focusable="false"
+                    className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                    strokeWidth={1.5}
+                  />
+                </a>
+              </div>
             </article>
           ))
         }

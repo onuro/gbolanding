@@ -1,4 +1,5 @@
 import type { HastamPageMessages } from "@/i18n/page-types/hastam";
+import type { IntelvalPageMessages } from "@/i18n/page-types/intelval";
 import type { KollektorPageMessages } from "@/i18n/page-types/kollektor";
 
 export interface SolutionMessage {
@@ -11,7 +12,7 @@ export interface SolutionMessage {
 
 /** A product that has its own page: the card also links there. */
 export interface ProductSolutionMessage extends SolutionMessage {
-  /** Label of the link to the product's page (/kollektor, /hastam). */
+  /** Label of the link to the product's page (/kollektor, /intelval, /hastam). */
   pageCta: string;
 }
 
@@ -103,12 +104,17 @@ export interface Messages {
     description: string;
   };
   about: AboutMessages;
-  /** /kollektor and /hastam. Their copy lives in messages/<product>-page.*.ts. */
+  /**
+   * /kollektor, /intelval and /hastam. Their copy lives in
+   * messages/<product>-page.*.ts.
+   */
   kollektorPage: KollektorPageMessages;
+  intelvalPage: IntelvalPageMessages;
   hastamPage: HastamPageMessages;
   nav: {
     solutions: string;
     kollektor: string;
+    intelval: string;
     hastam: string;
     method: string;
     about: string;
@@ -144,7 +150,7 @@ export interface Messages {
   };
   solutions: {
     kollektor: ProductSolutionMessage;
-    intelval: SolutionMessage;
+    intelval: ProductSolutionMessage;
     hastam: HastamSolutionMessage;
     enterprise: EnterpriseSolutionMessage;
   };
@@ -259,6 +265,7 @@ export interface Messages {
    */
   productCta: {
     kollektor: { title: string; description: string };
+    intelval: { title: string; description: string };
     hastam: { title: string; description: string };
     /** Label of the link back to the home page's list of solutions. */
     secondaryCta: string;
@@ -268,11 +275,17 @@ export interface Messages {
      * shows ProductPicker's own line, which also names payment plans.
      */
     kollektorNote: string;
+    /**
+     * Intelval's line there. It says what /intelval says: Intelval drafts and
+     * the valuer signs. The home page keeps ProductPicker's own line.
+     */
+    intelvalNote: string;
   };
   footer: {
     tagline: string;
     solutions: string;
     kollektor: string;
+    intelval: string;
     hastam: string;
     platform: string;
     method: string;

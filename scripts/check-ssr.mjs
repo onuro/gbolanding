@@ -12,6 +12,7 @@ const clusters = {
   home: { tr: "/", en: "/en" },
   about: { tr: "/about", en: "/en/about" },
   kollektor: { tr: "/kollektor", en: "/en/kollektor" },
+  intelval: { tr: "/intelval", en: "/en/intelval" },
   hastam: { tr: "/hastam", en: "/en/hastam" },
 };
 const pages = [
@@ -21,6 +22,8 @@ const pages = [
   { path: "/en/about", locale: "en", page: "about", title: "About GBO Vision" },
   { path: "/kollektor", locale: "tr", page: "kollektor", title: "Kollektor" },
   { path: "/en/kollektor", locale: "en", page: "kollektor", title: "Kollektor" },
+  { path: "/intelval", locale: "tr", page: "intelval", title: "Intelval" },
+  { path: "/en/intelval", locale: "en", page: "intelval", title: "Intelval" },
   { path: "/hastam", locale: "tr", page: "hastam", title: "Hastam" },
   { path: "/en/hastam", locale: "en", page: "hastam", title: "Hastam" },
 ];

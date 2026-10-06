@@ -43,13 +43,21 @@ const footerLabel = locale === "tr" ? "Alt menü" : "Footer";
             width="1993"
             height="852"
             alt="GBO Vision"
-            class="site-logo h-8 w-auto"
+            class="site-logo h-12 w-auto sm:h-14"
             loading="lazy"
           />
         </a>
-        <p class="max-w-xs text-balance text-title-h4 text-foreground">
-          {messages.footer.tagline}
-        </p>
+        <div>
+          <p class="max-w-xs text-balance text-title-h4 text-foreground">
+            {messages.footer.tagline}
+          </p>
+          <address class="mt-4 max-w-sm not-italic text-paragraph-sm text-muted-foreground">
+            <span class="block">{brand.streetAddress}</span>
+            <span class="block">
+              {brand.addressLocality}, {brand.addressRegion}, {locale === "tr" ? "Türkiye" : "Turkey"}
+            </span>
+          </address>
+        </div>
       </div>
 
       <nav aria-label={footerLabel} class="lg:col-span-4">
@@ -58,6 +66,7 @@ const footerLabel = locale === "tr" ? "Alt menü" : "Footer";
             [
               { href: `${homeHref}#solutions`, label: messages.footer.solutions },
               { href: pathFor("kollektor", locale), label: messages.footer.kollektor },
+              { href: pathFor("intelval", locale), label: messages.footer.intelval },
               { href: pathFor("hastam", locale), label: messages.footer.hastam },
               { href: `${homeHref}#platform`, label: messages.footer.platform },
               { href: `${homeHref}#method`, label: messages.footer.method },

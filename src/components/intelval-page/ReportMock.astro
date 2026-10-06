@@ -1,0 +1,218 @@
+---
+// One page of the draft as the valuer receives it: a printed page in the
+// bank's own template, with a photo of the flat, the two values, the
+// paragraph that gives the valuer's reasons and an empty signature box. The
+// same page in the other language lies behind it, only its header showing.
+// A still: nothing in it moves.
+//
+// Every figure carries a small numbered mark that points to where it came
+// from. The values and the paragraph come from sample-file.ts, so they are
+// the figures the comparables table adds up to.
+import { Image } from "astro:assets";
+import { Landmark } from "lucide-react";
+import livingRoom from "@/assets/editorial/intelval-rooms/3-living.jpg";
+import SampleTag from "@/components/product/SampleTag.astro";
+import type { Locale } from "@/i18n/config";
+import intelvalPageEn from "@/i18n/messages/intelval-page.en";
+import intelvalPageTr from "@/i18n/messages/intelval-page.tr";
+import type { IntelvalReportMockCopy } from "@/i18n/page-types/intelval";
+import {
+  draftParagraph,
+  fill,
+  formatMillions,
+  legalValue,
+  marketValue,
+  numberLocale,
+} from "./sample-file";
+
+interface Props {
+  locale: Locale;
+  copy: IntelvalReportMockCopy;
+}
+
+const { locale, copy } = Astro.props;
+
+// The page in front is in the reader's language and the one behind it in the
+// other. That page is printed in its own language, so its title comes from
+// that language's copy rather than this page's.
+const other: Locale = locale === "tr" ? "en" : "tr";
+const otherCopy = (other === "tr" ? intelvalPageTr : intelvalPageEn).writes.mock;
+
+const capital = (lang: Locale, text: string) =>
+  text.charAt(0).toLocaleUpperCase(numberLocale(lang)) + text.slice(1);
+// The template is "Bank · report title"; the bank is a neutral stand-in name.
+const header = (lang: Locale, template: string) => {
+  const [bank, title = template] = template.split(" · ");
+  return { bank, title: capital(lang, title) };
+};
+const front = header(locale, copy.template);
+const back = header(other, otherCopy.template);
+const [file, state] = fill(locale, copy.meta).split(" · ");
+
+// Marks run in reading order down the page: the two values first, then the
+// paragraph's own marks after them.
+const values = [
+  { label: copy.marketLabel, value: formatMillions(locale, marketValue), area: fill(locale, copy.siteArea) },
+  { label: copy.legalLabel, value: formatMillions(locale, legalValue), area: fill(locale, copy.legalArea) },
+].map((row, index) => ({ ...row, mark: index + 1 }));
+const paragraph = draftParagraph[locale];
+const parts = paragraph.parts.map((part) =>
+  typeof part === "string" ? part : { ...part, mark: part.mark + values.length },
+);
+const marks = Math.max(
+  0,
+  ...values.map((row) => row.mark),
+  ...parts.flatMap((part) => (typeof part === "string" ? [] : [part.mark])),
+);
+const markRange = marks > 1 ? `1–${marks}` : marks === 1 ? "1" : "";
+
+// The deed's number style (DeedMock), so the page has one: a solid disc set
+// on the line, not raised, since a raised number after "m²" read as an
+// exponent. A figure and its mark are written on one line in the markup
+// below, since a line break between them would print a space before the mark.
+const mark =
+  "data-label ml-1 inline-grid size-4 shrink-0 place-items-center rounded-full bg-brand-solid align-middle tabular-nums text-brand-foreground";
+// The footnote's "1–4": the same fill, as wide as its text.
+const rangePill =
+  "data-label inline-flex h-4 shrink-0 items-center rounded-full bg-brand-solid px-1.5 tabular-nums text-brand-foreground";
+// Both pages share one header, so the two read as one report in two languages.
+const band = "flex items-center gap-2.5 bg-foreground/[0.045] px-3 @xs:px-4";
+const crest = "grid shrink-0 place-items-center rounded-xs bg-foreground text-background";
+const tab =
+  "data-label inline-flex h-4.5 shrink-0 items-center rounded-xs bg-foreground px-1.5 text-background";
+---
+
+<div class="@container w-full max-w-[30rem]">
+  {/* The back page sits a header's height up and a strip to the right, so
+      its header and one edge show past the page in front. */}
+  <div class="relative pt-9 pr-4">
+    <div
+      lang={other}
+      class="paper paper-back absolute top-0 right-0 bottom-9 left-4 overflow-hidden rounded-chip shadow-float"
+    >
+      <div class:list={[band, "h-9"]}>
+        <span class:list={[crest, "size-5"]}>
+          <Landmark className="size-3" strokeWidth={1.75} aria-hidden="true" />
+        </span>
+        <span class="min-w-0 truncate data-label text-foreground">{back.title}</span>
+        <span class:list={[tab, "ml-auto"]}>{other.toUpperCase()}</span>
+      </div>
+    </div>
+
+    <div
+      lang={locale}
+      class="paper relative overflow-hidden rounded-chip shadow-float"
+    >
+      <div class:list={[band, "py-2.5"]}>
+        <span class:list={[crest, "size-6"]}>
+          <Landmark className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
+        </span>
+        <div class="min-w-0">
+          <p class="text-pretty text-label-xs text-foreground">{front.title}</p>
+          <p class="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 data-label">
+            <span>{front.bank} · <span class="tabular-nums">{file}</span></span>
+            {
+              state && (
+                <span class="inline-flex h-4 items-center rounded-full bg-foreground/[0.07] px-1.5 text-muted-foreground">
+                  {state}
+                </span>
+              )
+            }
+          </p>
+        </div>
+        <span class:list={[tab, "ml-auto self-start"]}>{locale.toUpperCase()}</span>
+      </div>
+
+      {/* The photo beside the two values: the flat as it stands, and what it
+          is worth as it stands and as the approved plans allow. */}
+      <div class="flex gap-3 px-3 pt-3.5 @xs:gap-4 @xs:px-4 @xs:pt-4">
+        <Image
+          src={livingRoom}
+          alt=""
+          width={192}
+          widths={[96, 192, 288]}
+          sizes="7rem"
+          format="webp"
+          quality={78}
+          loading="lazy"
+          decoding="async"
+          class="aspect-[310/352] w-[4.5rem] shrink-0 self-start rounded-xs object-cover @xs:w-[5.5rem] @sm:w-28"
+        />
+        <dl class="min-w-0 flex-1">
+          {
+            values.map((row, index) => (
+              <div class:list={["py-1", index > 0 && "mt-1 border-t border-border pt-2"]}>
+                <dt class="data-label">{row.label}</dt>
+                <dd class="mt-0.5 whitespace-nowrap text-label-xs text-foreground tabular-nums">
+                  {row.value} <span class="data-label">{copy.million}</span><span class={mark}>{row.mark}</span>
+                </dd>
+                <dd class="mt-0.5 data-label text-muted-foreground">{row.area}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+
+      <div class="px-3 pt-4 @xs:px-4">
+        <p class="text-label-xs text-foreground">{paragraph.heading}</p>
+        <p class="mt-1.5 text-pretty text-paragraph-xs text-muted-foreground">
+          {parts.map((part) =>
+            typeof part === "string" ? (
+              part
+            ) : (
+              <span class="whitespace-nowrap"><span class="text-foreground tabular-nums">{part.figure}</span><span class={mark}>{part.mark}</span></span>
+            ),
+          )}
+        </p>
+      </div>
+
+      {/* The valuer signs, not Intelval: the line stays empty on the draft. */}
+      <div class="px-3 pt-6 pb-3 @xs:px-4 @xs:pb-4">
+        <div class="rounded-chip bg-foreground/[0.04] px-3 pt-2.5 pb-3">
+          <p class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <span class="data-label">{copy.signLabel}</span>
+            <span class="data-label inline-flex items-center gap-1.5 text-attention-ink">
+              <span class="size-1.5 shrink-0 rounded-full bg-current"></span>
+              {copy.signState}
+            </span>
+          </p>
+          <div class="mt-7 border-t border-dashed border-foreground/30"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3 flex items-start justify-between gap-3 pl-1">
+    <p class="flex min-w-0 items-start gap-2 pt-1">
+      {markRange && <span class={rangePill}>{markRange}</span>}
+      <span class="min-w-0 data-label">{copy.sourceHint}</span>
+    </p>
+    <SampleTag locale={locale} />
+  </div>
+</div>
+
+<style>
+  /* The page is printed paper, white in both themes, so the light theme's ink
+     applies on it whatever the site's theme. These are the light theme's
+     values from global.css (white is its card), scoped to the paper. */
+  .paper {
+    --background: #ffffff;
+    --foreground: #09090b;
+    --muted-foreground: #52525b;
+    --tertiary-foreground: #6b6b75;
+    --faint-foreground: #a1a1aa;
+    --border: rgb(9 9 11 / 8%);
+    --brand-ink: #047857;
+    --brand-soft: rgb(16 185 129 / 10%);
+    --attention-ink: #9a4a08;
+    color-scheme: light;
+    color: var(--foreground);
+    background: var(--background);
+  }
+
+  /* The page behind is a shade off white, the light theme's ground, so it
+     still parts from the well in the light theme. */
+  .paper-back {
+    background: #fafafa;
+  }
+</style>

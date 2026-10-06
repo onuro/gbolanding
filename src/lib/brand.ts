@@ -19,6 +19,9 @@ export const brand = {
   legalName: "",
   email: "",
 
+  streetAddress: "Örnek Mahallesi Şehit Çahar Dudayev Caddesi No:66/1",
+  addressLocality: "Ataşehir",
+  addressRegion: "İstanbul",
   addressCountry: "TR",
 
   // Deliberately empty. Pointing sameAs at a profile that is not ours, or not

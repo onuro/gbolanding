@@ -12,11 +12,12 @@
 import { ArrowDown, ArrowRight } from "lucide-react";
 import BlinkText from "@/components/BlinkText";
 import type { ProductHeroCopy } from "@/i18n/page-types/shared";
+import type { ProductSlug } from "@/lib/schema";
 
 interface Props {
   copy: ProductHeroCopy;
   /** Preselects this product in the demo form. */
-  product: "kollektor" | "hastam";
+  product: ProductSlug;
   /** Where the secondary link goes: an in-page section or another site. */
   secondaryHref: string;
   secondaryExternal?: boolean;

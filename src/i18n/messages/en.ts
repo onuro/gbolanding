@@ -1,5 +1,6 @@
 import type { Messages } from "@/i18n/types";
 import hastamPage from "@/i18n/messages/hastam-page.en";
+import intelvalPage from "@/i18n/messages/intelval-page.en";
 import kollektorPage from "@/i18n/messages/kollektor-page.en";
 
 const enMessages: Messages = {
@@ -39,10 +40,12 @@ const enMessages: Messages = {
     },
   },
   kollektorPage,
+  intelvalPage,
   hastamPage,
   nav: {
     solutions: "Solutions",
     kollektor: "Kollektor",
+    intelval: "Intelval",
     hastam: "Hastam",
     method: "How we work",
     about: "About",
@@ -111,6 +114,7 @@ const enMessages: Messages = {
         "Clear reports",
       ],
       cta: "Schedule an Intelval demo",
+      pageCta: "Go to the Intelval page",
     },
     hastam: {
       eyebrow: "Voice AI for hospitals and clinics",
@@ -468,6 +472,11 @@ const enMessages: Messages = {
       description:
         "Tell us how your collection work runs today. We’ll show you a practical next step.",
     },
+    intelval: {
+      title: "See Intelval in a demo.",
+      description:
+        "Tell us how your valuation work runs today. We’ll show you a practical next step.",
+    },
     hastam: {
       title: "See Hastam in a demo.",
       description:
@@ -475,11 +484,13 @@ const enMessages: Messages = {
     },
     secondaryCta: "See the other solutions",
     kollektorNote: "Calls the debtor, confirms the promise to pay and records it.",
+    intelvalNote: "Reads the documents, works out the value and drafts the report. Your valuer signs it.",
   },
   footer: {
     tagline: "AI and software, built for your business.",
     solutions: "Solutions",
     kollektor: "Kollektor",
+    intelval: "Intelval",
     hastam: "Hastam",
     platform: "Platform",
     method: "How we work",

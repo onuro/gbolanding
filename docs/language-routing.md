@@ -8,6 +8,7 @@ requested URL, never by country, browser language, user agent, or a saved cookie
 | Home | `/` | `/en` |
 | About | `/about` | `/en/about` |
 | Kollektor | `/kollektor` | `/en/kollektor` |
+| Intelval | `/intelval` | `/en/intelval` |
 | Hastam | `/hastam` | `/en/hastam` |
 
 Slugs are not translated: the English page is the same slug under `/en`.
@@ -19,7 +20,7 @@ Turkish, including for visitors with an old `gbo_locale=en` cookie.
 
 ## Delivery and redirects
 
-- The marketing pages (home, about and the two product pages, in both
+- The marketing pages (home, about and the three product pages, in both
   languages) and `/sitemap.xml` render at build time and are served
   as static files. Interactive React islands still hydrate in the browser.
 - `/api/waitlist` and `/gbo/*` remain dynamic. The voice service is unchanged.

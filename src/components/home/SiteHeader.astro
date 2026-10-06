@@ -1,6 +1,14 @@
 ---
 import { Image } from "astro:assets";
-import { ArrowRight, ChevronDown, Menu, Phone, Stethoscope } from "lucide-react";
+import {
+  ArrowRight,
+  ChartNoAxesCombined,
+  ChevronDown,
+  Menu,
+  Phone,
+  Stethoscope,
+} from "lucide-react";
+import intelvalShot from "@/assets/editorial/intelval-architecture.png";
 import hastamShot from "@/assets/editorial/menu-hastam.jpg";
 import kollektorShot from "@/assets/editorial/menu-kollektor.jpg";
 import ThemeToggle from "@/components/home/ThemeToggle.astro";
@@ -36,6 +44,19 @@ const products = [
     Icon: Phone,
     shot: kollektorShot,
     caption: messages.solutions.kollektor.eyebrow,
+  },
+  {
+    href: pathFor("intelval", locale),
+    label: messages.nav.intelval,
+    page: "intelval" as const,
+    note:
+      locale === "tr"
+        ? "Değeri hesaplar, rapor taslağını yazar."
+        : "Works out the value and drafts the report.",
+    // The home card's icon and photograph, so the menu and the card match.
+    Icon: ChartNoAxesCombined,
+    shot: intelvalShot,
+    caption: messages.solutions.intelval.eyebrow,
   },
   {
     href: pathFor("hastam", locale),

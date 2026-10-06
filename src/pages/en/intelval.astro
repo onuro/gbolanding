@@ -1,0 +1,49 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import IntelvalPage from "@/components/IntelvalPage.astro";
+import { getMessages } from "@/i18n/getMessages";
+import { buildMetadata } from "@/i18n/metadata";
+import { buildProductNode, faqPageNode, productId } from "@/lib/schema";
+
+export const prerender = true;
+
+const locale = "en" as const;
+const messages = await getMessages(locale);
+const metadata = buildMetadata(locale, messages, "intelval");
+const origin = new URL(Astro.site ?? Astro.url.origin);
+const canonical = new URL(metadata.canonicalPath, origin);
+// The product is this page's subject. Its node is described with this page's
+// own copy, not the home card's: the home description says Intelval writes an
+// "expert-level report", while this page says it drafts one that the licensed
+// valuer reviews and signs, and structured data must never say more than the
+// page a visitor can read. The features are the titles of the rows the page
+// shows, without their full stops; a document row is prefixed with its
+// document, since "shows what has changed" means nothing on its own. No
+// sameAs: Intelval has no site of its own. The FAQ node is fed the same array
+// the accordion renders.
+const page = messages.intelvalPage;
+const schema = [
+  buildProductNode(origin, messages, "intelval", locale, {
+    name: "Intelval",
+    description: page.metaDescription,
+    featureList: [
+      ...page.reads.rows.map((row) => `${row.say}: ${row.title}`),
+      ...[...page.field.rows, ...page.value.rows, ...page.writes.rows, ...page.checks.rows].map(
+        (row) => row.title,
+      ),
+    ].map((feature) => feature.replace(/\.$/, "")),
+  }),
+  ...(messages.intelvalPage.faq.items.length > 0
+    ? [faqPageNode(canonical, messages.intelvalPage.faq.items)]
+    : []),
+];
+---
+
+<BaseLayout
+  locale={locale}
+  metadata={metadata}
+  extraSchema={schema}
+  mainEntityId={productId(origin, "intelval")}
+>
+  <IntelvalPage locale={locale} messages={messages} />
+</BaseLayout>

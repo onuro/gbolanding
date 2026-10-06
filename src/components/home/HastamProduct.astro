@@ -75,7 +75,7 @@ const { locale, product } = Astro.props;
   <ol class="grid gap-3 border-t border-border p-3 md:grid-cols-3">
     {product.steps.map((step, index) => (
       <li>
-        <div class="h-full rounded-tile bg-card p-3 shadow-card sm:p-5">
+        <div class="h-full rounded-tile bg-card p-3 shadow-card dark:bg-foreground/[0.035] dark:shadow-none sm:p-5">
           <div class="mb-5" aria-hidden="true">
             <span class="data-label tabular-nums">
               {String(index + 1).padStart(2, "0")}

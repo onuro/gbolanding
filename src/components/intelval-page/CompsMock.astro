@@ -1,0 +1,346 @@
+---
+// The comparables table of the sample file: four comparables, each an asking
+// price or a comparable recorded in one of the firm's earlier reports, taken
+// down by the bargaining discount, adjusted, and brought to one value per m². Under it the values
+// that follow (the average times the area on site, and times the area in the
+// approved project), then the cost and income approaches with their distance
+// from the market value, kept apart from it: they test the value, they are
+// not averaged into it. A still: the finished table, nothing in it moves.
+//
+// Beside the values, a street map of Göztepe: the flat as the one brand pin,
+// the four comparables as numbered dots a few blocks from it, so a reader
+// sees they are "nearby streets" rather than taking the draft's word for it.
+// The pins sit next to the comparables in sample-file.ts.
+//
+// KollektorStage around it hides the window from screen readers and gives
+// them copy.label, so there is no second label here.
+//
+// Every figure comes from sample-file.ts and every word from copy, so the
+// table cannot disagree with its own sums, and the sums are printed (average
+// × area) because a reader of a valuation is owed the arithmetic. Column
+// names carry no units: a unit sits under its column name, and beside the
+// figure itself on a phone, where the column names are gone.
+//
+// It is drawn wide, like the screen a valuer would use. From a 48rem window
+// it is a table: every row is a subgrid of one grid, so the figures line up
+// down the list. Below that each comparable folds into three lines (its id
+// and result, then the inputs, then the adjustments), because seven columns
+// on a 320px phone would cut every figure.
+import { Image } from "astro:assets";
+import { House } from "lucide-react";
+import streetMap from "@/assets/editorial/intelval-map-goztepe.png";
+import MockWindow from "@/components/kollektor-page/MockWindow.astro";
+import type { Locale } from "@/i18n/config";
+import type { IntelvalCompsMockCopy } from "@/i18n/page-types/intelval";
+import {
+  area,
+  averageUnit,
+  comps,
+  crossChecks,
+  deviation,
+  fill,
+  formatLira,
+  formatMillions,
+  formatSignedPercent,
+  legalValue,
+  marketValue,
+  subjectPin,
+} from "./sample-file";
+import type { AdjustmentKey, MapPin } from "./sample-file";
+
+interface Props {
+  locale: Locale;
+  copy: IntelvalCompsMockCopy;
+}
+
+const { locale, copy } = Astro.props;
+
+// The order a valuer reads them in; a comparable shows only those it has.
+const ADJUSTMENTS: AdjustmentKey[] = ["time", "location", "size", "age", "floor", "condition"];
+
+const rows = comps.map((comp) => ({
+  id: comp.id,
+  source: copy.kinds[comp.kind],
+  area: formatLira(locale, comp.area),
+  price: formatMillions(locale, comp.price),
+  // A comparable from an earlier report carries its recorded price, not an
+  // asking price: there is nothing to bargain off, so the cell says so
+  // instead of printing a zero.
+  discount: comp.discount ? formatSignedPercent(locale, -comp.discount) : "—",
+  adjustment: formatSignedPercent(locale, comp.adjustment),
+  parts: ADJUSTMENTS.flatMap((key) => {
+    const value = comp.adjustments[key];
+    return value ? [{ label: copy.adjustments[key], value: formatSignedPercent(locale, value) }] : [];
+  }),
+  unit: formatLira(locale, comp.adjustedUnit),
+}));
+
+const average = formatLira(locale, averageUnit);
+const values = [
+  { label: copy.averageLabel, value: average, unit: copy.perSqm },
+  {
+    label: copy.marketLabel,
+    value: formatMillions(locale, marketValue),
+    unit: copy.million,
+    sum: `${average} ${copy.perSqm} × ${formatLira(locale, area.site)} m²`,
+  },
+  {
+    label: copy.legalLabel,
+    value: formatMillions(locale, legalValue),
+    unit: copy.million,
+    sum: `${average} ${copy.perSqm} × ${formatLira(locale, area.legal)} m²`,
+  },
+];
+const checks = [
+  { label: copy.costLabel, value: crossChecks.cost },
+  { label: copy.incomeLabel, value: crossChecks.income },
+].map((check) => ({
+  label: check.label,
+  value: formatMillions(locale, check.value),
+  deviation: formatSignedPercent(locale, deviation(check.value)),
+}));
+
+// One column gap for the table and every row in it: a subgrid with a gap of
+// its own would move its cells off the header's columns.
+const gap = "gap-x-3 @3xl:gap-x-4 @4xl:gap-x-6";
+// The adjustments take what the six other columns leave, so their chips wrap
+// inside that column instead of pushing the window past the frame.
+const table = `@3xl:grid @3xl:grid-cols-[auto_auto_auto_auto_auto_1fr_auto] ${gap}`;
+// Below 48rem: the id and source on the left, the result on the right, the
+// rest on a full-width line under them. From 48rem: one row of the table.
+const row = `grid grid-cols-[minmax(0,1fr)_auto] px-3 @2xs:px-4 @3xl:col-span-full @3xl:grid-cols-subgrid ${gap}`;
+// A figure's cell. On a phone its column name sits over it, as a form reads,
+// and its unit beside it: name and figure side by side wrapped mid-pair and
+// left a name alone on a line. In the table both go, the header has them.
+const cell = "flex flex-col gap-0.5 whitespace-nowrap @3xl:block @3xl:text-right";
+const name = "data-label @3xl:hidden";
+const figure = "text-paragraph-sm text-muted-foreground tabular-nums";
+const chip =
+  "data-label inline-flex h-5 items-center gap-1 rounded-full bg-foreground/[0.05] px-1.5 whitespace-nowrap text-muted-foreground tabular-nums";
+
+// A pin's place on the map, in percent of the map image.
+const at = (pin: MapPin) => `left: ${pin.x}%; top: ${pin.y}%`;
+// On the map a comparable is its number alone ("01" for E-01): the full id
+// would crowd four pins a few blocks apart, and the table sits right above.
+const pins = comps.map((comp) => ({ number: comp.id.replace(/^\D+/, ""), pin: comp.pin }));
+---
+
+<MockWindow locale={locale} owner={copy.owner} title={copy.title} meta={fill(locale, copy.meta)} class="max-w-[64rem]">
+  <div class={table}>
+    {/* On a phone only the first and last names stay: the rest travel with
+        their figures. Units sit on a line of their own under the name. */}
+    <div class:list={[row, "items-end border-b border-border bg-foreground/[0.02] py-2"]}>
+      <span class="data-label whitespace-nowrap">{copy.columns.comp}</span>
+      <span class="hidden data-label whitespace-nowrap @3xl:block">{copy.columns.source}</span>
+      <span class="hidden data-label text-right whitespace-nowrap @3xl:block">
+        {copy.columns.area}
+        <span class="block">m²</span>
+      </span>
+      <span class="hidden data-label text-right whitespace-nowrap @3xl:block">
+        {copy.columns.price}
+        <span class="block">{copy.million}</span>
+      </span>
+      <span class="hidden data-label text-right whitespace-nowrap @3xl:block">
+        {copy.columns.discount}
+      </span>
+      <span class="hidden data-label whitespace-nowrap @3xl:block">{copy.columns.adjustment}</span>
+      <span class="data-label text-right whitespace-nowrap">
+        {copy.columns.unitPrice}
+        <span class="block">{copy.perSqm}</span>
+      </span>
+    </div>
+
+    <ul class="@3xl:col-span-full @3xl:grid @3xl:grid-cols-subgrid">
+      {
+        rows.map((comp, index) => (
+          <li
+            class:list={[
+              row,
+              "items-baseline gap-y-2.5 py-3 @3xl:py-2.5",
+              index > 0 && "border-t border-border",
+            ]}
+          >
+            <span class="flex min-w-0 items-baseline gap-2 @3xl:contents">
+              <span class="text-label-xs whitespace-nowrap text-foreground tabular-nums">{comp.id}</span>
+              <span class="truncate text-paragraph-sm text-muted-foreground">{comp.source}</span>
+            </span>
+
+            {/* On a phone the four cells wrap as whole cells: the three
+                inputs fit one line from a 390px phone, the adjustments take
+                the next. In the table each cell is a column of its own. */}
+            <span class="col-span-full flex flex-wrap items-start gap-x-5 gap-y-2.5 @3xl:contents">
+              <span class={cell}>
+                <span class={name}>{copy.columns.area}</span>
+                <span class={figure}>
+                  {comp.area}<span class="@3xl:hidden">&nbsp;m²</span>
+                </span>
+              </span>
+              <span class={cell}>
+                <span class={name}>{copy.columns.price}</span>
+                <span class="flex items-baseline gap-1.5 @3xl:block">
+                  <span class={figure}>{comp.price}</span>
+                  <span class={name}>{copy.million}</span>
+                </span>
+              </span>
+              <span class={cell}>
+                <span class={name}>{copy.columns.discount}</span>
+                <span class={figure}>{comp.discount}</span>
+              </span>
+
+              {/* The total, then the adjustments it is the sum of. The total
+                  keeps one width so the chips start on one line down the
+                  table. On a phone it always starts its own line, however
+                  few chips it has, so the four rows keep one shape. */}
+              <span class="flex min-w-0 basis-full flex-col gap-0.5 @3xl:block">
+                <span class={name}>{copy.columns.adjustment}</span>
+                <span class="flex flex-wrap items-baseline gap-x-1.5 gap-y-1.5">
+                  <span class="text-paragraph-sm whitespace-nowrap text-foreground tabular-nums @3xl:min-w-8">
+                    {comp.adjustment}
+                  </span>
+                  {comp.parts.map((part) => (
+                    <span class={chip}>
+                      {part.label}
+                      <span class="text-foreground">{part.value}</span>
+                    </span>
+                  ))}
+                </span>
+              </span>
+            </span>
+
+            {/* Last in the table's order; on a phone it moves up beside the id,
+                under the one column name a phone still shows. */}
+            <span class="col-start-2 row-start-1 text-right text-paragraph-sm whitespace-nowrap text-foreground tabular-nums @3xl:col-start-auto @3xl:row-start-auto">
+              {comp.unit}
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  {/* Under the table, where the comparables are and what they come to. From
+      48rem the map takes the left and the values stack on the right; below
+      that the map runs full width between the table and the values. */}
+  <div class="border-t border-border @3xl:grid @3xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+    {/* The map keeps its own proportions and covers whatever box it gets
+        (the box is a size container, so the inner map can be sized against
+        both its sides): the pins are percentages of the map, so cropping it
+        any other way would move them off their streets. */}
+    <div
+      class="relative aspect-[4/3] overflow-hidden bg-muted [container-type:size] @md:aspect-[16/9] @3xl:aspect-auto @3xl:min-h-[16rem]"
+    >
+      <div
+        class="absolute top-1/2 left-1/2 aspect-[16/9] w-[max(100cqw,177.78cqh)] -translate-x-1/2 -translate-y-1/2"
+      >
+        {/* The map is drawn light. In the dark theme it is turned to a dark
+            map (invert, then a half turn of hue so the sea stays blue and
+            the park green) rather than left to glare out of a dark window. */}
+        <Image
+          src={streetMap}
+          alt=""
+          width={1280}
+          widths={[480, 768, 1120, 1280]}
+          sizes="(min-width: 60rem) 40rem, 100vw"
+          format="webp"
+          quality={80}
+          loading="lazy"
+          decoding="async"
+          class="absolute inset-0 size-full dark:[filter:invert(1)_hue-rotate(180deg)_brightness(0.9)]"
+        />
+
+        {
+          pins.map((comp) => (
+            <span
+              class="absolute grid size-5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-foreground data-label text-background tabular-nums shadow-float"
+              style={at(comp.pin)}
+            >
+              {comp.number}
+            </span>
+          ))
+        }
+
+        {/* The flat: a brand pin whose tip stands on its spot, over a soft
+            ring that marks the spot itself. */}
+        <span
+          class="absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/30"
+          style={at(subjectPin)}
+        ></span>
+        <span
+          class="absolute -translate-x-1/2 -translate-y-[calc(100%+0.25rem)]"
+          style={at(subjectPin)}
+        >
+          <span
+            class="grid size-7 -rotate-45 place-items-center rounded-full rounded-bl-none bg-brand-solid text-brand-foreground shadow-float"
+          >
+            <House className="size-3.5 rotate-45" strokeWidth={2} aria-hidden="true" />
+          </span>
+        </span>
+      </div>
+
+      <p
+        class="absolute bottom-2.5 left-2.5 flex h-6 items-center gap-3 rounded-full bg-card px-2.5 data-label text-muted-foreground shadow-float"
+      >
+        <span class="flex items-center gap-1.5">
+          <span class="size-2.5 shrink-0 rounded-full bg-brand-solid"></span>
+          {copy.mapLegend.subject}
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="size-2.5 shrink-0 rounded-full bg-foreground"></span>
+          {copy.mapLegend.comp}
+        </span>
+      </p>
+    </div>
+
+    <div>
+      {/* What the table comes to. Label over value, as a form reads, so a
+          long label wraps on its own line instead of pushing the figure out.
+          Three across between 28rem and 48rem; above that they stack beside
+          the map. */}
+      <dl class="grid bg-foreground/[0.02] @md:grid-cols-3 @3xl:grid-cols-1">
+        {
+          values.map((item, index) => (
+            <div
+              class:list={[
+                "min-w-0 px-3 py-3 @2xs:px-4",
+                index > 0 &&
+                  "border-t border-border @md:border-t-0 @md:border-l @3xl:border-t @3xl:border-l-0",
+              ]}
+            >
+              <dt class="data-label">{item.label}</dt>
+              <dd class="mt-1 flex items-baseline gap-1.5 whitespace-nowrap">
+                <span class="text-paragraph-sm text-foreground tabular-nums">{item.value}</span>
+                <span class="data-label">{item.unit}</span>
+              </dd>
+              {item.sum && <dd class="mt-0.5 data-label tabular-nums">{item.sum}</dd>}
+            </div>
+          ))
+        }
+      </dl>
+
+      {/* The cross-checks under their own rule, not beside the value: each
+          shows how far it lands from the market value, and nothing is
+          weighted. */}
+      <div class="border-t border-border px-3 py-3 @2xs:px-4">
+        <p class="data-label">{copy.checksLabel}</p>
+        {/* On a phone, and in the narrow column beside the map, the label and
+            its figure sit at the two ends of a row; between 32rem and 48rem
+            each check is one tight group, so a label is never half a window
+            away from its figure. */}
+        <dl class="mt-2 grid gap-y-1.5 @lg:flex @lg:flex-wrap @lg:gap-x-10 @3xl:grid">
+          {
+            checks.map((check) => (
+              <div class="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 @lg:grid-cols-[auto_auto] @3xl:grid-cols-[minmax(0,1fr)_auto]">
+                <dt class="text-paragraph-sm text-muted-foreground">{check.label}</dt>
+                <dd class="flex items-baseline gap-1.5 whitespace-nowrap">
+                  <span class="text-paragraph-sm text-foreground tabular-nums">{check.value}</span>
+                  <span class="data-label">{copy.million}</span>
+                  <span class:list={[chip, "ml-1"]}>{check.deviation}</span>
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+    </div>
+  </div>
+</MockWindow>

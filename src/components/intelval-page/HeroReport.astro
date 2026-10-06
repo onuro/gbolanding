@@ -1,0 +1,160 @@
+---
+// The picture in the hero of /intelval, built like /kollektor's: one
+// photograph, three numbered objects. The photograph is the valuer on site,
+// dictating a note; the two captions are what Intelval reads (that note and a
+// line off the title deed); the card is the draft as it lands on the firm's
+// screen, unsigned. The numbers match the three steps ProductHero prints
+// under it.
+//
+// A still, like every picture on this page. The values come from
+// sample-file.ts, so they are the figures the comparables table further down
+// adds up to.
+import { Image } from "astro:assets";
+import { Check, FileText, Mic } from "lucide-react";
+import siteVisit from "@/assets/editorial/intelval-valuer-site-visit.png";
+import SampleTag from "@/components/product/SampleTag.astro";
+import type { Locale } from "@/i18n/config";
+import type { IntelvalHeroPictureCopy } from "@/i18n/page-types/intelval";
+import { fill, formatMillions, legalValue, marketValue } from "./sample-file";
+
+interface Props {
+  locale: Locale;
+  copy: IntelvalHeroPictureCopy;
+}
+
+const { locale, copy } = Astro.props;
+const [valuerLabel, readLabel, screenLabel] = copy.labels;
+const [file, signer] = fill(locale, copy.cardFoot).split(" · ");
+
+const rows = [
+  { label: copy.marketLabel, value: formatMillions(locale, marketValue), unit: copy.million },
+  { label: copy.legalLabel, value: formatMillions(locale, legalValue), unit: copy.million },
+  { label: copy.compsLabel, value: fill(locale, copy.compsValue), unit: "" },
+];
+const captions = [
+  { Icon: Mic, ...copy.note },
+  { Icon: FileText, ...copy.deed },
+];
+
+const tag =
+  "inline-flex h-7 w-fit max-w-full items-center gap-2 rounded-full bg-card py-1 pr-3 pl-1 text-label-xs text-foreground";
+const disc =
+  "data-label grid size-5 shrink-0 place-items-center rounded-full bg-foreground tabular-nums text-background";
+---
+
+{/* Below sm the captions and the card stack under each other, so the gap is
+    what keeps the valuer's face clear of them. */}
+<figure
+  class="relative isolate flex h-full flex-col justify-between gap-60 overflow-hidden rounded-well bg-muted p-3 sm:min-h-[34rem] sm:gap-16 sm:p-5 lg:min-h-[38rem]"
+>
+  <div class="absolute inset-0 -z-10" aria-hidden="true">
+    {/* The sample flat's own living room (the photo page's "Salon"), so the
+        hero shows the flat in the file. The crop keeps the valuer and his
+        phone in frame at every width; the right of the photo is window and
+        curtain, where the card sits. */}
+    <Image
+      src={siteVisit}
+      alt=""
+      width={1280}
+      widths={[480, 768, 1120, 1280]}
+      sizes="(min-width: 84rem) 49rem, (min-width: 64rem) 58vw, 100vw"
+      format="webp"
+      quality={78}
+      loading="eager"
+      decoding="async"
+      class="absolute inset-0 h-full w-full object-cover object-[36%_30%]"
+    />
+    <span class="absolute inset-0 bg-black/10"></span>
+    <span
+      class="absolute inset-x-0 bottom-0 h-3/4 bg-linear-to-t from-black/70 via-black/30 to-transparent"
+    ></span>
+  </div>
+
+  {/* One tag for the whole picture: the note, the deed and the card are made up. */}
+  <div aria-hidden="true" class="flex items-start justify-between gap-3">
+    <p class={tag}>
+      <span class={disc}>1</span>
+      <span class="truncate">{valuerLabel}</span>
+    </p>
+    {/* Solid, unlike /kollektor's: here the tag sits on a bright window, where
+        SampleTag's own translucent fill disappears. */}
+    <SampleTag locale={locale} class="h-7 bg-card! text-foreground!" />
+  </div>
+
+  <div
+    aria-hidden="true"
+    class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,18rem)] sm:items-end"
+  >
+    <div class="flex flex-col items-start gap-2">
+      <p class={tag}>
+        <span class={disc}>2</span>
+        <span class="truncate">{readLabel}</span>
+      </p>
+      {
+        captions.map(({ Icon, who, text }, index) => (
+          <p
+            class:list={[
+              "max-w-[19rem] rounded-card rounded-bl-chip bg-card px-3.5 py-2.5",
+              index > 0 && "ml-6",
+            ]}
+          >
+            <span class="data-label flex items-center gap-1.5">
+              <Icon className="size-3 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+              {who}
+            </span>
+            <span class="mt-1 block text-paragraph-sm text-foreground">
+              {fill(locale, text)}
+            </span>
+          </p>
+        ))
+      }
+    </div>
+
+    <div class="flex flex-col items-start gap-2">
+      <p class={tag}>
+        <span class={disc}>3</span>
+        <span class="truncate">{screenLabel}</span>
+      </p>
+      <div class="w-full rounded-card bg-card shadow-float">
+        <p
+          class="flex min-w-0 items-center gap-2 border-b border-border px-3.5 py-2.5 text-label-xs text-foreground"
+        >
+          <span
+            class="grid size-4 shrink-0 place-items-center rounded-full bg-brand-solid text-brand-foreground"
+          >
+            <Check className="size-2.5" strokeWidth={3} aria-hidden="true" />
+          </span>
+          <span class="truncate">{copy.cardTitle}</span>
+        </p>
+        <dl class="px-3.5 py-1.5">
+          {
+            rows.map((row, index) => (
+              <div
+                class:list={[
+                  "flex items-baseline justify-between gap-3 py-1.5",
+                  index > 0 && "border-t border-border",
+                ]}
+              >
+                <dt class="data-label">{row.label}</dt>
+                <dd class="flex items-baseline gap-1 text-paragraph-sm text-foreground tabular-nums">
+                  {row.value}
+                  {row.unit && <span class="data-label">{row.unit}</span>}
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
+        {/* Nothing is signed here: the card stops where the valuer's work begins. */}
+        <p class="flex items-center justify-between gap-3 border-t border-border px-3.5 py-2">
+          <span class="data-label">{file}</span>
+          <span class="data-label inline-flex items-center gap-1.5 text-attention-ink">
+            <span class="size-1.5 shrink-0 rounded-full bg-current"></span>
+            {signer}
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <figcaption class="sr-only">{copy.label}</figcaption>
+</figure>

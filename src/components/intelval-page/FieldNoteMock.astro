@@ -1,0 +1,187 @@
+---
+// The site visit as it lands in the file: what the valuer said into the phone
+// on site, the report fields that note filled, the photo page Intelval laid
+// out room by room, and the one thing it leaves to the valuer: the flat is
+// larger on site than in the approved project. A still, like every picture
+// below the hero: the voice message is a finished recording, nothing plays.
+//
+// The extra area is worked out from sample-file.ts, so the flag can never
+// disagree with the two areas the value and the legal-status value rest on.
+import { Image } from "astro:assets";
+import { Droplet, Play } from "lucide-react";
+import facade from "@/assets/editorial/intelval-rooms/1-facade.jpg";
+import entrance from "@/assets/editorial/intelval-rooms/2-entrance.jpg";
+import living from "@/assets/editorial/intelval-rooms/3-living.jpg";
+import kitchen from "@/assets/editorial/intelval-rooms/4-kitchen.jpg";
+import room1 from "@/assets/editorial/intelval-rooms/5-room-1.jpg";
+import room2 from "@/assets/editorial/intelval-rooms/6-room-2.jpg";
+import room3 from "@/assets/editorial/intelval-rooms/7-room-3.jpg";
+import bathroom from "@/assets/editorial/intelval-rooms/8-bathroom.jpg";
+import DotWave from "@/components/kollektor-page/DotWave.astro";
+import MockWindow from "@/components/kollektor-page/MockWindow.astro";
+import type { Locale } from "@/i18n/config";
+import type { IntelvalFieldMockCopy } from "@/i18n/page-types/intelval";
+import { area, fill, formatLira } from "./sample-file";
+import ToneMark from "./ToneMark.astro";
+
+interface Props {
+  locale: Locale;
+  copy: IntelvalFieldMockCopy;
+}
+
+const { locale, copy } = Astro.props;
+// On site against the approved project: a balcony joined to a room.
+const extra = `+${formatLira(locale, area.site - area.legal)} m²`;
+// Length of the recording. Sample data like the rest of the window; a clock
+// reads the same in both languages, so it is not copy.
+const duration = "0:16";
+// One flat, in the order of copy.photos.
+const photos = [facade, entrance, living, kitchen, room1, room2, room3, bathroom];
+// What the photos show that the note and the flag talk about: room 3 is the
+// room the balcony was joined to (its floor steps up where the balcony was),
+// and the bathroom ceiling carries the damp the note mentions.
+const marks: Partial<Record<number, "flag" | "damp">> = { 6: "flag", 7: "damp" };
+// A value too long for half a row takes the whole row, so it reads on one
+// line rather than wrapping under its label (and the window stays short).
+const wide = (value: string) => value.length > 18;
+const section = "border-t border-border px-3 py-3 @2xs:px-4";
+---
+
+<MockWindow locale={locale} owner={copy.owner} title={copy.title} meta={fill(locale, copy.meta)} class="max-w-[32rem]">
+  {/* The note as a voice message, with the transcript Intelval typed from it
+      in the same bubble. Not playing: the wave is one colour throughout. */}
+  <div class="px-3 pt-3 pb-3.5 @2xs:px-4">
+    <div class="rounded-card rounded-tl-chip bg-foreground/[0.04] p-2.5">
+      <div class="flex items-center gap-2.5">
+        <span class="grid size-8 shrink-0 place-items-center rounded-full bg-foreground text-background">
+          <Play className="ml-0.5 size-3.5" fill="currentColor" strokeWidth={0} aria-hidden="true" />
+        </span>
+        <div class="min-w-0 flex-1">
+          {/* Fewer, taller bars: at 6 rows the wave read as a line of dotted
+              glyphs rather than a voice. */}
+          <DotWave class="text-foreground/45" bars={30} rows={8} seed={7} />
+          <p class="mt-1 flex items-baseline justify-between gap-2">
+            <span class="min-w-0 truncate data-label">{copy.transcriptLabel}</span>
+            <span class="shrink-0 font-mono text-micro text-tertiary-foreground tabular-nums">
+              {duration}
+            </span>
+          </p>
+        </div>
+      </div>
+      <p class="mt-2.5 px-1 text-pretty text-paragraph-sm text-foreground">{fill(locale, copy.transcript)}</p>
+    </div>
+  </div>
+
+  <div class={section}>
+    <p class="flex items-center gap-2 data-label">
+      <ToneMark tone="ok" small />
+      {copy.fieldsLabel}
+    </p>
+    <dl class="mt-2.5 grid grid-flow-row-dense grid-cols-2 gap-x-3 gap-y-2">
+      {
+        copy.fields.map((field) => (
+          <div class:list={["min-w-0", wide(field.value) && "col-span-2"]}>
+            <dt class="truncate data-label">{field.label}</dt>
+            <dd class="mt-0.5 text-paragraph-sm text-foreground tabular-nums">{field.value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+
+  {/* The photo page: the eight photos of the sample flat with their captions,
+      four a row from an 18rem window, three only on a 320px phone. The two
+      photos the note and the flag talk about are drawn larger, so the step in
+      room 3's floor and the damp on the bathroom ceiling read in the photo
+      itself: room 3 takes two by two, the bathroom two wide (cropped to its
+      ceiling), which closes the grid on a full third row. */}
+  <div class={section}>
+    <p class="data-label">{copy.photosLabel}</p>
+    <ul class="mt-2.5 grid grid-cols-3 gap-x-1.5 gap-y-1.5 @2xs:grid-cols-4">
+      {
+        copy.photos.map((room, index) => {
+          const mark = marks[index];
+          const large = mark !== undefined;
+          return (
+            <li
+              class:list={[
+                "flex min-w-0 flex-col",
+                mark === "flag" && "@2xs:col-span-2 @2xs:row-span-2",
+                mark === "damp" && "@2xs:col-span-2",
+              ]}
+            >
+              {/* The photo fills its box, so the double tile can take the
+                  height its two rows leave it (a square would stop short of
+                  the bathroom's caption). */}
+              <span
+                class:list={[
+                  "relative block aspect-square overflow-hidden rounded-chip bg-muted",
+                  mark === "flag" && "@2xs:aspect-auto @2xs:min-h-0 @2xs:flex-1",
+                  mark === "damp" && "@2xs:aspect-[2/1]",
+                  // The same flag as the bar below, so the eye goes from one
+                  // to the other; the ring stays soft so the photo still reads.
+                  mark === "flag" && "ring-2 ring-attention-line",
+                ]}
+              >
+                <Image
+                  src={photos[index]}
+                  alt=""
+                  width={large ? 310 : 288}
+                  widths={large ? [160, 310] : [144, 288]}
+                  sizes={large ? "(min-width: 64rem) 9rem, 15rem" : "(min-width: 64rem) 4.25rem, 7rem"}
+                  format="webp"
+                  quality={78}
+                  loading="lazy"
+                  decoding="async"
+                  class:list={[
+                    "absolute inset-0 size-full object-cover",
+                    // The damp is on the ceiling: crop from the top.
+                    mark === "damp" && "object-top",
+                  ]}
+                />
+                {/* On a card-coloured disc: the marks' own soft fills are
+                    see-through and would vanish into the photo. */}
+                {mark && (
+                  <span class="absolute top-1 right-1 grid rounded-full bg-card">
+                    {mark === "flag" ? (
+                      <ToneMark tone="flag" small />
+                    ) : (
+                      <span class="grid size-4 place-items-center rounded-full bg-foreground/[0.06] text-muted-foreground">
+                        <Droplet className="size-2.5" strokeWidth={2.25} aria-hidden="true" />
+                      </span>
+                    )}
+                  </span>
+                )}
+              </span>
+              {/* Wraps rather than truncates: on a 320px phone a long room name
+                  was cut before the number that tells two rooms apart. */}
+              <span
+                class:list={[
+                  "mt-1 block break-words data-label",
+                  mark === "flag" && "text-attention-ink!",
+                ]}
+              >
+                {room}
+              </span>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+
+  {/* The flag closes the window like a status bar: Intelval found it, the
+      valuer decides what the report says about it. */}
+  <div class="border-t border-border bg-attention-soft px-3 py-3 @2xs:px-4">
+    <p class="flex items-start justify-between gap-3">
+      <span class="flex min-w-0 items-start gap-2 text-label-xs text-attention-ink">
+        <ToneMark tone="flag" small class="mt-px" />
+        {copy.flag.title}
+      </span>
+      <span class="shrink-0 text-label-xs whitespace-nowrap text-attention-ink tabular-nums">
+        {extra}
+      </span>
+    </p>
+    <p class="mt-1 pl-6 text-pretty text-paragraph-sm text-foreground">{fill(locale, copy.flag.detail)}</p>
+  </div>
+</MockWindow>

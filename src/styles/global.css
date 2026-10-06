@@ -91,10 +91,8 @@
   --attention-line: rgb(240 138 46 / 34%);
   --danger: #ff6b6b;
 
-  /* The header menu panel. The light values are elevenlabs.io's own, measured
-     on 2026-10-02; these are their dark counterparts: the same eight shadows
-     with the hairline ring turned light, on the raised dark surface. */
-  --menu-surface: var(--card);
+  /* Keep the dark header menu as quiet as the homepage cards. */
+  --menu-surface: #121214;
   --menu-divider: rgb(250 250 250 / 7%);
   --menu-muted: var(--muted-foreground);
   --menu-shadow:

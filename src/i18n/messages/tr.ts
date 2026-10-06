@@ -1,5 +1,6 @@
 import type { Messages } from "@/i18n/types";
 import hastamPage from "@/i18n/messages/hastam-page.tr";
+import intelvalPage from "@/i18n/messages/intelval-page.tr";
 import kollektorPage from "@/i18n/messages/kollektor-page.tr";
 
 const trMessages: Messages = {
@@ -39,10 +40,12 @@ const trMessages: Messages = {
     },
   },
   kollektorPage,
+  intelvalPage,
   hastamPage,
   nav: {
     solutions: "Çözümler",
     kollektor: "Kollektor",
+    intelval: "Intelval",
     hastam: "Hastam",
     method: "Yaklaşım",
     about: "Hakkımızda",
@@ -111,6 +114,7 @@ const trMessages: Messages = {
         "Açık raporlar",
       ],
       cta: "Intelval demosu planlayın",
+      pageCta: "Intelval sayfasına gidin",
     },
     hastam: {
       eyebrow: "Hastane ve klinikler için sesli yapay zeka",
@@ -471,6 +475,11 @@ const trMessages: Messages = {
       description:
         "Tahsilat işinizin nasıl yürüdüğünü anlatın. Somut bir sonraki adımı birlikte belirleyelim.",
     },
+    intelval: {
+      title: "Intelval’i bir demoda görün.",
+      description:
+        "Değerleme işinizin nasıl yürüdüğünü anlatın. Somut bir sonraki adımı birlikte belirleyelim.",
+    },
     hastam: {
       title: "Hastam’ı bir demoda görün.",
       description:
@@ -478,11 +487,13 @@ const trMessages: Messages = {
     },
     secondaryCta: "Diğer çözümlere bakın",
     kollektorNote: "Borçluyu arar, ödeme sözünü teyit eder ve kaydeder.",
+    intelvalNote: "Belgeleri okur, değeri hesaplar ve rapor taslağını yazar. Raporu uzmanınız imzalar.",
   },
   footer: {
     tagline: "İşinize göre tasarlanmış yapay zeka ve yazılım.",
     solutions: "Çözümler",
     kollektor: "Kollektor",
+    intelval: "Intelval",
     hastam: "Hastam",
     platform: "Platform",
     method: "Yaklaşım",

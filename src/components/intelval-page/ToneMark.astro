@@ -1,0 +1,38 @@
+---
+// The mark in front of a check on /intelval: a tick when it passed, a flag
+// when the valuer has to decide, a dot when it only informs. Shape and colour
+// both carry the tone, so it reads without colour too. The same discs as
+// ListMock's steps; it never pings, because a finished check is not live.
+import { Check, Flag } from "lucide-react";
+import type { IntelvalTone } from "@/i18n/page-types/intelval";
+
+interface Props {
+  tone: IntelvalTone;
+  /** The smaller disc, for a count beside the mark rather than a row. */
+  small?: boolean;
+  class?: string;
+}
+
+const { tone, small = false, class: className } = Astro.props;
+
+const fill = {
+  ok: "bg-brand-soft text-brand",
+  flag: "bg-attention-soft text-attention-ink",
+  info: "bg-foreground/[0.06] text-muted-foreground",
+}[tone];
+const icon = small ? "size-2.5" : "size-3";
+---
+
+<span
+  class:list={[
+    "grid shrink-0 place-items-center rounded-full",
+    small ? "size-4" : "size-5",
+    fill,
+    className,
+  ]}
+  aria-hidden="true"
+>
+  {tone === "ok" && <Check className={icon} strokeWidth={2.5} />}
+  {tone === "flag" && <Flag className={icon} strokeWidth={2.25} />}
+  {tone === "info" && <span class="size-1.5 rounded-full bg-current"></span>}
+</span>

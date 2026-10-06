@@ -59,6 +59,9 @@ function organizationNode(origin: URL, description: string): Node {
       : undefined,
     address: {
       "@type": "PostalAddress",
+      streetAddress: brand.streetAddress,
+      addressLocality: brand.addressLocality,
+      addressRegion: brand.addressRegion,
       addressCountry: brand.addressCountry,
     },
     areaServed: brand.addressCountry,
@@ -147,12 +150,6 @@ export type ProductSlug = "kollektor" | "intelval" | "hastam";
 export const productId = (origin: URL | string, slug: ProductSlug) =>
   new URL(`/#app-${slug}`, origin).href;
 
-/** Where each product is presented. Intelval has no page of its own yet. */
-function productPath(slug: ProductSlug, locale: Locale) {
-  if (slug === "intelval") return `${pathFor("home", locale)}#solutions`;
-  return pathFor(slug, locale);
-}
-
 /**
  * One product as a SoftwareApplication node.
  *
@@ -177,7 +174,8 @@ export function buildProductNode(
     description: solution.description,
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
-    url: new URL(productPath(slug, locale), origin).href,
+    // Every product has its own page.
+    url: new URL(pathFor(slug, locale), origin).href,
     provider: { "@id": organizationId(origin) },
     publisher: { "@id": organizationId(origin) },
     featureList: [...solution.highlights],

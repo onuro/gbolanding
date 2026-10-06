@@ -32,6 +32,10 @@ const pageCopy = {
     title: messages.kollektorPage.metaTitle,
     description: messages.kollektorPage.metaDescription,
   }),
+  intelval: (messages) => ({
+    title: messages.intelvalPage.metaTitle,
+    description: messages.intelvalPage.metaDescription,
+  }),
   hastam: (messages) => ({
     title: messages.hastamPage.metaTitle,
     description: messages.hastamPage.metaDescription,

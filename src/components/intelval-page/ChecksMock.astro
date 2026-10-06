@@ -1,0 +1,122 @@
+---
+// The checks Intelval runs on the sample draft before it reaches the valuer's
+// signature: one row per check, a mark for what it found and one line of
+// detail, then where the file stands. A still: the finished run, nothing in
+// it moves. A flag is a question for the valuer, not an answer: Intelval
+// lists it, the valuer decides what the report says. Each flag carries a
+// small crop of the material it comes from, so the list points back at the
+// photo page and the documents rather than standing on its own.
+//
+// KollektorStage around it hides the window from screen readers and gives
+// them copy.label, so there is no second label here.
+//
+// From a 36rem window each row reads as a table, the check on the left and
+// what it found on the right; below that the detail drops under the check.
+// What each check found is sample data (checkTones), so both locales mark
+// the same rows, and the footer's counts are counted from it, so they can
+// never disagree with the list above them.
+import { Image } from "astro:assets";
+import room3 from "@/assets/editorial/intelval-rooms/7-room-3.jpg";
+import MockWindow from "@/components/kollektor-page/MockWindow.astro";
+import type { Locale } from "@/i18n/config";
+import type { IntelvalChecksMockCopy, IntelvalTone } from "@/i18n/page-types/intelval";
+import { checkTones, fill } from "./sample-file";
+import ToneMark from "./ToneMark.astro";
+
+interface Props {
+  locale: Locale;
+  copy: IntelvalChecksMockCopy;
+}
+
+const { locale, copy } = Astro.props;
+const items = copy.items.map((item, index) => ({ ...item, tone: checkTones[index] }));
+const TONES: IntelvalTone[] = ["ok", "flag", "info"];
+const counts = TONES.map((tone) => ({
+  tone,
+  count: checkTones.filter((entry) => entry === tone).length,
+})).filter((entry) => entry.count > 0);
+// The two flagged checks point back at the material they come from: the area
+// check at room 3 (the photo page's room the balcony was joined to, its floor
+// stepping up where the balcony was), the missing-information check at the
+// occupancy permit, where the date cannot be read. By index in copy.items,
+// like checkTones.
+const evidence: Partial<Record<number, "room" | "permit">> = { 3: "room", 4: "permit" };
+// The permit is a Turkish document, so it stays Turkish on the English page
+// too, as the deed does.
+const permitTitle = "YAPI KULLANMA İZİN BELGESİ";
+const permitDate = "Tarihi";
+const thumb = "h-10 w-12 shrink-0 self-start overflow-hidden rounded-chip @xs:h-11 @xs:w-16";
+// Printed paper in both themes, with DeedMock's inks and office sans: no site
+// token stays light in the dark theme. A shade greyer than the deed, as a
+// scan is, so the crop still parts from the white card in the light theme.
+const paper =
+  "[--paper-ink:#18181b] [--paper-muted:#5f5f68] [--paper-rule:rgb(24_24_27/11%)] bg-[#f1f1ee] text-(--paper-ink) shadow-card [font-family:Arial,Helvetica,sans-serif]";
+---
+
+<MockWindow locale={locale} owner={copy.owner} title={copy.title} meta={fill(locale, copy.meta)} class="max-w-[42rem]">
+  <ul>
+    {
+      items.map((item, index) => (
+        <li
+          class:list={[
+            // The last column holds a row's evidence. In the table it has
+            // one width on every row, so the columns line up down the list.
+            "grid grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-x-3 px-3 py-3 @2xs:px-4 @xl:grid-cols-[auto_minmax(0,0.85fr)_minmax(0,1.15fr)_4rem] @xl:gap-x-4",
+            index > 0 && "border-t border-border",
+          ]}
+        >
+          {/* A box has no baseline of its own: it is centred on the first
+              line instead (a 20px disc on a 21.7px line). */}
+          <ToneMark tone={item.tone} class="mt-px self-start" />
+          <div class="min-w-0 @xl:contents">
+            <p class="text-paragraph-sm text-foreground">{item.text}</p>
+            <p class="mt-0.5 text-label-xs font-normal text-muted-foreground @xl:mt-0">
+              {fill(locale, item.detail)}
+            </p>
+          </div>
+          {evidence[index] === "room" && (
+            <Image
+              src={room3}
+              alt=""
+              width={128}
+              widths={[64, 128]}
+              sizes="4rem"
+              format="webp"
+              quality={78}
+              loading="lazy"
+              decoding="async"
+              class:list={[thumb, "object-cover object-[50%_80%]"]}
+            />
+          )}
+          {/* A corner of the permit: its title runs off the crop, and the
+              date is a faded smudge, which is what the check found. */}
+          {evidence[index] === "permit" && (
+            <span class:list={[thumb, paper, "flex flex-col px-1.5 pt-1.5"]}>
+              <span class="text-micro font-bold tracking-[0.04em] whitespace-nowrap">{permitTitle}</span>
+              <span class="mt-1 flex items-center gap-1.5 border-t border-(--paper-rule) pt-1 text-micro text-(--paper-muted)">
+                {permitDate}
+                <span class="h-1.5 w-6 shrink-0 rounded-full bg-(--paper-ink)/30 blur-[1.5px]"></span>
+              </span>
+            </span>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+
+  <div
+    class="flex items-center justify-between gap-3 border-t border-border bg-foreground/[0.02] px-3 py-2.5 @2xs:px-4"
+  >
+    <p class="min-w-0 text-label-xs text-foreground">{fill(locale, copy.summary)}</p>
+    <ul class="hidden shrink-0 items-center gap-2.5 @md:flex">
+      {
+        counts.map((entry) => (
+          <li class="flex items-center gap-1">
+            <ToneMark tone={entry.tone} small />
+            <span class="data-label tabular-nums">{entry.count}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</MockWindow>

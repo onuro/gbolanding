@@ -1,6 +1,7 @@
-// Building blocks shared by the product pages (/kollektor, /hastam). Each page
-// composes its own message type from these, so the shared components in
-// src/components/product/ can take a slice of copy without knowing the page.
+// Building blocks shared by the product pages (/kollektor, /intelval,
+// /hastam). Each page composes its own message type from these, so the shared
+// components in src/components/product/ can take a slice of copy without
+// knowing the page.
 
 /** One section of a product page: the label on its hairline and its heading. */
 export interface ChapterCopy {

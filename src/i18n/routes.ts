@@ -6,6 +6,7 @@ export const routes = {
   home: { tr: "/", en: "/en" },
   about: { tr: "/about", en: "/en/about" },
   kollektor: { tr: "/kollektor", en: "/en/kollektor" },
+  intelval: { tr: "/intelval", en: "/en/intelval" },
   hastam: { tr: "/hastam", en: "/en/hastam" },
 } as const satisfies Record<string, Record<Locale, string>>;
 

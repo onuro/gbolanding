@@ -399,3 +399,43 @@ Key details: natural skin texture, believable hands, the pages of the diary blan
 Constraints: photorealistic editorial photograph, not an illustration and not a 3D render. One person only. No text, no readable writing, no logo, no red cross, no medical symbols, no name badge, no screens, no watermark.
 ```
 
+
+## Added 2026-10-07 for /intelval
+
+Generated with GPT Image 2.5 (`gpt-image-2.5-sunburst`) through the owner's ElevenLabs account, flow `gkVMoSIaL0kF4R1gOWMz`. Illustrative scenes: the valuer, the flat and the street map are invented and show no client, property or person. 1280 × 720 originals.
+
+### intelval hero
+
+Source: `src/assets/editorial/intelval-valuer-site-visit.png` (second of two variations of the re-shoot below). Used by `src/components/intelval-page/HeroReport.astro` with numbered overlays, as on /kollektor. Re-shot the same day so the valuer stands in the sample flat itself (a plain 2004 flat, as in the room photos), not in the pre-war room of the first prompt, which follows for the record.
+
+```text
+Re-shoot: same valuer, outfit, pose, phone, tablet and composition, but in the empty living room of a renovated flat in a 2004 mid-rise apartment building in Göztepe, Istanbul: light herringbone oak parquet, smooth white walls with no cornice or moulding, a flat white ceiling with a single small pendant light socket, a wide modern white PVC tilt-and-turn window with a sheer white curtain, a white panel radiator under the window; through the window, softly out of focus, trees and neighbouring cream apartment blocks. No ornate architecture, no French balcony railings.
+```
+
+First prompt:
+
+```text
+Photorealistic editorial photograph for a premium AI product website. A licensed property valuer, an adult man in his early forties with short dark hair and a trimmed beard, wearing a navy overshirt over a light grey knit, stands inside an empty, recently renovated older apartment in Istanbul during a site inspection. He holds a slim black smartphone a little below his mouth and is dictating a short voice note while looking thoughtfully toward an open balcony doorway on the right, mid-sentence, calm and focused. In his other hand, held low by his side, a closed graphite tablet. The room: warm herringbone oak parquet, tall white walls with original cornice moulding, a tall double window and a glass balcony door, sheer linen curtain, soft afternoon daylight. Through the window, softly out of focus, the rooftops of Kadıköy. Composition: wide landscape, the man seen from mid-thigh up, his face around 33 percent from the left and 35 percent from the top, with generous headroom; the right 45 percent of the frame is the bright window and calm wall; the lower third is quiet floor and soft shadow. Style: natural, candid, believable, premium architecture-and-people magazine photography, real skin texture, correct hands, shallow depth of field on the background. Colour: warm ivory walls, honey oak, navy, soft green-grey shadows; restrained, not orange. No text, no logos, no readable screens, no UI, no watermark, no measuring tape on the floor, no hard hat, no clipboard, no smiling at the camera, no other people.
+```
+
+Re-set the same day: the first version stood in a pre-war room with an ornate cornice and an open balcony door, which is not the 2004 flat in the sample file, whose balcony was joined to a room. The file now holds the second of two edits on the same flow, made from that image (node `tKYwtl6RLtcAWRFBAZuP`) and the photo page's living room (`intelval-rooms/3-living.jpg`, node `ZQjoJESfM5oD10ZnNOAN`). The original is still on the flow.
+
+```text
+Edit the first image. Keep the man exactly as he is: the same face, beard, hair, navy overshirt, light grey knit, dark trousers, the black smartphone he dictates into, the closed graphite tablet in his other hand, the same pose, size and position in the frame, the same camera height and lens. Replace only the room around him with the living room in the second image, the room of the same flat: a modern 2004 Istanbul apartment, plain smooth white walls with a simple narrow cornice line (no ornate moulding), warm herringbone oak parquet, a wide modern window with slim light-grey aluminium frames and sheer white curtains on the right half of the frame, a slim white panel radiator under it, green tree tops and the facades of other mid-rise apartment blocks outside, soft afternoon daylight. The window is closed and has no balcony, no railing, no balcony door, no sea view, no minarets, no domes. The right 45 percent of the frame stays the bright window and calm white wall, the lower third quiet floor. Keep the wide 16:9 landscape framing, natural candid premium editorial photography, real skin texture, correct hands. No text, no logos, no readable screens, no UI, no watermark, no furniture, no other people.
+```
+
+### intelval photo page
+
+Source: `src/assets/editorial/intelval-rooms/1-facade.jpg` … `8-bathroom.jpg`, cut along the white gutters of the second of two generated contact sheets (310–312 × 352 px each). Used by the photo page in `FieldNoteMock.astro`; the order matches `photos` in the copy.
+
+```text
+A contact sheet of eight real-estate inspection photographs of the SAME apartment, arranged as a precise grid of 4 columns and 2 rows of equal rectangular photos separated by thin uniform pure white gutters, no captions, no text, no numbers, no frame around the sheet. The apartment: a renovated 3-bedroom flat on the 4th floor of a 2004 mid-rise residential building in Göztepe, Istanbul. Row 1, left to right: (1) the building's exterior seen from the street, a cream and light-grey 6-storey apartment block with balconies and trees; (2) the building entrance, a glass and aluminium door with a small lobby and mailboxes; (3) the living room, herringbone oak parquet, white walls, tall window with sheer curtain, empty; (4) the kitchen, renovated, white lower cabinets, light stone worktop, built-in oven. Row 2: (5) bedroom 1, empty, parquet, one window; (6) bedroom 2, empty, a small room with a built-in white wardrobe; (7) bedroom 3, the room that was joined to the former balcony, with a slight step in the floor and a wide window; (8) the bathroom, renovated, light grey tiles, glass shower, a faint damp stain on the white ceiling. Style: realistic, natural daylight, straight verticals, typical professional valuation-report photos taken with a phone, consistent colour across all eight, not staged, no people, no furniture except built-ins. No text anywhere, no watermarks, no logos.
+```
+
+### intelval comparables map
+
+Source: `src/assets/editorial/intelval-map-goztepe.png` (second of two variations). A label-free map under the comparables pins in `CompsMock.astro`; it is not a real street plan.
+
+```text
+A minimal flat cartographic street map, seen straight from above, of a dense residential neighbourhood on the Asian side of Istanbul near the sea: an irregular grid of small streets, two wider avenues crossing diagonally, building blocks as soft rounded shapes, one small park, and the Marmara sea coastline along the bottom-left corner. Style: modern product-UI map tile, very calm and muted, monochrome greys: building blocks slightly lighter than the background, streets slightly darker thin lines, the sea a flat slightly cooler grey, no colours except a barely-there grey-green for the park. Absolutely no text, no street names, no labels, no numbers, no pins, no icons, no compass, no scale bar, no legend, no shadows, no 3D, no buildings in perspective. Even detail across the whole frame so it can be cropped anywhere.
+```
