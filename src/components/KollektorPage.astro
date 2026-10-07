@@ -20,6 +20,7 @@ import StepRows from "@/components/kollektor-page/StepRows.astro";
 import TeamScreenMock from "@/components/kollektor-page/TeamScreenMock.astro";
 import Chapter from "@/components/product/Chapter.astro";
 import FactCells from "@/components/product/FactCells.astro";
+import RelatedPosts from "@/components/blog/RelatedPosts.astro";
 import Faq from "@/components/product/Faq.astro";
 import NumberedRows from "@/components/product/NumberedRows.astro";
 import ProductHero from "@/components/product/ProductHero.astro";
@@ -181,4 +182,11 @@ const anchor = "scroll-mt-20";
   <Chapter id="faq" headingId="kollektor-faq-title" copy={page.faq} class={anchor}>
     <Faq items={page.faq.items} name="kollektor-faq" />
   </Chapter>
+
+  <RelatedPosts
+    locale={locale}
+    slugs={["yapay-zeka-cagri-merkezi-asistani"]}
+    headingId="kollektor-blog-title"
+    class={anchor}
+  />
 </ProductPageShell>

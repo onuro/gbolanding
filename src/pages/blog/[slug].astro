@@ -1,0 +1,109 @@
+---
+import { render } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import ArticlePage from "@/components/blog/ArticlePage.astro";
+import { getMessages } from "@/i18n/getMessages";
+import blogPage from "@/i18n/messages/blog-page.tr";
+import { buildArticleMetadata } from "@/i18n/metadata";
+import { blogFeedPath, routes, turkishOnlyRoutes } from "@/i18n/routes";
+import {
+  countWords,
+  getArticles,
+  readingLabel,
+  readingMinutes,
+  relatedArticles,
+  toListItem,
+  withAsciiHeadingIds,
+  type Article,
+} from "@/lib/blog";
+import { articleId, blogPostingNode, breadcrumbNode, faqPageNode } from "@/lib/schema";
+
+// Turkish only, like the index: hreflang tr and x-default, no English page.
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const articles = await getArticles();
+  return articles.map((article) => ({
+    params: { slug: article.id },
+    props: { article, all: articles },
+  }));
+}
+
+interface Props {
+  article: Article;
+  all: Article[];
+}
+
+const { article, all } = Astro.props;
+const { data } = article;
+const messages = await getMessages("tr");
+const metadata = buildArticleMetadata(messages, data);
+const origin = new URL(Astro.site ?? Astro.url.origin);
+const canonical = new URL(metadata.canonicalPath, origin);
+const { Content, headings: markdownHeadings } = await render(article);
+// The body as rendered at sync time, with ASCII heading ids (see
+// withAsciiHeadingIds). <Content /> stays as the fallback should a future
+// loader hand over no HTML; the body allows no images, so nothing else in it
+// needs Astro's own renderer.
+const rendered = article.rendered?.html;
+const body = withAsciiHeadingIds(rendered ?? "", markdownHeadings);
+const headings = rendered ? body.headings : markdownHeadings;
+const words = countWords(article.body ?? "");
+const reading = readingLabel(readingMinutes(words));
+const toc = headings
+  .filter((heading) => heading.depth === 2)
+  .map(({ slug, text }) => ({ slug, text }));
+const more = relatedArticles(article, all).map(toListItem);
+
+// The BlogPosting is the page's main entity. Its image is the same card the
+// og:image names; the FAQPage is fed the array the accordion renders, so the
+// markup never claims a question the page does not show.
+const schema = [
+  blogPostingNode({
+    origin,
+    canonical,
+    headline: data.title,
+    description: data.description,
+    datePublished: metadata.article!.publishedTime,
+    dateModified: metadata.article!.modifiedTime,
+    image: {
+      url: new URL(metadata.ogImage.path, origin).href,
+      width: metadata.ogImage.width,
+      height: metadata.ogImage.height,
+    },
+    keywords: metadata.keywords,
+    section: data.category,
+    wordCount: words,
+    product: data.relatedProduct
+      ? { slug: data.relatedProduct, name: messages.solutions[data.relatedProduct].title }
+      : null,
+  }),
+  breadcrumbNode(canonical, [
+    { name: blogPage.article.home, url: new URL(routes.home.tr, origin).href },
+    {
+      name: blogPage.index.eyebrow,
+      url: new URL(turkishOnlyRoutes.blog.tr, origin).href,
+    },
+    { name: data.title, url: canonical.href },
+  ]),
+  ...(data.faq.length > 0 ? [faqPageNode(canonical, data.faq)] : []),
+];
+---
+
+<BaseLayout
+  locale="tr"
+  metadata={metadata}
+  extraSchema={schema}
+  mainEntityId={articleId(canonical)}
+>
+  <link
+    slot="head"
+    rel="alternate"
+    type="application/rss+xml"
+    title={blogPage.name}
+    href={new URL(blogFeedPath, origin).href}
+  />
+  <ArticlePage messages={messages} article={article} toc={toc} reading={reading} more={more}>
+    {rendered ? <Fragment set:html={body.html} /> : <Content />}
+  </ArticlePage>
+</BaseLayout>

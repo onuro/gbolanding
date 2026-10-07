@@ -1,0 +1,68 @@
+---
+// One band of a blog page, between the frame's rails. Like a product page's
+// Chapter, an optional label sits on the hairline that closes the band above;
+// unlike it, the band brings no heading or margin column of its own, because
+// the index and the article each lay out their own.
+interface Props {
+  /** Short label on the top hairline. */
+  label?: string;
+  /**
+   * When the label is the band's only title, it is rendered as the band's h2
+   * with this id. Otherwise it is a plain line.
+   */
+  labelId?: string;
+  id?: string;
+  /** Id of a heading inside the band, for aria-labelledby. */
+  labelledBy?: string;
+  class?: string;
+}
+
+const { label, labelId, id, labelledBy, class: className } = Astro.props;
+const Label = labelId ? "h2" : "p";
+---
+
+<section
+  id={id}
+  aria-labelledby={labelId ?? labelledBy}
+  class:list={[
+    "relative mx-auto w-full max-w-(--shell-max) frame-cross border-x border-b border-border bg-background",
+    className,
+  ]}
+>
+  {
+    label && (
+      <Label id={labelId} class="band-label eyebrow">
+        <span class="eyebrow-mark" aria-hidden="true" />
+        {label}
+      </Label>
+    )
+  }
+  <slot />
+</section>
+
+<style>
+  /* The same placement as Chapter's label: centred on the hairline above,
+     its background cutting the line behind the text. */
+  .band-label {
+    position: absolute;
+    top: 0;
+    left: calc(1.25rem - 0.625rem);
+    z-index: 2;
+    translate: 0 -50%;
+    padding-inline: 0.625rem;
+    background: var(--background);
+    white-space: nowrap;
+  }
+
+  @media (width >= 40rem) {
+    .band-label {
+      left: calc(2rem - 0.625rem);
+    }
+  }
+
+  @media (width >= 64rem) {
+    .band-label {
+      left: calc(3rem - 0.625rem);
+    }
+  }
+</style>

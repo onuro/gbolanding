@@ -1,0 +1,16 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PrivacyPage from "@/components/PrivacyPage.astro";
+import { getMessages } from "@/i18n/getMessages";
+import { buildMetadata } from "@/i18n/metadata";
+
+export const prerender = true;
+
+const locale = "en" as const;
+const messages = await getMessages(locale);
+const metadata = buildMetadata(locale, messages, "privacy");
+---
+
+<BaseLayout locale={locale} metadata={metadata}>
+  <PrivacyPage locale={locale} messages={messages} copy={messages.privacyPage} />
+</BaseLayout>

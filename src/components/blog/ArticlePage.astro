@@ -1,0 +1,630 @@
+---
+// /blog/<slug>. The article reads down one column at a comfortable measure
+// (about 68 characters a line), with the page's frame around it:
+//
+//   header   breadcrumb, category, h1, the description; from xl the dates and
+//            the reading time sit in the margin column on the left
+//   body     "Kısaca" (the frontmatter summary), the contents, the Markdown;
+//            from xl the contents stay in the margin column, sticky
+//   then     questions (the product pages' Faq, fed the same array as the
+//            FAQPage JSON-LD), sources, the related product, two more
+//            articles, and the demo request every page closes on.
+//
+// The margin column is the same 3-of-12 column a product page's Chapter keeps
+// for its note, so the chapters below line up with the article above them.
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+import ArticleList from "@/components/blog/ArticleList.astro";
+import BlogSection from "@/components/blog/BlogSection.astro";
+import FinalCta from "@/components/home/FinalCta.astro";
+import SiteFooter from "@/components/home/SiteFooter.astro";
+import SiteHeader from "@/components/home/SiteHeader.astro";
+import Chapter from "@/components/product/Chapter.astro";
+import Faq from "@/components/product/Faq.astro";
+import blogPage from "@/i18n/messages/blog-page.tr";
+import { pathFor, routes, turkishOnlyRoutes } from "@/i18n/routes";
+import type { Messages } from "@/i18n/types";
+import {
+  articleSectionIds,
+  formatDate,
+  formatSourceDate,
+  isoDate,
+  type Article,
+  type ArticleListItem,
+} from "@/lib/blog";
+
+interface Props {
+  messages: Messages;
+  article: Article;
+  /** The h2s of the body, for the contents. */
+  toc: readonly { slug: string; text: string }[];
+  reading: string;
+  more: readonly ArticleListItem[];
+}
+
+const { messages, article, toc, reading, more } = Astro.props;
+const { data } = article;
+const ui = blogPage.article;
+const product = data.relatedProduct;
+const solution = product ? messages.solutions[product] : undefined;
+const updated = isoDate(data.updatedAt) !== isoDate(data.publishedAt);
+const anchor = "scroll-mt-20";
+const cta = messages.productCta;
+
+const hostOf = (url: string) => new URL(url).hostname.replace(/^www\./, "");
+---
+
+<a class="skip-link" href="#main-content">Ana içeriğe geç</a>
+
+<div class="min-h-screen bg-background">
+  <SiteHeader locale="tr" messages={messages} />
+
+  <main id="main-content" tabindex="-1">
+    <article aria-labelledby="article-title">
+      <BlogSection>
+        <nav aria-label={ui.breadcrumbLabel} class="px-5 pt-7 sm:px-8 lg:px-12">
+          {/* One line at every width: the title is cut with an ellipsis rather
+              than wrapping onto a second line that starts with "/". The H1
+              right below gives it in full. */}
+          <ol class="flex items-center gap-x-2 text-paragraph-xs text-tertiary-foreground">
+            <li class="shrink-0">
+              <a href={routes.home.tr} class="crumb">{ui.home}</a>
+            </li>
+            <li class="flex shrink-0 items-center gap-x-2">
+              <span aria-hidden="true" class="text-faint-foreground">/</span>
+              <a href={turkishOnlyRoutes.blog.tr} class="crumb">{blogPage.index.eyebrow}</a>
+            </li>
+            <li class="flex min-w-0 items-center gap-x-2">
+              <span aria-hidden="true" class="text-faint-foreground">/</span>
+              <span aria-current="page" class="truncate text-muted-foreground">{data.title}</span>
+            </li>
+          </ol>
+        </nav>
+
+        <div class="grid xl:grid-cols-12">
+          {/* From xl: the facts of the article in the margin column. */}
+          <dl class="hidden content-start gap-y-5 px-12 pt-16 pb-20 xl:col-span-3 xl:grid">
+            <div>
+              <dt class="data-label">{ui.published}</dt>
+              <dd class="mt-1 text-label-sm text-foreground">
+                <time datetime={isoDate(data.publishedAt)}>{formatDate(data.publishedAt)}</time>
+              </dd>
+            </div>
+            {
+              updated && (
+                <div>
+                  <dt class="data-label">{ui.updated}</dt>
+                  <dd class="mt-1 text-label-sm text-foreground">
+                    <time datetime={isoDate(data.updatedAt)}>{formatDate(data.updatedAt)}</time>
+                  </dd>
+                </div>
+              )
+            }
+            <div>
+              <dt class="sr-only">{ui.readingTimeLabel}</dt>
+              <dd class="text-label-sm text-muted-foreground">{reading}</dd>
+            </div>
+          </dl>
+
+          <header class="min-w-0 px-5 pt-10 pb-14 sm:px-8 sm:pt-12 lg:px-12 xl:col-span-9 xl:pt-16 xl:pb-20">
+            <p class="eyebrow">
+              <span class="eyebrow-mark" aria-hidden="true"></span>
+              {data.category}
+            </p>
+            <h1 id="article-title" class="mt-4 max-w-[24ch] text-balance text-title-h1 text-foreground">
+              {data.title}
+            </h1>
+            <p class="mt-6 max-w-[40rem] text-pretty text-lead text-foreground/85">
+              {data.description}
+            </p>
+            {/* Below xl the margin column is gone, so its facts come here. */}
+            <p class="mt-7 flex flex-wrap items-center gap-x-3 gap-y-1 text-paragraph-sm text-muted-foreground xl:hidden">
+              <time datetime={isoDate(data.publishedAt)}>{formatDate(data.publishedAt)}</time>
+              {
+                updated && (
+                  <>
+                    <span aria-hidden="true" class="text-faint-foreground">·</span>
+                    <span>
+                      {ui.updated}{" "}
+                      <time datetime={isoDate(data.updatedAt)}>{formatDate(data.updatedAt)}</time>
+                    </span>
+                  </>
+                )
+              }
+              <span aria-hidden="true" class="text-faint-foreground">·</span>
+              <span>{reading}</span>
+            </p>
+          </header>
+        </div>
+      </BlogSection>
+
+      <BlogSection>
+        <div class="grid xl:grid-cols-12">
+          <aside class="hidden px-12 pt-16 pb-20 xl:col-span-3 xl:block">
+            {
+              toc.length > 0 && (
+                <nav aria-labelledby="toc-title" class="sticky top-24" data-toc>
+                  <p id="toc-title" class="text-label-xs text-foreground">{ui.toc}</p>
+                  <ol class="mt-3 space-y-0.5">
+                    {toc.map((heading) => (
+                      <li>
+                        <a href={`#${heading.slug}`} class="toc-link">
+                          {heading.text}
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
+              )
+            }
+          </aside>
+
+          <div class="min-w-0 px-5 pt-10 pb-16 sm:px-8 sm:pt-12 sm:pb-20 lg:px-12 xl:col-span-9 xl:pt-16">
+            {/* The measure: about 68 characters of 17px text a line. Set in rem,
+                not ch: this face's zero is wide, so 68ch ran to 100 letters.
+                It is set on each block rather than on this wrapper, so that a
+                table can use the column's full width (see .article-prose). */}
+            <div>
+              <aside aria-labelledby="summary-title" class="max-w-[34rem] rounded-card bg-muted px-6 py-6 sm:px-8 sm:py-7">
+                <p id="summary-title" class="eyebrow text-foreground">
+                  <span class="eyebrow-mark" aria-hidden="true"></span>
+                  {ui.summary}
+                </p>
+                <ul class="mt-4 space-y-3">
+                  {
+                    data.summary.map((point) => (
+                      <li class="flex gap-3 text-pretty text-paragraph-md text-foreground/85">
+                        <span
+                          aria-hidden="true"
+                          class="mt-[0.6875rem] h-px w-3 shrink-0 bg-tertiary-foreground"
+                        />
+                        <span>{point}</span>
+                      </li>
+                    ))
+                  }
+                </ul>
+              </aside>
+
+              {
+                toc.length > 0 && (
+                  <details class="toc-mobile group mt-4 max-w-[34rem] rounded-card bg-foreground/[0.035] xl:hidden" data-toc>
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4 text-label-sm text-foreground outline-none sm:px-8 [&::-webkit-details-marker]:hidden">
+                      {ui.toc}
+                      <span
+                        aria-hidden="true"
+                        class="text-tertiary-foreground transition-transform duration-200 group-open:rotate-45"
+                      >
+                        +
+                      </span>
+                    </summary>
+                    <ol class="space-y-0.5 px-6 pb-5 sm:px-8">
+                      {toc.map((heading) => (
+                        <li>
+                          <a href={`#${heading.slug}`} class="toc-link">
+                            {heading.text}
+                          </a>
+                        </li>
+                      ))}
+                    </ol>
+                  </details>
+                )
+              }
+
+              <div class="article-prose mt-10 sm:mt-12">
+                <slot />
+              </div>
+            </div>
+          </div>
+        </div>
+      </BlogSection>
+
+      {
+        data.faq.length > 0 && (
+          <Chapter id={articleSectionIds.faq} headingId="article-faq-title" copy={ui.faq} class={anchor}>
+            <Faq items={data.faq} name="article-faq" />
+          </Chapter>
+        )
+      }
+
+      <Chapter id={articleSectionIds.sources} headingId="article-sources-title" copy={ui.sources} class={anchor}>
+        <ol class="rule-dotted-b">
+          {
+            data.sources.map((source, index) => (
+              <li class="rule-dotted grid gap-x-5 gap-y-1 py-5 sm:grid-cols-[2.25rem_minmax(0,1fr)]">
+                <span class="data-label hidden pt-1 tabular-nums sm:block" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <div class="min-w-0">
+                  <a href={source.url} class="source-link group/source text-paragraph-lg text-foreground">
+                    <span class="underline decoration-tertiary-foreground decoration-1 underline-offset-[4px] group-hover/source:decoration-foreground">
+                      {source.title}
+                    </span>
+                    <ArrowUpRight
+                      aria-hidden="true"
+                      className="ml-1 inline size-3.5 text-tertiary-foreground"
+                      strokeWidth={1.5}
+                    />
+                  </a>
+                  <p class="mt-1 flex flex-wrap gap-x-2 text-paragraph-sm text-muted-foreground">
+                    <span>{source.publisher}</span>
+                    {source.date && (
+                      <>
+                        <span aria-hidden="true" class="text-faint-foreground">·</span>
+                        <time datetime={source.date}>{formatSourceDate(source.date)}</time>
+                      </>
+                    )}
+                    <span aria-hidden="true" class="text-faint-foreground">·</span>
+                    <span class="text-tertiary-foreground">{hostOf(source.url)}</span>
+                  </p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+      </Chapter>
+    </article>
+
+    {
+      product && solution && (
+        <Chapter
+          id={articleSectionIds.product}
+          headingId="article-product-title"
+          copy={{ label: ui.related.label, title: solution.title }}
+          class={anchor}
+        >
+          <div class="max-w-[40rem]">
+            <p class="text-label-sm text-foreground">{solution.eyebrow}</p>
+            <p class="mt-3 text-pretty text-paragraph-lg text-muted-foreground">{solution.description}</p>
+            {solution.highlights.length > 0 && (
+              <ul class="mt-6 flex flex-wrap gap-2">
+                {solution.highlights.map((highlight) => (
+                  <li class="rounded-full bg-foreground/[0.05] px-3 py-1 text-label-xs text-muted-foreground">
+                    {highlight}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div class="mt-8 flex flex-wrap items-center gap-2">
+              <a href={pathFor(product, "tr")} class="button button-primary group">
+                {solution.pageCta}
+                <ArrowRight
+                  aria-hidden="true"
+                  className="size-4 transition-transform group-hover:translate-x-0.5"
+                  strokeWidth={1.75}
+                />
+              </a>
+              <a href="#demo" data-demo-product={product} class="button button-secondary">
+                {ui.related.demo}
+              </a>
+            </div>
+          </div>
+        </Chapter>
+      )
+    }
+
+    {
+      more.length > 0 && (
+        <Chapter id={articleSectionIds.more} headingId="article-more-title" copy={ui.more} class={anchor}>
+          <ArticleList items={more} />
+          <a
+            href={turkishOnlyRoutes.blog.tr}
+            class="button button-sm button-secondary group mt-8"
+          >
+            {ui.allPosts}
+            <ArrowRight
+              aria-hidden="true"
+              className="size-3.5 text-tertiary-foreground transition-transform group-hover:translate-x-0.5"
+              strokeWidth={1.5}
+            />
+          </a>
+        </Chapter>
+      )
+    }
+
+    <FinalCta
+      locale="tr"
+      messages={messages}
+      source={`blog-${article.id}`}
+      defaultProduct={product ?? undefined}
+      title={product ? cta[product].title : undefined}
+      description={product ? cta[product].description : undefined}
+      secondaryCta={product ? cta.secondaryCta : undefined}
+      productNotes={{ kollektor: cta.kollektorNote, intelval: cta.intelvalNote }}
+    />
+  </main>
+
+  <SiteFooter locale="tr" messages={messages} />
+</div>
+
+<script>
+  // Marks the section being read in the contents. Nothing moves: the link that
+  // matches the last heading above the top fifth of the window turns full ink.
+  const navs = [...document.querySelectorAll<HTMLElement>("[data-toc]")];
+  const links = navs.flatMap((nav) => [...nav.querySelectorAll<HTMLAnchorElement>("a[href^='#']")]);
+  const headings = [
+    ...new Set(links.map((link) => decodeURIComponent(link.hash.slice(1)))),
+  ]
+    .map((id) => document.getElementById(id))
+    .filter((heading): heading is HTMLElement => heading !== null);
+
+  if (headings.length > 0) {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const line = window.innerHeight * 0.2;
+      let current: HTMLElement | undefined;
+      for (const heading of headings) {
+        if (heading.getBoundingClientRect().top <= line) current = heading;
+      }
+      for (const link of links) {
+        const on = current !== undefined && decodeURIComponent(link.hash.slice(1)) === current.id;
+        if (on) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      }
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    update();
+  }
+
+  // Following a link in the small-screen contents closes it.
+  document.querySelectorAll<HTMLDetailsElement>("details.toc-mobile").forEach((details) => {
+    details.addEventListener("click", (event) => {
+      if (event.target instanceof Element && event.target.closest("a")) details.open = false;
+    });
+  });
+</script>
+
+<style>
+  .crumb {
+    border-radius: var(--radius-sm);
+    transition: color 150ms ease;
+  }
+
+  .crumb:hover {
+    color: var(--foreground);
+  }
+
+  .toc-link {
+    display: block;
+    border-radius: var(--radius-sm);
+    padding-block: 0.3125rem;
+    color: var(--tertiary-foreground);
+    font-size: var(--text-paragraph-xs);
+    line-height: var(--text-paragraph-xs--line-height);
+    text-wrap: pretty;
+    transition: color 150ms ease;
+  }
+
+  .toc-link:hover,
+  .toc-link[aria-current="location"] {
+    color: var(--foreground);
+  }
+
+  .toc-mobile summary:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
+    border-radius: var(--radius-card);
+  }
+
+  /* ---- The article body ------------------------------------------------
+     Markdown arrives as plain elements, so they are styled from here with
+     the site's own tokens: the type scale for headings, the paragraph size
+     for text, hairlines and fills for tables, quotes and code. */
+  .article-prose {
+    color: color-mix(in oklab, var(--foreground) 86%, transparent);
+    font-size: var(--text-paragraph-lg);
+    line-height: 1.7;
+  }
+
+  .article-prose > :global(* + *) {
+    margin-top: 1.25rem;
+  }
+
+  /* Text keeps the reading measure; tables may run wider (below). */
+  .article-prose > :global(:not(table)) {
+    max-width: 34rem;
+  }
+
+  .article-prose :global(h2) {
+    margin-top: 3.5rem;
+    color: var(--foreground);
+    font-size: var(--text-title-h3);
+    line-height: var(--text-title-h3--line-height);
+    letter-spacing: var(--text-title-h3--letter-spacing);
+    font-weight: var(--text-title-h3--font-weight);
+    scroll-margin-top: calc(var(--nav-height) + 1.5rem);
+  }
+
+  /* A step above the body text (22px against 17px), so long articles can be
+     skimmed by their subheads; the h2s stay a step higher still. */
+  .article-prose :global(h3) {
+    margin-top: 2.5rem;
+    color: var(--foreground);
+    font-size: var(--text-title-h4);
+    line-height: var(--text-title-h4--line-height);
+    letter-spacing: var(--text-title-h4--letter-spacing);
+    font-weight: var(--text-title-h4--font-weight);
+    scroll-margin-top: calc(var(--nav-height) + 1.5rem);
+  }
+
+  .article-prose > :global(:is(h2, h3) + *) {
+    margin-top: 1rem;
+  }
+
+  .article-prose :global(a) {
+    color: var(--foreground);
+    text-decoration-line: underline;
+    text-decoration-color: var(--tertiary-foreground);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition: text-decoration-color 150ms ease;
+  }
+
+  .article-prose :global(a:hover) {
+    text-decoration-color: var(--foreground);
+  }
+
+  .article-prose :global(strong) {
+    color: var(--foreground);
+    font-weight: 600;
+  }
+
+  .article-prose :global(:is(ul, ol)) {
+    padding-left: 1.375rem;
+  }
+
+  .article-prose :global(ul) {
+    list-style: disc;
+  }
+
+  .article-prose :global(ol) {
+    list-style: decimal;
+  }
+
+  .article-prose :global(li + li),
+  .article-prose :global(li > :is(ul, ol)) {
+    margin-top: 0.5rem;
+  }
+
+  .article-prose :global(li)::marker {
+    color: var(--tertiary-foreground);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .article-prose :global(li > p + p) {
+    margin-top: 0.5rem;
+  }
+
+  .article-prose :global(blockquote) {
+    padding-left: 1.25rem;
+    box-shadow: inset 2px 0 0 var(--brand);
+    color: var(--foreground);
+  }
+
+  .article-prose :global(blockquote > * + *) {
+    margin-top: 0.75rem;
+  }
+
+  .article-prose :global(:not(pre) > code) {
+    border-radius: var(--radius-chip);
+    background: color-mix(in oklab, var(--foreground) 7%, transparent);
+    padding: 0.125em 0.375em;
+    color: var(--foreground);
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+  }
+
+  .article-prose :global(pre) {
+    overflow-x: auto;
+    border-radius: var(--radius-card);
+    padding: 1rem 1.25rem;
+    font-size: var(--text-paragraph-sm);
+    line-height: var(--text-paragraph-sm--line-height);
+  }
+
+  .article-prose :global(pre code) {
+    font-family: var(--font-mono);
+  }
+
+  .article-prose :global(hr) {
+    margin-block: 2.5rem;
+    border: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Tables: rows ruled by hairlines, no box around them.
+     On a phone a wide table scrolls sideways inside the column rather than
+     widening the page. So that a hidden column is not mistaken for a missing
+     one, the edge with more to see fades out: two covers in the page colour
+     scroll with the content (local) over two soft edges that stay put
+     (scroll), so each edge shows only while there is more beyond it. The
+     scrollbar is drawn thin and visible where the browser allows it.
+     From 48rem the table is a table again and may use the column's width,
+     up to 54rem, instead of being squeezed into the 34rem text measure. */
+  .article-prose :global(table) {
+    --table-edge: color-mix(in oklab, var(--foreground) 16%, transparent);
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    padding-bottom: 0.5rem;
+    background:
+      linear-gradient(to right, var(--background) 40%, transparent) left center / 2.5rem 100% no-repeat local,
+      linear-gradient(to left, var(--background) 40%, transparent) right center / 2.5rem 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, var(--table-edge), transparent) left center / 1rem 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, var(--table-edge), transparent) right center / 1rem 100% no-repeat scroll;
+    font-size: var(--text-paragraph-sm);
+    line-height: var(--text-paragraph-sm--line-height);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .article-prose :global(table::-webkit-scrollbar) {
+    height: 0.375rem;
+  }
+
+  .article-prose :global(table::-webkit-scrollbar-thumb) {
+    border-radius: 9999px;
+    background: var(--border-strong);
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    .article-prose :global(table) {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-strong) transparent;
+    }
+  }
+
+  /* Below 48rem each cell keeps a readable floor. Without it a four-column
+     table squeezed its cells to a word or two a line (and a short table
+     shrank short of the column, its hairlines stopping early); with it a
+     wide table runs past the column, so the scroll and the fading edge
+     above take over. Two- and three-column tables still fit at 520px. */
+  @media (width < 48rem) {
+    .article-prose :global(:is(th, td)) {
+      min-width: 8.5rem;
+    }
+
+    .article-prose :global(:is(th, td):first-child) {
+      min-width: 6.5rem;
+    }
+  }
+
+  @media (width >= 48rem) {
+    .article-prose :global(table) {
+      display: table;
+      width: 100%;
+      max-width: 54rem;
+      padding-bottom: 0;
+      background: none;
+    }
+  }
+
+  .article-prose :global(th) {
+    border-bottom: 1px solid var(--border-strong);
+    padding: 0 1.25rem 0.75rem 0;
+    color: var(--foreground);
+    font-size: var(--text-label-xs);
+    line-height: var(--text-label-xs--line-height);
+    font-weight: var(--text-label-xs--font-weight);
+    text-align: left;
+    vertical-align: bottom;
+  }
+
+  .article-prose :global(td) {
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 1.25rem 0.75rem 0;
+    color: var(--muted-foreground);
+    vertical-align: top;
+  }
+
+  .article-prose :global(:is(th, td):last-child) {
+    padding-right: 0;
+  }
+
+  .article-prose :global(td:first-child) {
+    color: var(--foreground);
+  }
+</style>

@@ -1,0 +1,695 @@
+---
+// /contact and /en/contact. Heading and lead on the left, the form on the
+// right, the office address under the lead (under the form on a phone).
+//
+// The owner's rules for this page (2026-10-07): the address and a map link,
+// nothing else. No phone, no legal name and no e-mail address anywhere in the
+// markup; the recipient of the form lives only in the endpoint
+// (src/pages/api/contact.ts). The form is the only channel, so its errors
+// never point at another one.
+//
+// Fill only, as everywhere on the site: the form sits on the stone well and
+// its fields are filled, with no outlines. Lines belong to the page frame.
+import {
+  ArrowRight,
+  ArrowUpRight,
+  CircleAlert,
+  CircleCheck,
+  Loader2,
+  Lock,
+  MapPin,
+} from "lucide-react";
+import BlinkText from "@/components/BlinkText";
+import SiteFooter from "@/components/home/SiteFooter.astro";
+import SiteHeader from "@/components/home/SiteHeader.astro";
+import type { Locale } from "@/i18n/config";
+import type { ContactPageMessages } from "@/i18n/page-types/contact";
+import type { Messages } from "@/i18n/types";
+import { pathFor } from "@/i18n/routes";
+import { brand } from "@/lib/brand";
+import {
+  contactFallback,
+  contactLimits,
+  contactProducts,
+  honeypotField,
+} from "@/lib/contact";
+
+interface Props {
+  locale: Locale;
+  /** The site-wide messages, for the header and the footer. */
+  messages: Messages;
+  copy: ContactPageMessages;
+}
+
+const { locale, messages, copy } = Astro.props;
+const skipLink = locale === "tr" ? "Ana içeriğe geç" : "Skip to content";
+
+// Limits in the page's own number format: 4.000 in Turkish, 4,000 in English.
+const numberFormat = new Intl.NumberFormat(locale === "tr" ? "tr-TR" : "en-US");
+const fill = (text: string, limit: number) =>
+  text.replace("{n}", numberFormat.format(limit));
+
+// Every message the script may show, already filled in. The script never
+// writes a word of its own.
+const errors = {
+  ...copy.errors,
+  nameTooLong: fill(copy.errors.nameTooLong, contactLimits.nameMax),
+  companyTooLong: fill(copy.errors.companyTooLong, contactLimits.companyMax),
+  messageTooShort: fill(copy.errors.messageTooShort, contactLimits.messageMin),
+  messageTooLong: fill(copy.errors.messageTooLong, contactLimits.messageMax),
+};
+
+// Display only, so the copy files and the meta description stay plain text:
+// no line break after the hyphen of "e-posta" (a word joiner) or inside
+// "ya da" (a no-break space).
+const keepTogether = (text: string) =>
+  text
+    .replace(/(\p{L})-(?=\p{L})/gu, "$1-⁠")
+    .replace(/(^|\s)([Yy]a) da(?=[\s.,;]|$)/g, "$1$2 da");
+
+// The address comes from brand.ts, never retyped, so this page, the footer
+// and the JSON-LD say the same thing.
+const mapQuery = [brand.streetAddress, brand.addressLocality, brand.addressRegion].join(", ");
+const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
+// The street line breaks at its natural seam, after the neighbourhood, so a
+// narrow column never splits the street's name ("Şehit Çahar / Dudayev").
+// brand.ts and the JSON-LD keep it as one string.
+const streetLines = brand.streetAddress.match(/^(.+? Mahallesi) (.+)$/)?.slice(1) ?? [
+  brand.streetAddress,
+];
+
+// What a plain form post comes back to (no JavaScript): one notice per
+// failed outcome, each shown by CSS when the endpoint's 303 targets it.
+const fallbackNotices = (["invalid", "rateLimited", "unavailable", "submission"] as const).map(
+  (outcome) => ({ id: contactFallback[outcome], text: copy.errors[outcome] }),
+);
+
+const ids = {
+  name: "contact-name",
+  email: "contact-email",
+  company: "contact-company",
+  message: "contact-message",
+  honeypot: "contact-website",
+  count: "contact-message-count",
+} as const;
+const errorId = (field: keyof typeof ids) => `${ids[field]}-error`;
+
+// Filled, never outlined. The invalid state tints the fill; focus keeps the
+// site's own ring (global :focus-visible).
+const fieldClass = [
+  "mt-2 block w-full rounded-[0.625rem] bg-card px-3.5 text-[0.9375rem] leading-6 text-foreground",
+  "placeholder:text-tertiary-foreground",
+  "transition-colors duration-150",
+  "aria-[invalid=true]:bg-[color-mix(in_srgb,var(--danger)_10%,var(--card))]",
+  "disabled:cursor-not-allowed disabled:opacity-60",
+].join(" ");
+const labelClass = "block text-label-sm text-foreground";
+const optionalClass = "font-normal text-tertiary-foreground";
+const errorClass = "mt-1.5 flex items-start gap-1.5 text-paragraph-xs font-medium text-danger";
+
+// The pills of ProductPicker, filled: no ring around the unpicked ones.
+const pillClass = [
+  "inline-flex h-8 select-none items-center rounded-full bg-card px-3 text-[0.8125rem] leading-5 text-foreground/80",
+  "transition-colors duration-150",
+  "peer-[:not(:checked)]:hover:text-foreground",
+  "peer-checked:bg-(--button-ink) peer-checked:text-(--button-ink-foreground)",
+  "peer-focus-visible:ring-2 peer-focus-visible:ring-brand peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-(--well)",
+  "peer-disabled:cursor-not-allowed peer-disabled:opacity-60",
+].join(" ");
+---
+
+<a class="skip-link" href="#main-content">{skipLink}</a>
+
+<div class="min-h-screen bg-background">
+  <SiteHeader locale={locale} messages={messages} />
+
+  <main id="main-content" tabindex="-1">
+    <section
+      class="frame frame-cross border-b border-border"
+      aria-labelledby="contact-title"
+    >
+      {/* Three blocks: the statement, the form, the address. On a phone they
+          stack in that order, so the address comes after the form. From lg
+          the form takes the right seven columns across both rows and the
+          address drops to the bottom of the left column. The left column's
+          top and bottom padding (56px) is the card's offset plus its own
+          padding, so the eyebrow lines up with the first label and the map
+          link with the submit button. */}
+      <div class="grid lg:grid-cols-12 lg:grid-rows-[auto_1fr]">
+        <div
+          class="px-5 pt-14 pb-8 sm:px-8 sm:pt-16 lg:col-span-5 lg:row-start-1 lg:px-12 lg:pt-14 lg:pb-10"
+        >
+          <p class="eyebrow">
+            <span class="eyebrow-mark" aria-hidden="true"></span>
+            {copy.eyebrow}
+          </p>
+          <h1 id="contact-title" class="mt-4 text-balance text-display text-foreground">
+            <BlinkText client:idle priority text={copy.title} />
+          </h1>
+          <p class="mt-6 max-w-md text-pretty text-lead text-foreground/85">
+            {keepTogether(copy.lead)}
+          </p>
+        </div>
+
+        {/* "#demo": the header's demo button is a bare fragment, and on this
+            page it lands on the form. */}
+        <div
+          id="demo"
+          class="p-3 sm:p-4 lg:col-span-7 lg:col-start-6 lg:row-span-2 lg:row-start-1 lg:py-6 lg:pr-6 lg:pl-0"
+        >
+          <div class="soft-card px-4 py-6 sm:px-8 sm:py-8" data-contact-root>
+            {/* No novalidate here: without JavaScript the browser's own checks
+                run. The script turns them off and shows its own messages. */}
+            <form
+              id="contact-form"
+              action="/api/contact"
+              method="post"
+              aria-label={copy.form.label}
+              data-contact-form
+              data-locale={locale}
+              data-errors={JSON.stringify(errors)}
+            >
+              <input type="hidden" name="locale" value={locale} />
+
+              {/* Only bots fill this in. Off screen, out of the tab order and
+                  hidden from screen readers. */}
+              <div class="absolute -left-[9999px] size-px overflow-hidden" aria-hidden="true">
+                <label for={ids.honeypot}>{copy.form.honeypot}</label>
+                <input
+                  id={ids.honeypot}
+                  type="text"
+                  name={honeypotField}
+                  tabindex="-1"
+                  autocomplete="off"
+                />
+              </div>
+
+              {/* Without JavaScript only: the endpoint sends a failed post back
+                  to one of these, and the <style> below shows the :target. The
+                  script, once it runs, uses the alert under the form instead. */}
+              {
+                fallbackNotices.map(({ id, text }) => (
+                  <p
+                    id={id}
+                    tabindex="-1"
+                    class="mb-6 hidden items-start gap-2.5 rounded-tile bg-[color-mix(in_srgb,var(--danger)_10%,transparent)] px-3.5 py-3 text-paragraph-sm text-danger outline-none"
+                    data-fallback-notice
+                  >
+                    <CircleAlert className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+                    <span>{text}</span>
+                  </p>
+                ))
+              }
+
+              <fieldset class="contents" data-contact-fields>
+                <div class="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+                  <div>
+                    <label class={labelClass} for={ids.name}>{copy.form.name}</label>
+                    <input
+                      id={ids.name}
+                      name="name"
+                      type="text"
+                      required
+                      autocomplete="name"
+                      minlength={contactLimits.nameMin}
+                      maxlength={contactLimits.nameMax}
+                      aria-describedby={errorId("name")}
+                      class:list={[fieldClass, "h-11 py-2"]}
+                    />
+                    <p id={errorId("name")} class={errorClass} data-error-for="name" hidden>
+                      <CircleAlert className="mt-px size-3.5 shrink-0" strokeWidth={2} aria-hidden="true" />
+                      <span data-error-text></span>
+                    </p>
+                  </div>
+
+                  <div>
+                    <label class={labelClass} for={ids.email}>{copy.form.email}</label>
+                    <input
+                      id={ids.email}
+                      name="email"
+                      type="email"
+                      required
+                      autocomplete="email"
+                      inputmode="email"
+                      spellcheck="false"
+                      maxlength={contactLimits.emailMax}
+                      aria-describedby={errorId("email")}
+                      class:list={[fieldClass, "h-11 py-2"]}
+                    />
+                    <p id={errorId("email")} class={errorClass} data-error-for="email" hidden>
+                      <CircleAlert className="mt-px size-3.5 shrink-0" strokeWidth={2} aria-hidden="true" />
+                      <span data-error-text></span>
+                    </p>
+                  </div>
+
+                  <div class="sm:col-span-2">
+                    <label class={labelClass} for={ids.company}>
+                      {copy.form.company} <span class={optionalClass}>({copy.form.optional})</span>
+                    </label>
+                    <input
+                      id={ids.company}
+                      name="company"
+                      type="text"
+                      autocomplete="organization"
+                      maxlength={contactLimits.companyMax}
+                      aria-describedby={errorId("company")}
+                      class:list={[fieldClass, "h-11 py-2"]}
+                    />
+                    <p id={errorId("company")} class={errorClass} data-error-for="company" hidden>
+                      <CircleAlert className="mt-px size-3.5 shrink-0" strokeWidth={2} aria-hidden="true" />
+                      <span data-error-text></span>
+                    </p>
+                  </div>
+
+                  <fieldset class="min-w-0 sm:col-span-2">
+                    <legend class={labelClass}>
+                      {copy.form.product.legend} <span class={optionalClass}>({copy.form.optional})</span>
+                    </legend>
+                    {/* "General" comes first and is picked by default: it sends no
+                        product, so the topic can always be put back from the
+                        keyboard, with no click-again trick. */}
+                    <div class="mt-2.5 flex flex-wrap gap-2">
+                      <label class="relative cursor-pointer">
+                        <input
+                          type="radio"
+                          name="product"
+                          value=""
+                          checked
+                          class="peer sr-only"
+                          data-product-option
+                        />
+                        <span class={pillClass}>{copy.form.product.general}</span>
+                      </label>
+                      {
+                        contactProducts.map((value) => (
+                          <label class="relative cursor-pointer">
+                            <input
+                              type="radio"
+                              name="product"
+                              value={value}
+                              class="peer sr-only"
+                              data-product-option
+                            />
+                            <span class={pillClass}>{copy.form.product.options[value]}</span>
+                          </label>
+                        ))
+                      }
+                    </div>
+                  </fieldset>
+
+                  <div class="sm:col-span-2">
+                    <div class="flex items-baseline justify-between gap-4">
+                      <label class={labelClass} for={ids.message}>{copy.form.message}</label>
+                      <span
+                        id={ids.count}
+                        class="text-paragraph-xs tabular-nums text-tertiary-foreground"
+                        data-message-count
+                        data-max={contactLimits.messageMax}
+                      >
+                        {numberFormat.format(0)} / {numberFormat.format(contactLimits.messageMax)}
+                      </span>
+                    </div>
+                    <textarea
+                      id={ids.message}
+                      name="message"
+                      rows="6"
+                      required
+                      minlength={contactLimits.messageMin}
+                      maxlength={contactLimits.messageMax}
+                      placeholder={copy.form.messagePlaceholder}
+                      aria-describedby={`${errorId("message")} ${ids.count}`}
+                      class:list={[fieldClass, "min-h-40 resize-y py-2.5"]}
+                    ></textarea>
+                    <p id={errorId("message")} class={errorClass} data-error-for="message" hidden>
+                      <CircleAlert className="mt-px size-3.5 shrink-0" strokeWidth={2} aria-hidden="true" />
+                      <span data-error-text></span>
+                    </p>
+                  </div>
+                </div>
+              </fieldset>
+
+              {/* Always in the page, so a screen reader announces what lands in it. */}
+              <div role="alert" data-form-alert>
+                <p
+                  class="mt-6 flex items-start gap-2.5 rounded-tile bg-[color-mix(in_srgb,var(--danger)_10%,transparent)] px-3.5 py-3 text-paragraph-sm text-danger"
+                  hidden
+                  data-alert-box
+                >
+                  <CircleAlert className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+                  <span data-alert-text></span>
+                </p>
+              </div>
+
+              {/* The notice comes before the button: it is read before anything is sent. */}
+              <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+                <p class="flex max-w-sm items-start gap-2 text-paragraph-xs text-tertiary-foreground">
+                  <Lock className="mt-0.5 size-3.5 shrink-0" strokeWidth={1.5} aria-hidden="true" />
+                  <span>
+                    {copy.form.privacy}{" "}
+                    {copy.form.privacyMore.split("{link}")[0]}
+                    <a
+                      href={pathFor("privacy", locale)}
+                      class="text-foreground underline decoration-tertiary-foreground underline-offset-[3px] hover:decoration-current"
+                    >{copy.form.privacyLinkLabel}</a>
+                    {copy.form.privacyMore.split("{link}")[1]}
+                  </span>
+                </p>
+                {/* Never disabled while sending: it keeps focus, and the
+                    script ignores repeat presses (aria-disabled says so). */}
+                <button
+                  type="submit"
+                  class="button button-lg button-primary group/submit w-full aria-disabled:cursor-progress sm:w-auto"
+                  data-contact-submit
+                >
+                  <span class="inline-flex items-center gap-2" data-idle-label>
+                    {copy.form.submit}
+                    <ArrowRight
+                      aria-hidden="true"
+                      strokeWidth={1.5}
+                      className="size-4 transition-transform group-hover/submit:translate-x-0.5"
+                    />
+                  </span>
+                  <span class="inline-flex items-center gap-2" data-loading-label hidden>
+                    <Loader2 aria-hidden="true" className="size-4 animate-spin" />
+                    {copy.form.sending}
+                  </span>
+                </button>
+              </div>
+            </form>
+
+            <div
+              id={contactFallback.sent}
+              class="hidden flex-col items-center justify-center gap-6 px-2 py-10 text-center outline-none"
+              role="status"
+              tabindex="-1"
+              data-contact-success
+            >
+              <span class="grid size-12 place-items-center rounded-full bg-brand-soft text-brand">
+                <CircleCheck aria-hidden="true" strokeWidth={1.5} className="size-6" />
+              </span>
+              <span class="block">
+                <strong class="block text-title-h4 text-foreground">{copy.success.title}</strong>
+                <span class="mx-auto mt-2 block max-w-sm text-pretty text-paragraph-md text-muted-foreground">
+                  {keepTogether(copy.success.body)}
+                </span>
+              </span>
+              {/* A link, so it also works without JavaScript: leaving the
+                  #contact-sent fragment shows the form again. */}
+              <a href="#contact-form" class="button button-secondary" data-contact-again>
+                {copy.success.again}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="px-5 pt-6 pb-12 sm:px-8 sm:pb-14 lg:col-span-5 lg:row-start-2 lg:self-end lg:px-12 lg:pt-10 lg:pb-14"
+        >
+          <h2 class="flex items-center gap-2 text-label-sm text-tertiary-foreground">
+            <MapPin className="size-4 shrink-0" strokeWidth={1.5} aria-hidden="true" />
+            {copy.address.label}
+          </h2>
+          <address class="mt-3 not-italic text-paragraph-lg text-foreground">
+            {streetLines.map((line) => <span class="block text-balance">{line}</span>)}
+            <span class="block text-muted-foreground">
+              {brand.addressLocality}, {brand.addressRegion}, {copy.address.country}
+            </span>
+          </address>
+          <a
+            href={mapUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="button button-sm button-secondary group mt-5 w-fit"
+          >
+            {copy.address.mapLink}<span class="sr-only"> ({copy.address.mapLinkHint})</span>
+            <ArrowUpRight
+              aria-hidden="true"
+              className="size-4 text-tertiary-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              strokeWidth={1.5}
+            />
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter locale={locale} messages={messages} />
+</div>
+
+<script>
+  import {
+    contactFallback,
+    contactProducts,
+    validateContact,
+    type ContactField,
+    type ContactFieldErrors,
+  } from "@/lib/contact";
+
+  type Copy = Record<string, string>;
+
+  // The fields that show their own error. "product" is a set of pills that
+  // cannot be invalid from this page, so a bad one is reported as a failed send.
+  const FIELDS = ["name", "email", "company", "message"] as const;
+
+  function messageFor(copy: Copy, field: ContactField, reason: string) {
+    switch (field) {
+      case "name":
+        return reason === "too_long" ? copy.nameTooLong : copy.nameRequired;
+      case "email":
+        return reason === "required" ? copy.emailRequired : copy.emailInvalid;
+      case "company":
+        return copy.companyTooLong;
+      case "message":
+        if (reason === "required") return copy.messageRequired;
+        return reason === "too_short" ? copy.messageTooShort : copy.messageTooLong;
+      default:
+        return copy.submission;
+    }
+  }
+
+  function enhance(form: HTMLFormElement) {
+    if (form.dataset.enhanced === "true") return;
+    form.dataset.enhanced = "true";
+
+    const root = form.closest<HTMLElement>("[data-contact-root]");
+    const success = root?.querySelector<HTMLElement>("[data-contact-success]");
+    const again = root?.querySelector<HTMLAnchorElement>("[data-contact-again]");
+    const fields = form.querySelector<HTMLFieldSetElement>("[data-contact-fields]");
+    const submit = form.querySelector<HTMLButtonElement>("[data-contact-submit]");
+    const idleLabel = form.querySelector<HTMLElement>("[data-idle-label]");
+    const loadingLabel = form.querySelector<HTMLElement>("[data-loading-label]");
+    const alertBox = form.querySelector<HTMLElement>("[data-alert-box]");
+    const alertText = form.querySelector<HTMLElement>("[data-alert-text]");
+    const counter = form.querySelector<HTMLElement>("[data-message-count]");
+    if (
+      !root || !success || !again || !fields || !submit || !idleLabel ||
+      !loadingLabel || !alertBox || !alertText || !counter
+    ) {
+      return;
+    }
+
+    // From here the script owns the form: its own checks and messages instead
+    // of the browser's, and its own states instead of the no-JS :target ones.
+    form.noValidate = true;
+    root.dataset.enhanced = "true";
+
+    const copy: Copy = JSON.parse(form.dataset.errors ?? "{}");
+    const numberFormat = new Intl.NumberFormat(
+      form.dataset.locale === "en" ? "en-US" : "tr-TR",
+    );
+    const control = (field: ContactField) =>
+      form.elements.namedItem(field) as HTMLInputElement | HTMLTextAreaElement | null;
+    const message = control("message") as HTMLTextAreaElement | null;
+
+    const values = () => {
+      const data = new FormData(form);
+      const payload: Record<string, string> = {};
+      for (const [key, value] of data) {
+        if (typeof value === "string") payload[key] = value;
+      }
+      return payload;
+    };
+
+    const setFieldError = (field: ContactField, text: string) => {
+      const input = control(field);
+      const box = form.querySelector<HTMLElement>(`[data-error-for="${field}"]`);
+      const target = box?.querySelector<HTMLElement>("[data-error-text]");
+      if (!input || !box || !target) return;
+      target.textContent = text;
+      box.hidden = !text;
+      if (text) input.setAttribute("aria-invalid", "true");
+      else input.removeAttribute("aria-invalid");
+    };
+
+    const setAlert = (text: string) => {
+      alertText.textContent = text;
+      alertBox.hidden = !text;
+    };
+
+    /** Shows every field's state; moves focus to the first one that is wrong. */
+    const showErrors = (errors: ContactFieldErrors, focus: boolean) => {
+      let first: HTMLElement | null = null;
+      for (const field of FIELDS) {
+        const reason = errors[field];
+        setFieldError(field, reason ? messageFor(copy, field, reason) : "");
+        if (reason && !first) first = control(field);
+      }
+      if (errors.product) setAlert(copy.submission);
+      if (focus) first?.focus();
+    };
+
+    // The button is never disabled: a disabled button drops keyboard focus to
+    // the page body. It says it is busy (aria-disabled) and `sending` makes
+    // repeat presses do nothing. The labels swap with the hidden attribute,
+    // which preflight enforces with !important, so a display class on the
+    // same span can never keep both labels on screen.
+    let sending = false;
+    const setBusy = (busy: boolean) => {
+      sending = busy;
+      fields.disabled = busy;
+      if (busy) {
+        submit.setAttribute("aria-disabled", "true");
+        form.setAttribute("aria-busy", "true");
+      } else {
+        submit.removeAttribute("aria-disabled");
+        form.removeAttribute("aria-busy");
+      }
+      idleLabel.hidden = busy;
+      loadingLabel.hidden = !busy;
+    };
+
+    // After a failed send, focus goes back to the form: to the field that is
+    // wrong when there is one, otherwise to the button, never the page body
+    // (a field that had focus was disabled while sending).
+    const keepFocusInForm = () => {
+      if (!form.contains(document.activeElement)) submit.focus();
+    };
+
+    const showSuccess = () => {
+      form.classList.add("hidden");
+      success.classList.remove("hidden");
+      success.classList.add("flex");
+      success.focus();
+    };
+
+    const updateCount = () => {
+      if (!message) return;
+      const max = Number(counter.dataset.max);
+      counter.textContent = `${numberFormat.format(message.value.length)} / ${numberFormat.format(max)}`;
+    };
+
+    // The browser may have restored a draft on back navigation.
+    updateCount();
+
+    // Once a field has been marked wrong, it is checked again as the visitor
+    // types, so the error goes away the moment it is fixed.
+    form.addEventListener("input", (event) => {
+      if (event.target === message) updateCount();
+      const target = event.target as HTMLElement | null;
+      const field = target?.getAttribute("name") as ContactField | null;
+      if (!field || !(FIELDS as readonly string[]).includes(field)) return;
+      if (target?.getAttribute("aria-invalid") !== "true") return;
+      const result = validateContact(values());
+      const reason = result.ok ? undefined : result.errors[field];
+      setFieldError(field, reason ? messageFor(copy, field, reason) : "");
+    });
+
+    // A link may arrive with its topic picked: /contact?product=intelval.
+    const wanted = new URLSearchParams(window.location.search).get("product");
+    if (wanted && (contactProducts as readonly string[]).includes(wanted)) {
+      const option = form.querySelector<HTMLInputElement>(
+        `[data-product-option][value="${wanted}"]`,
+      );
+      if (option) option.checked = true;
+    }
+
+    // The page may open on an outcome of a plain form post that was sent
+    // before this script ran (src/pages/api/contact.ts answers 303 to a
+    // fragment). Show it as this script's own state, then drop the fragment
+    // so a reload starts clean.
+    const landed = window.location.hash.slice(1);
+    const outcome = (Object.keys(contactFallback) as (keyof typeof contactFallback)[]).find(
+      (key) => contactFallback[key] === landed,
+    );
+    if (outcome) {
+      if (outcome === "sent") showSuccess();
+      else setAlert(copy[outcome] ?? copy.submission);
+      history.replaceState(history.state, "", window.location.pathname + window.location.search);
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (sending) return;
+      setAlert("");
+
+      const payload = values();
+      const result = validateContact(payload);
+      if (!result.ok) {
+        showErrors(result.errors, true);
+        return;
+      }
+      showErrors({}, false);
+      setBusy(true);
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (response.ok) {
+          // The card keeps its height, so the page does not jump.
+          success.style.minHeight = `${form.offsetHeight}px`;
+          form.reset();
+          updateCount();
+          setBusy(false);
+          showSuccess();
+          return;
+        }
+
+        const body = (await response.json().catch(() => ({}))) as {
+          fields?: ContactFieldErrors;
+        };
+        setBusy(false);
+        if (response.status === 422 && body.fields) showErrors(body.fields, true);
+        else if (response.status === 413) showErrors({ message: "too_long" }, true);
+        else if (response.status === 429) setAlert(copy.rateLimited);
+        else if (response.status === 503) setAlert(copy.unavailable);
+        else setAlert(copy.submission);
+        keepFocusInForm();
+      } catch {
+        setBusy(false);
+        setAlert(copy.submission);
+        keepFocusInForm();
+      }
+    });
+
+    again.addEventListener("click", (event) => {
+      event.preventDefault();
+      success.classList.add("hidden");
+      success.classList.remove("flex");
+      form.classList.remove("hidden");
+      control("name")?.focus();
+    });
+  }
+
+  for (const form of document.querySelectorAll<HTMLFormElement>("[data-contact-form]")) {
+    enhance(form);
+  }
+</script>
+
+<style>
+  /* Without JavaScript the form posts itself, and the endpoint answers 303
+     back here at a fragment (src/lib/contact.ts, contactFallback). These rules
+     show the state that fragment names. data-enhanced switches them off once
+     the script runs, because it shows the same states itself. */
+  [data-contact-root]:not([data-enhanced]) [data-fallback-notice]:target,
+  [data-contact-root]:not([data-enhanced]) [data-contact-success]:target {
+    display: flex;
+  }
+
+  [data-contact-root]:not([data-enhanced]):has([data-contact-success]:target) [data-contact-form] {
+    display: none;
+  }
+</style>

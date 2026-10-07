@@ -15,7 +15,13 @@ import hastamShot from "@/assets/editorial/menu-hastam.jpg";
 import kollektorShot from "@/assets/editorial/menu-kollektor.jpg";
 import ThemeToggle from "@/components/home/ThemeToggle.astro";
 import type { Locale } from "@/i18n/config";
-import { pageKeys, pathFor, routes } from "@/i18n/routes";
+import {
+  languageSwitch,
+  pageKeys,
+  pathFor,
+  routes,
+  turkishOnlyRoutes,
+} from "@/i18n/routes";
 import type { Messages } from "@/i18n/types";
 
 interface Props {
@@ -30,10 +36,19 @@ const currentPage =
   pageKeys.find((page) =>
     Object.values(routes[page]).some((path) => path === pathname),
   ) ?? "home";
+// The EN/TR targets. A Turkish-only page (the blog) keeps TR on itself and
+// sends EN to the English home page; see languageSwitch.
+const switchTo = languageSwitch(pathname);
+// The blog is Turkish only and its name is the same word in both languages, so
+// the English header links to it under the same label.
+const blogHref = turkishOnlyRoutes.blog.tr;
+const blogLabel = "Blog";
+const inBlog = pathname === blogHref || pathname.startsWith(`${blogHref}/`);
 const primaryNavigationLabel =
   locale === "tr" ? "Ana menü" : "Primary navigation";
 const menuLabel = locale === "tr" ? "Menü" : "Menu";
 const aboutHref = pathFor("about", locale);
+const contactHref = pathFor("contact", locale);
 const products = [
   {
     href: pathFor("kollektor", locale),
@@ -101,19 +116,39 @@ const defaultShot = Math.max(
 // Product pages live in the Ürünler menu. The mobile list still names each one.
 // A label never wraps, and the links are tighter below lg: at 768 the English
 // "How we work" broke into two lines and the Turkish demo button ran 1px past
-// the frame.
+// the frame. Blog added about 50px, so below lg the pills pad 8px, not 10px:
+// at 768 the Turkish row then fits inside its gutter with 8px to spare, where
+// it had run 10px into it. There is no room left at 768 for Contact (about
+// 70px), so the bar shows it from lg; below that it is in the footer, and
+// under md in the menu.
 const linkClass =
-  "flex h-9 items-center rounded-full px-2.5 text-[0.875rem] leading-5 whitespace-nowrap text-foreground/75 outline-none transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand aria-[current=page]:bg-foreground/[0.05] aria-[current=page]:text-foreground lg:px-3.5";
+  "flex h-9 items-center rounded-full px-2 text-[0.875rem] leading-5 whitespace-nowrap text-foreground/75 outline-none transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand aria-[current=page]:bg-foreground/[0.05] aria-[current=page]:text-foreground lg:px-3.5";
 const navItems = [
-  { href: `${homeHref}#solutions`, label: messages.nav.solutions },
-  { href: `${homeHref}#method`, label: messages.nav.method },
-  { href: aboutHref, label: messages.nav.about, page: "about" },
+  { href: `${homeHref}#solutions`, label: messages.nav.solutions, current: false },
+  { href: `${homeHref}#platform`, label: messages.nav.method, current: false },
+  { href: aboutHref, label: messages.nav.about, current: currentPage === "about" },
+  // The blog is in Turkish: on English pages the link says so (a spoken "in
+  // Turkish" and, where the bar has room, a muted TR). Not with hreflang:
+  // links that carry hreflang are the EN/TR switches (scripts/check-ssr.mjs).
+  { href: blogHref, label: blogLabel, current: inBlog, turkishOnly: locale === "en" },
+  {
+    href: contactHref,
+    label: messages.nav.contact,
+    current: currentPage === "contact",
+    wideOnly: true,
+  },
 ];
 const mobileItems = [
   navItems[0],
-  ...products.map(({ href, label, page }) => ({ href, label, page })),
+  ...products.map(({ href, label, page }) => ({
+    href,
+    label,
+    current: page === currentPage,
+  })),
   navItems[1],
   navItems[2],
+  navItems[3],
+  navItems[4],
 ];
 ---
 
@@ -252,10 +287,18 @@ const mobileItems = [
         navItems.slice(1).map((item) => (
           <a
             href={item.href}
-            aria-current={item.page === currentPage ? "page" : undefined}
-            class={linkClass}
+            aria-current={item.current ? "page" : undefined}
+            class:list={[linkClass, item.wideOnly && "max-lg:hidden"]}
           >
             {item.label}
+            {item.turkishOnly && (
+              <>
+                <span aria-hidden="true" class="ml-1.5 text-[0.6875rem] leading-4 tracking-wide text-tertiary-foreground max-xl:hidden">
+                  TR
+                </span>
+                <span class="sr-only"> (in Turkish)</span>
+              </>
+            )}
           </a>
         ))
       }
@@ -269,7 +312,7 @@ const mobileItems = [
         class="hidden items-center gap-0.5 md:flex"
       >
         <a
-          href={pathFor(currentPage, "en")}
+          href={switchTo.en}
           hreflang="en"
           lang="en"
           aria-current={locale === "en" ? "page" : undefined}
@@ -283,7 +326,7 @@ const mobileItems = [
           EN
         </a>
         <a
-          href={pathFor(currentPage, "tr")}
+          href={switchTo.tr}
           hreflang="tr"
           lang="tr"
           aria-current={locale === "tr" ? "page" : undefined}
@@ -335,10 +378,18 @@ const mobileItems = [
               mobileItems.map((item) => (
                 <a
                   href={item.href}
-                  aria-current={item.page === currentPage ? "page" : undefined}
+                  aria-current={item.current ? "page" : undefined}
                   class="border-b border-border px-5 py-3.5 text-[0.9375rem] leading-6 text-foreground/80 aria-[current=page]:text-foreground outline-none transition-colors hover:bg-foreground/[0.04] hover:text-foreground focus-visible:bg-foreground/[0.06] focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
                 >
                   {item.label}
+                  {"turkishOnly" in item && item.turkishOnly && (
+                    <>
+                      <span aria-hidden="true" class="ml-1.5 text-[0.75rem] tracking-wide text-tertiary-foreground">
+                        TR
+                      </span>
+                      <span class="sr-only"> (in Turkish)</span>
+                    </>
+                  )}
                 </a>
               ))
             }
@@ -353,7 +404,7 @@ const mobileItems = [
             </span>
             <span class="flex items-center gap-1">
               <a
-                href={pathFor(currentPage, "en")}
+                href={switchTo.en}
                 hreflang="en"
                 lang="en"
                 aria-current={locale === "en" ? "page" : undefined}
@@ -367,7 +418,7 @@ const mobileItems = [
                 EN
               </a>
               <a
-                href={pathFor(currentPage, "tr")}
+                href={switchTo.tr}
                 hreflang="tr"
                 lang="tr"
                 aria-current={locale === "tr" ? "page" : undefined}

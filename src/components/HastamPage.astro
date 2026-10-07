@@ -22,6 +22,7 @@ import HeroCalls from "@/components/hastam-page/HeroCalls.astro";
 import HastamDemo from "@/components/home/HastamDemo.astro";
 import Chapter from "@/components/product/Chapter.astro";
 import FactCells from "@/components/product/FactCells.astro";
+import RelatedPosts from "@/components/blog/RelatedPosts.astro";
 import Faq from "@/components/product/Faq.astro";
 import LinkRow from "@/components/product/LinkRow.astro";
 import NumberedRows from "@/components/product/NumberedRows.astro";
@@ -121,6 +122,12 @@ const hastamSite = locale === "tr" ? "https://hastam.ai/" : "https://hastam.ai/e
   <Chapter id="faq" headingId="hastam-faq-title" copy={page.faq}>
     <Faq items={page.faq.items} name="hastam-faq" />
   </Chapter>
+
+  <RelatedPosts
+    locale={locale}
+    slugs={["yapay-zeka-cagri-merkezi-asistani"]}
+    headingId="hastam-blog-title"
+  />
 
   <Chapter id="gbo-vision" headingId="hastam-parent-title" copy={page.parent} flush>
     <LinkRow

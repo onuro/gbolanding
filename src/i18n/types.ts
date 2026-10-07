@@ -1,3 +1,5 @@
+import type { ContactPageMessages } from "@/i18n/page-types/contact";
+import type { PrivacyPageMessages } from "@/i18n/page-types/privacy";
 import type { FountiblePageMessages } from "@/i18n/page-types/fountible";
 import type { HastamPageMessages } from "@/i18n/page-types/hastam";
 import type { IntelvalPageMessages } from "@/i18n/page-types/intelval";
@@ -116,6 +118,10 @@ export interface Messages {
   intelvalPage: IntelvalPageMessages;
   hastamPage: HastamPageMessages;
   fountiblePage: FountiblePageMessages;
+  /** /contact. Its copy lives in messages/contact-page.*.ts. */
+  contactPage: ContactPageMessages;
+  /** /privacy: the KVKK notice for the contact form (messages/privacy-page.*.ts). */
+  privacyPage: PrivacyPageMessages;
   nav: {
     solutions: string;
     kollektor: string;
@@ -124,6 +130,7 @@ export interface Messages {
     fountible: string;
     method: string;
     about: string;
+    contact: string;
     languageLabel: string;
     scheduleDemo: string;
   };
@@ -299,6 +306,8 @@ export interface Messages {
     platform: string;
     method: string;
     about: string;
+    contact: string;
+    privacy: string;
     rightsReserved: string;
   };
 }

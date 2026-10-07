@@ -1,4 +1,6 @@
 import type { Messages } from "@/i18n/types";
+import contactPage from "@/i18n/messages/contact-page.tr";
+import privacyPage from "@/i18n/messages/privacy-page.tr";
 import fountiblePage from "@/i18n/messages/fountible-page.tr";
 import hastamPage from "@/i18n/messages/hastam-page.tr";
 import intelvalPage from "@/i18n/messages/intelval-page.tr";
@@ -44,6 +46,8 @@ const trMessages: Messages = {
   intelvalPage,
   hastamPage,
   fountiblePage,
+  contactPage,
+  privacyPage,
   nav: {
     solutions: "Çözümler",
     kollektor: "Kollektor",
@@ -52,6 +56,7 @@ const trMessages: Messages = {
     fountible: "Fountible",
     method: "Yaklaşım",
     about: "Hakkımızda",
+    contact: "İletişim",
     languageLabel: "Dil",
     scheduleDemo: "Demo talep edin",
   },
@@ -95,13 +100,15 @@ const trMessages: Messages = {
   },
   solutions: {
     kollektor: {
-      eyebrow: "Tahsilat yapabilen AI",
+      eyebrow: "Tahsilat için sesli yapay zeka",
       title: "Kollektor",
+      // The two figures are GBO Vision's own data and stay in the highlights,
+      // each saying what it counts; the description does not repeat them.
       description:
-        "Kollektor, müşterilerle insan gibi doğal diyaloglar kuran bir yapay zeka asistanıdır. Hukuk büroları ve alacak sahipleri adına arar, ödeme planını konuşur. Günde 10.000'e kadar görüşme yapar. Eylül 2026'da hukuk büroları için 2,6 milyon TL'den fazla tahsilat sağladı.",
+        "Kollektor, hukuk büroları ve alacaklılar adına borçluları arayan sesli yapay zeka asistanıdır. Ödeme planını görüşür ve ödeme sözünü kaydeder; arama saatlerini, tekrar sınırlarını ve temsilciye aktarma kurallarını ekibiniz belirler.",
       highlights: [
-        "Günde 10.000 arama",
-        "Eylül 2026'da 2,6 milyon TL'den fazla tahsilat",
+        "Günde 10.000’e kadar arama",
+        "Eylül 2026’da hukuk bürosu müşterilerimiz adına 2,6 milyon TL’yi aşan tahsilat",
       ],
       cta: "Kollektor nasıl çalışır",
       pageCta: "Kollektor sayfasına gidin",
@@ -110,11 +117,11 @@ const trMessages: Messages = {
       eyebrow: "Değerleme için yapay zeka",
       title: "Intelval",
       description:
-        "Intelval, değerleme firmaları için emsal ve ekspertiz raporlarını okur. Konut, arsa ve ticari gayrimenkullerin değerini analiz eder. Sonra uzman düzeyinde bir rapor yazar.",
+        "Intelval, dosyadaki tapu, imar ve proje belgelerini okuyup emsalleri derler ve değerleme raporunun taslağını bankanın şablonunda hazırlar. Lisanslı değerleme uzmanınız taslağı kontrol eder, düzeltir ve imzalar.",
       highlights: [
-        "Arsa değeri",
-        "Gayrimenkul değeri",
-        "Açık raporlar",
+        "Belgeden rapor taslağı",
+        "Emsal derleme",
+        "İmza uzmanınızda",
       ],
       cta: "Intelval demosu planlayın",
       pageCta: "Intelval sayfasına gidin",
@@ -211,7 +218,7 @@ const trMessages: Messages = {
         },
         {
           number: "04",
-          title: "İnşa",
+          title: "Geliştirme",
           summary: "Tek seferde değil, sürümlerle.",
           description:
             "Yazılım, kullanıp geri bildirim verebileceğiniz kısa sürümlerle şekillenir. Her sürüm testten, güvenlik denetiminden ve kontrollü yayından geçer. Kurumsal kod, yapay zeka hızında.",
@@ -481,32 +488,32 @@ const trMessages: Messages = {
   },
   finalCta: {
     eyebrow: "Demo talep edin",
-    title: "Bir sonraki iş probleminizi işe yarayan bir yapay zekaya dönüştürün.",
+    title: "İşinizi yavaşlatan sorunu yapay zekayla birlikte çözelim.",
     description:
-      "İşin nerede yavaşladığını ya da zorlaştığını anlatın. Somut bir sonraki adımı birlikte belirleyelim.",
+      "İşin nerede yavaşladığını ya da zorlaştığını anlatın, atılacak ilk adımı birlikte belirleyelim.",
     primaryCta: "Demo talep edin",
-    secondaryCta: "Çözümleri keşfet",
+    secondaryCta: "Çözümleri inceleyin",
   },
   productCta: {
     kollektor: {
       title: "Kollektor’u bir demoda görün.",
       description:
-        "Tahsilat işinizin nasıl yürüdüğünü anlatın. Somut bir sonraki adımı birlikte belirleyelim.",
+        "Tahsilat işinizin nasıl yürüdüğünü anlatın, atılacak ilk adımı birlikte belirleyelim.",
     },
     intelval: {
       title: "Intelval’i size gösterelim.",
       description:
-        "Bir değerleme dosyasının firmanızda bugün nasıl ilerlediğini anlatın, atılacak ilk somut adımı birlikte belirleyelim.",
+        "Bir değerleme dosyasının firmanızda bugün nasıl ilerlediğini anlatın, atılacak ilk adımı birlikte belirleyelim.",
     },
     hastam: {
       title: "Hastam’ı bir demoda görün.",
       description:
-        "Kliniğinizde telefonun nasıl işlediğini anlatın. Somut bir sonraki adımı birlikte belirleyelim.",
+        "Kliniğinizde telefonun nasıl işlediğini anlatın, atılacak ilk adımı birlikte belirleyelim.",
     },
     fountible: {
       title: "Fountible’ı size gösterelim.",
       description:
-        "Tasarım sürecinizin bugün nasıl yürüdüğünü anlatın, atılacak ilk somut adımı birlikte belirleyelim.",
+        "Tasarım sürecinizin bugün nasıl yürüdüğünü anlatın, atılacak ilk adımı birlikte belirleyelim.",
     },
     secondaryCta: "Diğer çözümlere bakın",
     kollektorNote: "Borçluyu arar, ödeme sözünü teyit eder ve kaydeder.",
@@ -522,6 +529,8 @@ const trMessages: Messages = {
     platform: "Platform",
     method: "Yaklaşım",
     about: "Hakkımızda",
+    contact: "İletişim",
+    privacy: "KVKK aydınlatma metni",
     rightsReserved: "Tüm hakları saklıdır",
   },
 };

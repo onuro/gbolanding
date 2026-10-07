@@ -1,0 +1,49 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import BlogIndexPage from "@/components/blog/BlogIndexPage.astro";
+import { getMessages } from "@/i18n/getMessages";
+import blogPage from "@/i18n/messages/blog-page.tr";
+import { buildBlogIndexMetadata } from "@/i18n/metadata";
+import { blogArticlePath, blogFeedPath, routes } from "@/i18n/routes";
+import { getArticles, isoDate, toListItem } from "@/lib/blog";
+import { blogId, blogNode, breadcrumbNode } from "@/lib/schema";
+
+// Turkish only: there is no /en/blog (docs/language-routing.md).
+export const prerender = true;
+
+const messages = await getMessages("tr");
+const metadata = buildBlogIndexMetadata(messages);
+const origin = new URL(Astro.site ?? Astro.url.origin);
+const canonical = new URL(metadata.canonicalPath, origin);
+const articles = await getArticles();
+
+// CollectionPage (from the layout) whose main entity is the Blog, which lists
+// the same articles the page shows, in the same order.
+const schema = [
+  blogNode(
+    origin,
+    { name: blogPage.name, description: blogPage.metaDescription },
+    articles.map((article) => ({
+      url: new URL(blogArticlePath(article.id), origin).href,
+      headline: article.data.title,
+      datePublished: isoDate(article.data.publishedAt),
+      dateModified: isoDate(article.data.updatedAt),
+    })),
+  ),
+  breadcrumbNode(canonical, [
+    { name: blogPage.article.home, url: new URL(routes.home.tr, origin).href },
+    { name: blogPage.index.eyebrow, url: canonical.href },
+  ]),
+];
+---
+
+<BaseLayout locale="tr" metadata={metadata} extraSchema={schema} mainEntityId={blogId(origin)}>
+  <link
+    slot="head"
+    rel="alternate"
+    type="application/rss+xml"
+    title={blogPage.name}
+    href={new URL(blogFeedPath, origin).href}
+  />
+  <BlogIndexPage messages={messages} items={articles.map(toListItem)} />
+</BaseLayout>

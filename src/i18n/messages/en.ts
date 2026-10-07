@@ -1,4 +1,6 @@
 import type { Messages } from "@/i18n/types";
+import contactPage from "@/i18n/messages/contact-page.en";
+import privacyPage from "@/i18n/messages/privacy-page.en";
 import fountiblePage from "@/i18n/messages/fountible-page.en";
 import hastamPage from "@/i18n/messages/hastam-page.en";
 import intelvalPage from "@/i18n/messages/intelval-page.en";
@@ -44,6 +46,8 @@ const enMessages: Messages = {
   intelvalPage,
   hastamPage,
   fountiblePage,
+  contactPage,
+  privacyPage,
   nav: {
     solutions: "Solutions",
     kollektor: "Kollektor",
@@ -52,6 +56,7 @@ const enMessages: Messages = {
     fountible: "Fountible",
     method: "How we work",
     about: "About",
+    contact: "Contact",
     languageLabel: "Language",
     scheduleDemo: "Schedule a demo",
   },
@@ -519,6 +524,8 @@ const enMessages: Messages = {
     platform: "Platform",
     method: "How we work",
     about: "About",
+    contact: "Contact",
+    privacy: "Privacy notice",
     rightsReserved: "All rights reserved",
   },
 };

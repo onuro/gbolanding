@@ -1,0 +1,168 @@
+---
+// /blog. A calm, editorial list: the newest article first and larger, with its
+// short summary beside it, then every other article as a dotted row, newest
+// first. No pictures and no card outlines: type and the frame's hairlines
+// carry the page. The demo request closes it, as on every other page.
+import { ArrowRight, Rss } from "lucide-react";
+import ArticleList from "@/components/blog/ArticleList.astro";
+import BlogSection from "@/components/blog/BlogSection.astro";
+import FinalCta from "@/components/home/FinalCta.astro";
+import SiteFooter from "@/components/home/SiteFooter.astro";
+import SiteHeader from "@/components/home/SiteHeader.astro";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
+import blogPage from "@/i18n/messages/blog-page.tr";
+import { blogFeedPath } from "@/i18n/routes";
+import type { Messages } from "@/i18n/types";
+import type { ArticleListItem } from "@/lib/blog";
+
+interface Props {
+  messages: Messages;
+  /** Newest first. */
+  items: readonly ArticleListItem[];
+}
+
+const { messages, items } = Astro.props;
+const copy = blogPage.index;
+// An article marked `featured` leads; otherwise the newest one does. The rest
+// keep their newest-first order.
+const featured = items.find((item) => item.featured) ?? items[0];
+const rest = items.filter((item) => item !== featured);
+---
+
+<a class="skip-link" href="#main-content">Ana içeriğe geç</a>
+
+<div class="min-h-screen bg-background">
+  <SiteHeader locale="tr" messages={messages} />
+
+  <main id="main-content" tabindex="-1">
+    <BlogSection labelledBy="blog-title">
+      <SectionHeader
+        as="h1"
+        eyebrow={copy.eyebrow}
+        lead={copy.lead}
+        headingId="blog-title"
+        headingClass="max-w-3xl text-display"
+        rule={false}
+        class="pt-16! pb-14! sm:pb-16!"
+      >
+        {copy.title}
+        <a
+          slot="aside"
+          href={blogFeedPath}
+          type="application/rss+xml"
+          class="button button-sm button-secondary"
+        >
+          <Rss aria-hidden="true" className="size-3.5 text-tertiary-foreground" strokeWidth={1.75} />
+          {copy.feed}
+        </a>
+      </SectionHeader>
+    </BlogSection>
+
+    {
+      featured ? (
+        <BlogSection label={copy.featuredLabel} labelledBy="featured-title">
+          <article class="featured group relative grid lg:grid-cols-12">
+            <div class="flex flex-col px-5 pt-14 pb-10 sm:px-8 sm:pt-16 lg:col-span-7 lg:px-12 lg:pb-16">
+              <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-paragraph-sm text-muted-foreground">
+                <span class="text-foreground">{featured.category}</span>
+                <span aria-hidden="true" class="text-faint-foreground">·</span>
+                <time datetime={featured.dateIso}>{featured.date}</time>
+                <span aria-hidden="true" class="text-faint-foreground">·</span>
+                <span>{featured.reading}</span>
+              </p>
+              <h2 id="featured-title" class="mt-5 max-w-[22ch] text-balance text-title-h2 text-foreground">
+                <a
+                  href={featured.href}
+                  class="featured-link outline-none decoration-tertiary-foreground decoration-1 underline-offset-[6px] group-hover:underline"
+                >
+                  {featured.title}
+                </a>
+              </h2>
+              <p class="mt-5 max-w-[34rem] text-pretty text-lead text-foreground/85">
+                {featured.description}
+              </p>
+              <span
+                aria-hidden="true"
+                class="button button-primary mt-8 w-fit"
+              >
+                {blogPage.article.read}
+                <ArrowRight
+                  className="size-4 transition-transform group-hover:translate-x-0.5"
+                  strokeWidth={1.75}
+                />
+              </span>
+            </div>
+
+            {/* The article's own takeaways: what a reader gets before clicking.
+                The card hugs its three to five lines; stretched to the
+                column's height it stood two-thirds empty. Its first line
+                sits level with the meta line on the left. Below lg it sits
+                under the text, so it keeps clear of the next band's label
+                (pb-10), and below md it shows the first three points only:
+                five ran to about 500px and pushed the list a screen down. */}
+            <div class="flex items-start p-3 pb-10 sm:p-4 sm:pb-10 lg:col-span-5 lg:py-6 lg:pr-6 lg:pl-0">
+              <div class="soft-card w-full px-6 py-7 sm:px-8 sm:py-9">
+                <p class="eyebrow text-foreground">
+                  <span class="eyebrow-mark" aria-hidden="true" />
+                  {blogPage.article.summary}
+                </p>
+                <ul class="mt-5 space-y-3.5">
+                  {featured.summary.map((point, index) => (
+                    <li
+                      class:list={[
+                        "flex gap-3 text-pretty text-paragraph-md text-foreground/85",
+                        index >= 3 && "max-md:hidden",
+                      ]}
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="mt-[0.6875rem] h-px w-3 shrink-0 bg-tertiary-foreground"
+                      />
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </article>
+        </BlogSection>
+      ) : (
+        <BlogSection>
+          <p class="px-5 py-16 text-paragraph-md text-muted-foreground sm:px-8 lg:px-12">
+            {copy.empty}
+          </p>
+        </BlogSection>
+      )
+    }
+
+    {
+      rest.length > 0 && (
+        <BlogSection label={copy.listLabel} labelId="all-posts-title">
+          <div class="px-5 pt-10 pb-14 sm:px-8 sm:pb-16 lg:px-12">
+            <ArticleList items={rest} />
+          </div>
+        </BlogSection>
+      )
+    }
+
+    <FinalCta locale="tr" messages={messages} source="blog" />
+  </main>
+
+  <SiteFooter locale="tr" messages={messages} />
+</div>
+
+<style>
+  /* The featured title's link covers the whole article, picture of the
+     takeaways included, so the band is one target. */
+  .featured-link::after {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    content: "";
+  }
+
+  .featured:has(.featured-link:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -4px;
+  }
+</style>

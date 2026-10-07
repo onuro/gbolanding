@@ -20,20 +20,22 @@ const ogLocale = locale === "tr" ? "tr_TR" : "en_US";
 const siteOrigin = new URL(Astro.site ?? Astro.url.origin);
 const canonicalUrl = new URL(metadata.canonicalPath, siteOrigin);
 // Derived from the page's own cluster, never from a fixed pair -- otherwise
-// /about would tell Google its Turkish counterpart is the home page.
-const alternateUrls = locales.map((code) => ({
-  code,
-  href: new URL(metadata.alternates[code], siteOrigin).href,
-}));
+// /about would tell Google its Turkish counterpart is the home page. A
+// Turkish-only page (the blog) has no English URL, so it names Turkish and
+// x-default only: hreflang may point at a translation, never at a stand-in.
+const alternateUrls = locales.flatMap((code) => {
+  const path = metadata.alternates[code];
+  return path ? [{ code, href: new URL(path, siteOrigin).href }] : [];
+});
 const defaultAlternateUrl = new URL(
   metadata.alternates[defaultLocale],
   siteOrigin,
 ).href;
-const socialImageUrl = new URL("/og.png", siteOrigin);
-const socialImageAlt =
-  locale === "tr"
-    ? "GBO Vision — İş büyümesi için kurumsal yapay zeka ve özel yazılım."
-    : "GBO Vision — Enterprise AI and custom software for business growth.";
+// Each page has its own 1200x630 card (src/lib/og-images.ts); a page whose
+// card is not there yet shares the site-wide /og.png at its real size.
+const socialImage = metadata.ogImage;
+const socialImageUrl = new URL(socialImage.path, siteOrigin);
+const article = metadata.article;
 
 // One @graph rather than a lone Organization: the page, the site and the company
 // are separate nodes that reference each other by @id, so Google reads one entity
@@ -111,7 +113,8 @@ const schemaGraph = buildGraph({
     <title>{metadata.title}</title>
     <meta name="description" content={metadata.description} />
     <meta name="keywords" content={metadata.keywords.join(", ")} />
-    <meta name="author" content={`${brand.name} Team`} />
+    {/* The same author the JSON-LD names (src/lib/schema.ts). */}
+    <meta name="author" content={brand.name} />
     <meta name="application-name" content={brand.name} />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href={canonicalUrl} />
@@ -123,18 +126,32 @@ const schemaGraph = buildGraph({
     <link rel="alternate" hreflang="x-default" href={defaultAlternateUrl} />
     <meta property="og:title" content={metadata.title} />
     <meta property="og:description" content={metadata.description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={article ? "article" : "website"} />
     <meta property="og:site_name" content={brand.name} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:locale" content={ogLocale} />
     <meta property="og:image" content={socialImageUrl} />
-    <meta property="og:image:width" content="1733" />
-    <meta property="og:image:height" content="907" />
-    <meta property="og:image:alt" content={socialImageAlt} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content={String(socialImage.width)} />
+    <meta property="og:image:height" content={String(socialImage.height)} />
+    <meta property="og:image:alt" content={socialImage.alt} />
+    {
+      article && (
+        <>
+          <meta property="article:published_time" content={article.publishedTime} />
+          <meta property="article:modified_time" content={article.modifiedTime} />
+          <meta property="article:section" content={article.section} />
+          {article.tags.map((tag) => <meta property="article:tag" content={tag} />)}
+        </>
+      )
+    }
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={metadata.title} />
     <meta name="twitter:description" content={metadata.description} />
     <meta name="twitter:image" content={socialImageUrl} />
+    <meta name="twitter:image:alt" content={socialImage.alt} />
+    {/* Page-specific head tags, e.g. the blog's feed link. */}
+    <slot name="head" />
     <script
       type="application/ld+json"
       is:inline

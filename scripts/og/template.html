@@ -1,0 +1,435 @@
+<!doctype html>
+<!--
+  The share card (Open Graph / X / LinkedIn / WhatsApp preview), 1200 x 630.
+  scripts/og/render.mjs opens this file in headless Chrome once per entry of
+  scripts/og/pages.json and screenshots it to public/og/<key>.png.
+
+  Content arrives in the query string as one JSON object, ?c=<encoded JSON>:
+    { "lang": "tr", "eyebrow": "...", "title": "...", "line": "...",
+      "visual": { "kind": "photo" | "face" | "window" | "atmos", "src": "...", ... } }
+  Paths in "visual" are relative to the repo root. Open the file in a browser
+  with a ?c= query to tune a card by hand (render.mjs --url <key> prints one).
+
+  Layout: the site's drawn sheet. Two rails and two rules cross near the edges
+  with a small crosshair at each crossing; the text sits in the left cell, the
+  page's own picture fills the right one. Everything that carries meaning stays
+  88 px inside the edges, so a preview that crops the card still shows it.
+-->
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <title>og</title>
+    <style>
+      /* The variable cut carries every weight; the static Medium is the fallback. */
+      @font-face {
+        font-family: "TT Firs Neue";
+        src:
+          url("../../public/fonts/tt-firs-neue/TTFirsNeue-Variable.woff2") format("woff2"),
+          url("../../public/fonts/tt-firs-neue/TTFirsNeue-Medium.woff2") format("woff2");
+        font-weight: 100 900;
+        font-style: normal;
+      }
+
+      /* The dark theme's tokens from src/styles/global.css (:root), copied
+         because this page is opened from disk, outside the site's CSS. Keep
+         them in step when the palette changes. */
+      :root {
+        --background: #09090b;
+        --foreground: #fafafa;
+        --muted-foreground: #a1a1aa;
+        --tertiary-foreground: #909099;
+        --well: #121215;
+        --well-dot: rgb(250 250 250 / 8%);
+        --border: rgb(250 250 250 / 10%);
+        --border-strong: rgb(250 250 250 / 17%);
+        --brand: #05dd87;
+        /* The crosshairs: the frame-cross dots' foreground at 50 %, a little
+           under it so they stay marks, not stars. */
+        --cross: rgb(250 250 250 / 42%);
+        --atmos-base: #04301f;
+        /* The grain, one speck per pixel. The site's dark theme draws it at
+           0.35 on a 1x screen; a card is nearly always shown scaled down, which
+           averages the specks away, and grain is what makes a PNG heavy, so
+           the card uses a little less. */
+        --atmos-grain: 0.24;
+        --font-sans: "TT Firs Neue", ui-sans-serif, system-ui, sans-serif;
+
+        /* Card geometry. The frame lines sit 48 px in; the text 88 px in. */
+        --w: 1200px;
+        --h: 630px;
+        --edge: 48px;
+        --split: 676px;
+        --pad: 40px;
+      }
+
+      * { box-sizing: border-box; }
+
+      html,
+      body {
+        margin: 0;
+        width: var(--w);
+        height: var(--h);
+        overflow: hidden;
+        background: var(--background);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
+      }
+
+      .card {
+        position: relative;
+        width: var(--w);
+        height: var(--h);
+        overflow: hidden;
+        background:
+          /* The page backdrop's green light, moved over the text cell. */
+          radial-gradient(circle at 18% -30%, rgb(5 221 135 / 9%), transparent 520px),
+          var(--background);
+        font-family: var(--font-sans);
+        color: var(--foreground);
+      }
+
+      /* ---- the frame ---------------------------------------------------- */
+
+      .line {
+        position: absolute;
+        z-index: 3;
+        background: var(--border);
+        pointer-events: none;
+      }
+      .line.v { top: 0; bottom: 0; width: 1px; }
+      .line.h { left: 0; right: 0; height: 1px; }
+      .line.v.l { left: var(--edge); }
+      .line.v.r { left: calc(var(--w) - var(--edge) - 1px); }
+      .line.h.t { top: var(--edge); }
+      .line.h.b { top: calc(var(--h) - var(--edge) - 1px); }
+      /* The cell wall between text and picture runs between the two rules. */
+      .line.v.split {
+        left: var(--split);
+        top: var(--edge);
+        bottom: var(--edge);
+      }
+
+      /* A crosshair where two lines cross: 13 px arms, a little brighter than
+         the lines, so the sheet reads as drawn even when the card is small. */
+      .cross {
+        position: absolute;
+        z-index: 4;
+        width: 13px;
+        height: 13px;
+        translate: -6px -6px;
+        background:
+          linear-gradient(var(--cross), var(--cross)) center / 13px 1px no-repeat,
+          linear-gradient(var(--cross), var(--cross)) center / 1px 13px no-repeat;
+      }
+
+      /* ---- the text cell ------------------------------------------------ */
+
+      .text {
+        position: absolute;
+        z-index: 2;
+        left: var(--edge);
+        top: var(--edge);
+        width: calc(var(--split) - var(--edge));
+        height: calc(var(--h) - 2 * var(--edge));
+        padding: var(--pad);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .logo {
+        display: block;
+        height: 50px;
+        width: auto;
+        align-self: flex-start;
+      }
+
+      /* Eyebrow, title and line hang from the bottom, so a two-line and a
+         four-line title share the same baseline for the last line. */
+      .copy {
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 22px;
+        font-size: 22px;
+        line-height: 28px;
+        font-weight: 400;
+        color: var(--muted-foreground);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .eyebrow::before {
+        content: "";
+        width: 9px;
+        height: 9px;
+        flex: none;
+        border-radius: 999px;
+        background: var(--brand);
+      }
+
+      /* The display style: medium weight, tight tracking, never light. The
+         size is fitted by the script below, from 64 px down. */
+      .title {
+        margin: 0;
+        font-size: 64px;
+        line-height: 1.06;
+        letter-spacing: -0.03em;
+        font-weight: 500;
+        text-wrap: balance;
+        hyphens: manual;
+      }
+
+      .sub {
+        margin: 24px 0 0;
+        font-size: 24px;
+        line-height: 32px;
+        font-weight: 400;
+        letter-spacing: -0.005em;
+        color: var(--muted-foreground);
+        text-wrap: balance;
+      }
+      .sub:empty { display: none; }
+
+      /* ---- the picture cell --------------------------------------------- */
+
+      .visual {
+        position: absolute;
+        z-index: 1;
+        left: calc(var(--split) + 1px);
+        top: calc(var(--edge) + 1px);
+        width: calc(var(--w) - var(--split) - var(--edge) - 2px);
+        height: calc(var(--h) - 2 * var(--edge) - 2px);
+        overflow: hidden;
+        background: var(--well);
+      }
+
+      .visual img.cover {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      /* photo: the page's editorial picture, with a soft fall-off into the
+         dark at the bottom so the cell sits in the sheet. */
+      .visual[data-kind="photo"]::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgb(9 9 11 / 34%), transparent 34%);
+        pointer-events: none;
+      }
+
+      /* face: the hero's particle face on the hero's dark well, with its faint
+         dot grid (stage-dots). The still is screen-blended like the live canvas. */
+      .visual[data-kind="face"] {
+        background: var(--background);
+      }
+      .visual[data-kind="face"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle, var(--well-dot) 1px, transparent 1px);
+        background-size: 20px 20px;
+        background-position: 10px 10px;
+      }
+      .visual[data-kind="face"] img.cover {
+        mix-blend-mode: screen;
+      }
+
+      /* atmos / window: the noise gradient a product window floats on
+         (stage-atmos): a blurred stock gradient plus a grain tile drawn at one
+         speck per pixel. */
+      .visual[data-kind="atmos"],
+      .visual[data-kind="window"] {
+        background: var(--atmos-base);
+      }
+      .grain {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        background: url("../../src/assets/editorial/atmosphere-grain.png") 0 0 / 256px 256px;
+        opacity: var(--atmos-grain);
+        pointer-events: none;
+      }
+
+      /* window: a product screenshot as a window on the gradient, cut by the
+         cell's right and bottom edges like a product shot. Fill and shadow, no
+         outline. */
+      .window {
+        position: absolute;
+        z-index: 3;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow:
+          0 2px 4px rgb(0 0 0 / 30%),
+          0 24px 48px -12px rgb(0 0 0 / 60%),
+          0 48px 96px -24px rgb(0 0 0 / 50%);
+      }
+      .window img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      /* atmos: the GBO Vision mark, centred on the gradient. */
+      .mark {
+        position: absolute;
+        z-index: 3;
+        left: 50%;
+        top: 50%;
+        height: 148px;
+        translate: -50% -50%;
+        overflow: hidden;
+      }
+      .mark img {
+        display: block;
+        height: 100%;
+        width: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card" id="card">
+      <div class="visual" id="visual"></div>
+
+      <div class="text">
+        <img class="logo" src="../../public/gbobo2.svg" alt="GBO Vision" />
+        <div class="copy">
+          <p class="eyebrow" id="eyebrow"></p>
+          <h1 class="title" id="title"></h1>
+          <p class="sub" id="sub"></p>
+        </div>
+      </div>
+
+      <i class="line v l"></i>
+      <i class="line v r"></i>
+      <i class="line h t"></i>
+      <i class="line h b"></i>
+      <i class="line v split"></i>
+    </div>
+
+    <script>
+      (async () => {
+        const root = "../../";
+        const card = document.getElementById("card");
+        const raw = new URLSearchParams(location.search).get("c");
+        const c = raw
+          ? JSON.parse(raw)
+          : {
+              lang: "tr",
+              eyebrow: "Örnek kart",
+              title: "Bu şablon bir sorgu bekler: ?c=<JSON>",
+              line: "node scripts/og/render.mjs --url <key>",
+              visual: { kind: "atmos", src: "src/assets/editorial/atmosphere-dusk.webp", mark: true },
+            };
+
+        document.documentElement.lang = c.lang || "tr";
+        document.getElementById("eyebrow").textContent = c.eyebrow || "";
+        if (!c.eyebrow) document.getElementById("eyebrow").remove();
+        document.getElementById("title").textContent = c.title || "";
+        document.getElementById("sub").textContent = c.line || "";
+
+        // The crosshairs, at every crossing of the frame.
+        const css = getComputedStyle(document.documentElement);
+        const px = (name) => parseFloat(css.getPropertyValue(name));
+        const W = px("--w"), H = px("--h"), E = px("--edge"), S = px("--split");
+        const points = [
+          [E, E], [W - E - 1, E], [E, H - E - 1], [W - E - 1, H - E - 1],
+          [S, E], [S, H - E - 1],
+        ];
+        for (const [x, y] of points) {
+          const i = document.createElement("i");
+          i.className = "cross";
+          i.style.left = `${x + 0.5}px`;
+          i.style.top = `${y + 0.5}px`;
+          card.appendChild(i);
+        }
+
+        // The picture cell.
+        const v = c.visual || { kind: "atmos" };
+        const cell = document.getElementById("visual");
+        cell.dataset.kind = v.kind;
+        const waits = [];
+        const img = (src, cls) => {
+          const el = new Image();
+          if (cls) el.className = cls;
+          el.decoding = "sync";
+          el.src = root + src;
+          waits.push(el.decode().catch(() => {}));
+          return el;
+        };
+
+        if (v.kind === "photo" || v.kind === "face") {
+          const el = img(v.src, "cover");
+          el.style.objectPosition = v.position || "50% 50%";
+          if (v.scale) {
+            el.style.transform = `scale(${v.scale})`;
+            el.style.transformOrigin = v.origin || v.position || "50% 50%";
+          }
+          cell.appendChild(el);
+        } else if (v.kind === "window" || v.kind === "atmos") {
+          const bg = img(v.backdrop || v.src, "cover");
+          bg.style.objectPosition = v.backdropPosition || "50% 50%";
+          cell.appendChild(bg);
+          const grain = document.createElement("div");
+          grain.className = "grain";
+          cell.appendChild(grain);
+          if (v.kind === "window") {
+            const win = document.createElement("div");
+            win.className = "window";
+            // left/top inside the cell and the window's width, in px
+            win.style.left = `${v.x ?? 48}px`;
+            win.style.top = `${v.y ?? 56}px`;
+            win.style.width = `${v.width ?? 760}px`;
+            win.appendChild(img(v.src));
+            cell.appendChild(win);
+          } else if (v.mark) {
+            // The mark is the first 787 of the logo's 1993 units: crop the
+            // full logo to it.
+            const box = document.createElement("div");
+            box.className = "mark";
+            box.style.aspectRatio = "787 / 852";
+            box.appendChild(img("public/gbobo2.svg"));
+            cell.appendChild(box);
+          }
+        }
+
+        await document.fonts.load('500 64px "TT Firs Neue"');
+        await document.fonts.load('400 24px "TT Firs Neue"');
+        await document.fonts.ready;
+
+        // Fit the title: the largest size from 64 px down that keeps it to
+        // three lines; a longer title (an article's, up to 75 characters) may
+        // take four lines at 46 px or more.
+        const title = document.getElementById("title");
+        const lines = () => {
+          const lh = parseFloat(getComputedStyle(title).lineHeight);
+          return Math.round(title.getBoundingClientRect().height / lh);
+        };
+        let size = 64;
+        const fit = (max, floor) => {
+          for (size = 64; size >= floor; size -= 2) {
+            title.style.fontSize = `${size}px`;
+            if (lines() <= max) return true;
+          }
+          return false;
+        };
+        if (!fit(3, 50)) fit(4, 44);
+        // Shorter titles on fewer lines get a little more room under them.
+        document.body.dataset.titleSize = String(size);
+        document.body.dataset.titleLines = String(lines());
+
+        await Promise.all(waits);
+        document.title = "ready";
+      })();
+    </script>
+  </body>
+</html>

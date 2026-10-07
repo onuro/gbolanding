@@ -1,0 +1,121 @@
+---
+// /privacy and /en/privacy: the KVKK privacy notice for the contact form.
+// A plain reading page in the site's frame: the heading block, then the
+// notice in a comfortable measure. "{address}" in the copy is filled from
+// brand.ts, so the notice, the footer and the JSON-LD never disagree.
+import SiteFooter from "@/components/home/SiteFooter.astro";
+import SiteHeader from "@/components/home/SiteHeader.astro";
+import type { Locale } from "@/i18n/config";
+import type { PrivacyPageMessages } from "@/i18n/page-types/privacy";
+import type { Messages } from "@/i18n/types";
+import { brand } from "@/lib/brand";
+
+interface Props {
+  locale: Locale;
+  messages: Messages;
+  copy: PrivacyPageMessages;
+}
+
+const { locale, messages, copy } = Astro.props;
+const skipLink = locale === "tr" ? "Ana içeriğe geç" : "Skip to content";
+const address = [brand.streetAddress, `${brand.addressLocality}/${brand.addressRegion}`].join(", ");
+const fill = (text: string) => text.replace("{address}", address);
+---
+
+<a class="skip-link" href="#main-content">{skipLink}</a>
+
+<div class="min-h-screen bg-background">
+  <SiteHeader locale={locale} messages={messages} />
+
+  <main id="main-content" tabindex="-1">
+    <section class="frame frame-cross border-b border-border" aria-labelledby="privacy-title">
+      <div class="grid lg:grid-cols-12">
+        <header class="px-5 pt-14 pb-10 sm:px-8 sm:pt-16 lg:col-span-8 lg:px-12 lg:pb-14">
+          <p class="eyebrow">
+            <span class="eyebrow-mark" aria-hidden="true"></span>
+            {copy.eyebrow}
+          </p>
+          <h1 id="privacy-title" class="mt-4 text-balance text-title-h2 text-foreground">
+            {copy.title}
+          </h1>
+          <p class="mt-5 max-w-2xl text-pretty text-paragraph-md text-muted-foreground">
+            {copy.lead}
+          </p>
+          <p class="mt-6 data-label">{copy.updated}</p>
+          {copy.translationNote && (
+            <p class="mt-2 text-paragraph-xs text-tertiary-foreground">{copy.translationNote}</p>
+          )}
+        </header>
+      </div>
+    </section>
+
+    <section class="frame border-b border-border">
+      <div class="px-5 py-12 sm:px-8 sm:py-16 lg:px-12">
+        <div class="privacy-body max-w-[68ch]">
+          {
+            copy.sections.map((section) => (
+              <section>
+                <h2>{section.title}</h2>
+                {section.paragraphs.map((paragraph) => (
+                  <p>{fill(paragraph)}</p>
+                ))}
+                {section.items && (
+                  <ul>
+                    {section.items.map((item) => (
+                      <li>{item}</li>
+                    ))}
+                  </ul>
+                )}
+                {section.after?.map((paragraph) => (
+                  <p>{fill(paragraph)}</p>
+                ))}
+              </section>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter locale={locale} messages={messages} />
+</div>
+
+<style>
+  .privacy-body > section + section {
+    margin-top: 2.75rem;
+  }
+
+  .privacy-body h2 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 500;
+    color: var(--foreground);
+  }
+
+  .privacy-body p,
+  .privacy-body li {
+    font-size: 1rem;
+    line-height: 1.75rem;
+    color: var(--muted-foreground);
+  }
+
+  .privacy-body h2 + p,
+  .privacy-body p + p,
+  .privacy-body ul + p {
+    margin-top: 0.875rem;
+  }
+
+  .privacy-body ul {
+    margin-top: 0.75rem;
+    padding-left: 1.25rem;
+    list-style: disc;
+  }
+
+  .privacy-body li + li {
+    margin-top: 0.375rem;
+  }
+
+  .privacy-body li::marker {
+    color: var(--tertiary-foreground);
+  }
+</style>

@@ -23,6 +23,7 @@ import { fill } from "@/components/intelval-page/sample-file";
 import StepRows from "@/components/kollektor-page/StepRows.astro";
 import Chapter from "@/components/product/Chapter.astro";
 import FactCells from "@/components/product/FactCells.astro";
+import RelatedPosts from "@/components/blog/RelatedPosts.astro";
 import Faq from "@/components/product/Faq.astro";
 import NumberedRows from "@/components/product/NumberedRows.astro";
 import ProductHero from "@/components/product/ProductHero.astro";
@@ -176,4 +177,11 @@ const label = (text: string) => fill(locale, text);
   <Chapter id="faq" headingId="intelval-faq-title" copy={page.faq} class={anchor}>
     <Faq items={page.faq.items} name="intelval-faq" />
   </Chapter>
+
+  <RelatedPosts
+    locale={locale}
+    slugs={["gayrimenkul-degerlemede-yapay-zeka"]}
+    headingId="intelval-blog-title"
+    class={anchor}
+  />
 </ProductPageShell>

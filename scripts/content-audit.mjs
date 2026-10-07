@@ -35,8 +35,15 @@ const pageFiles = (locale) =>
     .filter((name) => name.endsWith(`-page.${locale}.ts`))
     .sort();
 const readPage = (name) => readFileSync(join(messagesDir, name), "utf8");
+// Legal notices (the KVKK aydınlatma metni) must use the statute's own terms
+// ("veri sorumlusu", "Kişisel Verilerin Korunması Kanunu"), which no rewrite
+// can shorten without changing their legal meaning. They stay out of the
+// readability score, which is for marketing copy; their title and
+// description are still checked below like every other page.
+const legalPages = new Set(["privacy-page"]);
+const isLegal = (name) => legalPages.has(name.replace(/\.(tr|en)\.ts$/, ""));
 const readAll = (locale) =>
-  [read(locale), ...pageFiles(locale).map(readPage)].join("\n");
+  [read(locale), ...pageFiles(locale).filter((name) => !isLegal(name)).map(readPage)].join("\n");
 
 /** `metaTitle` / `metaDescription` of a product page file. */
 function pageField(source, key) {

@@ -1,13 +1,19 @@
 import type { APIRoute } from "astro";
 
 import { defaultLocale, locales } from "@/i18n/config";
-import { pageKeys, routes } from "@/i18n/routes";
+import {
+  blogArticlePath,
+  pageKeys,
+  routes,
+  turkishOnlyRoutes,
+} from "@/i18n/routes";
+import { getArticles, isoDate } from "@/lib/blog";
 
 export const prerender = true;
 
 // Only canonical pages belong in the sitemap; legacy /tr redirect URLs stay out.
 // The shared route table also keeps each page's language alternates together.
-export const GET: APIRoute = ({ site }) => {
+export const GET: APIRoute = async ({ site }) => {
   // `site` is set in astro.config.mjs; the fallback only matters if it is ever
   // unset again, and pointing at www would list URLs that redirect.
   const origin = site ?? new URL("https://gbovision.com");
@@ -34,6 +40,26 @@ ${alternates}
   </url>`,
     );
   });
+
+  // The blog is Turkish only: each URL names itself as tr and x-default, the
+  // same pair its page publishes. Articles carry their last update as lastmod,
+  // and the index the newest of them; the other pages have no honest date to
+  // give, so they give none.
+  const articles = await getArticles();
+  const turkishOnly = (path: string, lastmod?: Date) => `  <url>
+    <loc>${href(path)}</loc>${lastmod ? `\n    <lastmod>${isoDate(lastmod)}</lastmod>` : ""}
+    <xhtml:link rel="alternate" hreflang="tr" href="${href(path)}"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${href(path)}"/>
+  </url>`;
+  const newest = articles
+    .map((article) => article.data.updatedAt)
+    .sort((a, b) => b.getTime() - a.getTime())[0];
+  urls.push(
+    turkishOnly(turkishOnlyRoutes.blog.tr, newest),
+    ...articles.map((article) =>
+      turkishOnly(blogArticlePath(article.id), article.data.updatedAt),
+    ),
+  );
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">

@@ -35,12 +35,29 @@ The route table is `src/i18n/routes.ts`. See `docs/language-routing.md`.
 
 ## Waitlist
 
-The waitlist form posts to `/api/waitlist`, which validates the request and
-forwards it to a configured HTTPS webhook.
+The demo request form posts to `/api/waitlist`. With `RESEND_API_KEY` set, it
+emails the request through Resend using the same `CONTACT_TO` and `CONTACT_FROM`
+settings as the contact form. The selected product is included in the email,
+and replying to it goes to the visitor's address. Resend takes precedence when
+both delivery methods are configured. Otherwise `WAITLIST_WEBHOOK_URL` receives
+the JSON payload, with optional `WAITLIST_WEBHOOK_TOKEN` authorization. With
+neither configured, the form reports that it cannot send the request (`503`).
 
-Copy `.env.example` to `.env` and set:
+## Contact form
 
-- `WAITLIST_WEBHOOK_URL` — destination that receives the JSON payload
-- `WAITLIST_WEBHOOK_TOKEN` — optional bearer token for that destination
+`/contact` and `/en/contact` post to `/api/contact`, which checks the message
+(name 2–120 characters, e-mail, optional company up to 160, optional topic,
+message 10–4,000), drops anything that fills the hidden `website` field, and
+allows five messages per address per ten minutes. Then it delivers:
 
-The form returns an honest unavailable state until the webhook is configured.
+- `RESEND_API_KEY` set: an e-mail through Resend, to `CONTACT_TO` (comma-separated;
+  the default lives only in `src/pages/api/contact.ts`) from `CONTACT_FROM`
+  (default `GBO Vision Web <web@gbovision.com>`, a domain verified in Resend),
+  with the visitor's address as `reply_to`.
+- Otherwise `WAITLIST_WEBHOOK_URL` set: the message as JSON with
+  `source: "contact-page"`, with `WAITLIST_WEBHOOK_TOKEN` as the bearer token.
+- Neither: `503`, and the page says messages cannot be sent right now.
+
+These are read per request with `process.env` (`src/lib/server-env.ts`), so they
+can be changed in Vercel without a rebuild. The recipient never appears in a
+response, the page, its JSON-LD or the browser bundle.

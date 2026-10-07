@@ -1,0 +1,261 @@
+{
+  "home-tr": {
+    "lang": "tr",
+    "eyebrow": "Kurumsal yapay zeka ve özel yazılım",
+    "title": "Büyüme odaklı kurumsal yapay zeka ajansı",
+    "line": "Yapay zeka ürünleri ve şirketinize özel yazılımlar",
+    "visual": {
+      "kind": "face",
+      "src": "scripts/og/assets/hero-face.png",
+      "position": "50% 50%"
+    }
+  },
+  "home-en": {
+    "lang": "en",
+    "eyebrow": "Enterprise AI and custom software",
+    "title": "Growth-focused enterprise AI agency.",
+    "line": "AI products and custom software for your business",
+    "visual": {
+      "kind": "face",
+      "src": "scripts/og/assets/hero-face.png",
+      "position": "50% 50%"
+    }
+  },
+  "about-tr": {
+    "lang": "tr",
+    "eyebrow": "Şirket hakkında",
+    "title": "GBO Vision, işinize yarayan yapay zeka üretir.",
+    "line": "Yapay zeka ürünlerimizi kendimiz geliştirir ve işletiriz.",
+    "visual": {
+      "kind": "photo",
+      "src": "src/assets/editorial/about-studio-worktable.jpg",
+      "position": "52% 50%"
+    }
+  },
+  "about-en": {
+    "lang": "en",
+    "eyebrow": "About the company",
+    "title": "GBO Vision builds AI that teams actually use.",
+    "line": "We build and run our own AI products.",
+    "visual": {
+      "kind": "photo",
+      "src": "src/assets/editorial/about-studio-worktable.jpg",
+      "position": "52% 50%"
+    }
+  },
+  "kollektor-tr": {
+    "lang": "tr",
+    "eyebrow": "Kollektor",
+    "title": "Kollektor müşteriyi arar, ödeme sözünü kaydeder.",
+    "line": "Hukuk büroları ve tahsilat ekipleri için",
+    "visual": {
+      "kind": "photo",
+      "src": "src/assets/editorial/kollektor-human-conversation-particles-original-2x.png",
+      "position": "36% 50%"
+    }
+  },
+  "kollektor-en": {
+    "lang": "en",
+    "eyebrow": "Kollektor",
+    "title": "Kollektor calls the debtor and records the promise.",
+    "line": "For law offices and collection teams",
+    "visual": {
+      "kind": "photo",
+      "src": "src/assets/editorial/kollektor-human-conversation-particles-original-2x.png",
+      "position": "36% 50%"
+    }
+  },
+  "intelval-tr": {
+    "lang": "tr",
+    "eyebrow": "Intelval",
+    "title": "Rapor taslağını Intelval hazırlar, imzayı uzmanınız atar.",
+    "line": "Lisanslı değerleme firmaları için",
+    "visual": {
+      "kind": "photo",
+      "src": "src/assets/editorial/intelval-valuer-site-visit.png",
+      "position": "30% 50%"
+    }
+  },
+  "intelval-en": {
+    "lang": "en",
+    "eyebrow": "Intelval",
+    "title": "Intelval drafts the report. Your valuer signs it.",
+    "line": "For licensed valuation firms",
+    "visual": {
+      "kind": "photo",
+      "src": "src/assets/editorial/intelval-valuer-site-visit.png",
+      "position": "30% 50%"
+    }
+  },
+  "hastam-tr": {
+    "lang": "tr",
+    "eyebrow": "Hastam",
+    "title": "Kliniğiniz için sesli yapay zeka asistanı",
+    "line": "Hasta aramalarını 7/24 karşılar, randevu talebini kaydeder.",
+    "visual": {
+      "kind": "photo",
+      "src": "src/assets/editorial/hastam-doctor-consultation.png",
+      "position": "70% 50%"
+    }
+  },
+  "hastam-en": {
+    "lang": "en",
+    "eyebrow": "Hastam",
+    "title": "A voice AI assistant for your clinic.",
+    "line": "It answers patient calls 24/7 and records appointment requests.",
+    "visual": {
+      "kind": "photo",
+      "src": "src/assets/editorial/hastam-doctor-consultation.png",
+      "position": "70% 50%"
+    }
+  },
+  "fountible-tr": {
+    "lang": "tr",
+    "eyebrow": "Fountible",
+    "title": "Arayüzleri yapay zekayla birlikte tasarlayın.",
+    "line": "Tasarım asistanı Bro ekranı hazırlar, siz düzenler ve koda aktarırsınız.",
+    "visual": {
+      "kind": "window",
+      "src": "src/assets/editorial/fountible-hero.png",
+      "backdrop": "src/assets/editorial/atmosphere-dusk.webp",
+      "x": 56,
+      "y": 72,
+      "width": 800
+    }
+  },
+  "fountible-en": {
+    "lang": "en",
+    "eyebrow": "Fountible",
+    "title": "Design interfaces together with AI.",
+    "line": "Bro, the design assistant, builds the screen. You edit it and export it as code.",
+    "visual": {
+      "kind": "window",
+      "src": "src/assets/editorial/fountible-hero.png",
+      "backdrop": "src/assets/editorial/atmosphere-dusk.webp",
+      "x": 56,
+      "y": 72,
+      "width": 800
+    }
+  },
+  "contact-tr": {
+    "lang": "tr",
+    "eyebrow": "İletişim",
+    "title": "Bize yazın.",
+    "line": "Mesajınıza e-postayla yanıt veririz.",
+    "visual": {
+      "kind": "atmos",
+      "src": "src/assets/editorial/atmosphere-evergreen.webp",
+      "mark": true
+    }
+  },
+  "contact-en": {
+    "lang": "en",
+    "eyebrow": "Contact",
+    "title": "Write to us.",
+    "line": "We reply by email.",
+    "visual": {
+      "kind": "atmos",
+      "src": "src/assets/editorial/atmosphere-evergreen.webp",
+      "mark": true
+    }
+  },
+  "blog-tr": {
+    "lang": "tr",
+    "eyebrow": "Blog",
+    "title": "Kurumsal yapay zeka yazıları",
+    "line": "Her yazıda dayandığımız kaynakları paylaşıyoruz.",
+    "visual": {
+      "kind": "atmos",
+      "src": "src/assets/editorial/atmosphere-dusk.webp",
+      "mark": true
+    }
+  },
+  "blog-en": {
+    "lang": "en",
+    "eyebrow": "Blog",
+    "title": "Writing on enterprise AI",
+    "line": "Every article shares the sources it relies on.",
+    "visual": {
+      "kind": "atmos",
+      "src": "src/assets/editorial/atmosphere-dusk.webp",
+      "mark": true
+    }
+  },
+  "blog-gayrimenkul-degerlemede-yapay-zeka": {
+    "inherit": "blog-tr",
+    "eyebrow": "Blog · Sektör",
+    "title": "Gayrimenkul değerlemede yapay zeka ne yapar, raporu kim imzalar?",
+    "line": "",
+    "visual": {
+      "kind": "photo",
+      "src": "src/assets/editorial/intelval-architecture.png",
+      "position": "38% 50%"
+    }
+  },
+  "blog-ilk-yapay-zeka-projesi-nasil-baslatilir": {
+    "inherit": "blog-tr",
+    "eyebrow": "Blog · Strateji",
+    "title": "İlk yapay zeka projesi nasıl başlatılır?",
+    "line": "Adım adım rehber",
+    "visual": {
+      "kind": "photo",
+      "src": "src/assets/editorial/collaborative-worktable.png",
+      "position": "50% 50%"
+    }
+  },
+  "blog-turkce-icin-yapay-zeka-modeli-secimi": {
+    "inherit": "blog-tr",
+    "eyebrow": "Blog · Teknoloji",
+    "title": "Türkçe için büyük dil modeli nasıl seçilir?",
+    "line": "Şirketler için 2026 rehberi",
+    "visual": {
+      "kind": "photo",
+      "src": "src/assets/editorial/intelval-map-goztepe.png",
+      "position": "30% 50%"
+    }
+  },
+  "blog-turkiyede-sirketlerin-yapay-zeka-kullanimi": {
+    "inherit": "blog-tr",
+    "eyebrow": "Blog · Yapay zeka",
+    "title": "Şirketlerde yapay zeka kullanımı ne durumda?",
+    "line": "TÜİK 2026 verileri",
+    "visual": {
+      "kind": "photo",
+      "src": "src/assets/editorial/industries-banking-adviser.png",
+      "position": "50% 35%"
+    }
+  },
+  "blog-yapay-zeka-cagri-merkezi-asistani": {
+    "inherit": "blog-tr",
+    "eyebrow": "Blog · Yapay zeka",
+    "title": "Çağrı merkezinde yapay zeka asistanı ne yapar, neyi temsilciye bırakır?",
+    "line": "",
+    "visual": {
+      "kind": "photo",
+      "src": "src/assets/editorial/kollektor-voice-workspace.png",
+      "position": "50% 55%"
+    }
+  },
+  "privacy-tr": {
+    "lang": "tr",
+    "eyebrow": "KVKK",
+    "title": "İletişim formu aydınlatma metni",
+    "line": "Kişisel verilerinizi nasıl işlediğimiz ve haklarınız",
+    "visual": {
+      "kind": "atmos",
+      "src": "src/assets/editorial/atmosphere-evergreen.webp",
+      "mark": true
+    }
+  },
+  "privacy-en": {
+    "lang": "en",
+    "eyebrow": "Privacy",
+    "title": "Contact form privacy notice",
+    "line": "How we process your personal data, and your rights",
+    "visual": {
+      "kind": "atmos",
+      "src": "src/assets/editorial/atmosphere-evergreen.webp",
+      "mark": true
+    }
+  }
+}

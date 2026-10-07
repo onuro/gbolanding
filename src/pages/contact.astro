@@ -1,0 +1,16 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import ContactPage from "@/components/ContactPage.astro";
+import { getMessages } from "@/i18n/getMessages";
+import { buildMetadata } from "@/i18n/metadata";
+
+export const prerender = true;
+
+const locale = "tr" as const;
+const messages = await getMessages(locale);
+const metadata = buildMetadata(locale, messages, "contact");
+---
+
+<BaseLayout locale={locale} metadata={metadata}>
+  <ContactPage locale={locale} messages={messages} copy={messages.contactPage} />
+</BaseLayout>

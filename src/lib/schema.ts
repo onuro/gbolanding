@@ -1,7 +1,8 @@
-import { brand } from "@/lib/brand";
+import { brand, brandUrl } from "@/lib/brand";
 import { defaultLocale, locales, type Locale } from "@/i18n/config";
-import { pathFor } from "@/i18n/routes";
+import { pathFor, turkishOnlyRoutes } from "@/i18n/routes";
 import type { Messages } from "@/i18n/types";
+import { homeOgImagePath } from "@/lib/og-images";
 
 type Node = Record<string, unknown>;
 
@@ -31,13 +32,20 @@ const websiteId = (origin: URL | string) => new URL("/#website", origin).href;
  * reference instead of restating it, so Google sees one entity described from
  * several angles rather than several look-alike entities.
  */
-function organizationNode(origin: URL, description: string): Node {
+function organizationNode(
+  origin: URL,
+  description: string,
+  // /contact shows the address only, by the owner's rule: no e-mail and no
+  // legal name there, even once brand.ts fills them in.
+  addressOnly = false,
+): Node {
+  const email = addressOnly ? "" : brand.email;
   return prune({
     "@type": "Organization",
     "@id": organizationId(origin),
     name: brand.name,
     alternateName: [...brand.alternateName],
-    legalName: brand.legalName,
+    legalName: addressOnly ? "" : brand.legalName,
     url: new URL("/", origin).href,
     logo: {
       "@type": "ImageObject",
@@ -46,14 +54,15 @@ function organizationNode(origin: URL, description: string): Node {
       height: 852,
       caption: brand.name,
     },
-    image: new URL("/og.png", origin).href,
+    // The home page's own share card once it exists, else the site-wide one.
+    image: new URL(homeOgImagePath(), origin).href,
     description,
-    email: brand.email,
-    contactPoint: brand.email
+    email,
+    contactPoint: email
       ? prune({
           "@type": "ContactPoint",
           contactType: "sales",
-          email: brand.email,
+          email,
           availableLanguage: [...locales],
         })
       : undefined,
@@ -91,7 +100,7 @@ export interface PageSchemaInput {
   siteDescription: string;
   title: string;
   description: string;
-  pageType: "WebPage" | "AboutPage";
+  pageType: "WebPage" | "AboutPage" | "CollectionPage" | "ContactPage";
   /**
    * The @id of the thing this page is about, when it is not the organisation.
    * A product page names its SoftwareApplication node here.
@@ -111,6 +120,8 @@ export function buildGraph({
   mainEntityId,
   extraNodes = [],
 }: PageSchemaInput) {
+  // A page that ships a BreadcrumbList (the blog) names it from its own node.
+  const breadcrumb = extraNodes.find((node) => node["@type"] === "BreadcrumbList");
   const page = prune({
     "@type": pageType,
     "@id": `${canonical.href}#webpage`,
@@ -122,19 +133,21 @@ export function buildGraph({
     about: { "@id": organizationId(origin) },
     // On /about this is the load-bearing statement: it says the page's subject
     // *is* the organisation, which is the clearest claim schema.org offers that
-    // a URL and an entity belong to each other.
+    // a URL and an entity belong to each other. /contact names it too: the
+    // organisation's node carries the address the page shows.
     mainEntity:
-      pageType === "AboutPage"
+      pageType === "AboutPage" || pageType === "ContactPage"
         ? { "@id": organizationId(origin) }
         : mainEntityId
           ? { "@id": mainEntityId }
           : undefined,
+    breadcrumb: breadcrumb ? { "@id": breadcrumb["@id"] } : undefined,
   });
 
   return {
     "@context": "https://schema.org",
     "@graph": [
-      organizationNode(origin, siteDescription),
+      organizationNode(origin, siteDescription, pageType === "ContactPage"),
       websiteNode(origin, siteDescription),
       page,
       ...extraNodes,
@@ -219,4 +232,127 @@ export function faqPageNode(
       acceptedAnswer: { "@type": "Answer", text: answer },
     })),
   };
+}
+
+// ---- Blog ---------------------------------------------------------------------
+
+/** The blog as one entity, shared by the index and every article. */
+export const blogId = (origin: URL | string) =>
+  new URL(`${turkishOnlyRoutes.blog.tr}#blog`, origin).href;
+
+export const articleId = (canonical: URL) => `${canonical.href}#article`;
+
+/** Where a page sits, as the breadcrumb on the page shows it. */
+export function breadcrumbNode(
+  canonical: URL,
+  items: readonly { name: string; url: string }[],
+): Node {
+  return {
+    "@type": "BreadcrumbList",
+    "@id": `${canonical.href}#breadcrumb`,
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
+// The company writes the articles: there is no named author to show, and
+// inventing one is exactly what structured data must not do. Name and URL are
+// repeated next to the @id so a reader that does not resolve the graph still
+// gets an author it can display.
+const organizationRef = (origin: URL) => ({
+  "@type": "Organization",
+  "@id": organizationId(origin),
+  name: brand.name,
+  url: brandUrl(origin),
+});
+
+export interface BlogPostingInput {
+  origin: URL;
+  canonical: URL;
+  headline: string;
+  description: string;
+  /** YYYY-MM-DD */
+  datePublished: string;
+  /** YYYY-MM-DD */
+  dateModified: string;
+  image: { url: string; width: number; height: number };
+  keywords: readonly string[];
+  section: string;
+  wordCount: number;
+  /** The product the article leads to, if any, by its name on the site. */
+  product?: { slug: ProductSlug; name: string } | null;
+}
+
+/** One article. The page's WebPage node names it as its main entity. */
+export function blogPostingNode(input: BlogPostingInput): Node {
+  const { origin, canonical } = input;
+  return prune({
+    "@type": "BlogPosting",
+    "@id": articleId(canonical),
+    headline: input.headline,
+    description: input.description,
+    datePublished: input.datePublished,
+    dateModified: input.dateModified,
+    author: organizationRef(origin),
+    publisher: organizationRef(origin),
+    image: {
+      "@type": "ImageObject",
+      url: input.image.url,
+      width: input.image.width,
+      height: input.image.height,
+    },
+    inLanguage: "tr-TR",
+    url: canonical.href,
+    mainEntityOfPage: { "@id": `${canonical.href}#webpage` },
+    isPartOf: { "@id": blogId(origin) },
+    keywords: [...input.keywords],
+    articleSection: input.section,
+    wordCount: input.wordCount,
+    // The product's full node lives on its own page and the home page; this
+    // page names it by the same @id, with a type, name and URL of its own so
+    // the reference reads on its own too.
+    mentions: input.product
+      ? {
+          "@type": "SoftwareApplication",
+          "@id": productId(origin, input.product.slug),
+          name: input.product.name,
+          url: new URL(pathFor(input.product.slug, defaultLocale), origin).href,
+        }
+      : undefined,
+  });
+}
+
+/** The blog on its index page, with the articles it lists. */
+export function blogNode(
+  origin: URL,
+  blog: { name: string; description: string },
+  posts: readonly {
+    url: string;
+    headline: string;
+    datePublished: string;
+    dateModified: string;
+  }[],
+): Node {
+  return prune({
+    "@type": "Blog",
+    "@id": blogId(origin),
+    name: blog.name,
+    description: blog.description,
+    url: new URL(turkishOnlyRoutes.blog.tr, origin).href,
+    inLanguage: "tr-TR",
+    publisher: { "@id": organizationId(origin) },
+    isPartOf: { "@id": websiteId(origin) },
+    blogPost: posts.map((post) => ({
+      "@type": "BlogPosting",
+      "@id": `${post.url}#article`,
+      headline: post.headline,
+      url: post.url,
+      datePublished: post.datePublished,
+      dateModified: post.dateModified,
+    })),
+  });
 }

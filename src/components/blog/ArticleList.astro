@@ -1,0 +1,61 @@
+---
+// Articles as rows of a dotted list, not cards: date and category, the title
+// and its description, the reading time. The whole row is the link's target;
+// the title is the link, so a screen reader hears one link per article.
+import type { ArticleListItem } from "@/lib/blog";
+
+interface Props {
+  items: readonly ArticleListItem[];
+  /** Heading level of the titles inside the page's outline. */
+  as?: "h2" | "h3";
+  class?: string;
+}
+
+const { items, as: Heading = "h3", class: className } = Astro.props;
+---
+
+<ol class:list={["rule-dotted-b", className]}>
+  {
+    items.map((item) => (
+      <li class="article-row group relative rule-dotted">
+        <article class="grid gap-x-10 gap-y-2 py-7 md:grid-cols-[10rem_minmax(0,1fr)_auto] md:items-baseline lg:py-8">
+          <p class="flex flex-wrap gap-x-3 text-paragraph-xs text-tertiary-foreground md:flex-col md:gap-y-1">
+            <time datetime={item.dateIso}>{item.date}</time>
+            <span class="text-muted-foreground">{item.category}</span>
+          </p>
+          <div class="min-w-0">
+            <Heading class="text-balance text-title-h5 text-foreground sm:text-title-h4">
+              <a
+                href={item.href}
+                class="row-link outline-none decoration-tertiary-foreground decoration-1 underline-offset-[5px] group-hover:underline"
+              >
+                {item.title}
+              </a>
+            </Heading>
+            <p class="mt-2 max-w-[62ch] text-pretty text-paragraph-md text-muted-foreground">
+              {item.description}
+            </p>
+          </div>
+          <p class="text-paragraph-xs whitespace-nowrap text-tertiary-foreground tabular-nums">
+            {item.reading}
+          </p>
+        </article>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  /* The title's link covers the whole row, so the row is one target. */
+  .row-link::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+  }
+
+  .article-row:has(.row-link:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+</style>

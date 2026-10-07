@@ -1,0 +1,36 @@
+---
+// The blog articles a product page links back to, as one more chapter after
+// the questions. Turkish only: the blog has no English edition, so the English
+// product pages render nothing here. Articles are named by slug; one that is
+// missing or still a draft is skipped, and with none left the chapter is not
+// drawn at all.
+import ArticleList from "@/components/blog/ArticleList.astro";
+import Chapter from "@/components/product/Chapter.astro";
+import type { Locale } from "@/i18n/config";
+import blogPage from "@/i18n/messages/blog-page.tr";
+import { getArticles, toListItem } from "@/lib/blog";
+
+interface Props {
+  locale: Locale;
+  slugs: readonly string[];
+  /** Id of the h2, unique on the page. */
+  headingId: string;
+  class?: string;
+}
+
+const { locale, slugs, headingId, class: className } = Astro.props;
+const items =
+  locale === "tr"
+    ? (await getArticles())
+        .filter((article) => slugs.includes(article.id))
+        .map(toListItem)
+    : [];
+---
+
+{
+  items.length > 0 && (
+    <Chapter id="blog" headingId={headingId} copy={blogPage.productPosts} class={className}>
+      <ArticleList items={items} />
+    </Chapter>
+  )
+}

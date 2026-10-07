@@ -2,7 +2,7 @@
 import { Languages } from "lucide-react";
 
 import type { Locale } from "@/i18n/config";
-import { pageKeys, pathFor, routes } from "@/i18n/routes";
+import { languageSwitch, pathFor, turkishOnlyRoutes } from "@/i18n/routes";
 import type { Messages } from "@/i18n/types";
 import { brand } from "@/lib/brand";
 
@@ -14,11 +14,9 @@ interface Props {
 const { locale, messages } = Astro.props;
 const year = new Date().getFullYear();
 const homeHref = pathFor("home", locale);
-const pathname = Astro.url.pathname.replace(/\/+$/, "") || "/";
-const currentPage =
-  pageKeys.find((page) =>
-    Object.values(routes[page]).some((path) => path === pathname),
-  ) ?? "home";
+// The EN/TR targets: the current page's other language, or, on a Turkish-only
+// page such as the blog, the English home page (see languageSwitch).
+const switchTo = languageSwitch(Astro.url.pathname);
 // Fragments are anchored to the home page because this footer also renders on
 // /about, where the sections they point at do not exist.
 const aboutHref = pathFor("about", locale);
@@ -72,13 +70,27 @@ const footerLabel = locale === "tr" ? "Alt menü" : "Footer";
               { href: `${homeHref}#platform`, label: messages.footer.platform },
               { href: `${homeHref}#method`, label: messages.footer.method },
               { href: aboutHref, label: messages.footer.about },
-            ].map(({ href, label }) => (
+              // Turkish only, and "Blog" in both languages; on English pages
+              // the link says it leads to Turkish articles (not with hreflang,
+              // which marks the EN/TR switches).
+              { href: turkishOnlyRoutes.blog.tr, label: "Blog", turkishOnly: locale === "en" },
+              { href: pathFor("contact", locale), label: messages.footer.contact },
+              { href: pathFor("privacy", locale), label: messages.footer.privacy },
+            ].map(({ href, label, turkishOnly }) => (
               <li>
                 <a
                   href={href}
                   class="inline-flex min-h-9 items-center text-[0.9375rem] leading-6 text-foreground decoration-tertiary-foreground decoration-1 underline-offset-[3px] transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 >
                   {label}
+                  {turkishOnly && (
+                    <>
+                      <span aria-hidden="true" class="ml-1.5 text-[0.75rem] tracking-wide text-tertiary-foreground">
+                        TR
+                      </span>
+                      <span class="sr-only"> (in Turkish)</span>
+                    </>
+                  )}
                 </a>
               </li>
             ))
@@ -105,7 +117,7 @@ const footerLabel = locale === "tr" ? "Alt menü" : "Footer";
           class="mt-4 flex w-full max-w-[13rem] items-center gap-1 rounded-full bg-foreground/[0.04] p-1"
         >
           <a
-            href={pathFor(currentPage, "en")}
+            href={switchTo.en}
             hreflang="en"
             lang="en"
             aria-current={locale === "en" ? "page" : undefined}
@@ -119,7 +131,7 @@ const footerLabel = locale === "tr" ? "Alt menü" : "Footer";
             EN
           </a>
           <a
-            href={pathFor(currentPage, "tr")}
+            href={switchTo.tr}
             hreflang="tr"
             lang="tr"
             aria-current={locale === "tr" ? "page" : undefined}
