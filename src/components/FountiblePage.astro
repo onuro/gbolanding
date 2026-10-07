@@ -1,6 +1,6 @@
 ---
 // /fountible and /en/fountible: the parent company's page about Fountible,
-// a design tool whose canvas is real React and Tailwind. The product has its
+// an AI design tool (Bro first; export to code comes after). The product has its
 // own site (fountible.com) and app (app.fountible.com); this page says what
 // it does, shows it and links there, as /hastam does for hastam.ai.
 //
@@ -85,25 +85,6 @@ const pictures = {
     </figure>
   </ProductHero>
 
-  <Chapter id="code" headingId="fountible-code-title" copy={page.code} class={anchor}>
-    <figure class="flex flex-col gap-3" data-reveal>
-      <Image
-        src={pictures.code.image}
-        alt={pictures.code.copy.alt}
-        width={1400}
-        widths={[640, 960, 1400]}
-        sizes="(min-width: 84rem) 57rem, (min-width: 64rem) 85vw, 100vw"
-        format="webp"
-        quality={80}
-        loading="lazy"
-        decoding="async"
-        class="w-full rounded-card bg-muted"
-      />
-      <figcaption class="pl-1 data-label">{pictures.code.copy.caption}</figcaption>
-    </figure>
-    <NumberedRows rows={page.code.rows} class="mt-10 lg:mt-12" />
-  </Chapter>
-
   <Chapter id="bro" headingId="fountible-bro-title" copy={page.bro} class={anchor}>
     <figure class="flex flex-col gap-3" data-reveal>
       <Image
@@ -121,6 +102,25 @@ const pictures = {
       <figcaption class="pl-1 data-label">{pictures.bro.copy.caption}</figcaption>
     </figure>
     <FactCells items={page.bro.items} class="mt-6" />
+  </Chapter>
+
+  <Chapter id="code" headingId="fountible-code-title" copy={page.code} class={anchor}>
+    <figure class="flex flex-col gap-3" data-reveal>
+      <Image
+        src={pictures.code.image}
+        alt={pictures.code.copy.alt}
+        width={1400}
+        widths={[640, 960, 1400]}
+        sizes="(min-width: 84rem) 57rem, (min-width: 64rem) 85vw, 100vw"
+        format="webp"
+        quality={80}
+        loading="lazy"
+        decoding="async"
+        class="w-full rounded-card bg-muted"
+      />
+      <figcaption class="pl-1 data-label">{pictures.code.copy.caption}</figcaption>
+    </figure>
+    <NumberedRows rows={page.code.rows} class="mt-10 lg:mt-12" />
   </Chapter>
 
   <Chapter id="motion" headingId="fountible-motion-title" copy={page.motion} class={anchor}>

@@ -153,14 +153,14 @@ const enMessages: Messages = {
     // Only what fountible.com itself says: the canvas is React and Tailwind,
     // Figma paste, Bro, and export of the code the canvas renders.
     fountible: {
-      eyebrow: "Design tool where design is code",
+      eyebrow: "AI design tool",
       title: "Fountible",
       description:
-        "Fountible is a design tool whose canvas is real React and Tailwind. Paste from Figma, or design with Bro, the AI on the canvas. The code you export is the same code the canvas renders.",
+        "Fountible is an AI design tool. Bro, the design assistant, builds the screens you describe, and you edit them as you like. Finished designs export as code.",
       highlights: [
-        "Real React and Tailwind",
-        "Editable layers from Figma",
-        "Bro, the AI on the canvas",
+        "Bro, the design assistant",
+        "Paste from Figma",
+        "Export to code",
       ],
       cta: "Schedule a Fountible demo",
       pageCta: "Go to the Fountible page",

@@ -10,14 +10,14 @@ import type { FountiblePageMessages } from "@/i18n/page-types/fountible";
 // Mac app wherever they come up. Where fountible.com has its own English for a
 // claim, this file uses it.
 const fountiblePage: FountiblePageMessages = {
-  metaTitle: "Fountible: A Design Tool That Exports React | GBO Vision",
+  metaTitle: "Fountible: The AI Design Tool | GBO Vision",
   metaDescription:
-    "Fountible is a design tool whose canvas is real React and Tailwind. Paste from Figma, design with Bro, then export the code. A GBO Vision product.",
+    "Fountible is an AI design tool. Describe a screen and Bro, the design assistant, builds it with you. Finished designs export as code. A GBO Vision product.",
   hero: {
-    eyebrow: "For design and product teams",
-    title: "Draw it in Fountible. It’s already React.",
-    lead: "Fountible is a design tool whose canvas is real React and Tailwind. Paste from Figma or design with AI. Then export the actual code, or a video.",
-    chips: ["Paste from Figma", "React and Tailwind code", "Web and Mac app"],
+    eyebrow: "For designers and product teams",
+    title: "Design interfaces together with AI.",
+    lead: "Fountible is an AI design tool. Describe what you need and Bro, the design assistant, builds the screen for you. Then edit it, share it with your team or hand it to developers as code.",
+    chips: ["Bro, the design assistant", "Paste from Figma", "Web and Mac app"],
     primaryCta: "Request a demo for your team",
     secondaryCta: "The fountible.com site",
     steps: [

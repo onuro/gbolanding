@@ -523,7 +523,7 @@ const intelvalPage: IntelvalPageMessages = {
           "Evet, çalıştığınız her bankanın kendi şablonunda. Teslimden önce, bankanın şartnamesine uymayan noktalar da listelenir.",
       },
       {
-        question: "İngilizce de yazar mı?",
+        question: "Raporu İngilizce de hazırlar mı?",
         answer:
           "Evet, yabancılara satış ve vatandaşlık başvuruları için. TKGM genelgesi bu raporlarda emsallerin uydu haritasında gösterilmesini, düzeltme ve pazarlık hesabının açıkça yazılmasını, piyasa ve yasal durum değerinin birlikte verilmesini ister.",
       },

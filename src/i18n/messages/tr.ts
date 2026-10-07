@@ -155,14 +155,14 @@ const trMessages: Messages = {
     // Only what fountible.com itself says: the canvas is React and Tailwind,
     // Figma paste, Bro, and export of the code the canvas renders.
     fountible: {
-      eyebrow: "Doğrudan kod üzerinde çalışan tasarım aracı",
+      eyebrow: "Yapay zeka destekli tasarım aracı",
       title: "Fountible",
       description:
-        "Fountible’ın tuvalinde gerçek React ve Tailwind kodu çalışır; dışa aktardığınızda da bu kodun aynısını alırsınız. Figma’daki tasarımlarınızı yapıştırıp düzenleyebilir ya da yapay zeka asistanı Bro’yla tuvalde tasarlayabilirsiniz.",
+        "Fountible, yapay zeka destekli bir arayüz tasarım aracıdır. Tasarım asistanı Bro, tarif ettiğiniz ekranı sizin için hazırlar; siz de dilediğiniz gibi düzenlersiniz. Biten tasarımı koda da aktarabilirsiniz.",
       highlights: [
-        "Gerçek React ve Tailwind kodu",
-        "Figma’dan gelen düzenlenebilir katmanlar",
-        "Tuvaldeki yapay zeka asistanı Bro",
+        "Tasarım asistanı Bro",
+        "Figma’dan kolay aktarım",
+        "Tek adımda koda aktarım",
       ],
       cta: "Fountible demosu planlayın",
       pageCta: "Fountible sayfasına gidin",

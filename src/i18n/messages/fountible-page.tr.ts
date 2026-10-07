@@ -18,81 +18,49 @@ import type { FountiblePageMessages } from "@/i18n/page-types/fountible";
 //   - the pictures are screenshots of fountible.com's own product visuals and
 //     each caption says so;
 //   - "a GBO Vision product" is the owner's word, not fountible.com's.
-// The copy is written in Turkish from the meaning, not translated sentence by
-// sentence from the English file. Terms Turkish designers and front-end
-// developers keep in English stay in English: Bro, MCP, React, Tailwind,
-// Figma, DOM, frame, auto layout, instance, render, shader, halftone, prop,
-// token, gap, padding, CSS transform, runtime.
+// Positioning (the owner's): Fountible is first an AI design tool; Bro and
+// designing with AI lead, export to code is a later, secondary benefit.
+// Written for corporate Turkish readers, not developers: no "tuval" (nobody
+// says it; write ekran, tasarım, dosya), no code internals (DOM, render,
+// Tailwind class, prop, token, runtime). Product and tool names stay as they
+// are: Fountible, Bro, Figma, React, ChatGPT, Claude, Cursor, Kimi K3.
 const fountiblePage: FountiblePageMessages = {
-  metaTitle: "Fountible: React Kodu Üreten Tasarım Aracı | GBO Vision",
+  metaTitle: "Fountible: Yapay Zeka Destekli Tasarım Aracı | GBO Vision",
   metaDescription:
-    "Fountible, tuvalinde gerçek React ve Tailwind kodu çalışan bir tasarım aracı. Figma’dan yapıştırın ya da Bro ile tasarlayın, kodu alın. Bir GBO Vision ürünü.",
+    "Fountible, yapay zeka destekli bir arayüz tasarım aracıdır. Tasarım asistanı Bro ekranları sizinle birlikte hazırlar; biten tasarım koda da aktarılır.",
   hero: {
-    eyebrow: "Tasarım ve ürün ekipleri için",
-    title: "Figma’daki gibi tasarlayın, React kodu olarak alın.",
-    lead: "Fountible, tuvalinde gerçek React ve Tailwind kodu çalışan bir tasarım aracı. İster Figma’dan yapıştırın ister yapay zekayla tasarlayın; ardından kodu olduğu gibi alın ya da video olarak dışa aktarın.",
-    chips: ["Figma’dan kopyala-yapıştır", "React ve Tailwind kodu", "Web ve Mac uygulaması"],
+    eyebrow: "Tasarımcılar ve ürün ekipleri için",
+    title: "Arayüzleri yapay zekayla birlikte tasarlayın.",
+    lead: "Fountible, yapay zeka destekli bir arayüz tasarım aracıdır. Ne istediğinizi anlatırsınız, tasarım asistanı Bro ekranı sizin için hazırlar. Sonra dilediğiniz gibi düzenler, ekibinizle paylaşır ya da koda aktarırsınız.",
+    chips: ["Tasarım asistanı Bro", "Figma’dan aktarım", "Web ve Mac uygulaması"],
     primaryCta: "Ekibiniz için demo isteyin",
     secondaryCta: "fountible.com’a gidin",
     steps: [
       {
-        title: "Figma’dan yapıştırın ya da kendiniz çizin.",
+        title: "Ne istediğinizi anlatın.",
         description:
-          "Figma’da seçtiğiniz öğeleri kopyalayıp tuvale yapıştırın ve katmanları hemen düzenlemeye başlayın. Eklenti kurmanız ya da dosya dışa aktarmanız gerekmez.",
+          "Bro’ya bir ekran, bir animasyon ya da bir sunum tarif edin. İsterseniz Figma’daki tasarımınızı da kopyalayıp yapıştırabilirsiniz.",
       },
       {
-        title: "Bro ile tasarlayın.",
+        title: "Bro tasarımı hazırlar.",
         description:
-          "Bir ekran, bir animasyon ya da baştan sona bir sunum isteyin. Bro bunu tuvalde düzenlenebilir katmanlar olarak hazırlar, siz de dilediğiniz gibi değiştirirsiniz.",
+          "Bro ekranı düzenlenebilir katmanlar halinde kurar. Her katmanı siz de istediğiniz gibi değiştirebilirsiniz.",
       },
       {
-        title: "React ve Tailwind kodunu alın.",
+        title: "Paylaşın ya da koda aktarın.",
         description:
-          "Bir frame’i seçip kod olarak kopyalayın; aldığınız kod, tuvalde çalışan kodun birebir aynısı.",
+          "Biten tasarımı ekibinizle paylaşın, video ya da sunum olarak alın veya yazılım ekibinize kod olarak teslim edin.",
       },
     ],
   },
   heroPicture: {
-    alt: "Fountible editörü. Tuvalde bir mobil uygulamanın ekranları, yan panellerde ise katmanlar, ayarlar ve Bro sohbeti görünüyor.",
+    alt: "Fountible’ın tasarım ekranı: ortada bir mobil uygulamanın ekranları, yanlarda katmanlar, ayarlar ve Bro sohbeti.",
     caption: "fountible.com’dan ekran görüntüsü",
-  },
-  code: {
-    label: "Tasarım ve kod",
-    title: "Tuvalde gördüğünüz her katman aslında bir React elementi.",
-    lead: "Her katmanın stili Tailwind sınıflarıyla tanımlanır; dışa aktardığınızda tuvalde çalışan kodun aynısını alırsınız. Tasarımı geliştiriciye devredip arayüzü sıfırdan kodlatmanız gerekmez.",
-    noteTitle: "Nasıl okunur",
-    note: "Her satırda tasarımın koda nasıl dönüştüğünü görürsünüz.",
-    picture: {
-      alt: "Fountible’ın kod görünümü: seçili bir fiyat kartı ve yanında o kartın React ve Tailwind kodu.",
-      caption: "fountible.com’dan ekran görüntüsü",
-    },
-    rows: [
-      {
-        title: "Figma’da kopyalayın, burada katman olarak düzenleyin.",
-        description:
-          "Figma’dan yapıştırdığınız frame’ler, auto layout ayarları, metinler, vektörler ve efektler tuvale katman olarak gelir. Bazı karmaşık ayrıntılarda küçük farklar olabilir.",
-      },
-      {
-        title: "Tuval doğrudan gerçek DOM üzerinde çalışır.",
-        description:
-          "Frame’ler, Tailwind ile stil verilmiş canlı React bileşenleri olarak render edilir. Tuvalde neyi nasıl tasarladıysanız tarayıcıda da öyle yayına çıkar.",
-      },
-      {
-        title: "Ekran görüntüsü değil, kod alırsınız.",
-        description:
-          "İstediğiniz katmanı seçip React, HTML ya da SVG olarak kopyalayın. Bileşenler, prop’lar ve tema token’ları da kodla birlikte gelir.",
-      },
-      {
-        title: "Değişkenler Tailwind sınıflarına dönüşür.",
-        description:
-          "Renk, sayı, köşe yuvarlaklığı ve opaklık değişkenlerinizden doğrudan Tailwind sınıfları üretilir. Bir token’ı değiştirdiğinizde kullanıldığı her yer güncellenir.",
-      },
-    ],
   },
   bro: {
     label: "Bro",
-    title: "Tuvaldeki yapay zeka asistanı Bro, sizinle aynı araçları kullanır.",
-    lead: "İşe dosyanıza bakarak başlar: sayfayı, seçtiğiniz öğeleri ve değişkenlerinizi okuyup katmanları gözünüzün önünde oluşturur. Ortaya çıkan her şey bir katman; seçip üzerinde çalışmaya devam edebilirsiniz.",
+    title: "Tasarım asistanınız Bro, ekranı sizin için hazırlar.",
+    lead: "Bro önce dosyanızı inceler; sayfayı, seçtiğiniz öğeleri, renklerinizi ve yazı tiplerinizi tanır. Sonra istediğiniz tasarımı düzenlenebilir katmanlar halinde, gözünüzün önünde kurar.",
     noteTitle: "Nasıl okunur",
     note: "Kutular, Bro’nun nasıl çalıştığını özetliyor.",
     picture: {
@@ -101,159 +69,192 @@ const fountiblePage: FountiblePageMessages = {
     },
     items: [
       {
-        title: "Tek tuvalde birden çok Bro, aynı anda.",
+        title: "Aynı anda birden fazla Bro.",
         description:
-          "Aynı dosyada ayrı sohbetler açın; her birinin kendi modeli ve geçmişi olur. Sayfanın farklı bölümlerinde en fazla altı sohbet eş zamanlı çalışabilir; aynı katmanlara dokunan işler ise sırasını bekler.",
+          "Aynı dosyada ayrı sohbetler açıp sayfanın farklı bölümlerini aynı anda tasarlatabilirsiniz. En fazla altı sohbet aynı anda çalışır; aynı katmana dokunan işler sırayla yapılır.",
       },
       {
-        title: "Güvendiğiniz modeli seçin.",
+        title: "Güvendiğiniz yapay zeka modelini seçin.",
         description:
-          "Bro’yu ChatGPT, Claude, Cursor ya da Kimi K3 ile kullanabilirsiniz. Kendi hesabınızla giriş yapın ya da API anahtarınızı ekleyin; Claude ve Cursor hesabı için Mac uygulaması gerekir. Her sohbet kendi modelini kullanır.",
+          "Bro’yu ChatGPT, Claude, Cursor ya da Kimi K3 ile kullanabilirsiniz. Kendi hesabınızla giriş yapar ya da API anahtarınızı eklersiniz. Claude ve Cursor hesapları için Mac uygulaması gerekir.",
       },
       {
-        title: "Tuvali Claude Code ya da Cursor’dan yönetin.",
+        title: "Claude Code ve Cursor’la da çalışır.",
         description:
-          "Mac uygulamasının çalıştırdığı yerel MCP sunucusu sayesinde Claude Code, Claude Desktop ve Cursor açık tasarımı okuyup ekran çizebilir. Yaptıkları her değişiklik tuvale canlı yansır ve tek adımda geri alınabilir.",
+          "Mac uygulaması, Claude Code, Claude Desktop ve Cursor gibi araçların açık tasarımınız üzerinde çalışmasına izin verir. Yaptıkları her değişikliği ekranda anında görür, tek adımda geri alabilirsiniz.",
+      },
+    ],
+  },
+  code: {
+    label: "Koda aktarım",
+    title: "Tasarımınızı yazılım ekibinize kod olarak teslim edin.",
+    lead: "Fountible’da hazırladığınız ekranlar React koduna dönüşür. Yazılım ekibinizin tasarımı sıfırdan kodlaması gerekmez; ekranda ne görüyorsanız kodda da o çıkar.",
+    noteTitle: "Nasıl okunur",
+    note: "Her satır, tasarımın koda nasıl geçtiğini anlatır.",
+    picture: {
+      alt: "Fountible’ın kod görünümü: seçili bir fiyat kartı ve yanında o kartın React kodu.",
+      caption: "fountible.com’dan ekran görüntüsü",
+    },
+    rows: [
+      {
+        title: "Figma’daki tasarımlarınızı taşıyın.",
+        description:
+          "Figma’da seçtiğiniz öğeleri kopyalayıp Fountible’a yapıştırın; katmanlar, yazılar ve yerleşim ayarları düzenlenebilir halde gelir. Çok karmaşık bazı ayrıntılarda küçük farklar olabilir.",
+      },
+      {
+        title: "Ekranda ne görüyorsanız kodda o çıkar.",
+        description:
+          "Fountible tasarımı en baştan çalışan bir arayüz olarak hazırlar. Bu yüzden tasarımla yayındaki sayfa arasında fark oluşmaz.",
+      },
+      {
+        title: "İstediğiniz bölümü kod olarak kopyalayın.",
+        description:
+          "Bir bölümü seçip React, HTML ya da SVG olarak kopyalayın. Bileşen ayarları ve tema değerleri de koda eksiksiz geçer.",
+      },
+      {
+        title: "Renk ve ölçüler her yerde tutarlı kalır.",
+        description:
+          "Renk, boşluk ve köşe değerlerini bir kez tanımlarsınız; bu değerler hem tasarımda hem kodda kullanılır. Birini değiştirdiğinizde her yer birlikte güncellenir.",
       },
     ],
   },
   motion: {
     label: "Animasyon ve sunum",
     title: "Ekranı tasarlayın, hareketini de siz kurgulayın.",
-    lead: "Animasyon doğrudan katmanın kendisine uygulanır; önizlemede ne görüyorsanız dışa aktardığınızda da onu alırsınız. Sunumlar da aynı tuvalde hazırlanır.",
-    noteTitle: "Kod tarafında",
-    note: "Dışa aktarılan animasyon, kullanıcının “hareketi azalt” tercihine uyar.",
+    lead: "Animasyonu doğrudan tasarımın üzerinde kurarsınız; önizlemede ne görüyorsanız dışa aktardığınızda da onu alırsınız. Sunumları da aynı dosyada hazırlayabilirsiniz.",
+    noteTitle: "Erişilebilirlik",
+    note: "Animasyonlar, kullanıcının “hareketi azalt” tercihine uyar.",
     picture: {
-      alt: "Fountible’ın animasyon görünümü. Bir kartın katmanları zaman çizelgesinde alt alta dizili, her satırda anahtar kareler var.",
+      alt: "Fountible’ın animasyon görünümü: bir kartın katmanları zaman çizelgesinde alt alta dizili, her satırda anahtar kareler var.",
       caption: "fountible.com’dan ekran görüntüsü",
     },
     rows: [
       {
         title: "İster hazır efekt, ister zaman çizelgesi.",
         description:
-          "Hazır bir giriş efektini tek tıkla ekleyin ya da zaman çizelgesini açıp her anahtar kareyi kendiniz yerleştirin. X, Y ve Z eksenlerindeki dönüşü de zaman çizelgesinde kendi satırında ayarlarsınız.",
+          "Hazır bir giriş efektini tek tıkla ekleyin ya da zaman çizelgesini açıp her hareketi kendiniz ayarlayın. Üç boyutlu dönüşleri de aynı yerden yönetirsiniz.",
       },
       {
         title: "Ses ekleyin, video olarak alın.",
         description:
-          "Müzik ya da seslendirme ekleyip zaman çizelgesinde kırpın, ardından sesli bir MP4 olarak dışa aktarın. Mac uygulamasında saydam arka planlı ProRes ve HEVC çıktısı da alabilirsiniz.",
+          "Müzik ya da seslendirme ekleyip tasarımınızı MP4 video olarak dışa aktarın. Mac uygulamasında arka planı saydam, profesyonel video formatlarında da çıktı alabilirsiniz.",
       },
       {
         title: "Animasyonu kod olarak da alın.",
         description:
-          "Dışa aktardığınız animasyon, sade anime.js kullanan bir React bileşeni olarak gelir; Fountible’a özel bir runtime gerektirmez.",
+          "Animasyonlar da standart React koduna dönüşür; çalışması için Fountible’a ait ek bir yazılım gerekmez.",
       },
       {
-        title: "Sunumlar da aynı tuvalde.",
+        title: "Sunumları aynı dosyada hazırlayın.",
         description:
-          "Her slayt, tuvalde gerçek bir frame olarak durur; geçişler, tıkladıkça beliren öğeler ve konuşmacı görünümü de elinizin altında. PPTX dosyalarını içe aktarabilir, sunumunuzu da PPTX olarak dışa aktarabilirsiniz.",
+          "Her slayt ayrı bir sayfadır; geçişler, tıkladıkça beliren öğeler ve konuşmacı notları hazırdır. PowerPoint dosyalarını içe aktarabilir, sunumunuzu yine PowerPoint olarak dışa aktarabilirsiniz.",
       },
     ],
   },
   features: {
     label: "Özellikler",
-    title: "Vaat değil, üründe çalışan özellikler.",
-    lead: "Hepsi aynı tuvalde, yani gerçek React ve Tailwind üzerinde çalışır.",
+    title: "Tasarım ekibinizin ihtiyaç duyduğu her şey tek yerde.",
+    lead: "Bileşenlerden ekip çalışmasına kadar her özellik aynı dosyada, birlikte çalışır.",
     noteTitle: "Nasıl okunur",
     note: "Her kutu, üründe kullanabileceğiniz bir özelliği anlatıyor.",
     items: [
       {
-        title: "Bileşenler her yerde senkron kalır.",
+        title: "Bileşenler her yerde güncel kalır.",
         description:
-          "Ana bileşeni bir kez oluşturup instance’larını istediğiniz yerde kullanın. Bir instance’ın metnini ve stilini değiştirebilir, dilediğinizde sıfırlayabilir ya da ana bileşene gidebilirsiniz.",
+          "Bir bileşeni bir kez tasarlayıp istediğiniz yerde kullanın. Ana bileşende yaptığınız değişiklik, kullanıldığı her yere yansır.",
       },
       {
-        title: "Shader’lar her zaman canlı kalır.",
+        title: "Efektler sonradan da düzenlenir.",
         description:
-          "Gradyan, dalga, halftone, sıvı metal, su ya da ASCII efekti ekleyin. Hiçbiri sabit bir görsele dönüşmez; hepsini sonradan da düzenleyebilirsiniz.",
+          "Gradyan, dalga, sıvı metal ya da su gibi hareketli efektler ekleyin. Hiçbiri sabit bir görsele dönüşmez; ayarlarını istediğiniz zaman değiştirebilirsiniz.",
       },
       {
-        title: "3D dönüşler gerçek CSS’le yapılır.",
+        title: "Üç boyutlu dönüşler.",
         description:
-          "Katmanı X, Y ve Z ekseninde döndürüp perspektifi ve derinliği ayarlayın. Fountible, gördüğünüz dönüşümü birebir CSS transform olarak yazar.",
+          "Öğeleri üç eksende döndürüp derinlik ve perspektif verin. Ekranda gördüğünüz, kodda da aynen çıkar.",
       },
       {
-        title: "Ekip alanı, dosyalar ve fontlar.",
+        title: "Ortak ekip alanı.",
         description:
-          "Tüm işler ortak bir ekip alanında toplanır ve ekibin fontlarını bir kez yüklemeniz yeterlidir. Herkes aynı dosyada, birbirinin imlecini canlı görerek çalışır.",
+          "Ekibinizin dosyaları ve yazı tipleri tek bir alanda durur. Herkes aynı dosyada, birbirinin imlecini anında görerek çalışır.",
       },
       {
-        title: "Auto layout kodda da aynen çalışır.",
+        title: "Otomatik yerleşim.",
         description:
-          "Dikey, yatay ve ızgara akışlar doğrudan flexbox ve grid’e dönüşür; gap ve padding değerleri de koda olduğu gibi taşınır.",
+          "Dikey, yatay ve ızgara düzenler içeriğe göre kendiliğinden ayarlanır; bu düzen koda da aynen geçer.",
       },
       {
-        title: "Görsel ayarlarını sonradan da değiştirebilirsiniz.",
+        title: "Görsel düzenleme.",
         description:
-          "Pozlama, kontrast, renk ve beyaz dengesi CSS ve SVG filtreleriyle uygulanır; orijinal görsel olduğu gibi kalır. Görselin arka planını da kendi cihazınızda kaldırabilirsiniz.",
+          "Pozlama, kontrast ve renk ayarlarını değiştirdiğinizde orijinal görsel bozulmaz. Görselin arka planını da kendi bilgisayarınızda kaldırabilirsiniz.",
       },
     ],
   },
   platforms: {
     label: "Nerede çalışır",
     title: "Fountible hem tarayıcıda hem Mac’te çalışır.",
-    lead: "Web’de de Mac uygulamasında da aynı tuvalle çalışırsınız; Chrome eklentisi ise web sayfalarını tuvale taşır.",
+    lead: "Web’de ve Mac uygulamasında aynı dosyalarla çalışırsınız; Chrome eklentisi ise web sayfalarındaki öğeleri tasarımınıza taşır.",
     items: [
       {
         title: "Web uygulaması",
         description:
-          "Hiçbir şey kurmadan app.fountible.com adresinden açarsınız. Tuval, Bro ve dışa aktarma burada da var.",
+          "Hiçbir şey kurmadan app.fountible.com adresinden açarsınız. Bro ve dışa aktarma burada da var.",
       },
       {
         title: "Mac uygulaması",
         description:
-          "Tam özellikli tuval, Mac’te yerel bir uygulama olarak çalışır. Claude ve Cursor hesaplarını ve MCP bağlantılarını yalnızca burada kullanabilirsiniz. Apple Silicon işlemcili bir Mac gerekir.",
+          "Fountible’ın tüm özellikleri Mac’te ayrı bir uygulama olarak çalışır. Claude ve Cursor hesapları ile Claude Code ve Cursor bağlantıları yalnızca burada kullanılabilir. Apple Silicon işlemcili bir Mac gerekir.",
       },
       {
         title: "Fountible Capture",
         description:
-          "Herhangi bir web sayfasındaki istediğiniz öğeyi tuvale kopyalayan bir Chrome eklentisi. Stiller, görseller ve sayfanın kendi fontları da birlikte gelir.",
+          "Herhangi bir web sayfasındaki öğeyi tasarımınıza kopyalayan bir Chrome eklentisi. Görseller ve yazı tipleri de birlikte gelir.",
       },
     ],
   },
   faq: {
     label: "Sorular",
-    title: "Tasarım ve ürün yöneticilerinin sorduğu sorular.",
-    lead: "Aradığınız yanıt burada yoksa demoda bize sorun.",
+    title: "Tasarım ekiplerinin sık sorduğu sorular.",
+    lead: "Sorunuzun yanıtı burada yoksa demoda konuşalım.",
     noteTitle: "Sık sorulanlar",
     note: "Tüm ayrıntılar fountible.com’daki dokümantasyonda.",
     items: [
       {
-        question: "Fountible bir Figma alternatifi mi?",
+        question: "Fountible, Figma’nın yerine kullanılabilir mi?",
         answer:
-          "Arayüzünüz React ve Tailwind ile yazılıyorsa, evet. Frame, auto layout, vektör, bileşen, değişken ve eş zamanlı ortak çalışma burada da var. Aradaki fark, tuvalin gerçek React bileşenleri render etmesi. Figma’da illüstrasyon yapan ekipler iki aracı yan yana kullanabilir.",
-      },
-      {
-        question: "Kodu hangi formatlarda dışa aktarabilirim?",
-        answer:
-          "Bir katmanı React ve Tailwind JSX, HTML ya da SVG olarak alabilirsiniz. Yerleşim flexbox ve gap olarak, animasyon ise sade anime.js olarak çıkar. Görsel, video ve sunum için de PNG, JPG, MP4 ve PPTX seçenekleri var.",
+          "Arayüz tasarımı için evet. Bileşenler, otomatik yerleşim, değişkenler ve eş zamanlı ekip çalışması Fountible’da da var. Farkı, Bro’nun tasarımı sizinle birlikte hazırlaması ve tasarımın doğrudan koda dönüşmesi.",
       },
       {
         question: "Bro hangi yapay zeka modelleriyle çalışır?",
         answer:
-          "ChatGPT ile hem tarayıcıda hem Mac’te giriş yapabilirsiniz. Claude ve Cursor hesapları ise Mac uygulamasında çalışır. Tarayıcıda bir Anthropic ya da Kimi API anahtarı da ekleyebilirsiniz. Her sohbet, kendisi için seçtiğiniz modelle çalışır.",
+          "ChatGPT ile hem tarayıcıda hem Mac’te giriş yapabilirsiniz. Claude ve Cursor hesapları Mac uygulamasında çalışır. Tarayıcıda bir Anthropic ya da Kimi API anahtarı da ekleyebilirsiniz.",
       },
       {
-        question: "Claude Desktop ya da Cursor ile çalışır mı?",
+        question: "Tasarımı hangi biçimlerde dışa aktarabilirim?",
         answer:
-          "Evet. Mac uygulaması yerel bir MCP sunucusu çalıştırır. Claude Code, Claude Desktop, Cursor ve diğer MCP istemcileri bu sayede açık dosyalarınızı okuyup düzenleyebilir. Bu bağlantılar varsayılan olarak kapalıdır, ayarlardan açılır. Tarayıcı sürümünde ise bu özellik yok.",
+          "Ekranları React, HTML ya da SVG kodu olarak, görselleri PNG ve JPG, animasyonları MP4 video, sunumları ise PowerPoint olarak alabilirsiniz.",
+      },
+      {
+        question: "Claude Code ya da Cursor ile birlikte kullanılabilir mi?",
+        answer:
+          "Evet. Mac uygulaması, bu araçların açık dosyanız üzerinde çalışmasına izin verir. Bağlantı ilk başta kapalıdır, ayarlardan açarsınız. Tarayıcı sürümünde bu özellik yok.",
       },
       {
         question: "Ekibimle birlikte çalışabilir miyim?",
         answer:
-          "Evet. Ekibinizle aynı dosyada, birbirinizin imlecini canlı görerek çalışabilir, dosyayı bir bağlantıyla paylaşabilirsiniz. Rolleri, ortak kütüphaneleri ve fontları ekip alanından yönetir, gerektiğinde sürüm geçmişinden önceki bir sürüme dönersiniz.",
+          "Evet. Aynı dosyada, birbirinizin imlecini anında görerek çalışabilir, dosyayı bir bağlantıyla paylaşabilirsiniz. Rolleri, ortak kütüphaneleri ve yazı tiplerini ekip alanından yönetir, gerektiğinde önceki bir sürüme dönersiniz.",
       },
       {
         question: "Fountible hangi platformlarda çalışır?",
         answer:
-          "Tarayıcıda app.fountible.com adresinde ve Mac uygulamasında çalışır. Mac uygulaması Apple Silicon gerektirdiği için Intel işlemcili Mac’lerde web sürümünü kullanmalısınız. Fountible Capture ise bir Chrome eklentisidir.",
+          "Tarayıcıda app.fountible.com adresinde ve Mac uygulamasında. Mac uygulaması Apple Silicon işlemci gerektirir; Intel işlemcili Mac’lerde web sürümünü kullanabilirsiniz. Fountible Capture ise bir Chrome eklentisidir.",
       },
     ],
   },
   ctaAssurances: [
-    "Figma’dan yapıştırdığınız tasarım katman olarak gelir",
-    "Kodu React ve Tailwind olarak dışa aktarırsınız",
-    "Bro, seçtiğiniz modelle çalışır",
+    "Tasarım asistanı Bro",
+    "Figma’dan kolay aktarım",
+    "Tek adımda koda aktarım",
   ],
   parent: {
     label: "GBO Vision",
