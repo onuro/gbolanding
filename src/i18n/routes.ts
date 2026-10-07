@@ -8,6 +8,7 @@ export const routes = {
   kollektor: { tr: "/kollektor", en: "/en/kollektor" },
   intelval: { tr: "/intelval", en: "/en/intelval" },
   hastam: { tr: "/hastam", en: "/en/hastam" },
+  fountible: { tr: "/fountible", en: "/en/fountible" },
 } as const satisfies Record<string, Record<Locale, string>>;
 
 export type PageKey = keyof typeof routes;

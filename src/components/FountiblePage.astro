@@ -1,0 +1,167 @@
+---
+// /fountible and /en/fountible: the parent company's page about Fountible,
+// a design tool whose canvas is real React and Tailwind. The product has its
+// own site (fountible.com) and app (app.fountible.com); this page says what
+// it does, shows it and links there, as /hastam does for hastam.ai.
+//
+// Pictures: screenshots of fountible.com's own product visuals, captured at
+// 2x (src/assets/editorial/fountible-*.png). Each caption says where it is
+// from. See the header of messages/fountible-page.tr.ts for the truth rules.
+import type { ImageMetadata } from "astro";
+import { Image } from "astro:assets";
+import fountibleLogo from "@/assets/product/fountible-logo.svg";
+import broShot from "@/assets/editorial/fountible-bro.png";
+import codeShot from "@/assets/editorial/fountible-code.png";
+import heroShot from "@/assets/editorial/fountible-hero.png";
+import motionShot from "@/assets/editorial/fountible-motion.png";
+import StepRows from "@/components/kollektor-page/StepRows.astro";
+import Chapter from "@/components/product/Chapter.astro";
+import FactCells from "@/components/product/FactCells.astro";
+import Faq from "@/components/product/Faq.astro";
+import LinkRow from "@/components/product/LinkRow.astro";
+import NumberedRows from "@/components/product/NumberedRows.astro";
+import ProductHero from "@/components/product/ProductHero.astro";
+import ProductPageShell from "@/components/product/ProductPageShell.astro";
+import type { Locale } from "@/i18n/config";
+import type { FountiblePictureCopy } from "@/i18n/page-types/fountible";
+import type { Messages } from "@/i18n/types";
+
+interface Props {
+  locale: Locale;
+  messages: Messages;
+}
+
+const { locale, messages } = Astro.props;
+const page = messages.fountiblePage;
+const site = "https://fountible.com/";
+// Clears the sticky header when a link jumps to a section.
+const anchor = "scroll-mt-20";
+
+// One frame for every screenshot: the image on a quiet well, its caption
+// under it. The screenshots carry their own UI, so the frame stays plain.
+const shot = (image: ImageMetadata, copy: FountiblePictureCopy) => ({ image, copy });
+const pictures = {
+  hero: shot(heroShot, page.heroPicture),
+  code: shot(codeShot, page.code.picture),
+  bro: shot(broShot, page.bro.picture),
+  motion: shot(motionShot, page.motion.picture),
+};
+---
+
+<ProductPageShell
+  locale={locale}
+  messages={messages}
+  product="fountible"
+  assurances={page.ctaAssurances}
+>
+  <ProductHero
+    copy={page.hero}
+    product="fountible"
+    secondaryHref={site}
+    secondaryExternal
+  >
+    <img
+      slot="logo"
+      src={fountibleLogo.src}
+      alt="Fountible"
+      width="44"
+      height="44"
+      class="mb-7 size-11 dark:invert"
+    />
+    <figure slot="visual" class="flex h-full flex-col justify-center gap-3 rounded-well bg-muted p-3 sm:p-5">
+      <Image
+        src={pictures.hero.image}
+        alt={pictures.hero.copy.alt}
+        width={1400}
+        widths={[640, 960, 1400]}
+        sizes="(min-width: 84rem) 49rem, (min-width: 80rem) 58vw, 100vw"
+        format="webp"
+        quality={80}
+        loading="eager"
+        decoding="async"
+        class="w-full rounded-card shadow-float"
+      />
+      <figcaption class="pl-1 data-label">{pictures.hero.copy.caption}</figcaption>
+    </figure>
+  </ProductHero>
+
+  <Chapter id="code" headingId="fountible-code-title" copy={page.code} class={anchor}>
+    <figure class="flex flex-col gap-3" data-reveal>
+      <Image
+        src={pictures.code.image}
+        alt={pictures.code.copy.alt}
+        width={1400}
+        widths={[640, 960, 1400]}
+        sizes="(min-width: 84rem) 57rem, (min-width: 64rem) 85vw, 100vw"
+        format="webp"
+        quality={80}
+        loading="lazy"
+        decoding="async"
+        class="w-full rounded-card bg-muted"
+      />
+      <figcaption class="pl-1 data-label">{pictures.code.copy.caption}</figcaption>
+    </figure>
+    <NumberedRows rows={page.code.rows} class="mt-10 lg:mt-12" />
+  </Chapter>
+
+  <Chapter id="bro" headingId="fountible-bro-title" copy={page.bro} class={anchor}>
+    <figure class="flex flex-col gap-3" data-reveal>
+      <Image
+        src={pictures.bro.image}
+        alt={pictures.bro.copy.alt}
+        width={1400}
+        widths={[640, 960, 1400]}
+        sizes="(min-width: 84rem) 57rem, (min-width: 64rem) 85vw, 100vw"
+        format="webp"
+        quality={80}
+        loading="lazy"
+        decoding="async"
+        class="w-full rounded-card bg-muted"
+      />
+      <figcaption class="pl-1 data-label">{pictures.bro.copy.caption}</figcaption>
+    </figure>
+    <FactCells items={page.bro.items} class="mt-6" />
+  </Chapter>
+
+  <Chapter id="motion" headingId="fountible-motion-title" copy={page.motion} class={anchor}>
+    <div class="grid gap-10 lg:grid-cols-2 lg:items-start lg:gap-12">
+      <figure class="flex flex-col gap-3" data-reveal>
+        <Image
+          src={pictures.motion.image}
+          alt={pictures.motion.copy.alt}
+          width={1100}
+          widths={[480, 768, 1100]}
+          sizes="(min-width: 84rem) 28rem, (min-width: 64rem) 42vw, 100vw"
+          format="webp"
+          quality={80}
+          loading="lazy"
+          decoding="async"
+          class="w-full rounded-card bg-muted"
+        />
+        <figcaption class="pl-1 data-label">{pictures.motion.copy.caption}</figcaption>
+      </figure>
+      <StepRows rows={page.motion.rows} />
+    </div>
+  </Chapter>
+
+  <Chapter id="features" headingId="fountible-features-title" copy={page.features} class={anchor}>
+    <FactCells items={page.features.items} />
+  </Chapter>
+
+  <Chapter id="platforms" headingId="fountible-platforms-title" copy={page.platforms} class={anchor}>
+    <FactCells items={page.platforms.items} />
+  </Chapter>
+
+  <Chapter id="faq" headingId="fountible-faq-title" copy={page.faq} class={anchor}>
+    <Faq items={page.faq.items} name="fountible-faq" />
+  </Chapter>
+
+  <Chapter id="gbo-vision" headingId="fountible-parent-title" copy={page.parent} flush>
+    <LinkRow
+      href={site}
+      label={page.parent.linkLabel}
+      external
+      externalHint={page.parent.externalHint}
+    />
+  </Chapter>
+</ProductPageShell>

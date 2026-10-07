@@ -1,0 +1,39 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import FountiblePage from "@/components/FountiblePage.astro";
+import { getMessages } from "@/i18n/getMessages";
+import { buildMetadata } from "@/i18n/metadata";
+import { buildProductNode, faqPageNode, productId } from "@/lib/schema";
+
+export const prerender = true;
+
+const locale = "en" as const;
+const messages = await getMessages(locale);
+const metadata = buildMetadata(locale, messages, "fountible");
+const origin = new URL(Astro.site ?? Astro.url.origin);
+const canonical = new URL(metadata.canonicalPath, origin);
+// The product is this page's subject. Its node is described with this page's
+// own copy, and its features are the ones the page lists, so structured data
+// never says more than a visitor can read. sameAs ties the node to the
+// product's own site; fountible.com does not name GBO Vision yet, so the tie
+// runs one way. The FAQ node is fed the same array the accordion renders.
+const page = messages.fountiblePage;
+const schema = [
+  buildProductNode(origin, messages, "fountible", locale, {
+    name: "Fountible",
+    description: page.metaDescription,
+    featureList: page.features.items.map((item) => item.title),
+    sameAs: ["https://fountible.com/"],
+  }),
+  ...(page.faq.items.length > 0 ? [faqPageNode(canonical, page.faq.items)] : []),
+];
+---
+
+<BaseLayout
+  locale={locale}
+  metadata={metadata}
+  extraSchema={schema}
+  mainEntityId={productId(origin, "fountible")}
+>
+  <FountiblePage locale={locale} messages={messages} />
+</BaseLayout>

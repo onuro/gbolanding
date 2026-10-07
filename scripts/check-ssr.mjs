@@ -14,6 +14,7 @@ const clusters = {
   kollektor: { tr: "/kollektor", en: "/en/kollektor" },
   intelval: { tr: "/intelval", en: "/en/intelval" },
   hastam: { tr: "/hastam", en: "/en/hastam" },
+  fountible: { tr: "/fountible", en: "/en/fountible" },
 };
 const pages = [
   { path: "/", locale: "tr", page: "home", title: "Kurumsal Yapay Zeka" },
@@ -26,6 +27,8 @@ const pages = [
   { path: "/en/intelval", locale: "en", page: "intelval", title: "Intelval" },
   { path: "/hastam", locale: "tr", page: "hastam", title: "Hastam" },
   { path: "/en/hastam", locale: "en", page: "hastam", title: "Hastam" },
+  { path: "/fountible", locale: "tr", page: "fountible", title: "Fountible" },
+  { path: "/en/fountible", locale: "en", page: "fountible", title: "Fountible" },
 ];
 const absolute = (path) => new URL(path, origin).href;
 

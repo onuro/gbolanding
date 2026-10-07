@@ -142,7 +142,7 @@ export function buildGraph({
   };
 }
 
-export type ProductSlug = "kollektor" | "intelval" | "hastam";
+export type ProductSlug = "kollektor" | "intelval" | "hastam" | "fountible";
 
 // Keyed on the product, not on the URL it happens to live at: the same @id is
 // used on the home page and on the product's own page, so both describe one
@@ -172,8 +172,12 @@ export function buildProductNode(
     "@id": productId(origin, slug),
     name: solution.title,
     description: solution.description,
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
+    // Set here rather than on the product's page, so the home page and the
+    // page describe the one @id the same way. Fountible is a design tool with
+    // a Mac app; the others are business software in the browser.
+    applicationCategory:
+      slug === "fountible" ? "DesignApplication" : "BusinessApplication",
+    operatingSystem: slug === "fountible" ? "Web, macOS" : "Web",
     // Every product has its own page.
     url: new URL(pathFor(slug, locale), origin).href,
     provider: { "@id": organizationId(origin) },
@@ -193,7 +197,7 @@ export function buildProductNodes(
   messages: Messages,
   locale: Locale = defaultLocale,
 ): Node[] {
-  return (["kollektor", "intelval", "hastam"] as const).map((slug) =>
+  return (["kollektor", "intelval", "hastam", "fountible"] as const).map((slug) =>
     buildProductNode(origin, messages, slug, locale),
   );
 }

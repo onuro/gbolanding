@@ -1,4 +1,5 @@
 import type { Messages } from "@/i18n/types";
+import fountiblePage from "@/i18n/messages/fountible-page.tr";
 import hastamPage from "@/i18n/messages/hastam-page.tr";
 import intelvalPage from "@/i18n/messages/intelval-page.tr";
 import kollektorPage from "@/i18n/messages/kollektor-page.tr";
@@ -23,7 +24,7 @@ const trMessages: Messages = {
     ],
     productsTitle: "Neler ürettik",
     productsIntro:
-      "Kollektor, Intelval ve Hastam. Tahsilat, değerleme ve klinik işleri için kendi ürünlerimizi geliştiriyoruz.",
+      "Tahsilat, değerleme, kliniklerin günlük işleri ve tasarım için kendi ürünlerimizi geliştiriyoruz: Kollektor, Intelval, Hastam ve Fountible.",
     factsTitle: "Şirket bilgileri",
     factLabels: {
       legalName: "Ticari unvan",
@@ -36,17 +37,19 @@ const trMessages: Messages = {
     factValues: {
       based: "Türkiye",
       languages: "İngilizce, Almanca, Türkçe",
-      products: "Kollektor, Intelval, Hastam",
+      products: "Kollektor, Intelval, Hastam, Fountible",
     },
   },
   kollektorPage,
   intelvalPage,
   hastamPage,
+  fountiblePage,
   nav: {
     solutions: "Çözümler",
     kollektor: "Kollektor",
     intelval: "Intelval",
     hastam: "Hastam",
+    fountible: "Fountible",
     method: "Yaklaşım",
     about: "Hakkımızda",
     languageLabel: "Dil",
@@ -148,6 +151,21 @@ const trMessages: Messages = {
       ],
       cta: "Hastam demosu planlayın",
       pageCta: "Detaylı bilgi",
+    },
+    // Only what fountible.com itself says: the canvas is React and Tailwind,
+    // Figma paste, Bro, and export of the code the canvas renders.
+    fountible: {
+      eyebrow: "Doğrudan kod üzerinde çalışan tasarım aracı",
+      title: "Fountible",
+      description:
+        "Fountible’ın tuvalinde gerçek React ve Tailwind kodu çalışır; dışa aktardığınızda da bu kodun aynısını alırsınız. Figma’daki tasarımlarınızı yapıştırıp düzenleyebilir ya da yapay zeka asistanı Bro’yla tuvalde tasarlayabilirsiniz.",
+      highlights: [
+        "Gerçek React ve Tailwind kodu",
+        "Figma’dan gelen düzenlenebilir katmanlar",
+        "Tuvaldeki yapay zeka asistanı Bro",
+      ],
+      cta: "Fountible demosu planlayın",
+      pageCta: "Fountible sayfasına gidin",
     },
     enterprise: {
       eyebrow: "Özel yapay zeka ve yazılım",
@@ -476,18 +494,23 @@ const trMessages: Messages = {
         "Tahsilat işinizin nasıl yürüdüğünü anlatın. Somut bir sonraki adımı birlikte belirleyelim.",
     },
     intelval: {
-      title: "Intelval’i bir demoda görün.",
+      title: "Intelval’i size gösterelim.",
       description:
-        "Değerleme işinizin nasıl yürüdüğünü anlatın. Somut bir sonraki adımı birlikte belirleyelim.",
+        "Bir değerleme dosyasının firmanızda bugün nasıl ilerlediğini anlatın, atılacak ilk somut adımı birlikte belirleyelim.",
     },
     hastam: {
       title: "Hastam’ı bir demoda görün.",
       description:
         "Kliniğinizde telefonun nasıl işlediğini anlatın. Somut bir sonraki adımı birlikte belirleyelim.",
     },
+    fountible: {
+      title: "Fountible’ı size gösterelim.",
+      description:
+        "Tasarım sürecinizin bugün nasıl yürüdüğünü anlatın, atılacak ilk somut adımı birlikte belirleyelim.",
+    },
     secondaryCta: "Diğer çözümlere bakın",
     kollektorNote: "Borçluyu arar, ödeme sözünü teyit eder ve kaydeder.",
-    intelvalNote: "Belgeleri okur, değeri hesaplar ve rapor taslağını yazar. Raporu uzmanınız imzalar.",
+    intelvalNote: "Belgeleri okuyup değeri hesaplar ve rapor taslağını hazırlar; imzayı değerleme uzmanınız atar.",
   },
   footer: {
     tagline: "İşinize göre tasarlanmış yapay zeka ve yazılım.",
@@ -495,6 +518,7 @@ const trMessages: Messages = {
     kollektor: "Kollektor",
     intelval: "Intelval",
     hastam: "Hastam",
+    fountible: "Fountible",
     platform: "Platform",
     method: "Yaklaşım",
     about: "Hakkımızda",

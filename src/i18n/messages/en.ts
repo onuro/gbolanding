@@ -1,4 +1,5 @@
 import type { Messages } from "@/i18n/types";
+import fountiblePage from "@/i18n/messages/fountible-page.en";
 import hastamPage from "@/i18n/messages/hastam-page.en";
 import intelvalPage from "@/i18n/messages/intelval-page.en";
 import kollektorPage from "@/i18n/messages/kollektor-page.en";
@@ -23,7 +24,7 @@ const enMessages: Messages = {
     ],
     productsTitle: "What we have built",
     productsIntro:
-      "Kollektor, Intelval, and Hastam. We build our own products for debt collection, valuation, and the day-to-day work of a clinic.",
+      "Kollektor, Intelval, Hastam, and Fountible. We build our own products for debt collection, valuation, the day-to-day work of a clinic, and design.",
     factsTitle: "Company details",
     factLabels: {
       legalName: "Legal name",
@@ -36,17 +37,19 @@ const enMessages: Messages = {
     factValues: {
       based: "Türkiye",
       languages: "English, German, Turkish",
-      products: "Kollektor, Intelval, Hastam",
+      products: "Kollektor, Intelval, Hastam, Fountible",
     },
   },
   kollektorPage,
   intelvalPage,
   hastamPage,
+  fountiblePage,
   nav: {
     solutions: "Solutions",
     kollektor: "Kollektor",
     intelval: "Intelval",
     hastam: "Hastam",
+    fountible: "Fountible",
     method: "How we work",
     about: "About",
     languageLabel: "Language",
@@ -146,6 +149,21 @@ const enMessages: Messages = {
       ],
       cta: "Schedule a Hastam demo",
       pageCta: "Learn more",
+    },
+    // Only what fountible.com itself says: the canvas is React and Tailwind,
+    // Figma paste, Bro, and export of the code the canvas renders.
+    fountible: {
+      eyebrow: "Design tool where design is code",
+      title: "Fountible",
+      description:
+        "Fountible is a design tool whose canvas is real React and Tailwind. Paste from Figma, or design with Bro, the AI on the canvas. The code you export is the same code the canvas renders.",
+      highlights: [
+        "Real React and Tailwind",
+        "Editable layers from Figma",
+        "Bro, the AI on the canvas",
+      ],
+      cta: "Schedule a Fountible demo",
+      pageCta: "Go to the Fountible page",
     },
     enterprise: {
       eyebrow: "Custom AI and software",
@@ -482,6 +500,11 @@ const enMessages: Messages = {
       description:
         "Tell us how your clinic handles its phone today. We’ll show you a practical next step.",
     },
+    fountible: {
+      title: "See Fountible in a demo.",
+      description:
+        "Tell us how your design work runs today. We’ll show you a practical next step.",
+    },
     secondaryCta: "See the other solutions",
     kollektorNote: "Calls the debtor, confirms the promise to pay and records it.",
     intelvalNote: "Reads the documents, works out the value and drafts the report. Your valuer signs it.",
@@ -492,6 +515,7 @@ const enMessages: Messages = {
     kollektor: "Kollektor",
     intelval: "Intelval",
     hastam: "Hastam",
+    fountible: "Fountible",
     platform: "Platform",
     method: "How we work",
     about: "About",

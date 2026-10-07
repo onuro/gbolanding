@@ -40,6 +40,10 @@ const pageCopy = {
     title: messages.hastamPage.metaTitle,
     description: messages.hastamPage.metaDescription,
   }),
+  fountible: (messages) => ({
+    title: messages.fountiblePage.metaTitle,
+    description: messages.fountiblePage.metaDescription,
+  }),
 } satisfies Record<
   PageKey,
   (messages: Messages) => { title: string; description: string }

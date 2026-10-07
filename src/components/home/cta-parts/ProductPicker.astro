@@ -3,6 +3,7 @@ import {
   Blocks,
   FileSearch,
   MousePointerClick,
+  PenTool,
   PhoneCall,
   Stethoscope,
 } from "lucide-react";
@@ -17,7 +18,7 @@ import type { Locale } from "@/i18n/config";
  * page preselect a pill before the page scrolls to the form.
  */
 
-type Product = "kollektor" | "intelval" | "hastam" | "custom";
+type Product = "kollektor" | "intelval" | "hastam" | "fountible" | "custom";
 
 interface Props {
   locale: Locale;
@@ -42,9 +43,11 @@ const ui =
         kollektor:
           "Borçluları arar, ödeme planında anlaşır ve ödeme sözünü kaydeder.",
         intelval:
-          "Emsal ve ekspertiz raporlarını okur. Uzmanınızın onaylayacağı raporu hazırlar.",
+          "Emsalleri ve önceki ekspertiz raporlarını inceleyip rapor taslağını hazırlar; imzayı değerleme uzmanınız atar.",
         hastam:
           "Hastanın şikayetini dinler, doğru branşa yönlendirir ve boş saatleri sunar. Randevuyu klinik onaylar.",
+        fountible:
+          "Tasarımı tuvalde gerçek React ve Tailwind koduyla kurar; dışa aktarınca kodu olduğu gibi alırsınız.",
         customLabel: "Özel yazılım",
         custom:
           "İşinizin nasıl yürüdüğünü anlarız. Doğru yapay zeka aracını tasarlar, bağlar ve geliştiririz.",
@@ -59,6 +62,8 @@ const ui =
           "Reads comparables and appraisal reports, then drafts a report your expert signs off.",
         hastam:
           "Listens to the complaint, routes it to the right specialty and offers open slots. The clinic approves the booking.",
+        fountible:
+          "What you design on the canvas is real React and Tailwind code. You export that code as it is.",
         customLabel: "Custom software",
         custom:
           "We learn how your work runs, then design, connect and build the right AI tool.",
@@ -69,6 +74,7 @@ const options = (
     { value: "kollektor", label: "Kollektor", note: ui.kollektor, Icon: PhoneCall },
     { value: "intelval", label: "Intelval", note: ui.intelval, Icon: FileSearch },
     { value: "hastam", label: "Hastam", note: ui.hastam, Icon: Stethoscope },
+    { value: "fountible", label: "Fountible", note: ui.fountible, Icon: PenTool },
     { value: "custom", label: ui.customLabel, note: ui.custom, Icon: Blocks },
   ] as const
 ).map((option) => ({ ...option, note: notes?.[option.value] ?? option.note }));
@@ -149,7 +155,7 @@ const noteClass =
 
 <script>
   // Values a demo link may ask for via data-demo-product.
-  const PRODUCTS = ["kollektor", "intelval", "hastam", "custom"];
+  const PRODUCTS = ["kollektor", "intelval", "hastam", "fountible", "custom"];
 
   const pickers = [
     ...document.querySelectorAll<HTMLElement>("[data-cta-picker]"),

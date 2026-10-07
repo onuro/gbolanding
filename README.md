@@ -29,6 +29,7 @@ comes only from the URL: there is no cookie, geo or `Accept-Language` detection.
 | Kollektor | `/kollektor` | `/en/kollektor` |
 | Intelval | `/intelval` | `/en/intelval` |
 | Hastam | `/hastam` | `/en/hastam` |
+| Fountible | `/fountible` | `/en/fountible` |
 
 The route table is `src/i18n/routes.ts`. See `docs/language-routing.md`.
 

@@ -1,0 +1,118 @@
+---
+// Fountible on the home page: the editor on a quiet well and the text beside
+// it. Hastam above has its text on the left, so this row puts the picture
+// there and the two full-width rows alternate. The parts are the Kollektor
+// and Intelval cards': eyebrow, title and icon, numbered highlights, two
+// small buttons. Half and half, not Hastam's 7/5: in a five-column text side
+// the two buttons broke onto two lines.
+//
+// The picture is a screenshot of fountible.com's own product visual. It
+// already carries its own UI, so it gets no floating mock card and no video,
+// and its caption says where it is from (the rule in page-types/fountible.ts).
+// The text beside it says what it shows, so the alt is empty.
+import { Image } from "astro:assets";
+import { ArrowUpRight, PenTool } from "lucide-react";
+import fountibleImage from "@/assets/editorial/fountible-hero.png";
+import type { Locale } from "@/i18n/config";
+import { pathFor } from "@/i18n/routes";
+import type { ProductSolutionMessage } from "@/i18n/types";
+
+interface Props {
+  locale: Locale;
+  product: ProductSolutionMessage;
+  /** Where the screenshot is from, in the page's language. */
+  caption: string;
+}
+
+const { locale, product, caption } = Astro.props;
+---
+
+<article
+  id="fountible"
+  aria-labelledby="fountible-title"
+  class="group relative overflow-hidden border-t border-border bg-background"
+  data-reveal-root
+>
+  <div class="grid lg:grid-cols-2">
+    <div class="p-3">
+      <figure
+        class="flex h-full flex-col justify-center gap-3 rounded-well bg-muted p-3 sm:p-5"
+        data-reveal
+      >
+        <Image
+          src={fountibleImage}
+          alt=""
+          width={1400}
+          widths={[480, 768, 1120, 1400]}
+          sizes="(min-width: 1340px) 34rem, (min-width: 1024px) calc(50vw - 4rem), calc(100vw - 3rem)"
+          format="webp"
+          quality={80}
+          loading="lazy"
+          decoding="async"
+          class="w-full rounded-card shadow-float"
+        />
+        <figcaption class="pl-1 data-label">{caption}</figcaption>
+      </figure>
+    </div>
+
+    <div class="flex flex-col justify-center bg-background px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
+      <div data-reveal>
+        <div class="flex items-start justify-between gap-6">
+          <div class="min-w-0">
+            <p class="mb-3 text-label-sm text-tertiary-foreground">
+              {product.eyebrow}
+            </p>
+            <h3 id="fountible-title" class="text-title-h2">
+              {product.title}
+            </h3>
+          </div>
+          <span class="flex size-14 shrink-0 items-center justify-center rounded-full bg-foreground/[0.045] text-foreground/70">
+            <PenTool aria-hidden="true" className="size-6" strokeWidth={1.5} />
+          </span>
+        </div>
+        <p class="mt-4 max-w-xl text-paragraph-md text-muted-foreground">
+          {product.description}
+        </p>
+
+        <ul class="mt-6 flex flex-wrap items-baseline gap-x-7 gap-y-2">
+          {
+            product.highlights.map((highlight, index) => (
+              <li class="flex items-baseline gap-2">
+                <span class="data-label tabular-nums">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span class="text-label-xs text-muted-foreground">{highlight}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="mt-8 flex flex-wrap items-center gap-2">
+        <a
+          href="#demo"
+          data-demo-product="fountible"
+          class="button button-sm button-secondary group/row"
+        >
+          {product.cta}
+          <ArrowUpRight
+            aria-hidden="true"
+            className="size-3.5 shrink-0 text-tertiary-foreground transition-transform group-hover/row:translate-x-0.5 group-hover/row:-translate-y-0.5"
+            strokeWidth={1.5}
+          />
+        </a>
+        <a
+          href={pathFor("fountible", locale)}
+          class="button button-sm button-secondary group/row"
+        >
+          {product.pageCta}
+          <ArrowUpRight
+            aria-hidden="true"
+            className="size-3.5 shrink-0 text-tertiary-foreground transition-transform group-hover/row:translate-x-0.5 group-hover/row:-translate-y-0.5"
+            strokeWidth={1.5}
+          />
+        </a>
+      </div>
+    </div>
+  </div>
+</article>

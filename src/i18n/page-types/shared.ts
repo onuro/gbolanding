@@ -1,5 +1,5 @@
 // Building blocks shared by the product pages (/kollektor, /intelval,
-// /hastam). Each page composes its own message type from these, so the shared
+// /hastam, /fountible). Each page composes its own message type from these, so the shared
 // components in src/components/product/ can take a slice of copy without
 // knowing the page.
 

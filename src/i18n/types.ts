@@ -1,3 +1,4 @@
+import type { FountiblePageMessages } from "@/i18n/page-types/fountible";
 import type { HastamPageMessages } from "@/i18n/page-types/hastam";
 import type { IntelvalPageMessages } from "@/i18n/page-types/intelval";
 import type { KollektorPageMessages } from "@/i18n/page-types/kollektor";
@@ -12,7 +13,10 @@ export interface SolutionMessage {
 
 /** A product that has its own page: the card also links there. */
 export interface ProductSolutionMessage extends SolutionMessage {
-  /** Label of the link to the product's page (/kollektor, /intelval, /hastam). */
+  /**
+   * Label of the link to the product's page (/kollektor, /intelval, /hastam,
+   * /fountible).
+   */
   pageCta: string;
 }
 
@@ -105,17 +109,19 @@ export interface Messages {
   };
   about: AboutMessages;
   /**
-   * /kollektor, /intelval and /hastam. Their copy lives in
+   * /kollektor, /intelval, /hastam and /fountible. Their copy lives in
    * messages/<product>-page.*.ts.
    */
   kollektorPage: KollektorPageMessages;
   intelvalPage: IntelvalPageMessages;
   hastamPage: HastamPageMessages;
+  fountiblePage: FountiblePageMessages;
   nav: {
     solutions: string;
     kollektor: string;
     intelval: string;
     hastam: string;
+    fountible: string;
     method: string;
     about: string;
     languageLabel: string;
@@ -152,6 +158,7 @@ export interface Messages {
     kollektor: ProductSolutionMessage;
     intelval: ProductSolutionMessage;
     hastam: HastamSolutionMessage;
+    fountible: ProductSolutionMessage;
     enterprise: EnterpriseSolutionMessage;
   };
   industries: {
@@ -267,6 +274,7 @@ export interface Messages {
     kollektor: { title: string; description: string };
     intelval: { title: string; description: string };
     hastam: { title: string; description: string };
+    fountible: { title: string; description: string };
     /** Label of the link back to the home page's list of solutions. */
     secondaryCta: string;
     /**
@@ -287,6 +295,7 @@ export interface Messages {
     kollektor: string;
     intelval: string;
     hastam: string;
+    fountible: string;
     platform: string;
     method: string;
     about: string;

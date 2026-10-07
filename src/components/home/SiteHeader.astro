@@ -5,9 +5,11 @@ import {
   ChartNoAxesCombined,
   ChevronDown,
   Menu,
+  PenTool,
   Phone,
   Stethoscope,
 } from "lucide-react";
+import fountibleShot from "@/assets/editorial/fountible-hero.png";
 import intelvalShot from "@/assets/editorial/intelval-architecture.png";
 import hastamShot from "@/assets/editorial/menu-hastam.jpg";
 import kollektorShot from "@/assets/editorial/menu-kollektor.jpg";
@@ -51,7 +53,7 @@ const products = [
     page: "intelval" as const,
     note:
       locale === "tr"
-        ? "Değeri hesaplar, rapor taslağını yazar."
+        ? "Değeri hesaplayıp rapor taslağını hazırlar."
         : "Works out the value and drafts the report.",
     // The home card's icon and photograph, so the menu and the card match.
     Icon: ChartNoAxesCombined,
@@ -69,6 +71,19 @@ const products = [
     Icon: Stethoscope,
     shot: hastamShot,
     caption: messages.solutions.hastam.eyebrow,
+  },
+  {
+    href: pathFor("fountible", locale),
+    label: messages.nav.fountible,
+    page: "fountible" as const,
+    note:
+      locale === "tr"
+        ? "Tasarımı doğrudan React kodu olarak dışa aktarır."
+        : "Design that is real React code.",
+    // The home card's icon and screenshot, as for Intelval.
+    Icon: PenTool,
+    shot: fountibleShot,
+    caption: messages.solutions.fountible.eyebrow,
   },
 ];
 const productsOpen = products.some((item) => item.page === currentPage);

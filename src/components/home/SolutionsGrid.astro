@@ -8,6 +8,7 @@ import {
   Scale,
 } from "lucide-react";
 import BlinkText from "@/components/BlinkText";
+import FountibleProduct from "@/components/home/FountibleProduct.astro";
 import HastamProduct from "@/components/home/HastamProduct.astro";
 import ProductVideo from "@/components/home/ProductVideo.astro";
 import IntelvalReportCard from "@/components/home/solutions-mocks/IntelvalReportCard.astro";
@@ -558,5 +559,10 @@ const concludedAt = positionOnRange(valuation.concluded);
     </div>
 
     <HastamProduct locale={locale} product={messages.solutions.hastam} />
+    <FountibleProduct
+      locale={locale}
+      product={messages.solutions.fountible}
+      caption={messages.fountiblePage.heroPicture.caption}
+    />
   </div>
 </section>

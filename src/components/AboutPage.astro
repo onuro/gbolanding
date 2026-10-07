@@ -48,7 +48,7 @@ const facts: Fact[] = [
 ].filter((fact): fact is Fact => fact !== null);
 
 // Each product has its own page, and its row links there.
-const products = (["kollektor", "intelval", "hastam"] as const).map((slug) => ({
+const products = (["kollektor", "intelval", "hastam", "fountible"] as const).map((slug) => ({
   product: solutions[slug],
   page: { href: pathFor(slug, locale), label: solutions[slug].pageCta },
 }));
@@ -161,7 +161,9 @@ const products = (["kollektor", "intelval", "hastam"] as const).map((slug) => ({
         <BlinkText client:visible text={about.productsTitle} />
       </SectionHeader>
 
-      <div class="grid grid-cols-1 gap-px bg-border lg:grid-cols-3">
+      {/* Two by two: four products in three columns left one alone on a row,
+          and four columns cut the longer descriptions to a narrow strip. */}
+      <div class="grid grid-cols-1 gap-px bg-border md:grid-cols-2">
         {
           products.map(({ product, page }) => (
             <article class="flex flex-col bg-background px-5 py-10 sm:px-8 sm:py-12">
