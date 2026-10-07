@@ -3,7 +3,7 @@ title: "Şirketlerde yapay zeka kullanımı ne durumda? TÜİK 2026 verileri"
 seoTitle: "Türkiye’de şirketlerde yapay zeka kullanımı | GBO Vision"
 description: "TÜİK’e göre şirketlerde yapay zeka kullanımı 2026’da %7,5’ten %14’e çıktı. Büyüklüğe ve sektöre göre oranları, engelleri ve AB ile farkı inceliyoruz."
 slug: "turkiyede-sirketlerin-yapay-zeka-kullanimi"
-publishedAt: 2026-10-07
+publishedAt: 2026-10-05
 updatedAt: 2026-10-07
 featured: true
 category: "Yapay zeka"

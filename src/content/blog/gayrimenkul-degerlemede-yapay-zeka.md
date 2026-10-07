@@ -3,7 +3,7 @@ title: "Gayrimenkul değerlemede yapay zeka ne yapar, raporu kim imzalar?"
 seoTitle: "Gayrimenkul değerlemede yapay zeka | GBO Vision"
 description: "Gayrimenkul değerlemede yapay zeka belgeleri okuyup rapor taslağını yazar; imza uzmanda kalır. Hangi adımlarda işe yaradığını ve araç seçimini anlatıyoruz."
 slug: "gayrimenkul-degerlemede-yapay-zeka"
-publishedAt: 2026-10-07
+publishedAt: 2026-09-23
 updatedAt: 2026-10-07
 category: "Sektör"
 tags: ["gayrimenkul değerleme", "yapay zeka", "değerleme raporu", "otomatik değerleme modeli", "Değer Bilgi Merkezi", "RICS"]
@@ -199,7 +199,7 @@ Tarifedeki tutarlar birer alt sınır; taraflar daha yüksek bir ücret belirley
 
 ### Açıklanan takvim ve bugünkü durum
 
-[Bakanlığın Mayıs 2025’teki duyurusuna](https://csb.gov.tr/haberler/bakan-kurum-deger-bilgi-merkezi-ile-turkiye-adil-ve-erisilebilir-tasinmaz-degerleme-sistemine-kavusacak-301977) göre ilk uygulama 2026’nın ilk çeyreğinde İstanbul’da başlayacak, aynı altyapı 2027’nin ortasına kadar bütün Türkiye’ye yayılacaktı. Bakanlığın Ocak 2026 tarihli [performans programı](https://webdosya.csb.gov.tr/v2/strateji/2026/05/Performans-Program-2026-20260520161935.pdf) ise merkezden hâlâ “kurulacak” bir yapı olarak söz ediyordu. Bu yazıyı hazırladığımız Ekim 2026 başında merkezin İstanbul’da hizmete açıldığını bildiren resmi bir duyuruya ulaşamadık.
+[Bakanlığın Mayıs 2025’teki duyurusuna](https://csb.gov.tr/haberler/bakan-kurum-deger-bilgi-merkezi-ile-turkiye-adil-ve-erisilebilir-tasinmaz-degerleme-sistemine-kavusacak-301977) göre ilk uygulama 2026’nın ilk çeyreğinde İstanbul’da başlayacak, aynı altyapı 2027’nin ortasına kadar bütün Türkiye’ye yayılacaktı. Bakanlığın Ocak 2026 tarihli [performans programı](https://webdosya.csb.gov.tr/v2/strateji/2026/05/Performans-Program-2026-20260520161935.pdf) ise merkezden hâlâ “kurulacak” bir yapı olarak söz ediyordu. Bu yazıyı son güncellediğimiz Ekim 2026 başında merkezin İstanbul’da hizmete açıldığını bildiren resmi bir duyuruya ulaşamadık.
 
 ### Kamuya açık referans değer gerekçeyi öne çıkarır
 

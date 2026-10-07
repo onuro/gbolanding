@@ -3,7 +3,7 @@ title: "Çağrı merkezinde yapay zeka asistanı ne yapar, neyi temsilciye bıra
 seoTitle: "Çağrı merkezinde yapay zeka asistanı | GBO Vision"
 description: "Çağrı merkezinde sesli asistan randevu, teyit ve hatırlatma gibi kalıplı çağrılarda iyi sonuç verir. Zorlandığı yerleri ve temsilciye aktarmayı anlatıyoruz."
 slug: "yapay-zeka-cagri-merkezi-asistani"
-publishedAt: 2026-10-07
+publishedAt: 2026-09-09
 updatedAt: 2026-10-07
 category: "Yapay zeka"
 tags: ["yapay zeka telefon asistanı", "sesli yapay zeka asistanı", "çağrı merkezi", "müşteri hizmetleri", "temsilciye aktarma", "tahsilat"]

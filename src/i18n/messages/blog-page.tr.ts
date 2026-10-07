@@ -10,7 +10,7 @@ const blogPage: BlogPageMessages = {
   name: "GBO Vision Blog",
   index: {
     eyebrow: "Blog",
-    title: "Kurumsal yapay zeka yazıları",
+    title: "İşletmeler için yapay zeka üzerine notlar",
     lead: "Şirketlerin yapay zekayı nasıl kullandığını yazıyoruz: ürün ve teknoloji seçimi, strateji ve sektörlerden örnekler. Her yazıda dayandığımız kaynakları da paylaşıyoruz.",
     featuredLabel: "Öne çıkan yazı",
     listLabel: "Tüm yazılar",

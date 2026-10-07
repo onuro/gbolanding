@@ -3,8 +3,8 @@ title: "İlk yapay zeka projesi nasıl başlatılır? Adım adım rehber"
 seoTitle: "İlk yapay zeka projesi nasıl başlatılır? | GBO Vision"
 description: "İlk yapay zeka projesi için süreç seçmeyi, mevcut durumu ölçmeyi, 6–8 haftalık pilotu yürütmeyi ve sayılarla karar vermeyi adım adım anlatıyoruz."
 slug: "ilk-yapay-zeka-projesi-nasil-baslatilir"
-publishedAt: 2026-10-07
-updatedAt: 2026-10-07
+publishedAt: 2026-10-06
+updatedAt: 2026-10-06
 category: "Strateji"
 tags: ["yapay zeka projesi", "pilot proje", "performans göstergeleri", "kurumsal yapay zeka çözümleri", "toplam sahip olma maliyeti"]
 keyword: "yapay zeka projesi nasıl yapılır"

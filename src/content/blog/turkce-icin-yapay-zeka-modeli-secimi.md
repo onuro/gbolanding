@@ -3,7 +3,7 @@ title: "Türkçe için büyük dil modeli nasıl seçilir? Şirketler için 2026
 seoTitle: "Türkçe için büyük dil modeli (LLM) seçimi | GBO Vision"
 description: "Türkçe için doğru büyük dil modelini kendi verinizle yapacağınız test belirler. Test sonuçlarını, BİLGE ve Kumru’yu, maliyeti ve veri konumunu ele alıyoruz."
 slug: "turkce-icin-yapay-zeka-modeli-secimi"
-publishedAt: 2026-10-07
+publishedAt: 2026-08-26
 updatedAt: 2026-10-07
 category: "Teknoloji"
 tags: ["Türkçe büyük dil modeli", "LLM", "yerli yapay zeka modeli", "BİLGE", "Kumru", "model seçimi"]
