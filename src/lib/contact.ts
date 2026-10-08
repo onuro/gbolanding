@@ -6,6 +6,8 @@
 // address, a key or anything else read from the environment: those live in
 // the endpoint only.
 
+import { validatePhone } from "@/lib/phone";
+
 export const contactProducts = [
   "kollektor",
   "intelval",
@@ -53,13 +55,14 @@ export type ContactOutcome = keyof typeof contactFallback;
 // The same pattern as /api/waitlist: one @, a dot after it, no spaces.
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export type ContactField = "name" | "email" | "company" | "product" | "message";
+export type ContactField = "name" | "email" | "phone" | "company" | "product" | "message";
 export type ContactFieldError = "required" | "too_short" | "too_long" | "invalid";
 export type ContactFieldErrors = Partial<Record<ContactField, ContactFieldError>>;
 
 export interface ContactSubmission {
   name: string;
   email: string;
+  phone: string;
   /** Empty when the visitor left it blank. */
   company: string;
   /** Null when no topic was picked. */
@@ -112,6 +115,9 @@ export function validateContact(
   if (!email) errors.email = "required";
   else if (email.length > emailMax || !emailPattern.test(email)) errors.email = "invalid";
 
+  const phone = validatePhone(input.phone);
+  if (!phone.ok) errors.phone = phone.error;
+
   const company = oneLine(input.company);
   if (company.length > companyMax) errors.company = "too_long";
 
@@ -127,6 +133,9 @@ export function validateContact(
   else if (message.length < messageMin) errors.message = "too_short";
   else if (message.length > messageMax) errors.message = "too_long";
 
-  if (Object.keys(errors).length > 0) return { ok: false, errors };
-  return { ok: true, data: { name, email, company, product, message } };
+  if (Object.keys(errors).length > 0 || !phone.ok) return { ok: false, errors };
+  return {
+    ok: true,
+    data: { name, email, phone: phone.value, company, product, message },
+  };
 }

@@ -3,7 +3,7 @@
 // right, the office address under the lead (under the form on a phone).
 //
 // The owner's rules for this page (2026-10-07): the address and a map link,
-// nothing else. No phone, no legal name and no e-mail address anywhere in the
+// nothing else. No company phone, no legal name and no e-mail address anywhere in the
 // markup; the recipient of the form lives only in the endpoint
 // (src/pages/api/contact.ts). The form is the only channel, so its errors
 // never point at another one.
@@ -27,6 +27,7 @@ import type { ContactPageMessages } from "@/i18n/page-types/contact";
 import type { Messages } from "@/i18n/types";
 import { pathFor } from "@/i18n/routes";
 import { brand } from "@/lib/brand";
+import { phoneMaxLength } from "@/lib/phone";
 import {
   contactFallback,
   contactLimits,
@@ -87,6 +88,7 @@ const fallbackNotices = (["invalid", "rateLimited", "unavailable", "submission"]
 const ids = {
   name: "contact-name",
   email: "contact-email",
+  phone: "contact-phone",
   company: "contact-company",
   message: "contact-message",
   honeypot: "contact-website",
@@ -242,7 +244,27 @@ const pillClass = [
                     </p>
                   </div>
 
-                  <div class="sm:col-span-2">
+                  <div>
+                    <label class={labelClass} for={ids.phone}>{copy.form.phone}</label>
+                    <input
+                      id={ids.phone}
+                      name="phone"
+                      type="tel"
+                      required
+                      autocomplete="tel"
+                      inputmode="tel"
+                      minlength="7"
+                      maxlength={phoneMaxLength}
+                      aria-describedby={errorId("phone")}
+                      class:list={[fieldClass, "h-11 py-2"]}
+                    />
+                    <p id={errorId("phone")} class={errorClass} data-error-for="phone" hidden>
+                      <CircleAlert className="mt-px size-3.5 shrink-0" strokeWidth={2} aria-hidden="true" />
+                      <span data-error-text></span>
+                    </p>
+                  </div>
+
+                  <div>
                     <label class={labelClass} for={ids.company}>
                       {copy.form.company} <span class={optionalClass}>({copy.form.optional})</span>
                     </label>
@@ -449,7 +471,7 @@ const pillClass = [
 
   // The fields that show their own error. "product" is a set of pills that
   // cannot be invalid from this page, so a bad one is reported as a failed send.
-  const FIELDS = ["name", "email", "company", "message"] as const;
+  const FIELDS = ["name", "email", "phone", "company", "message"] as const;
 
   function messageFor(copy: Copy, field: ContactField, reason: string) {
     switch (field) {
@@ -457,6 +479,8 @@ const pillClass = [
         return reason === "too_long" ? copy.nameTooLong : copy.nameRequired;
       case "email":
         return reason === "required" ? copy.emailRequired : copy.emailInvalid;
+      case "phone":
+        return reason === "required" ? copy.phoneRequired : copy.phoneInvalid;
       case "company":
         return copy.companyTooLong;
       case "message":

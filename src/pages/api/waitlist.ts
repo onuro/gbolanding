@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { serverEnv } from "@/lib/server-env";
+import { validatePhone } from "@/lib/phone";
 
 export const prerender = false;
 
@@ -32,6 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   let payload: {
     email?: unknown;
+    phone?: unknown;
     locale?: unknown;
     source?: unknown;
     company?: unknown;
@@ -44,6 +46,7 @@ export const POST: APIRoute = async ({ request }) => {
       const formData = await request.formData();
       payload = {
         email: formData.get("email"),
+        phone: formData.get("phone"),
         locale: formData.get("locale"),
         source: formData.get("source"),
         company: formData.get("company"),
@@ -69,6 +72,11 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (!emailPattern.test(email) || email.length > 254) {
     return json({ error: "invalid_email" }, 422);
+  }
+
+  const phone = validatePhone(payload.phone);
+  if (!phone.ok) {
+    return json({ error: phone.error === "required" ? "phone_required" : "invalid_phone" }, 422);
   }
 
   const resendKey = serverEnv("RESEND_API_KEY");
@@ -104,6 +112,7 @@ export const POST: APIRoute = async ({ request }) => {
             "gbovision.com üzerinden yeni bir demo talebi geldi.",
             "",
             `E-posta: ${email}`,
+            `Telefon: ${phone.value}`,
             `İlgilendiği çözüm: ${product ?? "Belirtilmedi"}`,
             `Kaynak: ${source}`,
             `Dil: ${locale === "tr" ? "Türkçe" : "İngilizce"}`,
@@ -136,6 +145,7 @@ export const POST: APIRoute = async ({ request }) => {
       headers,
       body: JSON.stringify({
         email,
+        phone: phone.value,
         locale,
         source,
         submittedAt: submittedAt.toISOString(),

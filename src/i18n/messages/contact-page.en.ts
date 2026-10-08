@@ -14,6 +14,7 @@ const contactPage: ContactPageMessages = {
     label: "Contact form",
     name: "Full name",
     email: "Email",
+    phone: "Phone number",
     company: "Company",
     optional: "optional",
     product: {
@@ -46,6 +47,8 @@ const contactPage: ContactPageMessages = {
     nameTooLong: "Your name can be up to {n} characters.",
     emailRequired: "Enter your email address.",
     emailInvalid: "Enter a valid email address.",
+    phoneRequired: "Enter your phone number.",
+    phoneInvalid: "Enter a valid phone number.",
     companyTooLong: "The company name can be up to {n} characters.",
     messageRequired: "Write your message.",
     messageTooShort: "Your message needs at least {n} characters.",

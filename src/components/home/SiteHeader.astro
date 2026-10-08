@@ -245,7 +245,11 @@ const mobileItems = [
               </a>
             </div>
 
-            {/* Decorative: each picture repeats what its row already says. */}
+            {/* Decorative: each picture repeats what its row already says. The well is
+                tall and narrow, so object-cover scales the landscape pictures to its
+                height: they render about 53rem wide (well height x 16/9), not the
+                well's 20rem width, and sizes must say so or the browser fetches a
+                file a third the size it needs. */}
             <div
               class="hidden border-l border-(color:--menu-divider) p-[1.125rem] lg:block"
               aria-hidden="true"
@@ -263,11 +267,11 @@ const mobileItems = [
                       <Image
                         src={shot}
                         alt=""
-                        width={644}
-                        widths={[322, 644, 966]}
-                        sizes="20.125rem"
+                        width={1700}
+                        widths={[880, 1280, 1700]}
+                        sizes="53rem"
                         format="webp"
-                        quality={72}
+                        quality={80}
                         loading="lazy"
                         decoding="async"
                         class="size-full object-cover"

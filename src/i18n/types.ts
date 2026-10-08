@@ -255,6 +255,9 @@ export interface Messages {
   };
   signup: {
     placeholder: string;
+    phoneLabel: string;
+    /** Tooltip on the required-field mark; the input itself carries `required`. */
+    requiredHint: string;
     notify: string;
     sending: string;
     successTitle: string;
@@ -262,6 +265,8 @@ export interface Messages {
     errors: {
       required: string;
       invalid: string;
+      phoneRequired: string;
+      phoneInvalid: string;
       submission: string;
     };
   };

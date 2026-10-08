@@ -26,7 +26,7 @@ const privacyPage: PrivacyPageMessages = {
       paragraphs: ["İletişim formunu doldurduğunuzda şu verileri işleriz:"],
       items: [
         "Kimlik bilgisi: adınız ve soyadınız.",
-        "İletişim bilgisi: e-posta adresiniz.",
+        "İletişim bilgisi: e-posta adresiniz ve telefon numaranız.",
         "Şirket bilgisi: yazmayı tercih ederseniz çalıştığınız şirketin adı.",
         "Talep bilgisi: seçtiğiniz konu ve mesajınızın içeriği.",
         "İşlem güvenliği bilgisi: formu kötüye kullanıma karşı korumak için IP adresiniz.",

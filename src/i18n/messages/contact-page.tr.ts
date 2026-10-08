@@ -1,7 +1,7 @@
 import type { ContactPageMessages } from "@/i18n/page-types/contact";
 
 // /contact, Turkish. Written against docs/turkish-copy-guide.md; the wording
-// and the rules behind it (no e-mail, phone or legal name; no reply-time
+// and the rules behind it (no company e-mail, phone or legal name; no reply-time
 // promise; no consent checkbox) are in docs/contact-page-research.md and the
 // header of page-types/contact.ts.
 // "{n}" in an error is replaced with the limit from src/lib/contact.ts, in
@@ -17,6 +17,7 @@ const contactPage: ContactPageMessages = {
     label: "İletişim formu",
     name: "Ad soyad",
     email: "E-posta",
+    phone: "Telefon numarası",
     company: "Şirket",
     optional: "isteğe bağlı",
     product: {
@@ -49,6 +50,8 @@ const contactPage: ContactPageMessages = {
     nameTooLong: "Adınız en fazla {n} karakter olabilir",
     emailRequired: "E-posta adresinizi girin",
     emailInvalid: "Lütfen geçerli bir e-posta adresi girin",
+    phoneRequired: "Telefon numaranızı girin",
+    phoneInvalid: "Lütfen geçerli bir telefon numarası girin",
     companyTooLong: "Şirket adı en fazla {n} karakter olabilir",
     messageRequired: "Mesajınızı yazın",
     messageTooShort: "Mesajınız en az {n} karakter olmalı",

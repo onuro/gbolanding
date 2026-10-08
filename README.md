@@ -35,9 +35,10 @@ The route table is `src/i18n/routes.ts`. See `docs/language-routing.md`.
 
 ## Waitlist
 
-The demo request form posts to `/api/waitlist`. With `RESEND_API_KEY` set, it
+The demo request form requires an e-mail address and phone number and posts to
+`/api/waitlist`. With `RESEND_API_KEY` set, it
 emails the request through Resend using the same `CONTACT_TO` and `CONTACT_FROM`
-settings as the contact form. The selected product is included in the email,
+settings as the contact form. The phone number and selected product are included in the email,
 and replying to it goes to the visitor's address. Resend takes precedence when
 both delivery methods are configured. Otherwise `WAITLIST_WEBHOOK_URL` receives
 the JSON payload, with optional `WAITLIST_WEBHOOK_TOKEN` authorization. With
@@ -46,9 +47,13 @@ neither configured, the form reports that it cannot send the request (`503`).
 ## Contact form
 
 `/contact` and `/en/contact` post to `/api/contact`, which checks the message
-(name 2–120 characters, e-mail, optional company up to 160, optional topic,
+(name 2–120 characters, e-mail, required phone, optional company up to 160, optional topic,
 message 10–4,000), drops anything that fills the hidden `website` field, and
-allows five messages per address per ten minutes. Then it delivers:
+allows five messages per address per ten minutes.
+
+Both forms use the same phone validation in the browser and endpoint: 7–15
+digits, with an optional leading `+`, spaces, parentheses, dots or hyphens.
+The phone number is included in both e-mail and webhook deliveries. Delivery uses:
 
 - `RESEND_API_KEY` set: an e-mail through Resend, to `CONTACT_TO` (comma-separated;
   the default lives only in `src/pages/api/contact.ts`) from `CONTACT_FROM`
@@ -58,6 +63,8 @@ allows five messages per address per ten minutes. Then it delivers:
   `source: "contact-page"`, with `WAITLIST_WEBHOOK_TOKEN` as the bearer token.
 - Neither: `503`, and the page says messages cannot be sent right now.
 
-These are read per request with `process.env` (`src/lib/server-env.ts`), so they
-can be changed in Vercel without a rebuild. The recipient never appears in a
-response, the page, its JSON-LD or the browser bundle.
+These settings are read per request with `process.env` (`src/lib/server-env.ts`)
+and remain server-only. After changing them in Vercel, create a new deployment
+for the changes to take effect; existing deployments keep their previous values.
+The recipient never appears in a response, the page, its JSON-LD or the browser
+bundle.

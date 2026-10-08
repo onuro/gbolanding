@@ -24,7 +24,7 @@ const privacyPage: PrivacyPageMessages = {
       paragraphs: ["When you fill in the contact form, we process:"],
       items: [
         "Identity: your first and last name.",
-        "Contact: your e-mail address.",
+        "Contact: your e-mail address and phone number.",
         "Company: the name of your company, if you choose to give it.",
         "Request: the topic you pick and the content of your message.",
         "Transaction security: your IP address, to protect the form against abuse.",

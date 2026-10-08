@@ -5,8 +5,8 @@ import type { ContactProduct } from "@/lib/contact";
 // key for key.
 //
 // Rules every string here is written against (the owner, 2026-10-07):
-//   - The page shows the office address and a map link, nothing else: no
-//     phone, no legal name and no e-mail address, in the copy, the markup or
+//   - The page publishes the office address and a map link, nothing else: no
+//     company phone, no legal name and no e-mail address, in the copy, the markup or
 //     the JSON-LD. The form is the only channel, so no error message may
 //     offer an e-mail or phone fallback.
 //   - The address itself is never typed here; it comes from src/lib/brand.ts.
@@ -32,6 +32,7 @@ export interface ContactPageMessages {
     label: string;
     name: string;
     email: string;
+    phone: string;
     company: string;
     /** Marker after an optional field's label, without brackets. */
     optional: string;
@@ -70,6 +71,8 @@ export interface ContactPageMessages {
     nameTooLong: string;
     emailRequired: string;
     emailInvalid: string;
+    phoneRequired: string;
+    phoneInvalid: string;
     companyTooLong: string;
     messageRequired: string;
     messageTooShort: string;

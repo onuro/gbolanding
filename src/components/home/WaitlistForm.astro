@@ -1,7 +1,8 @@
 ---
-import { ArrowRight, CheckCircle2, Loader2, Mail } from "lucide-react";
+import { ArrowRight, Asterisk, CheckCircle2, Loader2, Mail, Phone } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/types";
+import { phoneMaxLength } from "@/lib/phone";
 
 interface Props {
   locale: Locale;
@@ -20,6 +21,8 @@ const {
 } = Astro.props;
 const inputId = `waitlist-email-${locale}-${idBase}`;
 const errorId = `waitlist-error-${locale}-${idBase}`;
+const phoneId = `waitlist-phone-${locale}-${idBase}`;
+const phoneErrorId = `${phoneId}-error`;
 const hasLead = Astro.slots.has("before");
 
 const ui =
@@ -37,6 +40,8 @@ const ui =
     data-waitlist-form
     data-required-error={messages.signup.errors.required}
     data-invalid-error={messages.signup.errors.invalid}
+    data-phone-required-error={messages.signup.errors.phoneRequired}
+    data-phone-invalid-error={messages.signup.errors.phoneInvalid}
     data-submission-error={messages.signup.errors.submission}
   >
     <slot name="before" />
@@ -71,6 +76,7 @@ const ui =
           placeholder={ui.example}
           autocomplete="email"
           inputmode="email"
+          maxlength="254"
           aria-describedby={errorId}
           class="h-11 w-full rounded-[0.625rem] border border-input bg-card py-2 pl-11 pr-4 text-[0.9375rem] leading-6 text-foreground outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-tertiary-foreground focus-visible:border-foreground focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--foreground)_10%,transparent)] disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-danger"
           data-email-input
@@ -84,6 +90,40 @@ const ui =
         data-form-error
       >
       </p>
+
+      <label class="mt-3 block text-[0.9375rem] leading-6 font-medium text-foreground" for={phoneId}>
+        {messages.signup.phoneLabel}
+        <span class="ml-1 inline-flex align-top text-danger" title={messages.signup.requiredHint}>
+          <Asterisk aria-hidden="true" strokeWidth={2.25} className="size-3" />
+        </span>
+      </label>
+      <div class="group relative mt-2.5" data-phone-shell>
+        <Phone
+          aria-hidden="true"
+          strokeWidth={1.5}
+          className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-tertiary-foreground transition-colors group-focus-within:text-foreground group-data-[invalid]:text-danger"
+        />
+        <input
+          id={phoneId}
+          name="phone"
+          type="tel"
+          required
+          placeholder="+90 5xx xxx xx xx"
+          autocomplete="tel"
+          inputmode="tel"
+          maxlength={phoneMaxLength}
+          aria-describedby={phoneErrorId}
+          class="h-11 w-full rounded-[0.625rem] border border-input bg-card py-2 pl-11 pr-4 text-[0.9375rem] leading-6 text-foreground outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-tertiary-foreground focus-visible:border-foreground focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--foreground)_10%,transparent)] disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-danger"
+          data-phone-input
+        />
+      </div>
+      <p
+        id={phoneErrorId}
+        class="min-h-5 px-1 pt-1.5 text-left text-paragraph-xs font-medium text-danger"
+        role="alert"
+        data-phone-error
+      ></p>
+      <p class="text-paragraph-xs font-medium text-danger" role="alert" data-submission-error-message></p>
 
       <button
         type="submit"
@@ -131,9 +171,11 @@ const ui =
 </div>
 
 <script>
+  import { validatePhone } from "@/lib/phone";
+
   // Bundled once per page, so every instance of the form is enhanced by a
   // single pass instead of one inline copy per render.
-  const FIELDS = ["email", "locale", "source", "company"];
+  const FIELDS = ["email", "phone", "locale", "source", "company"];
 
   function enhance(form: HTMLFormElement) {
     if (form.dataset.enhanced === "true") return;
@@ -142,6 +184,10 @@ const ui =
     const root = form.closest<HTMLElement>("[data-waitlist-root]");
     const input = form.querySelector<HTMLInputElement>("[data-email-input]");
     const shell = form.querySelector<HTMLElement>("[data-input-shell]");
+    const phoneInput = form.querySelector<HTMLInputElement>("[data-phone-input]");
+    const phoneShell = form.querySelector<HTMLElement>("[data-phone-shell]");
+    const phoneError = form.querySelector<HTMLElement>("[data-phone-error]");
+    const submissionError = form.querySelector<HTMLElement>("[data-submission-error-message]");
     const button = form.querySelector<HTMLButtonElement>(
       'button[type="submit"]',
     );
@@ -154,6 +200,10 @@ const ui =
       !root ||
       !input ||
       !shell ||
+      !phoneInput ||
+      !phoneShell ||
+      !phoneError ||
+      !submissionError ||
       !button ||
       !idleLabel ||
       !loadingLabel ||
@@ -171,9 +221,16 @@ const ui =
       shell.toggleAttribute("data-invalid", Boolean(message));
     };
 
+    const setPhoneError = (message: string) => {
+      phoneError.textContent = message;
+      phoneInput.setAttribute("aria-invalid", message ? "true" : "false");
+      phoneShell.toggleAttribute("data-invalid", Boolean(message));
+    };
+
     const setBusy = (busy: boolean) => {
       button.disabled = busy;
       input.disabled = busy;
+      phoneInput.disabled = busy;
       for (const fieldset of fieldsets) fieldset.disabled = busy;
       if (busy) form.setAttribute("aria-busy", "true");
       else form.removeAttribute("aria-busy");
@@ -184,10 +241,17 @@ const ui =
 
     input.addEventListener("input", () => {
       if (error.textContent) setError("");
+      submissionError.textContent = "";
+    });
+    phoneInput.addEventListener("input", () => {
+      if (phoneError.textContent) setPhoneError("");
+      submissionError.textContent = "";
     });
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
+      if (button.disabled) return;
+      submissionError.textContent = "";
 
       if (!input.value.trim()) {
         setError(form.dataset.requiredError ?? "");
@@ -202,6 +266,15 @@ const ui =
       }
 
       setError("");
+      const phone = validatePhone(phoneInput.value);
+      if (!phone.ok) {
+        setPhoneError(
+          (phone.error === "required" ? form.dataset.phoneRequiredError : form.dataset.phoneInvalidError) ?? "",
+        );
+        phoneInput.focus();
+        return;
+      }
+      setPhoneError("");
       // Only the fields the API reads; the product pill travels inside source.
       const data = new FormData(form);
       const values: Record<string, string> = {};
@@ -225,7 +298,7 @@ const ui =
         success.classList.add("flex");
         success.focus();
       } catch {
-        setError(form.dataset.submissionError ?? "");
+        submissionError.textContent = form.dataset.submissionError ?? "";
         setBusy(false);
       }
     });

@@ -143,8 +143,8 @@ const ui =
                   data-ps-track
                 >
                   <span
-                    class="ps-dot absolute top-1/2 left-0 -mt-[3px] size-1.5 rounded-full bg-brand opacity-0"
-                    data-ps-dot
+                    class="ps-ray absolute top-1/2 left-0 -mt-px h-0.5 w-14 rounded-full opacity-0"
+                    data-ps-ray
                   />
                 </span>
               </div>
@@ -161,7 +161,7 @@ const ui =
 </section>
 
 <script>
-  // 2.4s per service: the cell holds, then the dot runs the rail to the next one.
+  // 2.4s per service: the cell holds, then the ray runs the rail to the next one.
   const DWELL = 1600;
   const TRAVEL = 800;
 
@@ -211,9 +211,9 @@ const ui =
     const fly = () => {
       const cell = cells[index];
       const track = cell?.querySelector<HTMLElement>("[data-ps-track]");
-      const dot = cell?.querySelector<HTMLElement>("[data-ps-dot]");
+      const ray = cell?.querySelector<HTMLElement>("[data-ps-ray]");
       // Below lg there is no rail to run, so the cell simply holds a beat longer.
-      if (!track || !dot || track.offsetWidth === 0) {
+      if (!track || !ray || track.offsetWidth === 0) {
         wait(left, arrive);
         return;
       }
@@ -222,7 +222,8 @@ const ui =
       const nextTile = cells[index + 1]?.querySelector<HTMLElement>("[data-ps-tile]");
       const frames: Keyframe[] = nextTile
         ? (() => {
-            const end = nextTile.getBoundingClientRect().left - start - dot.offsetWidth;
+            // The ray's leading end lands on the next tile's left edge.
+            const end = nextTile.getBoundingClientRect().left - start - ray.offsetWidth;
             return [
               { transform: "translateX(0)", opacity: 0 },
               { transform: `translateX(${end * 0.12}px)`, opacity: 1, offset: 0.12 },
@@ -231,9 +232,9 @@ const ui =
             ];
           })()
         : (() => {
-            // The last cell's rail fades out; the dot fades with it and the
+            // The last cell's rail fades out; the ray fades with it and the
             // flow starts again at 01.
-            const end = track.offsetWidth * 0.8;
+            const end = (track.offsetWidth - ray.offsetWidth) * 0.8;
             return [
               { transform: "translateX(0)", opacity: 0 },
               { transform: `translateX(${end * 0.12}px)`, opacity: 1, offset: 0.12 },
@@ -241,7 +242,7 @@ const ui =
             ];
           })();
 
-      flight = dot.animate(frames, {
+      flight = ray.animate(frames, {
         duration: TRAVEL,
         easing: "cubic-bezier(0.65, 0, 0.35, 1)",
       });
@@ -303,7 +304,7 @@ const ui =
       else run();
     });
 
-    // Reduced motion switched on mid-visit: drop the dot, go back to the
+    // Reduced motion switched on mid-visit: drop the ray, go back to the
     // static state (01 lit) and hide the control that no longer does anything.
     reduce.addEventListener("change", () => {
       if (reduce.matches) {
@@ -377,10 +378,11 @@ const ui =
     color: var(--brand-ink);
   }
 
-  .ps-dot {
-    box-shadow:
-      0 0 0 3px var(--brand-soft),
-      0 0 10px var(--brand-line);
+  /* The rail's light: a short streak along the hairline, brightest at its
+     leading end and fading out behind it, with a faint halo. */
+  .ps-ray {
+    background: linear-gradient(to right, transparent, var(--brand));
+    box-shadow: 0 0 6px var(--brand-line);
   }
 
   .ps-toggle[aria-pressed="true"] .ps-icon-pause,

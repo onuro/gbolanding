@@ -8,7 +8,6 @@
 //
 // The picture is a screenshot of fountible.com's own product visual. It
 // already carries its own UI, so it gets no floating mock card and no video,
-// and its caption says where it is from (the rule in page-types/fountible.ts).
 // The text beside it says what it shows, so the alt is empty.
 import { Image } from "astro:assets";
 import { ArrowUpRight, PenTool } from "lucide-react";
@@ -20,11 +19,9 @@ import type { ProductSolutionMessage } from "@/i18n/types";
 interface Props {
   locale: Locale;
   product: ProductSolutionMessage;
-  /** Where the screenshot is from, in the page's language. */
-  caption: string;
 }
 
-const { locale, product, caption } = Astro.props;
+const { locale, product } = Astro.props;
 ---
 
 <article
@@ -50,9 +47,7 @@ const { locale, product, caption } = Astro.props;
           loading="lazy"
           decoding="async"
           class="w-full rounded-card shadow-float"
-        />
-        <figcaption class="pl-1 data-label">{caption}</figcaption>
-      </figure>
+        /></figure>
     </div>
 
     <div class="flex flex-col justify-center bg-background px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">

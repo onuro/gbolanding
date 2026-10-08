@@ -470,6 +470,8 @@ const enMessages: Messages = {
   },
   signup: {
     placeholder: "Work email address",
+    phoneLabel: "Phone number",
+    requiredHint: "Required field",
     notify: "Schedule a demo",
     sending: "Sending request…",
     successTitle: "Demo request received",
@@ -478,6 +480,8 @@ const enMessages: Messages = {
     errors: {
       required: "Enter your email address.",
       invalid: "Enter a valid email address.",
+      phoneRequired: "Enter your phone number.",
+      phoneInvalid: "Enter a valid phone number.",
       submission: "We couldn’t send your request. Try again shortly.",
     },
   },

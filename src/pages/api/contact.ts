@@ -175,6 +175,7 @@ function textFor(data: ContactSubmission, locale: "tr" | "en", submittedAt: Date
     "",
     `Ad soyad: ${data.name}`,
     `E-posta: ${data.email}`,
+    `Telefon: ${data.phone}`,
     `Şirket: ${data.company || "Belirtilmedi"}`,
     `Konu: ${topicName(data.product)}`,
     `Gönderildiği sayfa: ${page}`,
@@ -244,6 +245,7 @@ async function sendToWebhook(
         source: "contact-page",
         name: data.name,
         email: data.email,
+        phone: data.phone,
         company: data.company,
         product: data.product,
         message: data.message,
@@ -284,7 +286,7 @@ async function readPayload(request: Request): Promise<Record<string, unknown> | 
   ) {
     const form = await request.formData();
     const payload: Record<string, unknown> = {};
-    for (const key of ["name", "email", "company", "product", "message", "locale", honeypotField]) {
+    for (const key of ["name", "email", "phone", "company", "product", "message", "locale", honeypotField]) {
       const value = form.get(key);
       if (typeof value === "string") payload[key] = value;
     }

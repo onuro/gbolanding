@@ -474,6 +474,8 @@ const trMessages: Messages = {
   },
   signup: {
     placeholder: "Kurumsal e-posta adresinizi girin",
+    phoneLabel: "Telefon numaranız",
+    requiredHint: "Zorunlu alan",
     notify: "Demo talep edin",
     sending: "Gönderiliyor",
     successTitle: "Demo talebinizi aldık",
@@ -482,6 +484,8 @@ const trMessages: Messages = {
     errors: {
       required: "E-posta adresinizi girin",
       invalid: "Lütfen geçerli bir e-posta adresi girin",
+      phoneRequired: "Telefon numaranızı girin.",
+      phoneInvalid: "Lütfen geçerli bir telefon numarası girin.",
       submission:
         "Demo talebiniz şu anda gönderilemedi. Lütfen biraz sonra tekrar deneyin.",
     },
