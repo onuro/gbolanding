@@ -36,6 +36,13 @@ export default defineConfig({
   ...(phone ? { server: { host: true } } : {}),
   vite: {
     plugins: [tailwindcss()],
+    // The voice button loads livekit-client and the noise suppressor on the
+    // first click, so Vite only finds them at runtime. Pre-bundling them keeps
+    // the dev server from re-optimising mid-session, which answers the page's
+    // old hashes with 504 "Outdated Optimize Dep" and breaks the call.
+    optimizeDeps: {
+      include: ["livekit-client", "@sapphi-red/web-noise-suppressor"],
+    },
     ...(phone
       ? {
           server: {
