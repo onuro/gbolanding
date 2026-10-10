@@ -77,13 +77,14 @@ const FACE_UI_CSS = `
   .orb-well[data-face-preview] div.z-20.bottom-6 > button.group:hover > span:last-child { background: rgb(44 48 54); }
   @keyframes face-call-in { from { opacity: 0; scale: 0.9; filter: blur(4px); } to { opacity: 1; scale: 1; filter: blur(0); } }
   .orb-well[data-face-preview] div.z-20 svg:not(button svg) { display: none; }
-  /* bare white words, no pill, hers and yours alike (the owner, 2026-09-26), each on a soft dark shadow so it reads over
-     the bright dots; visible within 0.2 s, readable ~2 s, out over 0.25 s (2.55 s, FACE_WORD_MS) */
+  /* each word in a white speech bubble, dark text, hers and yours alike (the owner, 2026-10-10; this replaces the bare
+     white words of 2026-09-26), so it reads over the bright dots; visible within 0.2 s, readable ~2 s, out over 0.25 s
+     (2.55 s, FACE_WORD_MS) */
   .face-word {
     position: absolute; transform: translate(-50%, -50%); pointer-events: none; white-space: nowrap;
-    font-family: var(--font-mono, ui-monospace, monospace); font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: rgb(255 255 255 / 0.95); filter: blur(0.5px);
-    text-shadow: 0 0 2px rgb(0 0 0 / 0.9), 0 0 8px rgb(0 0 0 / 0.85), 0 0 16px rgb(0 0 0 / 0.6);
+    font-family: var(--font-mono, ui-monospace, monospace); font-size: 13px; line-height: 20px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: rgb(17 17 19);
+    padding: 8px 14px; border-radius: 18px; background: rgb(245 245 245);
     animation: face-word-fade 2.55s forwards, face-word-zoom 2.55s forwards;
   }
   /* (fade and zoom on their own clocks: on one fast ease-out the word was already ~90 % down to size by the time it
@@ -94,12 +95,12 @@ const FACE_UI_CSS = `
     90.2% { opacity: 1; animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
     100% { opacity: 0; }
   }
-  /* zoom: in from 180 % out of an 8 px blur down to its size over 0.5 s (ease-out cubic), a soft 0.5 px blur while
-     readable, out a little past its size into an 8 px blur */
+  /* zoom: in from 180 % out of an 8 px blur down to its size over 0.5 s (ease-out cubic), sharp while readable (no
+     blur: the bubble's text must stay crisp), out a little past its size into an 8 px blur */
   @keyframes face-word-zoom {
     0% { filter: blur(8px); transform: translate(-50%, -50%) scale(1.8); animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1); }
-    19.6% { filter: blur(0.5px); transform: translate(-50%, -50%) scale(1); animation-timing-function: linear; }
-    90.2% { filter: blur(0.5px); transform: translate(-50%, -50%) scale(1); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
+    19.6% { filter: blur(0px); transform: translate(-50%, -50%) scale(1); animation-timing-function: linear; }
+    90.2% { filter: blur(0px); transform: translate(-50%, -50%) scale(1); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
     100% { filter: blur(8px); transform: translate(-50%, -50%) scale(1.25); }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -207,7 +208,7 @@ export function HeroFacePreview() {
   const [live] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("live") === "1");
   const [tune, setTune] = useState<Omit<TunePanelProps, "onHold"> | null>(null);
   // what is being said drifts into the field around her (never over her face): the AI's words as she says them
-  // and the visitor's as their speech is recognised, white on a soft dark shadow so they read over the dots
+  // and the visitor's as their speech is recognised, each in a white speech bubble so they read over the dots
   const [words, setWords] = useState<{ key: number; text: string; x: number; y: number; who: "ai" | "you" }[]>([]);
   const wordsRef = useRef<HTMLDivElement>(null);
   // ?fps=1 (production too, to test on a phone): frame rate, the slow-frame tail and the render scale, twice a second
@@ -229,8 +230,9 @@ export function HeroFacePreview() {
     const GAP = 6;
     const place = (text: string) => {
       const W = wordsRef.current?.clientWidth || 533, H = wordsRef.current?.clientHeight || 768;
-      // the word's size from its text (13 px mono caps, 0.08em tracking; ~9.2 px a letter measured) plus its shadow
-      const w = 10 + text.length * 9.3, h = 20;
+      // the word's size from its text (13 px mono caps, 0.08em tracking; ~9.2 px a letter measured) plus the bubble's
+      // padding (14 px a side, 8 px top and bottom, 20 px line)
+      const w = 28 + text.length * 9.3, h = 36;
       let best: { x: number; y: number; hits: number[] } | null = null;
       for (let i = 0; i < 48; i++) {
         const x = w / 2 + 8 + Math.random() * Math.max(1, W - w - 16), y = 0.05 * H + h / 2 + Math.random() * (0.72 * H - h);
