@@ -1,8 +1,10 @@
 ---
 // /blog. A calm, editorial list: the newest article first and larger, with its
 // short summary beside it, then every other article as a dotted row, newest
-// first. No pictures and no card outlines: type and the frame's hairlines
-// carry the page. The demo request closes it, as on every other page.
+// first. No card outlines, and no pictures but the featured article's cover
+// when it has one: type and the frame's hairlines carry the page. The demo
+// request closes it, as on every other page.
+import { Image } from "astro:assets";
 import { ArrowRight, Rss } from "lucide-react";
 import ArticleList from "@/components/blog/ArticleList.astro";
 import BlogSection from "@/components/blog/BlogSection.astro";
@@ -63,6 +65,19 @@ const rest = items.filter((item) => item !== featured);
         <BlogSection label={copy.featuredLabel} labelledBy="featured-title">
           <article class="featured group relative grid lg:grid-cols-12">
             <div class="flex flex-col px-5 pt-14 pb-10 sm:px-8 sm:pt-16 lg:col-span-7 lg:px-12 lg:pb-16">
+              {featured.cover && (
+                <Image
+                  src={featured.cover.src}
+                  alt={featured.cover.alt}
+                  widths={[800, 1200, 1800, 2400]}
+                  sizes="(min-width: 64rem) 39rem, (min-width: 40rem) min(52rem, calc(100vw - 4rem)), calc(100vw - 2.5rem)"
+                  format="png"
+                  loading="eager"
+                  fetchpriority="high"
+                  decoding="async"
+                  class="mb-10 w-full max-w-[52rem] rounded-card bg-muted"
+                />
+              )}
               <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-paragraph-sm text-muted-foreground">
                 <span class="text-foreground">{featured.category}</span>
                 <span aria-hidden="true" class="text-faint-foreground">·</span>
@@ -96,11 +111,17 @@ const rest = items.filter((item) => item !== featured);
             {/* The article's own takeaways: what a reader gets before clicking.
                 The card hugs its three to five lines; stretched to the
                 column's height it stood two-thirds empty. Its first line
-                sits level with the meta line on the left. Below lg it sits
-                under the text, so it keeps clear of the next band's label
-                (pb-10), and below md it shows the first three points only:
-                five ran to about 500px and pushed the list a screen down. */}
-            <div class="flex items-start p-3 pb-10 sm:p-4 sm:pb-10 lg:col-span-5 lg:py-6 lg:pr-6 lg:pl-0">
+                sits level with the meta line on the left, or, under a cover,
+                its top with the cover's. Below lg it sits under the text, so
+                it keeps clear of the next band's label (pb-10), and below md
+                it shows the first three points only: five ran to about 500px
+                and pushed the list a screen down. */}
+            <div
+              class:list={[
+                "flex items-start p-3 pb-10 sm:p-4 sm:pb-10 lg:col-span-5 lg:pr-6 lg:pb-6 lg:pl-0",
+                featured.cover ? "lg:pt-16" : "lg:pt-6",
+              ]}
+            >
               <div class="soft-card w-full px-6 py-7 sm:px-8 sm:py-9">
                 <p class="eyebrow text-foreground">
                   <span class="eyebrow-mark" aria-hidden="true" />

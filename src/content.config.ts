@@ -25,66 +25,79 @@ const sourceDate = z
 
 const blog = defineCollection({
   loader: glob({ base: "./src/content/blog", pattern: "[^_]*.md" }),
-  schema: z
-    .object({
-      // The H1. The contract says about 70 characters; 75 leaves room for that
-      // "about" without letting a paragraph through.
-      title: z.string().trim().min(10).max(75),
-      // The <title>: 30 to 60 characters, always ending on the brand.
-      seoTitle: z
-        .string()
-        .trim()
-        .min(30)
-        .max(60)
-        .regex(/ \| GBO Vision$/, 'ends with " | GBO Vision"'),
-      description: z.string().trim().min(120).max(158),
-      // ASCII kebab case: ı→i, ş→s, ğ→g, ü→u, ö→o, ç→c. The glob loader uses
-      // it as the entry id, so it is also the URL: /blog/<slug>.
-      slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "ASCII kebab-case"),
-      publishedAt: z.coerce.date(),
-      updatedAt: z.coerce.date(),
-      // Leads the /blog index. Without it the newest article does, and
-      // articles published on the same day would fall back to title order.
-      featured: z.boolean().optional(),
-      category: z.enum(blogCategories),
-      tags: z.array(z.string().trim().min(1)).min(1),
-      keyword: z.string().trim().min(2),
-      relatedProduct: z.enum(blogProducts).nullable(),
-      ogImage: z.string().regex(/^\/og\/blog-[a-z0-9-]+\.png$/, "/og/blog-<slug>.png"),
-      summary: z.array(z.string().trim().min(1)).min(3).max(5),
-      faq: z.array(
-        z.object({
-          question: z.string().trim().min(1),
-          answer: z.string().trim().min(1),
-        }),
-      ),
-      sources: z
-        .array(
+  schema: ({ image }) =>
+    z
+      .object({
+        // The H1. The contract says about 70 characters; 75 leaves room for that
+        // "about" without letting a paragraph through.
+        title: z.string().trim().min(10).max(75),
+        // The <title>: 30 to 60 characters, always ending on the brand.
+        seoTitle: z
+          .string()
+          .trim()
+          .min(30)
+          .max(60)
+          .regex(/ \| GBO Vision$/, 'ends with " | GBO Vision"'),
+        description: z.string().trim().min(120).max(158),
+        // ASCII kebab case: ı→i, ş→s, ğ→g, ü→u, ö→o, ç→c. The glob loader uses
+        // it as the entry id, so it is also the URL: /blog/<slug>.
+        slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "ASCII kebab-case"),
+        publishedAt: z.coerce.date(),
+        updatedAt: z.coerce.date(),
+        // Leads the /blog index. Without it the newest article does, and
+        // articles published on the same day would fall back to title order.
+        featured: z.boolean().optional(),
+        category: z.enum(blogCategories),
+        tags: z.array(z.string().trim().min(1)).min(1),
+        keyword: z.string().trim().min(2),
+        relatedProduct: z.enum(blogProducts).nullable(),
+        ogImage: z.string().regex(/^\/og\/blog-[a-z0-9-]+\.png$/, "/og/blog-<slug>.png"),
+        // The share card shown on the site as well: the featured article's
+        // picture on /blog and the picture under the article's description. Only
+        // for a card designed by hand (scripts/og/README.md), at twice its size
+        // (2400 × 1260, src/assets/blog/<slug>.png); the template cards repeat the
+        // title beside a stock photo and stay share previews only, so an article
+        // without a cover is text-only. `alt` says what the card shows.
+        cover: z
+          .object({
+            src: image(),
+            alt: z.string().trim().min(1),
+          })
+          .optional(),
+        summary: z.array(z.string().trim().min(1)).min(3).max(5),
+        faq: z.array(
           z.object({
-            title: z.string().trim().min(1),
-            publisher: z.string().trim().min(1),
-            url: z.url({ protocol: /^https?$/ }),
-            date: sourceDate,
+            question: z.string().trim().min(1),
+            answer: z.string().trim().min(1),
           }),
-        )
-        .min(1),
-    })
-    .superRefine((data, context) => {
-      if (data.ogImage !== `/og/blog-${data.slug}.png`) {
-        context.addIssue({
-          code: "custom",
-          path: ["ogImage"],
-          message: `ogImage must be /og/blog-${data.slug}.png`,
-        });
-      }
-      if (data.updatedAt < data.publishedAt) {
-        context.addIssue({
-          code: "custom",
-          path: ["updatedAt"],
-          message: "updatedAt is earlier than publishedAt",
-        });
-      }
-    }),
+        ),
+        sources: z
+          .array(
+            z.object({
+              title: z.string().trim().min(1),
+              publisher: z.string().trim().min(1),
+              url: z.url({ protocol: /^https?$/ }),
+              date: sourceDate,
+            }),
+          )
+          .min(1),
+      })
+      .superRefine((data, context) => {
+        if (data.ogImage !== `/og/blog-${data.slug}.png`) {
+          context.addIssue({
+            code: "custom",
+            path: ["ogImage"],
+            message: `ogImage must be /og/blog-${data.slug}.png`,
+          });
+        }
+        if (data.updatedAt < data.publishedAt) {
+          context.addIssue({
+            code: "custom",
+            path: ["updatedAt"],
+            message: "updatedAt is earlier than publishedAt",
+          });
+        }
+      }),
 });
 
 export const collections = { blog };

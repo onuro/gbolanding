@@ -11,6 +11,9 @@ tags: ["TÜİK", "yapay zeka istatistikleri", "Eurostat", "KOBİ", "üretken yap
 keyword: "şirketlerde yapay zeka kullanımı"
 relatedProduct: null
 ogImage: "/og/blog-turkiyede-sirketlerin-yapay-zeka-kullanimi.png"
+cover:
+  src: "../../assets/blog/turkiyede-sirketlerin-yapay-zeka-kullanimi.png"
+  alt: "TÜİK’e göre yapay zeka kullanan şirketlerin oranı 2025’te %7,5, 2026’da %14."
 summary:
   - "TÜİK’e göre 10 ve daha fazla çalışanı olan şirketlerin %14,0’ı 2026’da yapay zeka kullanıyor; bir yıl önce %7,5 olan oran neredeyse iki katına çıktı."
   - "Oran 250 ve üzeri çalışanı olan şirketlerde %37,1, 10–49 çalışanlı şirketlerde %12,8. Sektörlerde bilişim %63,7 ile önde, inşaat %6,9 ile en geride."

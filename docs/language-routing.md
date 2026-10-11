@@ -49,11 +49,18 @@ there is no `/en/blog`. The blog routes live in `turkishOnlyRoutes` in
 
 Articles are Markdown files, `src/content/blog/<slug>.md`. The frontmatter
 contract (title, seoTitle, description, slug, dates, category, tags, keyword,
-relatedProduct, ogImage, summary, faq, sources) is the zod schema in
+relatedProduct, ogImage, cover, summary, faq, sources) is the zod schema in
 `src/content.config.ts`, so a file that breaks it fails in the dev overlay and
 in the build. The slug is the URL: `/blog/<slug>`, ASCII kebab case. A file
 whose name starts with `_` is a draft: the collection skips it, so it never
 reaches a page, the sitemap or the feed.
+
+`cover` is optional: an article whose share card was designed by hand shows
+that card on the site too, under its description and, when it is the featured
+article, at the top of the /blog feature. It names the card at twice its size,
+`src/assets/blog/<slug>.png` (2400 × 1260, exported at 2× from the card's
+Fountible frame), and an `alt` that says what the card shows. Articles without
+one stay text-only.
 
 The article page (`src/components/blog/ArticlePage.astro`) builds the rest:
 the breadcrumb, the reading time (about 200 words a minute), "Kısaca" from

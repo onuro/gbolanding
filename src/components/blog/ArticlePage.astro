@@ -2,8 +2,9 @@
 // /blog/<slug>. The article reads down one column at a comfortable measure
 // (about 68 characters a line), with the page's frame around it:
 //
-//   header   breadcrumb, category, h1, the description; from xl the dates and
-//            the reading time sit in the margin column on the left
+//   header   breadcrumb, category, h1, the description, the cover when the
+//            article has one; from xl the dates and the reading time sit in
+//            the margin column on the left
 //   body     "Kısaca" (the frontmatter summary), the contents, the Markdown;
 //            from xl the contents stay in the margin column, sticky
 //   then     questions (the product pages' Faq, fed the same array as the
@@ -12,6 +13,7 @@
 //
 // The margin column is the same 3-of-12 column a product page's Chapter keeps
 // for its note, so the chapters below line up with the article above them.
+import { Image } from "astro:assets";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import ArticleList from "@/components/blog/ArticleList.astro";
 import BlogSection from "@/components/blog/BlogSection.astro";
@@ -133,6 +135,21 @@ const hostOf = (url: string) => new URL(url).hostname.replace(/^www\./, "");
               <span aria-hidden="true" class="text-faint-foreground">·</span>
               <span>{reading}</span>
             </p>
+            {
+              data.cover && (
+                <Image
+                  src={data.cover.src}
+                  alt={data.cover.alt}
+                  widths={[800, 1200, 1800, 2400]}
+                  sizes="(min-width: 80rem) 51.5rem, (min-width: 40rem) min(52rem, calc(100vw - 4rem)), calc(100vw - 2.5rem)"
+                  format="png"
+                  loading="eager"
+                  fetchpriority="high"
+                  decoding="async"
+                  class="mt-10 w-full max-w-[52rem] rounded-card bg-muted xl:mt-12"
+                />
+              )
+            }
           </header>
         </div>
       </BlogSection>

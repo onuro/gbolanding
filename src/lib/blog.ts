@@ -167,6 +167,8 @@ export interface ArticleListItem {
   summary: string[];
   /** Frontmatter `featured`: leads the /blog index. */
   featured: boolean;
+  /** Frontmatter `cover`: the featured article's picture on /blog. */
+  cover?: Article["data"]["cover"];
 }
 
 export function toListItem(article: Article): ArticleListItem {
@@ -181,5 +183,6 @@ export function toListItem(article: Article): ArticleListItem {
     reading: readingLabel(readingMinutes(countWords(article.body ?? ""))),
     summary: data.summary,
     featured: data.featured === true,
+    cover: data.cover,
   };
 }
