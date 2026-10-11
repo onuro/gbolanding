@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { FaceEngine } from "./engine";
 import type { TunePanelProps } from "./TunePanel";
 import { createFollow, gazeMorphs, type Follow } from "./interaction/follow";
@@ -27,12 +27,11 @@ const TALK_STYLES = ["minimal", "subtle", "natural"] as const;
 const PREVIEW_CSS = `
   .orb-well[data-face-preview] div.z-20 { display: none !important; }
 `;
-// how long a spoken word stays on screen (the .face-word animation is 2.55 s)
-const FACE_WORD_MS = 2650;
+// the space between two words on the line: a mono space at 13 px with the 0.08 em tracking
+const WORD_GAP = 8;
 // With the face, the call control must never sit on her face (a white disc + rotating text over it read as a horror
-// film): a white pill at the bottom centre of the card with the button's own label (attr(aria-label), so it follows
-// the language and the call state), no rotating badge / ring caption, status and errors above the pill; in a call the
-// end-call pill takes its place.
+// film): one white pill at the bottom centre of the card that carries the whole call. Its contents morph as the call
+// moves on (talk, connecting, end the call); no rotating badge / ring caption, status and errors sit above it.
 const FACE_UI_CSS = `
   /* Keep the luminous face on the dark well in both themes. Screen blending matches the dark page
      background without picking up the old orb underneath the isolated surface. */
@@ -44,72 +43,92 @@ const FACE_UI_CSS = `
   /* (only the idle container, inset-0: the call row, bottom-6, is a column and flex-end pushed its pill to the right) */
   .orb-well[data-face-preview] div.z-20.inset-0:has(> button) { align-items: flex-end; padding-bottom: var(--call-y); }
   .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > svg { display: none; }
-  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button,
-  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group {
-    width: auto; height: 44px; border-radius: 999px; border: 0;
-    background: rgb(255 255 255 / 0.94); color: rgb(12 14 18);
+  /* One pill for the whole call (the owner, 2026-10-10): the idle button keeps its place and morphs its own contents as
+     the call moves on, the play mark and "talk to our AI" first, then a spinner and "connecting", then a stop disc and
+     "end the call", lifting 38 px into the room the spoken line leaves. VoiceButton glides its width between the three. */
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button {
+    width: auto; height: 44px; border-radius: 999px; border: 0; gap: 10px; padding: 0 20px 0 16px;
+    visibility: visible; opacity: 1; scale: 1; pointer-events: auto;
+    background: rgb(255 255 255 / 0.94); color: rgb(9 9 11);
     box-shadow: 0 8px 30px rgb(0 0 0 / 0.35), 0 0 0 1px rgb(255 255 255 / 0.25);
     transition: background-color 200ms ease, box-shadow 250ms ease, color 200ms ease, scale 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 250ms ease;
+      translate 420ms cubic-bezier(0.2, 0.8, 0.2, 1), width 380ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button { gap: 10px; padding: 0 20px 0 16px; }
-  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button:hover,
-  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group:hover {
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button:hover {
     background: rgb(255 255 255); scale: 1.03; box-shadow: 0 10px 34px rgb(0 0 0 / 0.45), 0 0 26px rgb(255 255 255 / 0.2);
   }
-  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button:active,
-  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group:active { scale: 0.97; transition-duration: 120ms; }
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button:active { scale: 0.97; transition-duration: 120ms; }
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button[data-state="connecting"] { cursor: progress; }
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button[data-state="live"] {
+    gap: 12px; padding: 0 6px 0 20px; translate: 0 -38px;
+  }
   .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button > svg { width: 14px; height: 14px; transform: none; }
-  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button::after { content: attr(aria-label); }
-  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button::after,
-  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group > span:first-child {
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button[data-state="connecting"] > svg,
+  .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button[data-state="live"] > svg { display: none; }
+  .orb-well[data-face-preview] .cta-face {
+    display: flex; align-items: center; gap: 10px; animation: cta-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+  .orb-well[data-face-preview] button[data-state="live"] > .cta-face { gap: 12px; }
+  .orb-well[data-face-preview] .cta-label {
     font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif); font-size: 14px; font-weight: 400;
     letter-spacing: 0; white-space: nowrap; color: rgb(9 9 11);
   }
-  /* in a call: the end-call pill (label, then a dark stop disc tucked in its right end) takes the idle pill's place,
-     easing in as it appears; status and errors sit above it */
-  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group {
-    gap: 12px; padding: 0 6px 0 20px; order: 2; animation: face-call-in 350ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  .orb-well[data-face-preview] .cta-ring {
+    width: 14px; height: 14px; border-radius: 999px; border: 2px solid rgb(9 9 11 / 0.2); border-top-color: rgb(9 9 11);
+    animation: cta-spin 800ms linear infinite;
   }
-  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group > span:last-child {
-    width: 32px; height: 32px; border: 0; background: rgb(12 14 18); color: rgb(255 255 255); transition: background-color 200ms ease;
+  .orb-well[data-face-preview] .cta-disc {
+    display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 999px;
+    background: rgb(12 14 18); color: rgb(255 255 255); transition: background-color 200ms ease;
   }
-  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group:hover > span:last-child { background: rgb(44 48 54); }
-  @keyframes face-call-in { from { opacity: 0; scale: 0.9; filter: blur(4px); } to { opacity: 1; scale: 1; filter: blur(0); } }
+  .orb-well[data-face-preview] button[data-state="live"]:hover .cta-disc { background: rgb(44 48 54); }
+  @keyframes cta-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @keyframes cta-spin { to { transform: rotate(360deg); } }
+  /* the end-call pill below the orb is the card's own pill now, morphed above: hidden in the card */
+  .orb-well[data-face-preview] div.z-20.bottom-6 > button.group { display: none; }
   .orb-well[data-face-preview] div.z-20 svg:not(button svg) { display: none; }
-  /* each word in a white speech bubble, dark text, hers and yours alike (the owner, 2026-10-10; this replaces the bare
-     white words of 2026-09-26), so it reads over the bright dots; visible within 0.2 s, readable ~2 s, out over 0.25 s
-     (2.55 s, FACE_WORD_MS) */
-  .face-word {
-    position: absolute; transform: translate(-50%, -50%); pointer-events: none; white-space: nowrap;
-    font-family: var(--font-mono, ui-monospace, monospace); font-size: 13px; line-height: 20px; font-weight: 600;
-    letter-spacing: 0.08em; text-transform: uppercase; color: rgb(17 17 19);
-    padding: 8px 14px; border-radius: 18px; background: rgb(245 245 245);
-    animation: face-word-fade 2.55s forwards, face-word-zoom 2.55s forwards;
+  /* the spoken words run along the bottom of the card as one line, like a sentence: hers and yours alike, plain white
+     text, no bubbles (the owner, 2026-10-10), faded at both ends. The line is a viewport; the track inside it centres
+     while the sentence is short and slides to keep the newest word in view once it runs past the fades. */
+  .face-line {
+    position: absolute; left: 0; right: 0; bottom: var(--call-y); height: 24px; overflow: hidden; pointer-events: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 36px, #000 calc(100% - 36px), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 36px, #000 calc(100% - 36px), transparent 100%);
   }
-  /* (fade and zoom on their own clocks: on one fast ease-out the word was already ~90 % down to size by the time it
-     could be seen, and the zoom read as a plain fade) fade: in over 0.2 s, out over the last 0.25 s */
+  /* the track is only a carrier: a spring in the script moves it along the line, and each word is placed on it by its
+     own left (set when the word arrives), so one word leaving never moves another */
+  .face-track {
+    position: absolute; left: 0; top: 0; width: 0; height: 24px;
+  }
+  /* each word lives 2.65 s: it rises 6 px out of a 4 px blur over the first 0.3 s, holds sharp, and lifts 6 px away into
+     the blur over the last 0.27 s (the 2026-09-26 motion). It is removed when this animation ends, so it leaves faded */
+  .face-word {
+    position: absolute; top: 2px; white-space: nowrap; font-family: var(--font-mono, ui-monospace, monospace); font-size: 13px;
+    line-height: 20px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(255 255 255 / 0.96);
+    animation: face-word-life 2.65s forwards;
+  }
+  @keyframes face-word-life {
+    0% { opacity: 0; filter: blur(4px); transform: translateY(6px); animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
+    11.3% { opacity: 1; filter: blur(0); transform: translateY(0); animation-timing-function: linear; }
+    90% { opacity: 1; filter: blur(0); transform: translateY(0); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
+    100% { opacity: 0; filter: blur(4px); transform: translateY(-6px); }
+  }
   @keyframes face-word-fade {
-    0% { opacity: 0; animation-timing-function: ease-out; }
-    7.84% { opacity: 1; animation-timing-function: linear; }
-    90.2% { opacity: 1; animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
+    0% { opacity: 0; }
+    11.3% { opacity: 1; }
+    90% { opacity: 1; }
     100% { opacity: 0; }
   }
-  /* zoom: in from 180 % out of an 8 px blur down to its size over 0.5 s (ease-out cubic), sharp while readable (no
-     blur: the bubble's text must stay crisp), out a little past its size into an 8 px blur */
-  @keyframes face-word-zoom {
-    0% { filter: blur(8px); transform: translate(-50%, -50%) scale(1.8); animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1); }
-    19.6% { filter: blur(0px); transform: translate(-50%, -50%) scale(1); animation-timing-function: linear; }
-    90.2% { filter: blur(0px); transform: translate(-50%, -50%) scale(1); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
-    100% { filter: blur(8px); transform: translate(-50%, -50%) scale(1.25); }
-  }
   @media (prefers-reduced-motion: reduce) {
-    .face-word { animation: face-word-fade 2.55s forwards; }
+    .face-word { animation-name: face-word-fade; }
+    .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > button,
+    .orb-well[data-face-preview] div.z-20.bottom-6 { transition: none; }
+    .orb-well[data-face-preview] .cta-face { animation: none; }
   }
-  /* status / errors above the idle pill; in a call the row's end-call pill sits exactly where the idle pill was (the
-     small-screen idle label under the orb is dropped: the pill carries it) */
-  .orb-well[data-face-preview] div.z-20.bottom-6 { bottom: calc(var(--call-y) + 56px); }
-  .orb-well[data-face-preview] div.z-20.bottom-6:has(> button.group) { bottom: var(--call-y); }
+  /* status / errors sit above the call's pill, and lift with it when the call is live (the pill rises 38 px into the room
+     the spoken line leaves); the small-screen idle label under the orb is dropped: the pill carries it */
+  .orb-well[data-face-preview] div.z-20.bottom-6 { bottom: calc(var(--call-y) + 56px); transition: bottom 420ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .orb-well[data-face-preview]:has(button[data-state="live"]) div.z-20.bottom-6 { bottom: calc(var(--call-y) + 94px); }
   .orb-well[data-face-preview] div.z-20.bottom-6 > p:not([role]) { display: none; }
 `;
 
@@ -207,10 +226,78 @@ export function HeroFacePreview() {
   const [failed, setFailed] = useState(false);
   const [live] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("live") === "1");
   const [tune, setTune] = useState<Omit<TunePanelProps, "onHold"> | null>(null);
-  // what is being said drifts into the field around her (never over her face): the AI's words as she says them
-  // and the visitor's as their speech is recognised, each in a white speech bubble so they read over the dots
-  const [words, setWords] = useState<{ key: number; text: string; x: number; y: number; who: "ai" | "you" }[]>([]);
-  const wordsRef = useRef<HTMLDivElement>(null);
+  // what is being said runs along the bottom of the card as one line (see .face-line): the AI's words as she says them
+  // and the visitor's as their speech is recognised
+  const [words, setWords] = useState<{ key: number; text: string; who: "ai" | "you" }[]>([]);
+  const lineRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  // a word leaves when its own animation has ended, so it is gone fully faded and nothing waits on a timer
+  const retire = (key: number) => setWords((ws) => ws.filter((x) => x.key !== key));
+  // The line rides on a spring. The track is pulled toward the place the line belongs, and it keeps its speed when that
+  // place moves, so a word arriving mid-glide bends the motion instead of restarting it. The place: centred while the
+  // sentence fits between the two fades; once it runs past them, the newest word sits EDGE px in from the right fade
+  // and the older words run off the left. Reduced motion jumps.
+  const spring = useRef({ x: 0, v: 0, target: 0, frame: 0, last: 0, placed: false });
+  const lineTarget = () => {
+    const box = lineRef.current, track = trackRef.current;
+    if (!box || !track) return 0;
+    const first = track.firstElementChild as HTMLElement | null, last = track.lastElementChild as HTMLElement | null;
+    const L = first ? parseFloat(first.style.left) : 0;
+    const R = last ? parseFloat(last.style.left) + last.getBoundingClientRect().width : 0;
+    const W = box.clientWidth, EDGE = 44;
+    return R - L <= W - 2 * EDGE ? (W - (R - L)) / 2 - L : W - EDGE - R;
+  };
+  const drawLine = (x: number) => {
+    if (trackRef.current) trackRef.current.style.transform = `translateX(${x}px)`;
+  };
+  const stepLine = (now: number) => {
+    const s = spring.current;
+    const dt = s.last ? Math.min(0.033, (now - s.last) / 1000) : 1 / 60;
+    const w = 11;
+    s.last = now;
+    s.v += (w * w * (s.target - s.x) - 2 * w * s.v) * dt;
+    s.x += s.v * dt;
+    drawLine(s.x);
+    if (Math.abs(s.target - s.x) > 0.05 || Math.abs(s.v) > 0.05) {
+      s.frame = requestAnimationFrame(stepLine);
+    } else {
+      s.x = s.target; s.v = 0; s.frame = 0; s.last = 0;
+      drawLine(s.x);
+    }
+  };
+  const moveLine = () => {
+    const s = spring.current;
+    s.target = lineTarget();
+    if (!s.placed || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      s.placed = true;
+      cancelAnimationFrame(s.frame);
+      s.frame = 0; s.x = s.target; s.v = 0;
+      drawLine(s.x);
+      return;
+    }
+    if (!s.frame) s.frame = requestAnimationFrame(stepLine);
+  };
+  // Each new word lands after the last one and keeps that place; the words already there do not move.
+  useLayoutEffect(() => {
+    const spans = Array.from(trackRef.current?.children ?? []) as HTMLElement[];
+    let right: number | null = null;
+    for (const span of spans) {
+      if (!span.style.left) span.style.left = `${right === null ? 0 : right + WORD_GAP}px`;
+      right = parseFloat(span.style.left) + span.getBoundingClientRect().width;
+    }
+    moveLine();
+  }, [words]);
+  useEffect(() => {
+    const box = lineRef.current;
+    if (!box) return;
+    const observer = new ResizeObserver(moveLine);
+    observer.observe(box);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(spring.current.frame);
+      spring.current.frame = 0;
+    };
+  }, [enabled]);
   // ?fps=1 (production too, to test on a phone): frame rate, the slow-frame tail and the render scale, twice a second
   const fpsRef = useRef<HTMLParagraphElement>(null);
   const [showFps] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("fps") === "1");
@@ -223,41 +310,13 @@ export function HeroFacePreview() {
     if (!enabled) return;
     let key = 0, lastId = "", aiCount = 0, youId = "", youCount = 0;
     const timers: number[] = [];
-    // the words on screen (px boxes, centre + size): a new word goes where it overlaps none of them, fully inside the
-    // card, off her face and above the call pill; when there is no room left it takes the least crowded free spot and
-    // the older words there go (the newest word always shows, words never stack)
-    const boxes = new Map<number, { x: number; y: number; w: number; h: number }>();
-    const GAP = 6;
-    const place = (text: string) => {
-      const W = wordsRef.current?.clientWidth || 533, H = wordsRef.current?.clientHeight || 768;
-      // the word's size from its text (13 px mono caps, 0.08em tracking; ~9.2 px a letter measured) plus the bubble's
-      // padding (14 px a side, 8 px top and bottom, 20 px line)
-      const w = 28 + text.length * 9.3, h = 36;
-      let best: { x: number; y: number; hits: number[] } | null = null;
-      for (let i = 0; i < 48; i++) {
-        const x = w / 2 + 8 + Math.random() * Math.max(1, W - w - 16), y = 0.05 * H + h / 2 + Math.random() * (0.72 * H - h);
-        if (Math.hypot((x / W - 0.5) / 0.3, (y / H - 0.42) / 0.34) <= 1) continue;
-        const hits = [...boxes].filter(([, b]) => Math.abs(b.x - x) < (b.w + w) / 2 + GAP && Math.abs(b.y - y) < (b.h + h) / 2 + GAP).map(([k]) => k);
-        if (!hits.length) return { x, y, w, h, hits };
-        if (!best || hits.length < best.hits.length) best = { x, y, hits };
-      }
-      return best ? { ...best, w, h } : { x: w / 2 + 8, y: 0.3 * H, w, h, hits: [...boxes.keys()] };
-    };
-    const drop = (ks: number[]) => {
-      if (!ks.length) return;
-      ks.forEach((k) => boxes.delete(k));
-      setWords((ws) => ws.filter((x) => !ks.includes(x.key)));
-    };
+    // each word is added at the end of the sentence and leaves when its own animation ends (see retire); the line sits
+    // below her, so no word is drawn over her face
     const show = (fresh: string[], who: "ai" | "you") => {
       for (const w of fresh.filter((x) => x.replace(/[^\p{L}\p{N}]/gu, "").length > 1)) {
         const k = ++key;
         const text = w.replace(/[.,!?;:]+$/, "");
-        const p = place(text);
-        drop(p.hits);
-        boxes.set(k, { x: p.x, y: p.y, w: p.w, h: p.h });
-        const W = wordsRef.current?.clientWidth || 533, H = wordsRef.current?.clientHeight || 768;
-        setWords((ws) => [...ws, { key: k, text, who, x: (100 * p.x) / W, y: (100 * p.y) / H }]);
-        timers.push(window.setTimeout(() => drop([k]), FACE_WORD_MS));
+        setWords((ws) => [...ws, { key: k, text, who }]);
       }
     };
     // only whole words show: text arrives in chunks that can end mid-word, and speech recognition sends
@@ -588,10 +647,12 @@ export function HeroFacePreview() {
           style={diag.blend ? undefined : { mixBlendMode: "normal" }}
         />
       </div>
-      <div ref={wordsRef} aria-hidden="true" className="pointer-events-none absolute inset-0 z-[25] overflow-hidden">
-        {diag.words && words.map((w) => (
-          <span key={w.key} className="face-word" data-who={w.who} style={{ left: `${w.x}%`, top: `${w.y}%` }}>{w.text}</span>
-        ))}
+      <div ref={lineRef} aria-hidden="true" className="face-line z-[25]">
+        <div ref={trackRef} className="face-track">
+          {diag.words && words.map((w) => (
+            <span key={w.key} className="face-word" data-who={w.who} onAnimationEnd={() => retire(w.key)}>{w.text}</span>
+          ))}
+        </div>
       </div>
       {showFps && (
         <p ref={fpsRef} className="pointer-events-none absolute top-3 left-3 right-3 z-30 whitespace-pre-wrap rounded bg-black/70 px-2 py-1 font-mono text-[11px] text-white/85" />

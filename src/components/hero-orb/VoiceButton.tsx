@@ -20,6 +20,8 @@ const PUBLIC_GBO_API: string | undefined = import.meta.env.PUBLIC_GBO_API;
 const GBO_API = import.meta.env.DEV
   ? (PUBLIC_GBO_API ?? "http://localhost:3010")
   : PUBLIC_GBO_API || "https://kollektor.gbovision.com";
+// how long the agent gets to bring its voice into the room before a call is given up (see start)
+const AGENT_JOIN_MS = 20_000;
 
 type Labels = {
   idle: string;
@@ -98,6 +100,8 @@ export function VoiceButton({
   const [soundBlocked, setSoundBlocked] = useState(false);
   const [caption, setCaption] = useState<Caption | null>(null);
   const captionSegment = useRef<{ id: string; startedAt: number } | null>(null);
+  // the agent's grace period to bring its voice in (see start)
+  const joinTimer = useRef(0);
 
   useEffect(
     () => () => {
@@ -113,6 +117,7 @@ export function VoiceButton({
    * so the unmount and the Disconnected handler cannot drift apart.
    */
   function teardownAudio() {
+    window.clearTimeout(joinTimer.current);
     levelRef.current?.stop();
     levelRef.current = null;
     analysersRef.current.clear();
@@ -257,16 +262,33 @@ export function VoiceButton({
           captionSegment.current = { id, startedAt };
           setCaption({ id, text });
         }
-        // the stream is complete: its last word is whole now (the face's word pills wait for this). A separate event,
-        // so the lip-sync's chunk log (face-transcript) is unchanged
-        window.dispatchEvent(new CustomEvent("face-transcript-end", { detail: { id, text, agent, final, done: true } }));
+        // the stream is complete: its last word is whole now (the face's word line waits for this). A separate event,
+        // so the lip-sync's chunk log (face-transcript) is unchanged. The flag is read again here: the agent opens each
+        // reply with lk.transcription_final "false" and sends "true" on the trailer, which the reader merges into its
+        // attributes as it closes. Read off the header only, a reply never settled and its last word stayed hidden.
+        const closedAttr = reader.info.attributes?.["lk.transcription_final"];
+        const closedFinal = closedAttr === undefined ? undefined : closedAttr === "true";
+        window.dispatchEvent(new CustomEvent("face-transcript-end", { detail: { id, text, agent, final: closedFinal, done: true } }));
       });
     }
+
+    // The call goes live when the agent's voice is up and it is about to talk, not when the room connects: the agent
+    // joins a moment later, and until its audio is in the room the pill keeps saying it is connecting.
+    let audioStarted = false;
+    let voiceUp = false;
+    const goLive = () => {
+      if (!audioStarted || !voiceUp || roomRef.current !== room) return;
+      window.clearTimeout(joinTimer.current);
+      window.dispatchEvent(new CustomEvent("orb-live", { detail: true }));
+      setState("live");
+    };
 
     // Agent audio never plays itself — attach each subscribed track to the DOM,
     // and drive the orb wave from the same signal.
     room.on(RoomEvent.TrackSubscribed, (track) => {
       if (track.kind !== "audio") return;
+      voiceUp = true;
+      goLive();
       // The analyser goes *into* LiveKit's own chain rather than alongside it:
       // source -> analyser -> gain -> destination, one reader on the track.
       //
@@ -324,14 +346,26 @@ export function VoiceButton({
       setState("idle");
     });
 
+    // The agent never brought its voice in: the call is given up the way a failed connect is.
+    const giveUp = () => {
+      if (roomRef.current !== room) return;
+      room.removeAllListeners();
+      room.disconnect();
+      teardownAudio();
+      roomRef.current = null;
+      setError(labels.error);
+      setState("idle");
+    };
+
     try {
       await room.connect(url, token);
+      joinTimer.current = window.setTimeout(giveUp, AGENT_JOIN_MS);
       // Both need the user gesture we are still inside of.
       await room.startAudio();
+      audioStarted = true;
       // dev only: the particle-face lip-sync lab records real agent speech through this handle
       if (import.meta.env.DEV) (window as { __gboRoom?: typeof room }).__gboRoom = room;
-      window.dispatchEvent(new CustomEvent("orb-live", { detail: true }));
-      setState("live");
+      goLive();
     } catch (cause) {
       // Deafen the room before disconnecting it. disconnect() takes up to a
       // couple of hundred milliseconds to send the leave and close the socket,
@@ -389,6 +423,45 @@ export function VoiceButton({
         ? labels.connecting
         : labels.idle;
 
+  // The face's card has one pill for the whole call, and its width glides from the width it had to the width it now needs.
+  // The rest width is measured once the card's styles are in (HeroFacePreview marks the card data-face-ready): before that
+  // the button still has the orb's round size. The orb keeps its round button, so none of this runs there.
+  const ctaRef = useRef<HTMLButtonElement>(null);
+  const ctaRest = useRef(0);
+  useEffect(() => {
+    const card = ctaRef.current?.closest(".orb-well[data-face-preview]");
+    if (!card) return;
+    const rest = () => {
+      const cta = ctaRef.current;
+      if (!cta || cta.style.width || !card.hasAttribute("data-face-ready")) return;
+      ctaRest.current = cta.offsetWidth;
+    };
+    rest();
+    const observer = new MutationObserver(rest);
+    observer.observe(card, { attributes: true, attributeFilter: ["data-face-ready"] });
+    return () => observer.disconnect();
+  }, []);
+  useLayoutEffect(() => {
+    const cta = ctaRef.current;
+    if (!cta?.closest(".orb-well[data-face-preview][data-face-ready]")) return;
+    // from: the pill as it is on screen (mid-glide included), or the width it rested at before this change
+    const from = cta.style.width ? cta.offsetWidth : ctaRest.current;
+    cta.style.width = "";
+    const to = cta.offsetWidth;
+    ctaRest.current = to;
+    if (!from || to === from || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    cta.style.width = `${from}px`;
+    void cta.offsetWidth;
+    cta.style.width = `${to}px`;
+    // back to the natural width once the glide is over, so the pill sizes to its contents again
+    const release = (event: TransitionEvent) => {
+      if (event.propertyName !== "width") return;
+      cta.style.width = "";
+      cta.removeEventListener("transitionend", release);
+    };
+    cta.addEventListener("transitionend", release);
+  }, [state]);
+
   return (
     <>
       <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
@@ -401,14 +474,16 @@ export function VoiceButton({
           }`}
         />
         <button
+          ref={ctaRef}
           type="button"
-          onClick={start}
-          disabled={state !== "idle"}
-          inert={state !== "idle"}
+          onClick={state === "live" ? () => roomRef.current?.disconnect() : start}
+          disabled={state === "connecting"}
+          inert={state === "connecting"}
+          data-state={state}
           className={`flex size-20 cursor-pointer items-center justify-center rounded-full bg-foreground text-background outline-none transition duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
             state === "idle"
               ? "pointer-events-auto opacity-100"
-              : "pointer-events-none scale-90 opacity-0"
+              : "pointer-events-none scale-90 opacity-0 invisible"
           }`}
           aria-label={label}
         >
@@ -416,6 +491,16 @@ export function VoiceButton({
             aria-hidden="true"
             className="size-7 translate-x-0.5 fill-current"
           />
+          {/* the card's pill shows these (FACE_UI_CSS); keyed by state, so each state's contents come in as it arrives */}
+          <span key={state} className="cta-face" aria-hidden="true">
+            {state === "connecting" && <span className="cta-ring" />}
+            <span className="cta-label">{label}</span>
+            {state === "live" && (
+              <span className="cta-disc">
+                <Square aria-hidden="true" className="size-3 fill-current" />
+              </span>
+            )}
+          </span>
         </button>
       </div>
 
@@ -462,6 +547,8 @@ export function VoiceButton({
       </div>
 
       <style>{`
+        /* the card's pill has its own contents (HeroFacePreview); the orb keeps its round play button */
+        .orb-well:not([data-face-preview]) .cta-face { display: none; }
         .orb-badge {
           transform-box: view-box;
           transform-origin: 50% 50%;
