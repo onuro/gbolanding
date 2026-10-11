@@ -6,13 +6,15 @@
 //   node scripts/og/render.mjs --url home-tr    print the template URL, to open and tune by hand
 //
 // Each entry becomes public/og/<key>.png (1200 x 630), and src/data/og-images.json
-// is rewritten to map every entry whose PNG exists to "/og/<key>.png".
+// is rewritten to map every entry whose PNG exists to "/og/<key>.png". An entry
+// with "file" is a card designed by hand (in Fountible): its exported PNG is
+// copied in and re-packed, never rendered from the template.
 // No packages: Node's standard library and the Chrome that is already installed
 // (override the path with CHROME_PATH). Nothing here touches .vite, dist or the
 // dev server, so it is safe to run while `astro dev` is up. See README.md.
 
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -52,6 +54,14 @@ function resolveEntry(key, seen = []) {
 function validate(key, entry) {
   const problems = [];
   if (!KEY.test(key)) problems.push("key must be lowercase ASCII kebab case");
+  if (entry.file) {
+    // Checked before it is copied, so a wrong export never replaces a good card.
+    const source = join(REPO, entry.file);
+    const size = existsSync(source) ? pngSize(source) : null;
+    if (!existsSync(source)) problems.push(`file not found: ${entry.file}`);
+    else if (size?.width !== WIDTH || size?.height !== HEIGHT) problems.push(`file is ${size ? `${size.width}x${size.height}` : "not a PNG"}, expected ${WIDTH}x${HEIGHT}`);
+    return problems;
+  }
   if (!entry.title?.trim()) problems.push("title is missing");
   if (entry.title && entry.title.length > 80) problems.push(`title is ${entry.title.length} characters (80 at most)`);
   if (!["tr", "en"].includes(entry.lang)) problems.push('lang must be "tr" or "en"');
@@ -109,15 +119,27 @@ function shoot(key, entry) {
         done({ key, ok: false, message: `no screenshot (${stderr.trim().split("\n").pop() || "Chrome exited"})` });
         return;
       }
-      const size = pngSize(file);
-      // Chrome writes a quick PNG; re-pack it, and trim bits only if it is over budget.
-      const { bytes, bits } = slimPng(file, BUDGET_BYTES);
-      const notes = bits < 8 ? [`${bits} bits per channel`] : [];
-      if (!size || size.width !== WIDTH || size.height !== HEIGHT) notes.push(`size ${size?.width}x${size?.height}, expected ${WIDTH}x${HEIGHT}`);
-      if (bytes > BUDGET_BYTES) notes.push(`${Math.round(bytes / 1024)} KB is over the ${BUDGET_BYTES / 1024} KB budget`);
-      done({ key, ok: bytes <= BUDGET_BYTES && size?.width === WIDTH && size?.height === HEIGHT, bytes, ms, message: notes.join("; ") });
+      done(finish(key, file, ms));
     });
   });
+}
+
+// A card designed by hand: its export is copied in as it is.
+function place(key, entry) {
+  const started = Date.now();
+  const file = join(OUT_DIR, `${key}.png`);
+  copyFileSync(join(REPO, entry.file), file);
+  return finish(key, file, Date.now() - started);
+}
+
+function finish(key, file, ms) {
+  const size = pngSize(file);
+  // Chrome and Fountible write quick PNGs; re-pack, and trim bits only if over budget.
+  const { bytes, bits } = slimPng(file, BUDGET_BYTES);
+  const notes = bits < 8 ? [`${bits} bits per channel`] : [];
+  if (!size || size.width !== WIDTH || size.height !== HEIGHT) notes.push(`size ${size?.width}x${size?.height}, expected ${WIDTH}x${HEIGHT}`);
+  if (bytes > BUDGET_BYTES) notes.push(`${Math.round(bytes / 1024)} KB is over the ${BUDGET_BYTES / 1024} KB budget`);
+  return { key, ok: bytes <= BUDGET_BYTES && size?.width === WIDTH && size?.height === HEIGHT, bytes, ms, message: notes.join("; ") };
 }
 
 function writeManifest() {
@@ -137,7 +159,8 @@ const argv = process.argv.slice(2);
 if (argv[0] === "--url") {
   const key = argv[1];
   if (!key) throw new Error("usage: render.mjs --url <key>");
-  console.log(templateUrl(resolveEntry(key)));
+  const entry = resolveEntry(key);
+  console.log(entry.file ? `${key} is designed by hand, not from the template: ${entry.design ?? entry.file}` : templateUrl(entry));
   process.exit(0);
 }
 
@@ -175,7 +198,7 @@ await Promise.all(
   Array.from({ length: Math.min(PARALLEL, jobs.length) }, async () => {
     while (next < jobs.length) {
       const [key, entry] = jobs[next++];
-      const r = await shoot(key, entry);
+      const r = entry.file ? place(key, entry) : await shoot(key, entry);
       results.push(r);
       const kb = r.bytes ? `${Math.round(r.bytes / 1024)} KB` : "";
       console.log(`${r.ok ? "✓" : "✗"} public/og/${key}.png ${kb}${r.message ? `  ${r.message}` : ""}`);

@@ -11,7 +11,7 @@ rendered from one HTML template with headless Chrome and committed as PNGs.
 | `render.mjs` | Renders entries to `public/og/<key>.png` and writes `src/data/og-images.json` |
 | `png.mjs` | Re-packs Chrome's PNG to stay under the 400 KB budget (Node's zlib only) |
 | `face-still.mjs` | Renders `assets/hero-face.png`, the home card's particle face |
-| `assets/` | Pictures that exist only for the cards (the face still) |
+| `assets/` | Pictures that exist only for the cards (the face still, cards designed in Fountible) |
 
 `src/data/og-images.json` maps each key to its file, `"home-tr": "/og/home-tr.png"`.
 `src/lib/og-images.ts` reads it; a key without a PNG falls back to `/og.png`.
@@ -121,6 +121,27 @@ one keeps a stray `mark: true`; that is harmless (only `atmos` reads it).
 
 Rendering one key rewrites the whole manifest from `pages.json`, keeping every
 entry whose PNG is on disk.
+
+## A card designed in Fountible
+
+A card can be designed by hand instead (the TÜİK article's is). Its entry names
+the export, and `render.mjs` copies it in and re-packs it rather than rendering
+the template, so re-rendering every card never replaces it:
+
+```json
+"blog-turkiyede-sirketlerin-yapay-zeka-kullanimi": {
+  "file": "scripts/og/assets/blog-turkiyede-sirketlerin-yapay-zeka-kullanimi.png",
+  "design": "https://app.fountible.com/file/3Tr3dkCjUrxy?node-id=Ln0ZCW30B0L2s-Z_jkDuU"
+}
+```
+
+1. Export the frame at exactly 1200 × 630, opaque, to `assets/<key>.png`.
+   `design` links the frame, for the next export.
+2. `node scripts/og/render.mjs <key>`: it refuses a file of any other size.
+3. Look at `public/og/<key>.png`, then commit it with the export and `pages.json`.
+
+To go back to the template, put the entry's `inherit`, `eyebrow`, `title`,
+`line` and `visual` back in place of `file` and `design`.
 
 ## The design
 

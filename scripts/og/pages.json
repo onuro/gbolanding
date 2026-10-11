@@ -215,15 +215,8 @@
     }
   },
   "blog-turkiyede-sirketlerin-yapay-zeka-kullanimi": {
-    "inherit": "blog-tr",
-    "eyebrow": "Blog · Yapay zeka",
-    "title": "Şirketlerde yapay zeka kullanımı ne durumda?",
-    "line": "TÜİK 2026 verileri",
-    "visual": {
-      "kind": "photo",
-      "src": "src/assets/editorial/industries-banking-adviser.png",
-      "position": "50% 35%"
-    }
+    "file": "scripts/og/assets/blog-turkiyede-sirketlerin-yapay-zeka-kullanimi.png",
+    "design": "https://app.fountible.com/file/3Tr3dkCjUrxy?node-id=Ln0ZCW30B0L2s-Z_jkDuU"
   },
   "blog-yapay-zeka-cagri-merkezi-asistani": {
     "inherit": "blog-tr",
