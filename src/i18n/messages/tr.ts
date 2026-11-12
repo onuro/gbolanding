@@ -82,6 +82,7 @@ const trMessages: Messages = {
     voiceMicInsecure:
       "Mikrofon için güvenli bir bağlantı gerekiyor. Bu sayfayı https üzerinden açıp görüşmeyi yeniden başlatın.",
     voiceSoundBlocked: "Sesi aç",
+    voiceCall: "Veya asistanımızı arayın:",
   },
   proofStrip: {
     label: "Nasıl yardımcı oluruz",

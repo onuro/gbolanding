@@ -36,10 +36,10 @@ const FACE_UI_CSS = `
   /* Keep the luminous face on the dark well in both themes. Screen blending matches the dark page
      background without picking up the old orb underneath the isolated surface. */
   .face-canvas { mix-blend-mode: screen; }
-  /* the pill's bottom edge above the card's bottom: on wide screens (xl, the hero's two columns side by side) its centre
-     is level with the left column's buttons (48 px column padding + half a 44 px button - the card's 12 px inset) */
-  .orb-well[data-face-preview] { --call-y: 28px; }
-  @media (min-width: 80rem) { .orb-well[data-face-preview] { --call-y: 36px; } }
+  /* the pill's bottom edge above the card's bottom, with room under it for the phone line (.call-line). It was 36 px on xl
+     to centre the pill on the left column's buttons; the phone line (2026-11-12) lifts it 14 px above that line */
+  .orb-well[data-face-preview] { --call-y: 52px; }
+  @media (min-width: 80rem) { .orb-well[data-face-preview] { --call-y: 50px; } }
   /* (only the idle container, inset-0: the call row, bottom-6, is a column and flex-end pushed its pill to the right) */
   .orb-well[data-face-preview] div.z-20.inset-0:has(> button) { align-items: flex-end; padding-bottom: var(--call-y); }
   .orb-well[data-face-preview] div.z-20.inset-0:has(> button) > svg { display: none; }
@@ -129,7 +129,12 @@ const FACE_UI_CSS = `
      the spoken line leaves); the small-screen idle label under the orb is dropped: the pill carries it */
   .orb-well[data-face-preview] div.z-20.bottom-6 { bottom: calc(var(--call-y) + 56px); transition: bottom 420ms cubic-bezier(0.2, 0.8, 0.2, 1); }
   .orb-well[data-face-preview]:has(button[data-state="live"]) div.z-20.bottom-6 { bottom: calc(var(--call-y) + 94px); }
-  .orb-well[data-face-preview] div.z-20.bottom-6 > p:not([role]) { display: none; }
+  .orb-well[data-face-preview] div.z-20.bottom-6 > p:not([role]):not(.call-line) { display: none; }
+  /* the phone line hangs 14 px under the idle pill (this row's bottom edge is 56 px above the pill's bottom edge) */
+  .orb-well[data-face-preview] .call-line {
+    position: absolute; left: 0; right: 0; top: calc(100% + 70px);
+    font-size: 16px; line-height: 22px; color: rgb(255 255 255 / 0.55);
+  }
 `;
 
 // Idle life for every ?face=1 mode; the lip-sync driver (G2P, coarticulation)

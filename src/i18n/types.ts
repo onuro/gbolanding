@@ -151,6 +151,7 @@ export interface Messages {
     voiceMicError: string;
     voiceMicInsecure: string;
     voiceSoundBlocked: string;
+    voiceCall: string;
   };
   proofStrip: {
     label: string;

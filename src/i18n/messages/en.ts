@@ -82,6 +82,7 @@ const enMessages: Messages = {
     voiceMicInsecure:
       "The microphone needs a secure connection. Open this page over https and start the call again.",
     voiceSoundBlocked: "Enable sound",
+    voiceCall: "Or call our assistant:",
   },
   proofStrip: {
     label: "How we help",

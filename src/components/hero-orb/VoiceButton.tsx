@@ -33,6 +33,7 @@ type Labels = {
   micError: string;
   micInsecure: string;
   soundBlocked: string;
+  call: string;
 };
 
 /**
@@ -535,9 +536,21 @@ export function VoiceButton({
           </button>
         ) : (
           // Below sm the hollow is too small to carry the label legibly.
-          <p className="text-center text-sm font-medium text-foreground/80 sm:hidden">
-            {label}
-          </p>
+          <>
+            <p className="text-center text-sm font-medium text-foreground/80 sm:hidden">
+              {label}
+            </p>
+            {/* the same agent answers this number */}
+            <p className="call-line text-center text-base text-foreground/55">
+              {labels.call}{" "}
+              <a
+                href="tel:+908503094672"
+                className="pointer-events-auto whitespace-nowrap font-mono text-foreground/90 underline decoration-foreground/30 underline-offset-4 outline-none transition hover:text-foreground hover:decoration-foreground focus-visible:rounded focus-visible:ring-2 focus-visible:ring-foreground"
+              >
+                +90 850 309 46 72
+              </a>
+            </p>
+          </>
         )}
         {error && (
           <p role="alert" className="max-w-xs text-center text-xs text-red-400">
